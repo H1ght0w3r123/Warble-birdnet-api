@@ -1,3 +1,4 @@
-[deploy]
-healthcheckPath = "/"
-healthcheckTimeout = 300
+birdnet==0.1.5
+fastapi
+uvicorn[standard]
+python-multipart
