@@ -1,0 +1,4 @@
+birdnet
+fastapi
+uvicorn[standard]
+python-multipart
