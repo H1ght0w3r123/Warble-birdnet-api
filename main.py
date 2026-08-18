@@ -1,28 +1,54 @@
+cat > /mnt/user-data/outputs/warble-birdnet-api/main.py << 'EOF'
 import os
 import tempfile
+import threading
 from pathlib import Path
 
 from fastapi import FastAPI, File, UploadFile
-from birdnet.models import ModelV2M4
+from fastapi.responses import JSONResponse
 
 app = FastAPI(title="Warble BirdNET Inference API")
 
-# The model loads once, when the server starts up — not on every request.
-# This is the slow bit (can take a minute or two on first boot), so don't
-# worry if the very first request after a deploy feels sluggish.
-print("Loading BirdNET model... this can take a minute on first startup.")
-model = ModelV2M4()
-print("BirdNET model loaded. Ready for requests.")
+# The model isn't loaded yet when the server starts — it loads in the
+# background instead, so Railway's health check gets an instant answer
+# and doesn't time out waiting for the (slow) model load to finish.
+model = None
+model_error = None
+
+
+def load_model():
+    global model, model_error
+    try:
+        print("Loading BirdNET model in background...")
+        from birdnet.models import ModelV2M4
+        model = ModelV2M4()
+        print("BirdNET model loaded. Ready for requests.")
+    except Exception as e:
+        model_error = str(e)
+        print(f"Failed to load BirdNET model: {e}")
+
+
+threading.Thread(target=load_model, daemon=True).start()
 
 
 @app.get("/")
 def root():
     """
-    Visit this in a browser to confirm the service is alive at all.
-    If this doesn't load, the problem is deployment/networking.
-    If this loads but /identify doesn't, the problem is narrower.
+    Visit this in a browser any time to check status. It answers
+    immediately, even while the model is still loading in the background.
     """
-    return {"status": "ok", "message": "Warble BirdNET inference API is running."}
+    if model is not None:
+        status = "ready"
+    elif model_error is not None:
+        status = "error"
+    else:
+        status = "loading"
+
+    return {
+        "status": status,
+        "message": "Warble BirdNET inference API",
+        "model_error": model_error,
+    }
 
 
 @app.post("/identify")
@@ -32,6 +58,15 @@ async def identify(file: UploadFile = File(...)):
     field name 'file'. Returns the species BirdNET detected, ranked by
     confidence, highest first.
     """
+    if model is None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "loading",
+                "message": "Model is still loading — check the '/' endpoint, then try again shortly.",
+            },
+        )
+
     suffix = Path(file.filename).suffix or ".wav"
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -44,8 +79,6 @@ async def identify(file: UploadFile = File(...)):
     finally:
         os.unlink(tmp_path)
 
-    # predictions is keyed by (start_seconds, end_seconds) time chunks,
-    # each holding an ordered dict of {"ScientificName_CommonName": confidence}
     results = []
     for (start, end), species_scores in predictions.items():
         for label, confidence in species_scores.items():
@@ -66,10 +99,9 @@ async def identify(file: UploadFile = File(...)):
     return {"detections": results[:10]}
 
 
-# This block only matters if the app is ever started with `python main.py`
-# directly. Railway will normally use the Procfile instead — but having
-# this here too means the app still does the right thing either way.
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
+EOF
+echo "main.py updated"
