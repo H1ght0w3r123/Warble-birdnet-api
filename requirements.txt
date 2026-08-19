@@ -1,4 +1,6 @@
 birdnetlib==0.13.1
+librosa
+tensorflow
 fastapi
 uvicorn[standard]
 python-multipart
