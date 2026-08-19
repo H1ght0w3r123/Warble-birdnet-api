@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
+from pydub import AudioSegment
 
 app = FastAPI(title="Warble BirdNET Inference API")
 
@@ -62,18 +63,34 @@ async def identify(file: UploadFile = File(...)):
         )
 
     suffix = Path(file.filename).suffix or ".wav"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_in:
         contents = await file.read()
-        tmp.write(contents)
-        tmp_path = tmp.name
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+
+    # Convert whatever format arrived (aac, m4a, mp3, wav, ...) into a
+    # clean WAV file using ffmpeg. This is deliberately explicit rather
+    # than relying on librosa's own format-fallback behaviour, which
+    # varies between versions and caused exactly this kind of failure.
+    tmp_wav_path = tmp_in_path + "_converted.wav"
+    try:
+        audio = AudioSegment.from_file(tmp_in_path)
+        audio.export(tmp_wav_path, format="wav")
+    except Exception as e:
+        os.unlink(tmp_in_path)
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": f"Could not read this audio file: {e}"},
+        )
 
     try:
         from birdnetlib import Recording
-        recording = Recording(analyzer, tmp_path, min_conf=0.1)
+        recording = Recording(analyzer, tmp_wav_path, min_conf=0.1)
         recording.analyze()
         detections = recording.detections
     finally:
-        os.unlink(tmp_path)
+        os.unlink(tmp_in_path)
+        os.unlink(tmp_wav_path)
 
     detections.sort(key=lambda d: d["confidence"], reverse=True)
 
