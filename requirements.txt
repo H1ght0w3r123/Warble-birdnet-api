@@ -1,6 +1,7 @@
 birdnetlib==0.13.1
 librosa
 tensorflow
+audioop-lts
 fastapi
 uvicorn[standard]
 python-multipart
