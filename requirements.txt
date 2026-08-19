@@ -1,5 +1,6 @@
 birdnetlib==0.13.1
 librosa
+audioread
 tensorflow
 audioop-lts
 fastapi
