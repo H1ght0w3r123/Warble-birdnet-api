@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warble</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dusk:#2D1B69; --dusk-mid:#3D2A85;
+    --terra:#E8845C; --terra-dk:#B85A36;
+    --parch:#F5EDD6; --parch-dk:#E9DDBE;
+    --gold:#F2C94C; --gold-dk:#B8901F;
+    --sage:#7EC8A4; --sage-dk:#3F7C5C;
+    --mist:#C4BFDF; --mist-dk:#8E87B8;
+    --rose:#E87EA1; --ink:#1A1128;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Space Grotesk',sans-serif;
+    background:var(--parch);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px 60px;
+  }
+  .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .wordmark{font-family:'Outfit';font-weight:900;font-size:24px;color:var(--dusk);}
+  .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;}
+
+  .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;}
+
+  /* --- Idle / Recording --- */
+  .mic-btn{
+    width:120px;height:120px;border-radius:50%;
+    background:var(--terra); color:#fff; font-size:38px;
+    border:none; box-shadow:0 8px 0 var(--terra-dk);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer; transition:transform .1s;
+  }
+  .mic-btn:active{transform:translateY(6px); box-shadow:0 2px 0 var(--terra-dk);}
+  .mic-btn.recording{background:var(--dusk); box-shadow:0 8px 0 var(--dusk-mid); animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:var(--dusk);text-align:center;}
+  .stage-sub{margin-top:6px;font-size:13px;color:var(--mist-dk);text-align:center;}
+  .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:var(--dusk);margin-top:14px;}
+
+  /* --- Card --- */
+  .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
+  .progress{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mist-dk);margin-bottom:14px;}
+  .card{
+    width:100%; max-width:300px; background:#fff; border-radius:20px;
+    overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.18);
+    border:3px solid var(--tier-color, var(--sage));
+  }
+  .card-photo{width:100%;height:200px;object-fit:cover;background:var(--parch-dk);display:block;}
+  .card-body{padding:16px 18px 20px;}
+  .card-name{font-family:'Outfit';font-weight:900;font-size:22px;color:var(--dusk);}
+  .card-sci{font-size:12px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
+  .card-tags{display:flex;gap:8px;margin-top:10px;}
+  .tag{font-family:'Outfit';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
+  .tag.tier{background:var(--tier-color, var(--sage)); color:#fff;}
+  .tag.new{background:var(--gold); color:var(--ink);}
+  .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
+  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:15px;color:var(--gold-dk);}
+  .next-btn{
+    margin-top:22px; width:100%; max-width:300px; padding:15px 0;
+    background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
+  }
+
+  /* --- Done --- */
+  .done-icon{font-size:44px;}
+  .done-title{font-family:'Outfit';font-weight:900;font-size:22px;color:var(--dusk);margin-top:10px;}
+  .done-sub{color:var(--mist-dk);font-size:14px;margin-top:6px;text-align:center;}
+  .again-btn{
+    margin-top:24px; padding:15px 34px;
+    background:var(--dusk); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    border:none; border-radius:30px; box-shadow:0 4px 0 var(--dusk-mid); cursor:pointer;
+  }
+  .error{color:var(--terra-dk);font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
+</style>
+</head>
+<body>
+
+  <div class="top">
+    <div class="wordmark">Warble</div>
+    <div class="feathers">🪶 <span id="featherCount">–</span></div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+<script>
+const stage = document.getElementById('stage');
+const featherCountEl = document.getElementById('featherCount');
+
+const TIER_COLORS = { Common: 'var(--sage)', Visitor: 'var(--terra)', Rare: 'var(--gold-dk)' };
+
+let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
+let sessionResults = [], cardIndex = 0;
+
+async function refreshFeathers() {
+  try {
+    const res = await fetch('/feathers');
+    const data = await res.json();
+    featherCountEl.textContent = Math.round(data.total_feathers);
+  } catch (e) { /* fine to fail quietly here */ }
+}
+
+function renderIdle() {
+  stage.innerHTML = `
+    <button class="mic-btn" id="recordBtn">🎙</button>
+    <div class="stage-label">Go Warbling</div>
+    <div class="stage-sub">Tap, then listen for a bird</div>
+  `;
+  document.getElementById('recordBtn').onclick = startRecording;
+}
+
+function renderRecording() {
+  stage.innerHTML = `
+    <button class="mic-btn recording" id="stopBtn">■</button>
+    <div class="timer" id="timer">0:00</div>
+    <div class="stage-sub">Tap to stop</div>
+  `;
+  document.getElementById('stopBtn').onclick = stopRecording;
+}
+
+function renderProcessing() {
+  stage.innerHTML = `
+    <div class="stage-label">Listening back...</div>
+    <div class="stage-sub">Working out what you heard</div>
+  `;
+}
+
+function renderError(message) {
+  stage.innerHTML = `
+    <div class="stage-label">Hmm, that didn't work</div>
+    <div class="error">${message}</div>
+    <button class="again-btn" id="retryBtn">Try again</button>
+  `;
+  document.getElementById('retryBtn').onclick = renderIdle;
+}
+
+function renderCard() {
+  if (sessionResults.length === 0) { renderNoBirds(); return; }
+  const bird = sessionResults[cardIndex];
+  const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+  stage.innerHTML = `
+    <div class="card-wrap">
+      <div class="progress">Bird ${cardIndex + 1} of ${sessionResults.length}</div>
+      <div class="card" style="--tier-color:${tierColor}">
+        ${bird.photo_url ? `<img class="card-photo" src="${bird.photo_url}">` : `<div class="card-photo"></div>`}
+        <div class="card-body">
+          <div class="card-name">${bird.common_name}</div>
+          <div class="card-sci">${bird.scientific_name}</div>
+          <div class="card-tags">
+            <span class="tag tier">${bird.tier}</span>
+            <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
+          </div>
+          <div class="feather-row">🪶 +${bird.feathers}</div>
+        </div>
+      </div>
+      <button class="next-btn" id="nextBtn">${cardIndex + 1 < sessionResults.length ? 'Next bird →' : 'Done'}</button>
+    </div>
+  `;
+  document.getElementById('nextBtn').onclick = () => {
+    cardIndex++;
+    if (cardIndex < sessionResults.length) renderCard(); else renderDone();
+  };
+}
+
+function renderNoBirds() {
+  stage.innerHTML = `
+    <div class="done-icon">🌿</div>
+    <div class="done-title">No birds heard this time</div>
+    <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
+    <button class="again-btn" id="againBtn">Go again</button>
+  `;
+  document.getElementById('againBtn').onclick = renderIdle;
+}
+
+function renderDone() {
+  const total = sessionResults.reduce((sum, b) => sum + b.feathers, 0);
+  stage.innerHTML = `
+    <div class="done-icon">✨</div>
+    <div class="done-title">Nice warble!</div>
+    <div class="done-sub">You earned ${total} feathers this session</div>
+    <button class="again-btn" id="againBtn">Go again</button>
+  `;
+  document.getElementById('againBtn').onclick = renderIdle;
+  refreshFeathers();
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.start();
+    recordSeconds = 0;
+    renderRecording();
+    recordTimerInterval = setInterval(() => {
+      recordSeconds++;
+      const m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
+      const timerEl = document.getElementById('timer');
+      if (timerEl) timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    }, 1000);
+  } catch (e) {
+    renderError("Couldn't access your microphone. Check your browser's permission settings.");
+  }
+}
+
+function stopRecording() {
+  clearInterval(recordTimerInterval);
+  mediaRecorder.onstop = async () => {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    renderProcessing();
+    try {
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'recording.webm');
+      const res = await fetch('/analyze-session', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      const data = await res.json();
+      sessionResults = data.detections || [];
+      cardIndex = 0;
+      renderCard();
+    } catch (e) {
+      renderError(e.message || 'Something went wrong talking to the server.');
+    }
+  };
+  mediaRecorder.stop();
+  mediaRecorder.stream.getTracks().forEach(t => t.stop());
+}
+
+renderIdle();
+refreshFeathers();
+</script>
+
+</body>
+</html>

@@ -7,10 +7,12 @@ from pathlib import Path
 
 import requests
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydub import AudioSegment
 
 app = FastAPI(title="Warble BirdNET Inference API")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Loads in the background so the server can start answering requests
 # (including Railway's health check) right away.
@@ -34,7 +36,15 @@ threading.Thread(target=load_analyzer, daemon=True).start()
 
 
 @app.get("/")
-def root():
+def serve_app():
+    """The actual app — a real page now, not just a status check."""
+    return FileResponse("static/index.html")
+
+
+@app.get("/status")
+def status():
+    """The old root endpoint, moved here — still useful for checking
+    whether the model's finished loading, same as before."""
     if analyzer is not None:
         status = "ready"
     elif analyzer_error is not None:
@@ -61,7 +71,7 @@ async def identify(file: UploadFile = File(...)):
             status_code=503,
             content={
                 "status": "loading",
-                "message": "Analyzer is still loading — check the '/' endpoint, then try again shortly.",
+                "message": "Analyzer is still loading — check the '/status' endpoint, then try again shortly.",
             },
         )
 
@@ -101,54 +111,17 @@ async def identify(file: UploadFile = File(...)):
 
 
 # ============================================================
-# Everything below here is the new all-in-one session endpoint.
+# Everything below here is the all-in-one session endpoint.
 # It does BirdNET + NBN Atlas tiering + duplicate checking +
-# Wikipedia photos + feather maths + saving to Bubble, all in
-# one call — replacing several separate Bubble workflow steps.
+# Wikipedia photos + feather maths + saving — all in one call.
 # ============================================================
 
-BUBBLE_APP_URL = os.environ.get("BUBBLE_APP_URL", "")  # e.g. https://your-app.bubbleapps.io/version-test
-BUBBLE_API_TOKEN = os.environ.get("BUBBLE_API_TOKEN", "")
+from database import (
+    init_db, has_existing_sighting, save_sighting,
+    add_feathers, get_all_sightings, get_total_feathers,
+)
 
-# IMPORTANT: check these against your own app's Data API documentation
-# (Settings -> API in Bubble, once the Data API is switched on). Field
-# names sometimes need adjusting to match exactly what your app expects —
-# don't assume these are right without checking.
-BUBBLE_SIGHTING_TYPE = "sightings"
-FIELD_COMMON_NAME = "Common Name"
-FIELD_SCIENTIFIC_NAME = "Scientific Name"
-FIELD_CONFIDENCE = "Confidence"
-FIELD_TIER = "Tier"
-FIELD_IMAGE = "Image"
-
-
-def bubble_headers():
-    return {
-        "Authorization": f"Bearer {BUBBLE_API_TOKEN}",
-        "Content-Type": "application/json",
-    }
-
-
-def check_existing_sighting(common_name: str) -> bool:
-    """Ask Bubble: has this species already been saved as a Sighting?"""
-    if not BUBBLE_APP_URL or not BUBBLE_API_TOKEN:
-        print("Warning: Bubble credentials not set — treating everything as new.")
-        return False
-    url = f"{BUBBLE_APP_URL}/api/1.1/obj/{BUBBLE_SIGHTING_TYPE}"
-    constraints = [{"key": FIELD_COMMON_NAME, "constraint_type": "equals", "value": common_name}]
-    try:
-        response = requests.get(
-            url,
-            headers=bubble_headers(),
-            params={"constraints": json.dumps(constraints)},
-            timeout=10,
-        )
-        response.raise_for_status()
-        results = response.json().get("response", {}).get("results", [])
-        return len(results) > 0
-    except Exception as e:
-        print(f"Warning: could not check Bubble for existing sighting of {common_name}: {e}")
-        return False
+init_db()
 
 
 def get_nbn_tier(scientific_name: str, lat: float, lng: float):
@@ -198,31 +171,6 @@ def calculate_feathers(tier: str, is_duplicate: bool) -> float:
     return values.get((tier, is_duplicate), 0)
 
 
-def save_sighting_to_bubble(common_name, scientific_name, confidence, tier, photo_url):
-    """Create a new Sighting record directly in Bubble's database."""
-    if not BUBBLE_APP_URL or not BUBBLE_API_TOKEN:
-        print("Warning: Bubble credentials not set — skipping save.")
-        return
-    url = f"{BUBBLE_APP_URL}/api/1.1/obj/{BUBBLE_SIGHTING_TYPE}"
-    payload = {
-        FIELD_COMMON_NAME: common_name,
-        FIELD_SCIENTIFIC_NAME: scientific_name,
-        FIELD_CONFIDENCE: confidence,
-        FIELD_TIER: tier,
-        FIELD_IMAGE: photo_url,
-    }
-    try:
-        response = requests.post(url, headers=bubble_headers(), json=payload, timeout=10)
-        response.raise_for_status()
-    except Exception as e:
-        error_detail = ""
-        try:
-            error_detail = response.text
-        except Exception:
-            pass
-        print(f"Warning: failed to save sighting '{common_name}' to Bubble: {e} | Bubble said: {error_detail}")
-
-
 @app.post("/analyze-session")
 async def analyze_session(
     file: UploadFile = File(...),
@@ -232,8 +180,8 @@ async def analyze_session(
     """
     The all-in-one endpoint. Identifies every bird in a recording, checks
     each one's rarity tier and duplicate status, calculates feathers,
-    fetches a photo, saves it to Bubble, and returns the full enriched
-    list — ready to display directly in a Repeating Group.
+    fetches a photo, saves it to the database, and returns the full
+    enriched list — ready to display directly on the page.
     """
     if analyzer is None:
         return JSONResponse(
@@ -277,12 +225,12 @@ async def analyze_session(
         scientific_name = detection["scientific_name"]
         confidence = detection["confidence"]
 
-        is_duplicate = check_existing_sighting(common_name)
+        is_duplicate = has_existing_sighting(common_name)
         tier, record_count = get_nbn_tier(scientific_name, lat, lng)
         feathers = calculate_feathers(tier, is_duplicate)
         photo_url = get_wikipedia_photo(scientific_name)
 
-        save_sighting_to_bubble(common_name, scientific_name, confidence, tier, photo_url)
+        save_sighting(common_name, scientific_name, confidence, tier, photo_url)
 
         results.append({
             "common_name": common_name,
@@ -300,10 +248,26 @@ async def analyze_session(
             "lng": lng,
         })
 
+    session_feathers = sum(r["feathers"] for r in results)
+    new_total = add_feathers(session_feathers)
+
     return {
         "detections": results,
-        "total_feathers_this_session": sum(r["feathers"] for r in results),
+        "total_feathers_this_session": session_feathers,
+        "total_feathers": new_total,
     }
+
+
+@app.get("/sightings")
+def list_sightings():
+    """Every bird ever found, newest first — for a Collection screen."""
+    return {"sightings": get_all_sightings()}
+
+
+@app.get("/feathers")
+def feathers_total():
+    """The current running feather total."""
+    return {"total_feathers": get_total_feathers()}
 
 
 if __name__ == "__main__":
