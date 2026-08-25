@@ -30,14 +30,12 @@
 
   .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;}
 
-  /* --- Recording panel: dawn gradient + pine silhouette --- */
-  .recording-panel{
-    width:100%; border-radius:24px; position:relative; overflow:hidden;
-    padding:44px 16px 64px; display:flex; flex-direction:column; align-items:center;
+  /* --- Recording panel: dawn gradient + pine silhouette, full screen --- */
+  body.recording-mode{
     background:linear-gradient(180deg,#3D2A85 0%,#8C6BB0 45%,#F0A868 75%,#F6C98A 100%);
   }
   .pines{
-    position:absolute; bottom:0; left:0; width:100%; height:56px; background:var(--dusk);
+    position:fixed; bottom:0; left:0; width:100%; height:70px; background:var(--dusk); z-index:0;
     clip-path:polygon(0 100%,0 60%,5% 10%,10% 60%,15% 60%,20% 5%,25% 60%,30% 60%,35% 15%,40% 60%,45% 60%,50% 0%,55% 60%,60% 60%,65% 15%,70% 60%,75% 60%,80% 5%,85% 60%,90% 60%,95% 10%,100% 60%,100% 100%);
   }
 
@@ -55,8 +53,8 @@
   .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:var(--dusk);text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:var(--mist-dk);text-align:center;}
   .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:var(--dusk);margin-top:14px;}
-  .recording-panel .stage-label, .recording-panel .timer{color:#fff;}
-  .recording-panel .stage-sub{color:rgba(255,255,255,0.85);}
+  body.recording-mode .stage-label, body.recording-mode .timer{color:#fff;}
+  body.recording-mode .stage-sub{color:rgba(255,255,255,0.85);}
 
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
@@ -135,6 +133,8 @@
   .status-badge.status-green{background:#DFF3E6;color:var(--sage-dk);}
   .status-badge.status-amber{background:#FDEBD3;color:var(--terra-dk);}
   .status-badge.status-red{background:#FBDCDC;color:#A83232;}
+  .learn-more{display:inline-block;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
+  .learn-more:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -168,6 +168,7 @@ async function refreshFeathers() {
 }
 
 function renderIdle() {
+  document.body.classList.remove('recording-mode');
   stage.innerHTML = `
     <button class="mic-btn" id="recordBtn">🎙</button>
     <div class="stage-label">Go Warbling</div>
@@ -177,13 +178,12 @@ function renderIdle() {
 }
 
 function renderRecording() {
+  document.body.classList.add('recording-mode');
   stage.innerHTML = `
-    <div class="recording-panel">
-      <div class="pines"></div>
-      <button class="mic-btn recording" id="stopBtn">■</button>
-      <div class="timer" id="timer">0:00</div>
-      <div class="stage-sub">Tap to stop</div>
-    </div>
+    <div class="pines"></div>
+    <button class="mic-btn recording" id="stopBtn">■</button>
+    <div class="timer" id="timer">0:00</div>
+    <div class="stage-sub">Tap to stop</div>
   `;
   document.getElementById('stopBtn').onclick = stopRecording;
 }
@@ -221,6 +221,7 @@ function renderCard() {
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
           </div>
           <div class="feather-row">🪶 +${bird.feathers}</div>
+          <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         </div>
       </div>
       <button class="next-btn" id="nextBtn">${cardIndex + 1 < sessionResults.length ? 'Next bird →' : 'Done'}</button>
@@ -232,9 +233,13 @@ function renderCard() {
   };
 }
 
+function wikipediaUrl(scientificName) {
+  return `https://en.wikipedia.org/wiki/${scientificName.replace(/ /g, '_')}`;
+}
+
 function renderNoBirds() {
   stage.innerHTML = `
-    <div class="done-icon">🌿</div>
+    <div class="done-icon">🪹</div>
     <div class="done-title">No birds heard this time</div>
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
     <button class="again-btn" id="againBtn">Go again</button>
@@ -343,6 +348,7 @@ function renderBirdDetail(commonName) {
         </div>
         ${buildFactsDashboard(latest.facts)}
         ${(!latest.facts && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
+        <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
       </div>
     </div>
   `;
@@ -414,6 +420,7 @@ async function startRecording() {
 }
 
 function stopRecording() {
+  document.body.classList.remove('recording-mode');
   clearInterval(recordTimerInterval);
   mediaRecorder.onstop = async () => {
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
