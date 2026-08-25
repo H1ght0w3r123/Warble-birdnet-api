@@ -192,8 +192,8 @@ def get_wikipedia_photo(scientific_name: str):
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
     values = {
-        ("Common", False): 1, ("Visitor", False): 3, ("Rare", False): 7,
-        ("Common", True): 0.2, ("Visitor", True): 0.6, ("Rare", True): 1.5,
+        ("Common", False): 5, ("Visitor", False): 25, ("Rare", False): 50,
+        ("Common", True): 1, ("Visitor", True): 2, ("Rare", True): 10,
     }
     return values.get((tier, is_duplicate), 0)
 
