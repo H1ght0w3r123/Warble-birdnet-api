@@ -120,6 +120,7 @@ from database import (
     init_db, has_existing_sighting, save_sighting,
     add_feathers, get_all_sightings, get_total_feathers,
 )
+from bird_facts import get_bird_facts
 
 init_db()
 
@@ -275,8 +276,13 @@ async def analyze_session(
 
 @app.get("/sightings")
 def list_sightings():
-    """Every bird ever found, newest first — for a Collection screen."""
-    return {"sightings": get_all_sightings()}
+    """Every bird ever found, newest first — for a Collection screen.
+    Each one includes curated facts (size, wingspan, habitat) when
+    we've researched that species — None if we haven't yet."""
+    sightings = get_all_sightings()
+    for s in sightings:
+        s["facts"] = get_bird_facts(s["common_name"])
+    return {"sightings": sightings}
 
 
 @app.get("/feathers")
