@@ -217,6 +217,17 @@ async def analyze_session(
 
     detections.sort(key=lambda d: d["confidence"], reverse=True)
 
+    # If the same species was heard more than once in this one recording,
+    # only keep its strongest detection — one card per bird per listen,
+    # not one per moment it happened to call.
+    seen_species = set()
+    unique_detections = []
+    for d in detections:
+        if d["common_name"] not in seen_species:
+            seen_species.add(d["common_name"])
+            unique_detections.append(d)
+    detections = unique_detections
+
     now = datetime.datetime.utcnow()
     results = []
 
