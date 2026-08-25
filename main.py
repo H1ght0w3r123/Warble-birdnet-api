@@ -119,10 +119,37 @@ async def identify(file: UploadFile = File(...)):
 from database import (
     init_db, has_existing_sighting, save_sighting,
     add_feathers, get_all_sightings, get_total_feathers,
+    record_session, count_distinct_locations,
+    get_earned_trophy_keys, award_trophy,
 )
 from bird_facts import get_bird_facts
+from trophies import TROPHY_DEFINITIONS, is_before_sunrise
 
 init_db()
+
+
+def check_trophies(lat: float, lng: float, moment_utc: datetime.datetime):
+    """
+    Logs this session, then checks the 3 built trophies against it.
+    Returns a list of trophies newly earned THIS call — already-earned
+    ones aren't repeated.
+    """
+    total_sessions = record_session(lat, lng)
+    newly_earned = []
+
+    if total_sessions == 1:
+        if award_trophy("fledgling"):
+            newly_earned.append("fledgling")
+
+    if is_before_sunrise(lat, lng, moment_utc):
+        if award_trophy("early_bird"):
+            newly_earned.append("early_bird")
+
+    if count_distinct_locations() >= 10:
+        if award_trophy("nomad"):
+            newly_earned.append("nomad")
+
+    return [{"key": k, **TROPHY_DEFINITIONS[k]} for k in newly_earned]
 
 
 def get_nbn_tier(scientific_name: str, lat: float, lng: float):
@@ -232,8 +259,10 @@ async def analyze_session(
             unique_detections.append(d)
     detections = unique_detections
 
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
     results = []
+
+    newly_earned_trophies = check_trophies(lat, lng, now)
 
     for detection in detections:
         common_name = detection["common_name"]
@@ -271,6 +300,19 @@ async def analyze_session(
         "detections": results,
         "total_feathers_this_session": session_feathers,
         "total_feathers": new_total,
+        "newly_earned_trophies": newly_earned_trophies,
+    }
+
+
+@app.get("/trophies")
+def list_trophies():
+    """All 3 built trophies, each marked earned or not."""
+    earned = get_earned_trophy_keys()
+    return {
+        "trophies": [
+            {"key": key, "earned": key in earned, **info}
+            for key, info in TROPHY_DEFINITIONS.items()
+        ]
     }
 
 

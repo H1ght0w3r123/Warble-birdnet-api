@@ -135,6 +135,25 @@
   .status-badge.status-red{background:#FBDCDC;color:#A83232;}
   .learn-more{display:inline-block;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
+
+  /* --- Trophies --- */
+  .trophy-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .trophy-tile{background:#fff;border-radius:14px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .trophy-tile.earned{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
+  .trophy-emoji{font-size:32px;}
+  .trophy-tile.locked .trophy-emoji{filter:grayscale(1);opacity:.35;}
+  .trophy-name{font-family:'Outfit';font-weight:700;font-size:12px;margin-top:6px;color:var(--dusk);}
+  .trophy-tile.locked .trophy-name{color:var(--mist-dk);}
+  .trophy-banner{
+    width:100%;background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:16px;
+    padding:14px;margin-top:16px;text-align:center;
+  }
+  .trophy-banner-title{font-family:'Outfit';font-weight:900;font-size:13px;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.04em;}
+  .trophy-banner-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px;}
+  .trophy-banner-emoji{font-size:24px;}
+  .trophy-banner-text{text-align:left;}
+  .trophy-banner-name{font-family:'Outfit';font-weight:700;font-size:14px;color:var(--dusk);}
+  .trophy-banner-citation{font-size:11px;color:var(--mist-dk);}
 </style>
 </head>
 <body>
@@ -142,6 +161,7 @@
   <div class="top">
     <div class="wordmark">Warble</div>
     <div style="display:flex;align-items:center;gap:8px;">
+      <button class="top-btn" id="trophiesBtn">🏆</button>
       <button class="top-btn" id="collectionBtn">📚</button>
       <div class="feathers">🪶 <span id="featherCount">–</span></div>
     </div>
@@ -389,18 +409,54 @@ function buildFactsDashboard(facts) {
 
 function renderDone() {
   const total = sessionResults.reduce((sum, b) => sum + b.feathers, 0);
+  const trophyBanners = newlyEarnedTrophies.map(t => `
+    <div class="trophy-banner">
+      <div class="trophy-banner-title">🏆 Trophy earned!</div>
+      <div class="trophy-banner-row">
+        <div class="trophy-banner-emoji">${t.emoji}</div>
+        <div class="trophy-banner-text">
+          <div class="trophy-banner-name">${t.name}</div>
+          <div class="trophy-banner-citation">${t.citation}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
   stage.innerHTML = `
     <div class="done-icon">✨</div>
     <div class="done-title">Nice warble!</div>
     <div class="done-sub">You earned ${total} feathers this session</div>
+    ${trophyBanners}
     <button class="again-btn" id="againBtn">Go again</button>
   `;
   document.getElementById('againBtn').onclick = renderIdle;
+  newlyEarnedTrophies = [];
   refreshFeathers();
+}
+
+let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
+
+function requestGpsPosition() {
+  // Fire-and-forget — recording shouldn't wait on this. A recording is
+  // several seconds long at minimum, plenty of time for GPS to resolve
+  // before Stop is actually pressed. If it fails or isn't available,
+  // currentLat/currentLng just stay null and the backend's own default
+  // location is used instead.
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      currentLat = pos.coords.latitude;
+      currentLng = pos.coords.longitude;
+    },
+    (err) => {
+      console.log('GPS unavailable, using default location:', err.message);
+    },
+    { timeout: 8000 }
+  );
 }
 
 async function startRecording() {
   try {
+    requestGpsPosition();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
@@ -428,10 +484,15 @@ function stopRecording() {
     try {
       const formData = new FormData();
       formData.append('file', audioBlob, 'recording.webm');
+      if (currentLat !== null && currentLng !== null) {
+        formData.append('lat', currentLat);
+        formData.append('lng', currentLng);
+      }
       const res = await fetch('/analyze-session', { method: 'POST', body: formData });
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
       sessionResults = data.detections || [];
+      newlyEarnedTrophies = data.newly_earned_trophies || [];
       cardIndex = 0;
       renderCard();
     } catch (e) {
@@ -445,6 +506,45 @@ function stopRecording() {
 renderIdle();
 refreshFeathers();
 document.getElementById('collectionBtn').onclick = renderCollection;
+document.getElementById('trophiesBtn').onclick = renderTrophies;
+
+async function renderTrophies() {
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div class="collection-header">
+      <button class="back-btn" id="backBtn">← Back</button>
+      <div class="collection-title">Trophies</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="collection-count">Loading...</div>
+    <div class="trophy-grid" id="trophyGrid"></div>
+  `;
+  document.getElementById('backBtn').onclick = () => {
+    stage.classList.remove('top-aligned');
+    renderIdle();
+  };
+
+  const countEl = stage.querySelector('.collection-count');
+  const grid = document.getElementById('trophyGrid');
+  try {
+    const res = await fetch('/trophies');
+    const data = await res.json();
+    const trophies = data.trophies || [];
+    const earnedCount = trophies.filter(t => t.earned).length;
+    if (countEl) countEl.textContent = `${earnedCount} of ${trophies.length} earned`;
+    if (grid) {
+      grid.innerHTML = trophies.map(t => `
+        <div class="trophy-tile ${t.earned ? 'earned' : 'locked'}">
+          <div class="trophy-emoji">${t.earned ? t.emoji : '❔'}</div>
+          <div class="trophy-name">${t.earned ? t.name : '???'}</div>
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    if (countEl) countEl.textContent = '';
+    if (grid) grid.outerHTML = `<div class="collection-empty">Couldn't load trophies right now.</div>`;
+  }
+}
 </script>
 
 </body>
