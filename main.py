@@ -215,7 +215,12 @@ def save_sighting_to_bubble(common_name, scientific_name, confidence, tier, phot
         response = requests.post(url, headers=bubble_headers(), json=payload, timeout=10)
         response.raise_for_status()
     except Exception as e:
-        print(f"Warning: failed to save sighting '{common_name}' to Bubble: {e}")
+        error_detail = ""
+        try:
+            error_detail = response.text
+        except Exception:
+            pass
+        print(f"Warning: failed to save sighting '{common_name}' to Bubble: {e} | Bubble said: {error_detail}")
 
 
 @app.post("/analyze-session")
