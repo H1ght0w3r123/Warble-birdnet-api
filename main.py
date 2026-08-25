@@ -6,7 +6,7 @@ import datetime
 from pathlib import Path
 
 import requests
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydub import AudioSegment
@@ -121,6 +121,7 @@ from database import (
     add_feathers, get_all_sightings, get_total_feathers,
     record_session, count_distinct_locations,
     get_earned_trophy_keys, award_trophy,
+    get_location_name, save_location_name,
 )
 from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise
@@ -263,6 +264,8 @@ async def analyze_session(
     results = []
 
     newly_earned_trophies = check_trophies(lat, lng, now)
+    existing_location_name = get_location_name(lat, lng)
+    needs_location_name = existing_location_name is None
 
     for detection in detections:
         common_name = detection["common_name"]
@@ -274,7 +277,7 @@ async def analyze_session(
         feathers = calculate_feathers(tier, is_duplicate)
         photo_url, description = get_wikipedia_info(scientific_name)
 
-        save_sighting(common_name, scientific_name, confidence, tier, photo_url, description)
+        save_sighting(common_name, scientific_name, confidence, tier, photo_url, description, lat, lng)
 
         results.append({
             "common_name": common_name,
@@ -301,7 +304,18 @@ async def analyze_session(
         "total_feathers_this_session": session_feathers,
         "total_feathers": new_total,
         "newly_earned_trophies": newly_earned_trophies,
+        "needs_location_name": needs_location_name,
+        "location_name": existing_location_name,
+        "lat": lat,
+        "lng": lng,
     }
+
+
+@app.post("/name-location")
+async def name_location(lat: float = Form(...), lng: float = Form(...), name: str = Form(...)):
+    """Saves a free-text name for wherever (lat, lng) rounds to."""
+    save_location_name(lat, lng, name)
+    return {"status": "ok"}
 
 
 @app.get("/trophies")

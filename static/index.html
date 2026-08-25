@@ -141,6 +141,13 @@
   .status-badge.status-red{background:#FBDCDC;color:#A83232;}
   .learn-more{display:inline-block;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
+  .location-input{
+    margin-top:18px;width:100%;max-width:280px;padding:13px 16px;border-radius:12px;border:none;
+    font-family:'Space Grotesk';font-size:15px;text-align:center;
+  }
+  .skip-btn{background:none;border:none;color:rgba(255,255,255,0.85);font-family:'Outfit';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
+  .location-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .location-tag{display:flex;align-items:center;gap:4px;background:var(--rose);color:#fff;font-family:'Outfit';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
 
   /* --- Trophies --- */
   .trophy-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -254,8 +261,39 @@ function renderCard() {
   `;
   document.getElementById('nextBtn').onclick = () => {
     cardIndex++;
-    if (cardIndex < sessionResults.length) renderCard(); else renderDone();
+    if (cardIndex < sessionResults.length) {
+      renderCard();
+    } else if (needsLocationName) {
+      renderNameLocation(renderDone);
+    } else {
+      renderDone();
+    }
   };
+}
+
+function renderNameLocation(onDone) {
+  stage.innerHTML = `
+    <div class="stage-label">New spot!</div>
+    <div class="stage-sub">What do you call this place?</div>
+    <input type="text" id="locationInput" class="location-input" placeholder="e.g. Back Garden" maxlength="40">
+    <button class="again-btn" id="saveLocationBtn">Save</button>
+    <button class="skip-btn" id="skipLocationBtn">Skip for now</button>
+  `;
+  document.getElementById('saveLocationBtn').onclick = async () => {
+    const name = document.getElementById('locationInput').value.trim();
+    if (name && sessionLat !== null && sessionLng !== null) {
+      try {
+        const formData = new FormData();
+        formData.append('lat', sessionLat);
+        formData.append('lng', sessionLng);
+        formData.append('name', name);
+        await fetch('/name-location', { method: 'POST', body: formData });
+      } catch (e) { /* not critical if this fails, just move on */ }
+    }
+    needsLocationName = false;
+    onDone();
+  };
+  document.getElementById('skipLocationBtn').onclick = () => onDone();
 }
 
 function wikipediaUrl(scientificName) {
@@ -269,7 +307,9 @@ function renderNoBirds() {
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
     <button class="again-btn" id="againBtn">Go again</button>
   `;
-  document.getElementById('againBtn').onclick = renderIdle;
+  document.getElementById('againBtn').onclick = () => {
+    if (needsLocationName) renderNameLocation(renderIdle); else renderIdle();
+  };
 }
 
 function renderCollection() {
@@ -348,6 +388,8 @@ function renderBirdDetail(commonName) {
   const firstFound = matches[matches.length - 1];
   const tierColor = TIER_COLORS[latest.tier] || 'var(--sage)';
   const firstDate = new Date(firstFound.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  const locationNames = [...new Set(matches.map(m => m.location_name).filter(Boolean))];
+  const locationTags = locationNames.map(name => `<span class="location-tag">📍 ${name}</span>`).join('');
 
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:14px;">
@@ -371,6 +413,7 @@ function renderBirdDetail(commonName) {
             <div class="detail-stat-label">First found</div>
           </div>
         </div>
+        ${locationTags ? `<div class="location-tags">${locationTags}</div>` : ''}
         ${buildFactsDashboard(latest.facts)}
         ${(!latest.facts && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
@@ -439,6 +482,7 @@ function renderDone() {
 }
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
+let needsLocationName = false, sessionLat = null, sessionLng = null;
 
 function requestGpsPosition() {
   // Fire-and-forget — recording shouldn't wait on this. A recording is
@@ -497,6 +541,9 @@ function stopRecording() {
       const data = await res.json();
       sessionResults = data.detections || [];
       newlyEarnedTrophies = data.newly_earned_trophies || [];
+      needsLocationName = data.needs_location_name || false;
+      sessionLat = data.lat;
+      sessionLng = data.lng;
       cardIndex = 0;
       renderCard();
     } catch (e) {

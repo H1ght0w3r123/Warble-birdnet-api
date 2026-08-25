@@ -22,6 +22,9 @@ SessionLocal = sessionmaker(bind=engine) if engine else None
 Base = declarative_base()
 
 
+LOCATION_PRECISION = 3  # ~110m — same precision Nomad's distinct-location count already uses
+
+
 class Sighting(Base):
     __tablename__ = "sightings"
 
@@ -32,6 +35,8 @@ class Sighting(Base):
     tier = Column(String, nullable=False)
     image_url = Column(String, nullable=True)
     description = Column(String, nullable=True)
+    lat = Column(Float, nullable=True)
+    lng = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
@@ -62,6 +67,18 @@ class EarnedTrophy(Base):
     earned_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class Location(Base):
+    """A named place — created the first time a session happens somewhere
+    new. lat/lng are stored already rounded to LOCATION_PRECISION."""
+    __tablename__ = "locations"
+
+    id = Column(Integer, primary_key=True)
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+    name = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
 def init_db():
     """Create tables if they don't exist yet, and seed one PlayerStats row."""
     if engine is None:
@@ -76,6 +93,8 @@ def init_db():
     from sqlalchemy import text
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS description VARCHAR"))
+        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lat FLOAT"))
+        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lng FLOAT"))
 
     with SessionLocal() as session:
         existing = session.query(PlayerStats).first()
@@ -91,7 +110,7 @@ def has_existing_sighting(common_name: str) -> bool:
         return session.query(Sighting).filter_by(common_name=common_name).first() is not None
 
 
-def save_sighting(common_name, scientific_name, confidence, tier, image_url, description=None):
+def save_sighting(common_name, scientific_name, confidence, tier, image_url, description=None, lat=None, lng=None):
     if SessionLocal is None:
         print("Warning: no database configured — skipping save.")
         return
@@ -103,6 +122,8 @@ def save_sighting(common_name, scientific_name, confidence, tier, image_url, des
             tier=tier,
             image_url=image_url,
             description=description,
+            lat=lat,
+            lng=lng,
         ))
         session.commit()
 
@@ -123,18 +144,28 @@ def get_all_sightings():
         return []
     with SessionLocal() as session:
         rows = session.query(Sighting).order_by(Sighting.created_at.desc()).all()
-        return [
-            {
+        # One lookup of every named location, rather than a query per
+        # sighting — cheap either way at this scale, but no reason not to.
+        locations_by_coords = {
+            (loc.lat, loc.lng): loc.name for loc in session.query(Location).all()
+        }
+        result = []
+        for r in rows:
+            location_name = None
+            if r.lat is not None and r.lng is not None:
+                key = (round(r.lat, LOCATION_PRECISION), round(r.lng, LOCATION_PRECISION))
+                location_name = locations_by_coords.get(key)
+            result.append({
                 "common_name": r.common_name,
                 "scientific_name": r.scientific_name,
                 "confidence": r.confidence,
                 "tier": r.tier,
                 "image_url": r.image_url,
                 "description": r.description,
+                "location_name": location_name,
                 "created_at": r.created_at.isoformat(),
-            }
-            for r in rows
-        ]
+            })
+        return result
 
 
 def get_total_feathers() -> float:
@@ -190,3 +221,28 @@ def award_trophy(trophy_key: str) -> bool:
         session.add(EarnedTrophy(trophy_key=trophy_key))
         session.commit()
         return True
+
+
+def get_location_name(lat: float, lng: float):
+    """Returns the name for this location if one's been saved, else None."""
+    if SessionLocal is None:
+        return None
+    rlat, rlng = round(lat, LOCATION_PRECISION), round(lng, LOCATION_PRECISION)
+    with SessionLocal() as session:
+        loc = session.query(Location).filter_by(lat=rlat, lng=rlng).first()
+        return loc.name if loc else None
+
+
+def save_location_name(lat: float, lng: float, name: str):
+    """Names a location, creating it if new or renaming it if it
+    already existed (in case someone wants to correct a typo later)."""
+    if SessionLocal is None:
+        return
+    rlat, rlng = round(lat, LOCATION_PRECISION), round(lng, LOCATION_PRECISION)
+    with SessionLocal() as session:
+        existing = session.query(Location).filter_by(lat=rlat, lng=rlng).first()
+        if existing:
+            existing.name = name
+        else:
+            session.add(Location(lat=rlat, lng=rlng, name=name))
+        session.commit()
