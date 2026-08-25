@@ -300,7 +300,10 @@ async def analyze_session(
             "lng": lng,
         })
 
-    return {"detections": results}
+    return {
+        "detections": results,
+        "total_feathers_this_session": sum(r["feathers"] for r in results),
+    }
 
 
 if __name__ == "__main__":
