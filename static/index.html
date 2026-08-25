@@ -18,24 +18,32 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   body{
     font-family:'Space Grotesk',sans-serif;
-    background:var(--parch);
-    color:var(--ink);
+    color:#fff;
     min-height:100vh;
     display:flex; flex-direction:column; align-items:center;
-    padding:24px 16px 60px;
+    padding:20px 16px 60px;
+    transition:background 1.2s ease;
   }
-  .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
-  .wordmark{font-family:'Outfit';font-weight:900;font-size:24px;color:var(--dusk);}
-  .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;}
+
+  /* --- Time-of-day backgrounds, applied globally, every screen --- */
+  body.time-dawn{background:linear-gradient(180deg,#3D2A85 0%,#8C6BB0 45%,#F0A868 75%,#F6C98A 100%);}
+  body.time-day{background:linear-gradient(180deg,var(--dusk-mid) 0%,var(--mist) 45%,var(--sage) 80%,var(--gold) 100%);}
+  body.time-dusk{background:linear-gradient(180deg,var(--dusk) 0%,var(--rose) 45%,var(--terra) 75%,var(--gold) 100%);}
+  body.time-night{background:linear-gradient(180deg,var(--ink) 0%,var(--dusk) 60%,var(--dusk-mid) 100%);}
+
+  .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;}
+  .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--ink);}
+
+  .hero-wordmark{width:100%;max-width:420px;text-align:center;padding:36px 0 18px;}
+  .hero-wordmark .wordmark{font-family:'Outfit';font-weight:900;font-size:46px;color:var(--gold);letter-spacing:-0.01em;}
 
   .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;}
 
-  /* --- Recording panel: dawn gradient + pine silhouette, full screen --- */
-  body.recording-mode{
-    background:linear-gradient(180deg,#3D2A85 0%,#8C6BB0 45%,#F0A868 75%,#F6C98A 100%);
-  }
+  /* --- Recording screen keeps its pine silhouette as the one
+     screen-specific extra, on top of whatever the global time-of-day
+     background currently is --- */
   .pines{
-    position:fixed; bottom:0; left:0; width:100%; height:70px; background:var(--dusk); z-index:0;
+    position:fixed; bottom:0; left:0; width:100%; height:70px; background:var(--ink); z-index:0;
     clip-path:polygon(0 100%,0 60%,5% 10%,10% 60%,15% 60%,20% 5%,25% 60%,30% 60%,35% 15%,40% 60%,45% 60%,50% 0%,55% 60%,60% 60%,65% 15%,70% 60%,75% 60%,80% 5%,85% 60%,90% 60%,95% 10%,100% 60%,100% 100%);
   }
 
@@ -50,15 +58,13 @@
   .mic-btn:active{transform:translateY(6px); box-shadow:0 2px 0 var(--terra-dk);}
   .mic-btn.recording{background:#fff; color:var(--terra-dk); box-shadow:0 8px 0 rgba(0,0,0,0.15); animation:pulse 1.4s infinite;}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
-  .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:var(--dusk);text-align:center;}
-  .stage-sub{margin-top:6px;font-size:13px;color:var(--mist-dk);text-align:center;}
-  .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:var(--dusk);margin-top:14px;}
-  body.recording-mode .stage-label, body.recording-mode .timer{color:#fff;}
-  body.recording-mode .stage-sub{color:rgba(255,255,255,0.85);}
+  .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:#fff;text-align:center;}
+  .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
+  .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:#fff;margin-top:14px;}
 
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
-  .progress{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mist-dk);margin-bottom:14px;}
+  .progress{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;}
   .card{
     width:100%; max-width:300px; background:#fff; border-radius:20px;
     overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.18);
@@ -82,27 +88,27 @@
 
   /* --- Done --- */
   .done-icon{font-size:44px;}
-  .done-title{font-family:'Outfit';font-weight:900;font-size:22px;color:var(--dusk);margin-top:10px;}
-  .done-sub{color:var(--mist-dk);font-size:14px;margin-top:6px;text-align:center;}
+  .done-title{font-family:'Outfit';font-weight:900;font-size:22px;color:#fff;margin-top:10px;}
+  .done-sub{color:rgba(255,255,255,0.85);font-size:14px;margin-top:6px;text-align:center;}
   .again-btn{
     margin-top:24px; padding:15px 34px;
     background:var(--dusk); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--dusk-mid); cursor:pointer;
   }
-  .error{color:var(--terra-dk);font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
+  .error{color:#FFD9D2;font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
 
   /* --- Collection --- */
   .top-btn{background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 12px;font-weight:700;font-size:15px;cursor:pointer;color:var(--dusk);}
   .stage.top-aligned{justify-content:flex-start;}
   .collection-header{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-  .collection-title{font-family:'Outfit';font-weight:900;font-size:20px;color:var(--dusk);}
-  .back-btn{background:none;border:none;font-family:'Outfit';font-weight:700;color:var(--dusk);cursor:pointer;font-size:14px;padding:0;}
-  .collection-count{font-size:12px;color:var(--mist-dk);margin-bottom:14px;}
+  .collection-title{font-family:'Outfit';font-weight:900;font-size:20px;color:#fff;}
+  .back-btn{background:none;border:none;font-family:'Outfit';font-weight:700;color:#fff;cursor:pointer;font-size:14px;padding:0;}
+  .collection-count{font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:14px;}
   .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   .collection-item{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--tier-color,var(--sage));}
   .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);}
   .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;}
-  .collection-empty{text-align:center;color:var(--mist-dk);font-size:13px;margin-top:40px;width:100%;}
+  .collection-empty{text-align:center;color:rgba(255,255,255,0.85);font-size:13px;margin-top:40px;width:100%;}
   .collection-item{cursor:pointer;}
 
   /* --- Bird detail --- */
@@ -159,13 +165,14 @@
 <body>
 
   <div class="top">
-    <div class="wordmark">Warble</div>
+    <button class="top-btn" id="trophiesBtn">🏆</button>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button class="top-btn" id="trophiesBtn">🏆</button>
       <button class="top-btn" id="collectionBtn">📚</button>
       <div class="feathers">🪶 <span id="featherCount">–</span></div>
     </div>
   </div>
+
+  <div class="hero-wordmark"><div class="wordmark">Warble</div></div>
 
   <div class="stage" id="stage"></div>
 
@@ -188,7 +195,6 @@ async function refreshFeathers() {
 }
 
 function renderIdle() {
-  document.body.classList.remove('recording-mode');
   stage.innerHTML = `
     <button class="mic-btn" id="recordBtn">🎙</button>
     <div class="stage-label">Go Warbling</div>
@@ -198,7 +204,6 @@ function renderIdle() {
 }
 
 function renderRecording() {
-  document.body.classList.add('recording-mode');
   stage.innerHTML = `
     <div class="pines"></div>
     <button class="mic-btn recording" id="stopBtn">■</button>
@@ -476,7 +481,6 @@ async function startRecording() {
 }
 
 function stopRecording() {
-  document.body.classList.remove('recording-mode');
   clearInterval(recordTimerInterval);
   mediaRecorder.onstop = async () => {
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -503,6 +507,17 @@ function stopRecording() {
   mediaRecorder.stream.getTracks().forEach(t => t.stop());
 }
 
+function applyTimeOfDayBackground() {
+  const hour = new Date().getHours();
+  let band;
+  if (hour >= 5 && hour < 8) band = 'time-dawn';
+  else if (hour >= 8 && hour < 17) band = 'time-day';
+  else if (hour >= 17 && hour < 21) band = 'time-dusk';
+  else band = 'time-night';
+  document.body.classList.add(band);
+}
+
+applyTimeOfDayBackground();
 renderIdle();
 refreshFeathers();
 document.getElementById('collectionBtn').onclick = renderCollection;
