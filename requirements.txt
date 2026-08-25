@@ -6,3 +6,4 @@ audioop-lts
 fastapi
 uvicorn[standard]
 python-multipart
+requests
