@@ -30,20 +30,33 @@
 
   .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;}
 
+  /* --- Recording panel: dawn gradient + pine silhouette --- */
+  .recording-panel{
+    width:100%; border-radius:24px; position:relative; overflow:hidden;
+    padding:44px 16px 64px; display:flex; flex-direction:column; align-items:center;
+    background:linear-gradient(180deg,#3D2A85 0%,#8C6BB0 45%,#F0A868 75%,#F6C98A 100%);
+  }
+  .pines{
+    position:absolute; bottom:0; left:0; width:100%; height:56px; background:var(--dusk);
+    clip-path:polygon(0 100%,0 60%,5% 10%,10% 60%,15% 60%,20% 5%,25% 60%,30% 60%,35% 15%,40% 60%,45% 60%,50% 0%,55% 60%,60% 60%,65% 15%,70% 60%,75% 60%,80% 5%,85% 60%,90% 60%,95% 10%,100% 60%,100% 100%);
+  }
+
   /* --- Idle / Recording --- */
   .mic-btn{
     width:120px;height:120px;border-radius:50%;
     background:var(--terra); color:#fff; font-size:38px;
     border:none; box-shadow:0 8px 0 var(--terra-dk);
     display:flex;align-items:center;justify-content:center;
-    cursor:pointer; transition:transform .1s;
+    cursor:pointer; transition:transform .1s; position:relative; z-index:1;
   }
   .mic-btn:active{transform:translateY(6px); box-shadow:0 2px 0 var(--terra-dk);}
-  .mic-btn.recording{background:var(--dusk); box-shadow:0 8px 0 var(--dusk-mid); animation:pulse 1.4s infinite;}
+  .mic-btn.recording{background:#fff; color:var(--terra-dk); box-shadow:0 8px 0 rgba(0,0,0,0.15); animation:pulse 1.4s infinite;}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:var(--dusk);text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:var(--mist-dk);text-align:center;}
   .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:var(--dusk);margin-top:14px;}
+  .recording-panel .stage-label, .recording-panel .timer{color:#fff;}
+  .recording-panel .stage-sub{color:rgba(255,255,255,0.85);}
 
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
@@ -118,9 +131,12 @@ function renderIdle() {
 
 function renderRecording() {
   stage.innerHTML = `
-    <button class="mic-btn recording" id="stopBtn">■</button>
-    <div class="timer" id="timer">0:00</div>
-    <div class="stage-sub">Tap to stop</div>
+    <div class="recording-panel">
+      <div class="pines"></div>
+      <button class="mic-btn recording" id="stopBtn">■</button>
+      <div class="timer" id="timer">0:00</div>
+      <div class="stage-sub">Tap to stop</div>
+    </div>
   `;
   document.getElementById('stopBtn').onclick = stopRecording;
 }
