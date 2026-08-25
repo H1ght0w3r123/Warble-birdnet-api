@@ -147,8 +147,10 @@ def get_nbn_tier(scientific_name: str, lat: float, lng: float):
     return tier, total
 
 
-def get_wikipedia_photo(scientific_name: str):
-    """Fetch a photo URL for this species from Wikipedia. Returns None if not found."""
+def get_wikipedia_info(scientific_name: str):
+    """Fetch a photo URL and a short description for this species from
+    Wikipedia, in one call. Returns (photo_url, description) — either
+    can be None if Wikipedia doesn't have it."""
     title = scientific_name.replace(" ", "_")
     try:
         response = requests.get(
@@ -157,10 +159,11 @@ def get_wikipedia_photo(scientific_name: str):
             timeout=10,
         )
         response.raise_for_status()
-        return response.json().get("thumbnail", {}).get("source")
+        data = response.json()
+        return data.get("thumbnail", {}).get("source"), data.get("extract")
     except Exception as e:
-        print(f"Warning: Wikipedia photo lookup failed for {scientific_name}: {e}")
-        return None
+        print(f"Warning: Wikipedia lookup failed for {scientific_name}: {e}")
+        return None, None
 
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
@@ -239,9 +242,9 @@ async def analyze_session(
         is_duplicate = has_existing_sighting(common_name)
         tier, record_count = get_nbn_tier(scientific_name, lat, lng)
         feathers = calculate_feathers(tier, is_duplicate)
-        photo_url = get_wikipedia_photo(scientific_name)
+        photo_url, description = get_wikipedia_info(scientific_name)
 
-        save_sighting(common_name, scientific_name, confidence, tier, photo_url)
+        save_sighting(common_name, scientific_name, confidence, tier, photo_url, description)
 
         results.append({
             "common_name": common_name,
@@ -252,6 +255,7 @@ async def analyze_session(
             "is_duplicate": is_duplicate,
             "feathers": feathers,
             "photo_url": photo_url,
+            "description": description,
             # Extra context, unused today — kept ready for trophy logic later:
             "detected_at": now.isoformat(),
             "hour_of_day": now.hour,

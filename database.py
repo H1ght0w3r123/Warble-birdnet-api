@@ -31,6 +31,7 @@ class Sighting(Base):
     confidence = Column(Float, nullable=False)
     tier = Column(String, nullable=False)
     image_url = Column(String, nullable=True)
+    description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
@@ -47,6 +48,15 @@ def init_db():
         print("Warning: DATABASE_URL not set — database features disabled.")
         return
     Base.metadata.create_all(engine)
+
+    # create_all only creates missing TABLES, not missing COLUMNS on
+    # tables that already exist. Since 'sightings' already has real data
+    # in it, new fields need to be added explicitly like this — safe to
+    # run every startup, since "IF NOT EXISTS" makes it a no-op once done.
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS description VARCHAR"))
+
     with SessionLocal() as session:
         existing = session.query(PlayerStats).first()
         if existing is None:
@@ -61,7 +71,7 @@ def has_existing_sighting(common_name: str) -> bool:
         return session.query(Sighting).filter_by(common_name=common_name).first() is not None
 
 
-def save_sighting(common_name, scientific_name, confidence, tier, image_url):
+def save_sighting(common_name, scientific_name, confidence, tier, image_url, description=None):
     if SessionLocal is None:
         print("Warning: no database configured — skipping save.")
         return
@@ -72,6 +82,7 @@ def save_sighting(common_name, scientific_name, confidence, tier, image_url):
             confidence=confidence,
             tier=tier,
             image_url=image_url,
+            description=description,
         ))
         session.commit()
 
@@ -99,6 +110,7 @@ def get_all_sightings():
                 "confidence": r.confidence,
                 "tier": r.tier,
                 "image_url": r.image_url,
+                "description": r.description,
                 "created_at": r.created_at.isoformat(),
             }
             for r in rows

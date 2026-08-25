@@ -105,6 +105,22 @@
   .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);}
   .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;}
   .collection-empty{text-align:center;color:var(--mist-dk);font-size:13px;margin-top:40px;width:100%;}
+  .collection-item{cursor:pointer;}
+
+  /* --- Bird detail --- */
+  .detail-card{
+    width:100%; max-width:340px; background:#fff; border-radius:20px;
+    overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.14);
+    border:3px solid var(--tier-color, var(--sage));
+  }
+  .detail-photo{width:100%;height:220px;object-fit:cover;background:var(--parch-dk);display:block;}
+  .detail-body{padding:18px 20px 22px;}
+  .detail-name{font-family:'Outfit';font-weight:900;font-size:24px;color:var(--dusk);}
+  .detail-sci{font-size:13px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
+  .detail-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--parch-dk);}
+  .detail-stat-num{font-family:'Outfit';font-weight:900;font-size:18px;color:var(--dusk);}
+  .detail-stat-label{font-size:11px;color:var(--mist-dk);}
+  .detail-desc{font-size:13px;line-height:1.55;color:var(--ink);margin-top:14px;}
 </style>
 </head>
 <body>
@@ -127,6 +143,7 @@ const TIER_COLORS = { Common: 'var(--sage)', Visitor: 'var(--terra)', Rare: 'var
 
 let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
 let sessionResults = [], cardIndex = 0;
+let allSightingsRaw = [];
 
 async function refreshFeathers() {
   try {
@@ -235,13 +252,14 @@ async function loadCollection() {
   try {
     const res = await fetch('/sightings');
     const data = await res.json();
+    allSightingsRaw = data.sightings || [];
 
     // The backend logs every individual sighting — collapse that down
     // to one entry per species for the collection grid, keeping the
     // most recent (the list already arrives newest-first).
     const seen = new Set();
     const uniqueBirds = [];
-    for (const s of (data.sightings || [])) {
+    for (const s of allSightingsRaw) {
       if (!seen.has(s.common_name)) {
         seen.add(s.common_name);
         uniqueBirds.push(s);
@@ -262,17 +280,58 @@ async function loadCollection() {
           ? `<img src="${bird.image_url}">`
           : `<div style="height:70px;background:var(--parch-dk);"></div>`;
         return `
-          <div class="collection-item" style="--tier-color:${tierColor}">
+          <div class="collection-item" style="--tier-color:${tierColor}" data-name="${bird.common_name}">
             ${photo}
             <div class="ci-name">${bird.common_name}</div>
           </div>
         `;
       }).join('');
+      grid.querySelectorAll('.collection-item').forEach(el => {
+        el.onclick = () => renderBirdDetail(el.dataset.name);
+      });
     }
   } catch (e) {
     if (countEl) countEl.textContent = '';
     if (grid) grid.outerHTML = `<div class="collection-empty">Couldn't load your collection right now.</div>`;
   }
+}
+
+function renderBirdDetail(commonName) {
+  const matches = allSightingsRaw.filter(s => s.common_name === commonName);
+  if (matches.length === 0) return;
+
+  const latest = matches[0]; // list arrives newest-first
+  const firstFound = matches[matches.length - 1];
+  const tierColor = TIER_COLORS[latest.tier] || 'var(--sage)';
+  const firstDate = new Date(firstFound.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:14px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="detail-card" style="--tier-color:${tierColor}">
+      ${latest.image_url ? `<img class="detail-photo" src="${latest.image_url}">` : `<div class="detail-photo"></div>`}
+      <div class="detail-body">
+        <div class="detail-name">${latest.common_name}</div>
+        <div class="detail-sci">${latest.scientific_name}</div>
+        <div class="card-tags" style="margin-top:10px;">
+          <span class="tag tier">${latest.tier}</span>
+        </div>
+        <div class="detail-stats">
+          <div>
+            <div class="detail-stat-num">${matches.length}</div>
+            <div class="detail-stat-label">Time${matches.length === 1 ? '' : 's'} found</div>
+          </div>
+          <div>
+            <div class="detail-stat-num">${firstDate}</div>
+            <div class="detail-stat-label">First found</div>
+          </div>
+        </div>
+        ${latest.description ? `<div class="detail-desc">${latest.description}</div>` : ''}
+      </div>
+    </div>
+  `;
+  document.getElementById('backBtn').onclick = renderCollection;
 }
 
 function renderDone() {
