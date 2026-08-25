@@ -114,7 +114,7 @@ BUBBLE_API_TOKEN = os.environ.get("BUBBLE_API_TOKEN", "")
 # (Settings -> API in Bubble, once the Data API is switched on). Field
 # names sometimes need adjusting to match exactly what your app expects —
 # don't assume these are right without checking.
-BUBBLE_SIGHTING_TYPE = "sighting"
+BUBBLE_SIGHTING_TYPE = "sightings"
 FIELD_COMMON_NAME = "Common Name"
 FIELD_SCIENTIFIC_NAME = "Scientific Name"
 FIELD_CONFIDENCE = "Confidence"
