@@ -92,13 +92,29 @@
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--dusk-mid); cursor:pointer;
   }
   .error{color:var(--terra-dk);font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
+
+  /* --- Collection --- */
+  .top-btn{background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 12px;font-weight:700;font-size:15px;cursor:pointer;color:var(--dusk);}
+  .stage.top-aligned{justify-content:flex-start;}
+  .collection-header{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .collection-title{font-family:'Outfit';font-weight:900;font-size:20px;color:var(--dusk);}
+  .back-btn{background:none;border:none;font-family:'Outfit';font-weight:700;color:var(--dusk);cursor:pointer;font-size:14px;padding:0;}
+  .collection-count{font-size:12px;color:var(--mist-dk);margin-bottom:14px;}
+  .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .collection-item{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--tier-color,var(--sage));}
+  .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);}
+  .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;}
+  .collection-empty{text-align:center;color:var(--mist-dk);font-size:13px;margin-top:40px;width:100%;}
 </style>
 </head>
 <body>
 
   <div class="top">
     <div class="wordmark">Warble</div>
-    <div class="feathers">🪶 <span id="featherCount">–</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="top-btn" id="collectionBtn">📚</button>
+      <div class="feathers">🪶 <span id="featherCount">–</span></div>
+    </div>
   </div>
 
   <div class="stage" id="stage"></div>
@@ -195,6 +211,70 @@ function renderNoBirds() {
   document.getElementById('againBtn').onclick = renderIdle;
 }
 
+function renderCollection() {
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div class="collection-header">
+      <button class="back-btn" id="backBtn">← Back</button>
+      <div class="collection-title">My Birds</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="collection-count">Loading...</div>
+    <div class="collection-grid" id="collectionGrid"></div>
+  `;
+  document.getElementById('backBtn').onclick = () => {
+    stage.classList.remove('top-aligned');
+    renderIdle();
+  };
+  loadCollection();
+}
+
+async function loadCollection() {
+  const countEl = stage.querySelector('.collection-count');
+  const grid = document.getElementById('collectionGrid');
+  try {
+    const res = await fetch('/sightings');
+    const data = await res.json();
+
+    // The backend logs every individual sighting — collapse that down
+    // to one entry per species for the collection grid, keeping the
+    // most recent (the list already arrives newest-first).
+    const seen = new Set();
+    const uniqueBirds = [];
+    for (const s of (data.sightings || [])) {
+      if (!seen.has(s.common_name)) {
+        seen.add(s.common_name);
+        uniqueBirds.push(s);
+      }
+    }
+
+    if (countEl) countEl.textContent = `${uniqueBirds.length} species found`;
+
+    if (uniqueBirds.length === 0) {
+      if (grid) grid.outerHTML = `<div class="collection-empty">Nothing found yet — go warbling!</div>`;
+      return;
+    }
+
+    if (grid) {
+      grid.innerHTML = uniqueBirds.map(bird => {
+        const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+        const photo = bird.image_url
+          ? `<img src="${bird.image_url}">`
+          : `<div style="height:70px;background:var(--parch-dk);"></div>`;
+        return `
+          <div class="collection-item" style="--tier-color:${tierColor}">
+            ${photo}
+            <div class="ci-name">${bird.common_name}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (e) {
+    if (countEl) countEl.textContent = '';
+    if (grid) grid.outerHTML = `<div class="collection-empty">Couldn't load your collection right now.</div>`;
+  }
+}
+
 function renderDone() {
   const total = sessionResults.reduce((sum, b) => sum + b.feathers, 0);
   stage.innerHTML = `
@@ -251,6 +331,7 @@ function stopRecording() {
 
 renderIdle();
 refreshFeathers();
+document.getElementById('collectionBtn').onclick = renderCollection;
 </script>
 
 </body>
