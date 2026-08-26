@@ -131,9 +131,10 @@ from database import (
     get_location_name, save_location_name,
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location,
+    max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
 )
 from bird_facts import get_bird_facts
-from trophies import TROPHY_DEFINITIONS, is_before_sunrise
+from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
 
 init_db()
 
@@ -162,11 +163,13 @@ def get_bird_call_url(scientific_name: str):
     return None
 
 
-def check_trophies(lat: float, lng: float, moment_utc: datetime.datetime):
+def check_session_trophies(lat: float, lng: float, moment_utc: datetime.datetime):
     """
-    Logs this session, then checks the 3 built trophies against it.
-    Returns a list of trophies newly earned THIS call — already-earned
-    ones aren't repeated.
+    Checks trophies that only depend on the session happening at all -
+    not on what (if anything) gets detected. Called before the
+    detection loop. Returns (newly_earned_keys, is_before_sunrise) -
+    the sunrise flag is handed back so check_detection_trophies
+    doesn't need to recompute it.
     """
     total_sessions = record_session(lat, lng)
     newly_earned = []
@@ -175,7 +178,8 @@ def check_trophies(lat: float, lng: float, moment_utc: datetime.datetime):
         if award_trophy("fledgling"):
             newly_earned.append("fledgling")
 
-    if is_before_sunrise(lat, lng, moment_utc):
+    before_sunrise = is_before_sunrise(lat, lng, moment_utc)
+    if before_sunrise:
         if award_trophy("early_bird"):
             newly_earned.append("early_bird")
 
@@ -183,7 +187,47 @@ def check_trophies(lat: float, lng: float, moment_utc: datetime.datetime):
         if award_trophy("nomad"):
             newly_earned.append("nomad")
 
-    return [{"key": k, **TROPHY_DEFINITIONS[k]} for k in newly_earned]
+    if max_sessions_at_one_location() >= 5:
+        if award_trophy("rooster"):
+            newly_earned.append("rooster")
+
+    return newly_earned, before_sunrise
+
+
+def check_detection_trophies(results: list, before_sunrise: bool, moment_utc: datetime.datetime):
+    """
+    Checks trophies that depend on what was actually detected this
+    session - called after the detection loop, once results (and
+    their tiers) are known.
+    """
+    newly_earned = []
+
+    if count_rare_sightings() >= 5:
+        if award_trophy("golden_eagle"):
+            newly_earned.append("golden_eagle")
+
+    if count_distinct_species() >= 20:
+        if award_trophy("forager"):
+            newly_earned.append("forager")
+
+    species_this_session = {r["common_name"] for r in results}
+
+    if before_sunrise and len(species_this_session) >= 5:
+        if award_trophy("dawn_chorus"):
+            newly_earned.append("dawn_chorus")
+
+    # NOTE: this hour check is in UTC, same as Early Bird's sunrise
+    # comparison. Unlike sunrise (which is itself computed in UTC, so
+    # the comparison is self-consistent), "9pm" is a fixed civil-clock
+    # threshold - during British Summer Time this will be roughly an
+    # hour off from true UK local time. A reasonable simplification for
+    # now, not a silent bug - worth a proper timezone fix later if it
+    # matters in practice.
+    if moment_utc.hour >= 21 and any(name in NOCTURNAL_SPECIES for name in species_this_session):
+        if award_trophy("night_owl"):
+            newly_earned.append("night_owl")
+
+    return newly_earned
 
 
 def get_nbn_tier(scientific_name: str, lat: float, lng: float):
@@ -303,7 +347,7 @@ async def analyze_session(
     now = datetime.datetime.now(datetime.timezone.utc)
     results = []
 
-    newly_earned_trophies = check_trophies(lat, lng, now)
+    session_trophy_keys, before_sunrise = check_session_trophies(lat, lng, now)
     existing_location_name = get_location_name(lat, lng)
     needs_location_name = existing_location_name is None
 
@@ -340,6 +384,10 @@ async def analyze_session(
             "lat": lat,
             "lng": lng,
         })
+
+    detection_trophy_keys = check_detection_trophies(results, before_sunrise, now)
+    all_earned_keys = session_trophy_keys + detection_trophy_keys
+    newly_earned_trophies = [{"key": k, **TROPHY_DEFINITIONS[k]} for k in all_earned_keys]
 
     session_feathers = sum(r["feathers"] for r in results)
     new_total = add_feathers(session_feathers)

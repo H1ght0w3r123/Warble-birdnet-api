@@ -233,6 +233,36 @@ def count_distinct_locations(precision: int = 3) -> int:
         return len(rounded)
 
 
+def max_sessions_at_one_location(precision: int = 3) -> int:
+    """The highest number of sessions that have happened at any single
+    place — used for the Rooster trophy (5+ visits to the same spot)."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        rows = session.query(RecordingSession.lat, RecordingSession.lng).all()
+        counts = {}
+        for lat, lng in rows:
+            key = (round(lat, precision), round(lng, precision))
+            counts[key] = counts.get(key, 0) + 1
+        return max(counts.values()) if counts else 0
+
+
+def count_rare_sightings() -> int:
+    """How many Rare-tier discoveries in total — used for Golden Eagle."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        return session.query(Sighting).filter_by(tier="Rare").count()
+
+
+def count_distinct_species() -> int:
+    """How many different species found in total — used for Forager."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        return session.query(Sighting.common_name).distinct().count()
+
+
 def get_earned_trophy_keys() -> set:
     if SessionLocal is None:
         return set()
