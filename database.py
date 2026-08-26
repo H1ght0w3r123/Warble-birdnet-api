@@ -139,6 +139,24 @@ def init_db():
         if existing_profile is None:
             session.add(Profile(name="Explorer", avatar_body="#C4BFDF", avatar_breast="#E8845C"))
             session.commit()
+        else:
+            # One-time migration: an item equipped under the old
+            # single-slot system would otherwise be silently lost now
+            # that equipping is per-category. equipped_accessory isn't
+            # a mapped column any more, so read it with raw SQL. Only
+            # applies if the matching category slot is still empty, so
+            # this is safe to leave in place / re-run on every startup.
+            with engine.begin() as conn:
+                row = conn.execute(text("SELECT equipped_accessory FROM profile LIMIT 1")).fetchone()
+            old_equipped = row[0] if row else None
+            if old_equipped:
+                from accessories import ACCESSORIES
+                item = ACCESSORIES.get(old_equipped)
+                if item:
+                    slot_column = f"equipped_{item['category']}"
+                    if getattr(existing_profile, slot_column, None) is None:
+                        setattr(existing_profile, slot_column, old_equipped)
+                        session.commit()
 
 
 def has_existing_sighting(common_name: str) -> bool:
