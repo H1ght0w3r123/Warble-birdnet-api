@@ -98,12 +98,17 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
 
     try:
         from birdnetlib import Recording
+        # NOT passing lat/lon/date here deliberately - birdnetlib's own
+        # geographic+seasonal species filtering was tried and appears to
+        # have caused a real regression (recordings that used to detect
+        # correctly stopped detecting anything, even after separately
+        # confirming the confidence threshold wasn't the cause). NBN
+        # Atlas tiering already does the "how plausible is this here"
+        # job, more transparently (tags as Rare rather than silently
+        # hiding a detection) - so it's the sole mechanism for that now.
         recording = Recording(
             analyzer,
             tmp_wav_path,
-            lat=lat,
-            lon=lng,
-            date=datetime.date.today(),
             min_conf=0.3,
         )
         recording.analyze()
@@ -329,12 +334,17 @@ async def analyze_session(
 
     try:
         from birdnetlib import Recording
+        # NOT passing lat/lon/date here deliberately - birdnetlib's own
+        # geographic+seasonal species filtering was tried and appears to
+        # have caused a real regression (recordings that used to detect
+        # correctly stopped detecting anything, even after separately
+        # confirming the confidence threshold wasn't the cause). NBN
+        # Atlas tiering already does the "how plausible is this here"
+        # job, more transparently (tags as Rare rather than silently
+        # hiding a detection) - so it's the sole mechanism for that now.
         recording = Recording(
             analyzer,
             tmp_wav_path,
-            lat=lat,
-            lon=lng,
-            date=datetime.date.today(),
             min_conf=0.3,
         )
         recording.analyze()
