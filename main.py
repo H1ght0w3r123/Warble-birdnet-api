@@ -60,7 +60,7 @@ def status():
 
 
 @app.post("/identify")
-async def identify(file: UploadFile = File(...)):
+async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: float = -0.1278):
     """
     Send a WAV (or MP3) audio file as multipart form-data under the field
     name 'file'. Returns the species BirdNET detected, ranked by
@@ -98,7 +98,14 @@ async def identify(file: UploadFile = File(...)):
 
     try:
         from birdnetlib import Recording
-        recording = Recording(analyzer, tmp_wav_path, min_conf=0.1)
+        recording = Recording(
+            analyzer,
+            tmp_wav_path,
+            lat=lat,
+            lon=lng,
+            date=datetime.date.today(),
+            min_conf=0.5,
+        )
         recording.analyze()
         detections = recording.detections
     finally:
@@ -266,7 +273,14 @@ async def analyze_session(
 
     try:
         from birdnetlib import Recording
-        recording = Recording(analyzer, tmp_wav_path, min_conf=0.1)
+        recording = Recording(
+            analyzer,
+            tmp_wav_path,
+            lat=lat,
+            lon=lng,
+            date=datetime.date.today(),
+            min_conf=0.5,
+        )
         recording.analyze()
         detections = recording.detections
     finally:

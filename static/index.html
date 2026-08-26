@@ -728,6 +728,10 @@ async function analyzeLiveChunk(blob) {
   try {
     const formData = new FormData();
     formData.append('file', blob, 'chunk.webm');
+    if (currentLat !== null && currentLng !== null) {
+      formData.append('lat', currentLat);
+      formData.append('lng', currentLng);
+    }
     const res = await fetch('/identify', { method: 'POST', body: formData });
     if (!res.ok) return;
     const data = await res.json();
