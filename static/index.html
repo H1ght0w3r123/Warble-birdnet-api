@@ -248,6 +248,10 @@
 
   /* --- Dress Up: categories + carousel --- */
   .category-row{display:flex;gap:10px;justify-content:center;width:100%;margin-top:10px;}
+  .category-row.vertical{flex-direction:column;width:auto;gap:8px;margin-top:0;}
+  .category-row.vertical .category-tile{padding:9px 6px;max-width:54px;}
+  .category-row.vertical .cat-icon{font-size:20px;}
+  .category-row.vertical .category-tile > div{font-size:8.5px;}
   .category-tile{
     background:#fff; border:2px solid transparent; border-radius:14px; padding:12px 6px;
     display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
@@ -256,6 +260,7 @@
   }
   .category-tile .cat-icon{font-size:24px;}
   .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
+  .avatar-frame{background:#fff;border-radius:50%;padding:11px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
   .carousel-wrap{width:100%;overflow-x:auto;display:flex;gap:12px;padding:16px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
   .carousel-item{
     flex:0 0 auto; width:96px; background:#fff; border-radius:14px; padding:14px 8px;
@@ -1275,10 +1280,10 @@ async function renderDressUp() {
         <div class="swatch-col" id="bodySwatchRow"></div>
         <div class="swatch-col" id="breastSwatchRow"></div>
       </div>
-      <div id="dressUpPreview"></div>
+      <div class="avatar-frame" id="dressUpPreview"></div>
+      <div class="category-row vertical" id="categoryRow"></div>
     </div>
     <div class="collection-count" id="dressUpFeathers">Loading...</div>
-    <div class="category-row" id="categoryRow"></div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
     <div class="dressup-hint" id="dressUpHint"></div>
   `;
