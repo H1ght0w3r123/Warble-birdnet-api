@@ -308,6 +308,8 @@ async def analyze_session(
             content={"status": "loading", "message": "Analyzer is still loading, try again shortly."},
         )
 
+    print(f"analyze-session: received lat={lat}, lng={lng}")
+
     suffix = Path(file.filename).suffix or ".wav"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_in:
         contents = await file.read()

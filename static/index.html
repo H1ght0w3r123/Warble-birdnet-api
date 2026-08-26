@@ -825,21 +825,21 @@ let currentProfile = { name: 'Explorer', avatar_id: 'robin' };
 let needsLocationName = false, sessionLat = null, sessionLng = null, sessionLocationName = null;
 
 function requestGpsPosition() {
-  // Fire-and-forget — recording shouldn't wait on this. A recording is
-  // several seconds long at minimum, plenty of time for GPS to resolve
-  // before Stop is actually pressed. If it fails or isn't available,
-  // currentLat/currentLng just stay null and the backend's own default
-  // location is used instead.
+  // Fire-and-forget — recording shouldn't wait on this. If it fails or
+  // times out, currentLat/currentLng stay null and the backend falls
+  // back to a default location — worth knowing that's a real fallback
+  // to a fixed point, not "somewhere near you", if this keeps failing.
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
+      console.log(`GPS fix: ${currentLat}, ${currentLng} (accuracy: ~${Math.round(pos.coords.accuracy)}m)`);
     },
     (err) => {
       console.log('GPS unavailable, using default location:', err.message);
     },
-    { timeout: 8000 }
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 }
 
