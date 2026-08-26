@@ -228,7 +228,7 @@
 
   <div class="bottom-nav">
     <button class="nav-tab" id="navProfile" data-tab="profile">
-      <span class="nav-icon">👤</span><span>Profile</span>
+      <span class="nav-icon" id="navProfileIcon">👤</span><span>Profile</span>
     </button>
     <button class="nav-tab" id="navCollection" data-tab="collection">
       <span class="nav-icon">📚</span><span>Collection</span>
@@ -563,6 +563,7 @@ function renderDone() {
 }
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
+let currentProfile = { name: 'Explorer', avatar_id: 'robin' };
 let needsLocationName = false, sessionLat = null, sessionLng = null;
 
 function requestGpsPosition() {
@@ -649,6 +650,15 @@ applyTimeOfDayBackground();
 renderIdle();
 refreshFeathers();
 
+async function loadProfileForNav() {
+  try {
+    const res = await fetch('/profile');
+    currentProfile = await res.json();
+    updateNavAvatarIcon();
+  } catch (e) { /* keep the default person icon if this fails */ }
+}
+loadProfileForNav();
+
 function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -671,8 +681,6 @@ function avatarSvg(avatar, size) {
     <circle cx="40" cy="36" r="7" fill="${avatar.accent}" opacity="0.9"/>
   </svg>`;
 }
-
-let currentProfile = { name: 'Explorer', avatar_id: 'robin' };
 
 async function renderProfile() {
   setActiveTab('profile');
@@ -698,6 +706,7 @@ async function renderProfile() {
   document.getElementById('nameInput').value = currentProfile.name;
   renderAvatarPreview();
   renderAvatarGrid();
+  updateNavAvatarIcon();
   loadProfileLocations();
 
   document.getElementById('saveNameBtn').onclick = async () => {
@@ -716,6 +725,17 @@ function renderAvatarPreview() {
   if (el) el.innerHTML = avatarSvg(avatar, 92);
 }
 
+function updateNavAvatarIcon() {
+  const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
+  const iconEl = document.getElementById('navProfileIcon');
+  if (iconEl) {
+    iconEl.innerHTML = avatarSvg(avatar, 20);
+    iconEl.style.display = 'inline-flex';
+    iconEl.style.borderRadius = '50%';
+    iconEl.style.overflow = 'hidden';
+  }
+}
+
 function renderAvatarGrid() {
   const grid = document.getElementById('avatarGrid');
   if (!grid) return;
@@ -729,6 +749,7 @@ function renderAvatarGrid() {
       currentProfile.avatar_id = btn.dataset.avatar;
       renderAvatarPreview();
       renderAvatarGrid();
+      updateNavAvatarIcon();
       const formData = new FormData();
       formData.append('avatar_id', btn.dataset.avatar);
       try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
