@@ -91,6 +91,20 @@
   .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
   .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:#fff;margin-top:14px;}
 
+  /* --- Warbling Tips --- */
+  .tips-tile{
+    margin-top:26px; width:100%; max-width:280px; background:rgba(255,255,255,0.92);
+    border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:12px;
+    cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.12); border:none; text-align:left;
+  }
+  .tips-tile-icon{font-size:26px;flex-shrink:0;}
+  .tips-tile-title{font-family:'Outfit';font-weight:700;font-size:14px;color:var(--dusk);}
+  .tips-tile-sub{font-size:11px;color:var(--mist-dk);margin-top:1px;}
+  .tip-card{width:100%;background:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
+  .tip-icon{font-size:22px;flex-shrink:0;}
+  .tip-title{font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
+  .tip-text{font-size:12.5px;line-height:1.5;color:var(--ink);}
+
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
   .progress{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;animation:statFadeUp 0.35s ease both;}
@@ -332,8 +346,50 @@ function renderIdle() {
     <button class="mic-btn" id="recordBtn">🎙</button>
     <div class="stage-label">Go Warbling</div>
     <div class="stage-sub">Tap, then listen for a bird</div>
+    <button class="tips-tile" id="tipsTile">
+      <div class="tips-tile-icon">💡</div>
+      <div>
+        <div class="tips-tile-title">Warbling Tips</div>
+        <div class="tips-tile-sub">Get better at finding birds</div>
+      </div>
+    </button>
   `;
   document.getElementById('recordBtn').onclick = startRecording;
+  document.getElementById('tipsTile').onclick = renderTips;
+}
+
+const WARBLING_TIPS = [
+  { icon: '🌅', title: 'Early birds sing loudest', text: "Dawn is when birds sing the most, right before and after sunrise. Get out early and you'll hear far more than any other time of day." },
+  { icon: '🤫', title: 'Stay still and quiet', text: 'Birds go quiet if they hear something moving or talking nearby. Find a spot, stop, and just listen for a minute before you start recording.' },
+  { icon: '📍', title: 'Try lots of different places', text: "Different birds live in different spots — some like gardens, some like woods, some like water. The more places you warble, the more you'll find." },
+  { icon: '🎧', title: 'Get close, but not too close', text: "Hold your phone up and point it toward where the sound is coming from. You don't need to be right next to a bird, just close enough to hear it clearly." },
+  { icon: '🌦️', title: 'Birds sing on rainy days too', text: "Don't wait for perfect weather. Many birds keep singing through light rain and cloudy skies — you might hear something new." },
+  { icon: '🧘', title: "It's okay to hear nothing", text: "Sometimes you won't hear any birds, and that's completely normal. Just try again another time or another place." },
+];
+
+function renderTips() {
+  stage.classList.add('top-aligned');
+  const tipCards = WARBLING_TIPS.map(tip => `
+    <div class="tip-card">
+      <div class="tip-icon">${tip.icon}</div>
+      <div>
+        <div class="tip-title">${tip.title}</div>
+        <div class="tip-text">${tip.text}</div>
+      </div>
+    </div>
+  `).join('');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:14px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:4px;">Warbling Tips</div>
+    <div class="collection-count">Get better at finding birds</div>
+    ${tipCards}
+  `;
+  document.getElementById('backBtn').onclick = () => {
+    stage.classList.remove('top-aligned');
+    renderIdle();
+  };
 }
 
 function renderRecording() {
