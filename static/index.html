@@ -196,7 +196,7 @@
   /* --- Trophies --- */
   .trophy-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
   .trophy-tile{background:#fff;border-radius:14px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;text-align:center;}
-  .trophy-tile.earned{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
+  .trophy-tile.earned{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);cursor:pointer;}
   .trophy-emoji{font-size:32px;}
   .trophy-tile.locked .trophy-emoji{filter:grayscale(1);opacity:.35;}
   .trophy-name{font-family:'Outfit';font-weight:700;font-size:12px;margin-top:6px;color:var(--dusk);}
@@ -926,6 +926,8 @@ document.getElementById('navHome').onclick = renderIdle;
 document.getElementById('navTrophies').onclick = renderTrophies;
 document.getElementById('navDressUp').onclick = renderDressUpPlaceholder;
 
+let allTrophiesRaw = [];
+
 async function renderTrophies() {
   setActiveTab('trophies');
   stage.classList.add('top-aligned');
@@ -942,21 +944,47 @@ async function renderTrophies() {
   try {
     const res = await fetch('/trophies');
     const data = await res.json();
-    const trophies = data.trophies || [];
-    const earnedCount = trophies.filter(t => t.earned).length;
-    if (countEl) countEl.textContent = `${earnedCount} of ${trophies.length} earned`;
+    allTrophiesRaw = data.trophies || [];
+    const earnedCount = allTrophiesRaw.filter(t => t.earned).length;
+    if (countEl) countEl.textContent = `${earnedCount} of ${allTrophiesRaw.length} earned`;
     if (grid) {
-      grid.innerHTML = trophies.map(t => `
-        <div class="trophy-tile ${t.earned ? 'earned' : 'locked'}">
+      grid.innerHTML = allTrophiesRaw.map(t => `
+        <div class="trophy-tile ${t.earned ? 'earned' : 'locked'}" data-key="${t.key}">
           <div class="trophy-emoji">${t.earned ? t.emoji : '❔'}</div>
           <div class="trophy-name">${t.earned ? t.name : '???'}</div>
         </div>
       `).join('');
+      // Only earned trophies are tappable — an unearned one shouldn't
+      // reveal anything about what it's for, same principle as the
+      // trophy shelf never hinting at locked trophies.
+      grid.querySelectorAll('.trophy-tile.earned').forEach(tile => {
+        tile.onclick = () => renderTrophyDetail(tile.dataset.key);
+      });
     }
   } catch (e) {
     if (countEl) countEl.textContent = '';
     if (grid) grid.outerHTML = `<div class="collection-empty">Couldn't load trophies right now.</div>`;
   }
+}
+
+function renderTrophyDetail(trophyKey) {
+  const trophy = allTrophiesRaw.find(t => t.key === trophyKey);
+  if (!trophy || !trophy.earned) return;
+
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:14px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="detail-card" style="--tier-color:var(--gold);">
+      <div class="detail-photo" style="display:flex;align-items:center;justify-content:center;font-size:64px;background:var(--goldbg,#FBF0D8);">${trophy.emoji}</div>
+      <div class="detail-body">
+        <div class="detail-name">${trophy.name}</div>
+        <div class="detail-sci" style="font-style:normal;color:var(--gold-dk);font-weight:700;">${trophy.citation}</div>
+        <div class="detail-desc">${trophy.description}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('backBtn').onclick = renderTrophies;
 }
 </script>
 

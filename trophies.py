@@ -14,16 +14,19 @@ TROPHY_DEFINITIONS = {
         "name": "Fledgling",
         "emoji": "🥚",
         "citation": "Your very first warble — welcome to the flock!",
+        "description": "This is where it all begins. You've had your first listening session, and that's a moment every birdwatcher remembers. Everything from here is new.",
     },
     "early_bird": {
         "name": "Early Bird",
         "emoji": "🌅",
         "citation": "Up before the birds — well, almost!",
+        "description": "You started warbling before sunrise. That's dawn chorus time, when birds sing their loudest and best songs to wake up the neighbourhood. Not many people hear this — you're one of the lucky ones.",
     },
     "nomad": {
         "name": "Nomad",
         "emoji": "🧭",
         "citation": "Ten different spots, ten different adventures!",
+        "description": "You've gone warbling in 10 different places. Real birdwatchers know the best way to find new birds is to go looking for them — and that's exactly what you've been doing.",
     },
 }
 
