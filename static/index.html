@@ -117,6 +117,25 @@
   .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
   .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:15px;color:var(--gold-dk);animation:statFadeUp 0.4s ease 0.6s both;}
   @keyframes statFadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* --- Session Results: the fanned, unrevealed hand of cards --- */
+  .results-title{font-family:'Outfit';font-weight:900;font-size:24px;color:#fff;text-align:center;animation:statFadeUp 0.4s ease both;}
+  .results-sub{font-size:13px;color:rgba(255,255,255,0.85);text-align:center;margin-top:6px;animation:statFadeUp 0.4s ease 0.1s both;}
+  .silhouette-row{display:flex;justify-content:center;align-items:flex-end;margin-top:30px;min-height:110px;}
+  .silhouette-card{
+    width:64px; height:94px; border-radius:12px; background:#fff;
+    border:3px solid var(--tier-color, var(--sage));
+    margin-left:-20px; box-shadow:0 6px 14px rgba(0,0,0,0.18);
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+    animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .silhouette-card:first-child{margin-left:0;}
+  .reveal-btn{
+    margin-top:30px; width:100%; max-width:280px; padding:15px 0;
+    background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
+    animation:statFadeUp 0.4s ease 0.3s both;
+  }
   .next-btn{
     margin-top:22px; width:100%; max-width:300px; padding:15px 0;
     background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
@@ -353,6 +372,34 @@ function renderError(message) {
     <button class="again-btn" id="retryBtn">Try again</button>
   `;
   document.getElementById('retryBtn').onclick = renderIdle;
+}
+
+function renderSessionResults() {
+  if (sessionResults.length === 0) {
+    renderNoBirds();
+    return;
+  }
+
+  const m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
+  const timeStr = `${m}:${s.toString().padStart(2, '0')}`;
+  const locationLine = sessionLocationName ? ` at ${sessionLocationName}` : '';
+
+  const silhouettes = sessionResults.map((bird, i) => {
+    const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+    const angle = (i % 2 === 0 ? -1 : 1) * (5 + i * 2);
+    return `<div class="silhouette-card" style="--tier-color:${tierColor}; transform:rotate(${angle}deg); animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">🐦</span></div>`;
+  }).join('');
+
+  stage.innerHTML = `
+    <div class="results-title">You heard ${sessionResults.length} bird${sessionResults.length === 1 ? '' : 's'}!</div>
+    <div class="results-sub">${timeStr} session${locationLine}</div>
+    <div class="silhouette-row">${silhouettes}</div>
+    <button class="reveal-btn" id="revealBtn">Reveal →</button>
+  `;
+  document.getElementById('revealBtn').onclick = () => {
+    cardIndex = 0;
+    renderCard();
+  };
 }
 
 function renderCard() {
@@ -620,7 +667,7 @@ function renderDone() {
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
 let currentProfile = { name: 'Explorer', avatar_id: 'robin' };
-let needsLocationName = false, sessionLat = null, sessionLng = null;
+let needsLocationName = false, sessionLat = null, sessionLng = null, sessionLocationName = null;
 
 function requestGpsPosition() {
   // Fire-and-forget — recording shouldn't wait on this. A recording is
@@ -789,10 +836,11 @@ function stopRecording() {
       sessionResults = data.detections || [];
       newlyEarnedTrophies = data.newly_earned_trophies || [];
       needsLocationName = data.needs_location_name || false;
+      sessionLocationName = data.location_name || null;
       sessionLat = data.lat;
       sessionLng = data.lng;
       cardIndex = 0;
-      renderCard();
+      renderSessionResults();
     } catch (e) {
       renderError(e.message || 'Something went wrong talking to the server.');
     }
