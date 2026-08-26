@@ -21,7 +21,7 @@
     color:#fff;
     min-height:100vh;
     display:flex; flex-direction:column; align-items:center;
-    padding:20px 16px 60px;
+    padding:20px 16px 90px;
     transition:background 1.2s ease;
   }
 
@@ -31,13 +31,30 @@
   body.time-dusk{background:linear-gradient(180deg,var(--dusk) 0%,var(--rose) 45%,var(--terra) 75%,var(--gold) 100%);}
   body.time-night{background:linear-gradient(180deg,var(--ink) 0%,var(--dusk) 60%,var(--dusk-mid) 100%);}
 
-  .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;}
+  .top{width:100%;max-width:420px;display:flex;justify-content:flex-end;align-items:center;}
   .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--ink);}
 
   .hero-wordmark{width:100%;max-width:420px;text-align:center;padding:36px 0 18px;}
   .hero-wordmark .wordmark{font-family:'Outfit';font-weight:900;font-size:46px;color:var(--gold);letter-spacing:-0.01em;}
 
   .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;}
+
+  /* --- Bottom tab navigation, fixed, present on every screen --- */
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; width:100%; background:#fff;
+    display:flex; justify-content:space-around; align-items:center;
+    padding:9px 4px calc(9px + env(safe-area-inset-bottom, 0px));
+    box-shadow:0 -4px 16px rgba(0,0,0,0.1); z-index:20;
+  }
+  .nav-tab{
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    background:none; border:none; cursor:pointer; padding:4px 6px;
+    color:var(--mist-dk); font-family:'Outfit'; font-size:9px; font-weight:700;
+  }
+  .nav-tab.active{color:var(--terra);}
+  .nav-tab .nav-icon{font-size:19px; line-height:1;}
+  .nav-tab .nav-icon-svg{width:21px; height:21px; color:var(--mist-dk);}
+  .nav-tab.active .nav-icon-svg{color:var(--terra);}
 
   /* --- Recording screen keeps its pine silhouette as the one
      screen-specific extra, on top of whatever the global time-of-day
@@ -98,7 +115,6 @@
   .error{color:#FFD9D2;font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
 
   /* --- Collection --- */
-  .top-btn{background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 12px;font-weight:700;font-size:15px;cursor:pointer;color:var(--dusk);}
   .stage.top-aligned{justify-content:flex-start;}
   .collection-header{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
   .collection-title{font-family:'Outfit';font-weight:900;font-size:20px;color:#fff;}
@@ -172,16 +188,31 @@
 <body>
 
   <div class="top">
-    <button class="top-btn" id="trophiesBtn">🏆</button>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <button class="top-btn" id="collectionBtn">📚</button>
-      <div class="feathers">🪶 <span id="featherCount">–</span></div>
-    </div>
+    <div class="feathers">🪶 <span id="featherCount">–</span></div>
   </div>
 
   <div class="hero-wordmark"><div class="wordmark">Warble</div></div>
 
   <div class="stage" id="stage"></div>
+
+  <div class="bottom-nav">
+    <button class="nav-tab" id="navProfile" data-tab="profile">
+      <span class="nav-icon">👤</span><span>Profile</span>
+    </button>
+    <button class="nav-tab" id="navCollection" data-tab="collection">
+      <span class="nav-icon">📚</span><span>Collection</span>
+    </button>
+    <button class="nav-tab" id="navHome" data-tab="home">
+      <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M12 3 L4 9 L4 21 L20 21 L20 9 Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="15" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-tab" id="navTrophies" data-tab="trophies">
+      <span class="nav-icon">🏆</span><span>Trophies</span>
+    </button>
+    <button class="nav-tab" id="navDressUp" data-tab="dressup">
+      <span class="nav-icon">✨</span><span>Dress up</span>
+    </button>
+  </div>
 
 <script>
 const stage = document.getElementById('stage');
@@ -202,6 +233,7 @@ async function refreshFeathers() {
 }
 
 function renderIdle() {
+  setActiveTab('home');
   stage.innerHTML = `
     <button class="mic-btn" id="recordBtn">🎙</button>
     <div class="stage-label">Go Warbling</div>
@@ -313,6 +345,7 @@ function renderNoBirds() {
 }
 
 function renderCollection() {
+  setActiveTab('collection');
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header">
@@ -381,6 +414,7 @@ async function loadCollection() {
 }
 
 function renderBirdDetail(commonName) {
+  setActiveTab('collection');
   const matches = allSightingsRaw.filter(s => s.common_name === commonName);
   if (matches.length === 0) return;
 
@@ -567,10 +601,39 @@ function applyTimeOfDayBackground() {
 applyTimeOfDayBackground();
 renderIdle();
 refreshFeathers();
-document.getElementById('collectionBtn').onclick = renderCollection;
-document.getElementById('trophiesBtn').onclick = renderTrophies;
+
+function setActiveTab(tabName) {
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+}
+
+function renderProfilePlaceholder() {
+  setActiveTab('profile');
+  stage.innerHTML = `
+    <div class="done-icon">👤</div>
+    <div class="stage-label">My Profile</div>
+    <div class="stage-sub">Coming soon!</div>
+  `;
+}
+
+function renderDressUpPlaceholder() {
+  setActiveTab('dressup');
+  stage.innerHTML = `
+    <div class="done-icon">✨</div>
+    <div class="stage-label">Dress Up</div>
+    <div class="stage-sub">Coming soon!</div>
+  `;
+}
+
+document.getElementById('navProfile').onclick = renderProfilePlaceholder;
+document.getElementById('navCollection').onclick = renderCollection;
+document.getElementById('navHome').onclick = renderIdle;
+document.getElementById('navTrophies').onclick = renderTrophies;
+document.getElementById('navDressUp').onclick = renderDressUpPlaceholder;
 
 async function renderTrophies() {
+  setActiveTab('trophies');
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header">
