@@ -87,8 +87,13 @@ class Profile(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, default="Explorer")
-    avatar_id = Column(String, default="robin")
-    equipped_accessory = Column(String, nullable=True)
+    avatar_body = Column(String, default="#C4BFDF")
+    avatar_breast = Column(String, default="#E8845C")
+    equipped_hats = Column(String, nullable=True)
+    equipped_neck = Column(String, nullable=True)
+    equipped_gear = Column(String, nullable=True)
+    equipped_glasses = Column(String, nullable=True)
+    equipped_shoes = Column(String, nullable=True)
 
 
 class OwnedAccessory(Base):
@@ -117,6 +122,13 @@ def init_db():
         conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lng FLOAT"))
         conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS call_url VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_accessory VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_body VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_breast VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_glasses VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_shoes VARCHAR"))
 
     with SessionLocal() as session:
         existing = session.query(PlayerStats).first()
@@ -125,7 +137,7 @@ def init_db():
             session.commit()
         existing_profile = session.query(Profile).first()
         if existing_profile is None:
-            session.add(Profile(name="Explorer", avatar_id="robin"))
+            session.add(Profile(name="Explorer", avatar_body="#C4BFDF", avatar_breast="#E8845C"))
             session.commit()
 
 
@@ -346,18 +358,33 @@ def save_location_name(lat: float, lng: float, name: str):
 
 
 def get_profile():
+    default = {
+        "name": "Explorer", "avatar_body": "#C4BFDF", "avatar_breast": "#E8845C",
+        "equipped": {"hats": None, "neck": None, "gear": None, "glasses": None, "shoes": None},
+    }
     if SessionLocal is None:
-        return {"name": "Explorer", "avatar_id": "robin", "equipped_accessory": None}
+        return default
     with SessionLocal() as session:
         p = session.query(Profile).first()
         if p is None:
-            p = Profile(name="Explorer", avatar_id="robin")
+            p = Profile(name="Explorer", avatar_body="#C4BFDF", avatar_breast="#E8845C")
             session.add(p)
             session.commit()
-        return {"name": p.name, "avatar_id": p.avatar_id, "equipped_accessory": p.equipped_accessory}
+        return {
+            "name": p.name,
+            "avatar_body": p.avatar_body or "#C4BFDF",
+            "avatar_breast": p.avatar_breast or "#E8845C",
+            "equipped": {
+                "hats": p.equipped_hats,
+                "neck": p.equipped_neck,
+                "gear": p.equipped_gear,
+                "glasses": p.equipped_glasses,
+                "shoes": p.equipped_shoes,
+            },
+        }
 
 
-def update_profile(name: str = None, avatar_id: str = None):
+def update_profile(name: str = None, avatar_body: str = None, avatar_breast: str = None):
     if SessionLocal is None:
         return
     with SessionLocal() as session:
@@ -367,8 +394,10 @@ def update_profile(name: str = None, avatar_id: str = None):
             session.add(p)
         if name is not None:
             p.name = name
-        if avatar_id is not None:
-            p.avatar_id = avatar_id
+        if avatar_body is not None:
+            p.avatar_body = avatar_body
+        if avatar_breast is not None:
+            p.avatar_breast = avatar_breast
         session.commit()
 
 
@@ -379,10 +408,11 @@ def get_owned_accessory_ids() -> set:
         return {a.accessory_id for a in session.query(OwnedAccessory).all()}
 
 
-def purchase_accessory(accessory_id: str, cost: float) -> bool:
+def purchase_accessory(accessory_id: str, cost: float, category: str) -> bool:
     """Attempts to buy an accessory - deducts feathers if affordable
-    and not already owned. Returns True only if the purchase actually
-    went through."""
+    and not already owned, then wears it immediately in its category's
+    slot (replacing whatever was there). Returns True only if the
+    purchase actually went through."""
     if SessionLocal is None:
         return False
     with SessionLocal() as session:
@@ -394,20 +424,29 @@ def purchase_accessory(accessory_id: str, cost: float) -> bool:
             return False
         stats.total_feathers -= cost
         session.add(OwnedAccessory(accessory_id=accessory_id))
+        p = session.query(Profile).first()
+        if p is None:
+            p = Profile()
+            session.add(p)
+        if category in ("hats", "neck", "gear", "glasses", "shoes"):
+            setattr(p, f"equipped_{category}", accessory_id)
         session.commit()
         return True
 
 
-def set_equipped_accessory(accessory_id):
-    """accessory_id can be None, to unequip and show the plain avatar."""
+def set_equipped_item(category: str, accessory_id):
+    """Sets (or clears, if accessory_id is None) the worn item for one
+    of the 5 slots: hats, neck, gear, glasses, shoes."""
     if SessionLocal is None:
+        return
+    if category not in ("hats", "neck", "gear", "glasses", "shoes"):
         return
     with SessionLocal() as session:
         p = session.query(Profile).first()
         if p is None:
             p = Profile()
             session.add(p)
-        p.equipped_accessory = accessory_id
+        setattr(p, f"equipped_{category}", accessory_id)
         session.commit()
 
 

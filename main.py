@@ -138,13 +138,13 @@ from database import (
     get_all_locations, rename_location,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
     has_session_today,
-    get_owned_accessory_ids, purchase_accessory, set_equipped_accessory,
+    get_owned_accessory_ids, purchase_accessory, set_equipped_item,
     count_curated_species_found,
 )
 from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
 from jokes import get_joke_of_the_day
-from accessories import ACCESSORIES
+from accessories import ACCESSORIES, CATEGORIES, CATEGORY_ICONS
 from curated_species import ALL_CURATED_SPECIES
 
 init_db()
@@ -451,8 +451,8 @@ def profile():
 
 
 @app.post("/profile")
-async def update_profile_endpoint(name: str = Form(None), avatar_id: str = Form(None)):
-    update_profile(name=name, avatar_id=avatar_id)
+async def update_profile_endpoint(name: str = Form(None), avatar_body: str = Form(None), avatar_breast: str = Form(None)):
+    update_profile(name=name, avatar_body=avatar_body, avatar_breast=avatar_breast)
     return {"status": "ok"}
 
 
@@ -513,13 +513,18 @@ def joke_of_the_day():
 
 @app.get("/accessories")
 def list_accessories():
-    """The whole Dress Up catalog, each marked owned or not."""
+    """The whole Dress Up catalog, each marked owned or not, plus the
+    5 categories (with their icons) in display order."""
     owned = get_owned_accessory_ids()
     return {
         "accessories": [
             {"id": aid, "owned": aid in owned, **info}
             for aid, info in ACCESSORIES.items()
-        ]
+        ],
+        "categories": [
+            {**cat, "icon_svg": CATEGORY_ICONS[i]}
+            for i, cat in enumerate(CATEGORIES)
+        ],
     }
 
 
@@ -527,15 +532,15 @@ def list_accessories():
 async def purchase_accessory_endpoint(accessory_id: str):
     if accessory_id not in ACCESSORIES:
         return JSONResponse(status_code=404, content={"status": "error", "message": "Unknown accessory."})
-    cost = ACCESSORIES[accessory_id]["cost"]
-    success = purchase_accessory(accessory_id, cost)
+    item = ACCESSORIES[accessory_id]
+    success = purchase_accessory(accessory_id, item["cost"], item["category"])
     return {"status": "ok" if success else "failed", "new_total": get_total_feathers()}
 
 
 @app.post("/accessories/equip")
-async def equip_accessory_endpoint(accessory_id: str = Form(None)):
-    """accessory_id can be omitted/blank to unequip everything."""
-    set_equipped_accessory(accessory_id if accessory_id else None)
+async def equip_accessory_endpoint(category: str = Form(...), accessory_id: str = Form(None)):
+    """accessory_id can be omitted/blank to clear that category's slot."""
+    set_equipped_item(category, accessory_id if accessory_id else None)
     return {"status": "ok"}
 
 

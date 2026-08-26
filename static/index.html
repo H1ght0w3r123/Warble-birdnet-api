@@ -45,7 +45,7 @@
   .bottom-nav{
     position:fixed; bottom:0; left:0; width:100%; background:#fff;
     display:flex; justify-content:space-around; align-items:center;
-    padding:9px 4px calc(9px + env(safe-area-inset-bottom, 0px));
+    padding:7px 4px calc(7px + env(safe-area-inset-bottom, 0px));
     box-shadow:0 -4px 16px rgba(0,0,0,0.1); z-index:20;
   }
   .nav-tab{
@@ -54,18 +54,17 @@
     color:var(--mist-dk); font-family:'Outfit'; font-size:9px; font-weight:700;
   }
   .nav-tab.active{color:var(--terra);}
-  .nav-tab .nav-icon{font-size:19px; line-height:1;}
-  .nav-tab .nav-icon-svg{width:21px; height:21px; color:var(--mist-dk);}
+  .nav-tab .nav-icon-svg{width:27px; height:27px; color:var(--mist-dk);}
   .nav-tab.active .nav-icon-svg{color:var(--terra);}
 
   /* --- Home gets a raised, circular treatment as the primary tab --- */
   .nav-tab.home-tab{
-    width:58px; height:58px; border-radius:50%;
-    background:var(--terra); margin-top:-26px; gap:0;
+    width:70px; height:70px; border-radius:50%;
+    background:var(--terra); margin-top:-30px; gap:0;
     box-shadow:0 4px 0 var(--terra-dk), 0 6px 14px rgba(0,0,0,0.25);
     justify-content:center;
   }
-  .nav-tab.home-tab .nav-icon-svg{width:26px; height:26px; color:#fff;}
+  .nav-tab.home-tab .nav-icon-svg{width:34px; height:34px; color:#fff;}
   .nav-tab.home-tab span:last-child{display:none;}
 
   /* --- Recording screen keeps its pine silhouette as the one
@@ -263,6 +262,12 @@
   .carousel-item-price.unaffordable{color:var(--mist-dk);opacity:0.6;}
   .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
+  .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
+  .color-swatch{width:36px;height:36px;border-radius:50%;border:3px solid #fff;cursor:pointer;padding:0;box-shadow:0 0 0 1px rgba(0,0,0,0.12);}
+  .quick-pairs-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
+  .quick-pair-btn{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 8px;border-radius:20px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);cursor:pointer;font-family:'Outfit';font-size:12px;font-weight:700;color:#fff;}
+  .quick-pair-swatch{display:flex;width:20px;height:20px;border-radius:50%;overflow:hidden;flex-shrink:0;}
+  .quick-pair-swatch span{width:10px;height:20px;display:block;}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
   .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
   .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
@@ -318,20 +323,24 @@
 
   <div class="bottom-nav">
     <button class="nav-tab" id="navProfile" data-tab="profile">
-      <span class="nav-icon" id="navProfileIcon">👤</span><span>Profile</span>
+      <span id="navProfileIcon"><svg viewBox="0 0 24 24" class="nav-icon-svg" width="27" height="27"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="currentColor"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="currentColor"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="currentColor"/></svg></span>
+      <span>Profile</span>
     </button>
     <button class="nav-tab" id="navCollection" data-tab="collection">
-      <span class="nav-icon">📚</span><span>Collection</span>
+      <svg viewBox="0 0 24 24" class="nav-icon-svg"><rect x="2.4" y="5.4" width="12.6" height="16.2" rx="1.8" fill="#7EC8A4"/><rect x="7.6" y="3" width="14" height="18.6" rx="2" fill="currentColor"/><circle cx="15.2" cy="13.6" r="2" fill="#fff"/><path d="M17.2 13.6 L19.6 14.3 L17.2 15 Z" fill="#fff"/><path d="M10.6 18.6 Q10.6 14.6 14.4 14.6 Q17 14.6 17 16.8 Q17 18.6 14.4 18.6 Z" fill="#fff"/></svg>
+      <span>Collection</span>
     </button>
     <button class="nav-tab home-tab" id="navHome" data-tab="home">
-      <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M12 3 L4 9 L4 21 L20 21 L20 9 Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="15" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M12 1.8 L22.6 10.2 L1.4 10.2 Z" fill="currentColor"/><rect x="4.4" y="10.2" width="15.2" height="11.4" fill="#F2C94C"/><circle cx="12" cy="14.6" r="3.3" fill="currentColor"/><rect x="11.1" y="17.6" width="1.8" height="4" fill="currentColor"/></svg>
       <span>Home</span>
     </button>
     <button class="nav-tab" id="navTrophies" data-tab="trophies">
-      <span class="nav-icon">🏆</span><span>Trophies</span>
+      <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M6.8 4.4 L3 4.4 L3 8.6 L7.6 11.6 Z" fill="#E87EA1"/><path d="M17.2 4.4 L21 4.4 L21 8.6 L16.4 11.6 Z" fill="#E87EA1"/><path d="M6.4 3 L17.6 3 L15.8 12.2 L12 15 L8.2 12.2 Z" fill="currentColor"/><circle cx="12" cy="8" r="2.1" fill="#fff"/><rect x="11" y="14.6" width="2" height="3.6" fill="currentColor"/><path d="M7 21.6 L17 21.6 L15.4 18 L8.6 18 Z" fill="currentColor"/></svg>
+      <span>Trophies</span>
     </button>
     <button class="nav-tab" id="navDressUp" data-tab="dressup">
-      <span class="nav-icon">✨</span><span>Dress up</span>
+      <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M7.4 3 L16.6 3 L16.6 13.2 L7.4 13.2 Z" fill="currentColor"/><rect x="2.4" y="13.2" width="19.2" height="3.4" rx="1.2" fill="currentColor"/><rect x="7.4" y="9.4" width="9.2" height="3.8" fill="#F2C94C"/></svg>
+      <span>Dress up</span>
     </button>
   </div>
 
@@ -1090,24 +1099,52 @@ function setActiveTab(tabName) {
   });
 }
 
-const AVATAR_OPTIONS = [
-  { id: 'robin',      bg: '#2D1B69', body: '#E8845C', accent: '#E87EA1' },
-  { id: 'bluetit',    bg: '#C4BFDF', body: '#7EC8A4', accent: '#F2C94C' },
-  { id: 'owl',        bg: '#1A1128', body: '#3D2A85', accent: '#F2C94C' },
-  { id: 'blackbird',  bg: '#7EC8A4', body: '#1A1128', accent: '#F2C94C' },
-  { id: 'wren',       bg: '#F2C94C', body: '#E87EA1', accent: '#B85A36' },
-  { id: 'kingfisher', bg: '#2D1B69', body: '#7EC8A4', accent: '#E8845C' },
+const BODY_SWATCHES = ['#C4BFDF', '#8E87B8', '#2D1B69', '#7EC8A4', '#E8845C', '#F2C94C'];
+const BREAST_SWATCHES = ['#E8845C', '#F2C94C', '#E87EA1', '#7EC8A4', '#C4BFDF', '#F5EDD6'];
+const QUICK_PAIRS = [
+  { name: 'Robin', body: '#C4BFDF', breast: '#E8845C' },
+  { name: 'Dusk', body: '#2D1B69', breast: '#F2C94C' },
+  { name: 'Meadow', body: '#7EC8A4', breast: '#F2C94C' },
+  { name: 'Blossom', body: '#8E87B8', breast: '#E87EA1' },
 ];
+const ACCESSORY_LAYER_ORDER = ['shoes', 'gear', 'neck', 'glasses', 'hats'];
 
 let accessorySvgCache = {};
 
-function avatarSvg(avatar, size, accessoryId) {
-  const accessorySvg = (accessoryId && accessorySvgCache[accessoryId]) ? accessorySvgCache[accessoryId] : '';
+function avatarSvg(body, breast, size, equipped) {
+  equipped = equipped || {};
+  const accessoryLayers = ACCESSORY_LAYER_ORDER
+    .map(cat => (equipped[cat] && accessorySvgCache[equipped[cat]]) ? accessorySvgCache[equipped[cat]] : '')
+    .join('');
+
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
-    <circle cx="50" cy="50" r="48" fill="${avatar.bg}"/>
-    <path d="M28 66 Q22 44 38 33 Q44 22 60 28 L72 22 L66 34 Q78 40 74 56 Q71 70 54 72 Q38 74 28 66 Z" fill="${avatar.body}"/>
-    <circle cx="40" cy="36" r="7" fill="${avatar.accent}" opacity="0.9"/>
-    ${accessorySvg}
+    <path d="M44 80 L42.5 93" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M42.5 93 L36 97.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    <path d="M42.5 93 L42 99.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    <path d="M42.5 93 L48.5 97" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    <path d="M56 80 L57.5 93" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M57.5 93 L64 97.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    <path d="M57.5 93 L58 99.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    <path d="M57.5 93 L51.5 97" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    <path d="M13 50 C13 29.57 29.57 13 50 13 C70.43 13 87 29.57 87 50 Z" fill="${body}"/>
+    <path d="M13 50 C13 70.43 29.57 87 50 87 C70.43 87 87 70.43 87 50 Z" fill="${body}"/>
+    <path d="M13 50 C13 70.43 29.57 87 50 87 C70.43 87 87 70.43 87 50 Z" fill="#F5EDD6" opacity="0.38"/>
+    <path d="M27 51 C20 54 15 63 11.5 73 C10.5 76 12 78.5 14.5 78 C16 77.7 17 76.5 17.8 74.8 C18.6 77.6 20 79 22 78.4 C23.8 77.9 24.7 76.2 25.2 74 C26.6 76 28.4 76.3 29.6 74.8 C30.8 73.3 30.9 70.6 30.6 67.5 C30.1 60 29.5 54.5 27 51 Z" fill="${body}"/>
+    <path d="M27 51 C20 54 15 63 11.5 73 C10.5 76 12 78.5 14.5 78 C16 77.7 17 76.5 17.8 74.8 C18.6 77.6 20 79 22 78.4 C23.8 77.9 24.7 76.2 25.2 74 C26.6 76 28.4 76.3 29.6 74.8 C30.8 73.3 30.9 70.6 30.6 67.5 C30.1 60 29.5 54.5 27 51 Z" fill="#1A1128" opacity="0.28"/>
+    <path d="M73 51 C80 54 85 63 88.5 73 C89.5 76 88 78.5 85.5 78 C84 77.7 83 76.5 82.2 74.8 C81.4 77.6 80 79 78 78.4 C76.2 77.9 75.3 76.2 74.8 74 C73.4 76 71.6 76.3 70.4 74.8 C69.2 73.3 69.1 70.6 69.4 67.5 C69.9 60 70.5 54.5 73 51 Z" fill="${body}"/>
+    <path d="M73 51 C80 54 85 63 88.5 73 C89.5 76 88 78.5 85.5 78 C84 77.7 83 76.5 82.2 74.8 C81.4 77.6 80 79 78 78.4 C76.2 77.9 75.3 76.2 74.8 74 C73.4 76 71.6 76.3 70.4 74.8 C69.2 73.3 69.1 70.6 69.4 67.5 C69.9 60 70.5 54.5 73 51 Z" fill="#1A1128" opacity="0.28"/>
+    <path d="M22 48 C22 40 25 32 31 29 C35 27 39 29 42.5 26.5 C45.5 24.4 47 22.5 50 22.5 C53 22.5 54.5 24.4 57.5 26.5 C61 29 65 27 69 29 C75 32 78 40 78 48 C78 57 74 64.5 67 69 C61 72.8 55 74 50 74 C45 74 39 72.8 33 69 C26 64.5 22 57 22 48 Z" fill="${breast}"/>
+    <ellipse cx="33.5" cy="56" rx="7" ry="4.2" fill="#E87EA1" opacity="0.5"/>
+    <ellipse cx="66.5" cy="56" rx="7" ry="4.2" fill="#E87EA1" opacity="0.5"/>
+    <ellipse cx="41" cy="37" rx="3.4" ry="1.8" fill="#1A1128" transform="rotate(-14 41 37)"/>
+    <ellipse cx="59" cy="37" rx="3.4" ry="1.8" fill="#1A1128" transform="rotate(14 59 37)"/>
+    <circle cx="39.5" cy="51" r="4.2" fill="#1A1128"/>
+    <circle cx="60.5" cy="51" r="4.2" fill="#1A1128"/>
+    <circle cx="41.2" cy="49.3" r="1.3" fill="#F5EDD6"/>
+    <circle cx="62.2" cy="49.3" r="1.3" fill="#F5EDD6"/>
+    <path d="M50 44.5 L57.5 52 L50 55 L42.5 52 Z" fill="#8E87B8"/>
+    <path d="M42.5 52 L57.5 52 L50 60.5 Z" fill="#1A1128"/>
+    ${accessoryLayers}
   </svg>`;
 }
 
@@ -1120,8 +1157,14 @@ async function renderProfile() {
     <input type="text" id="nameInput" class="location-input" placeholder="Your name" maxlength="24">
     <button class="again-btn" id="saveNameBtn">Save name</button>
 
-    <div class="profile-section-title">Choose an avatar</div>
-    <div class="avatar-grid" id="avatarGrid"></div>
+    <div class="profile-section-title">Body colour</div>
+    <div class="swatch-row" id="bodySwatchRow"></div>
+
+    <div class="profile-section-title">Breast colour</div>
+    <div class="swatch-row" id="breastSwatchRow"></div>
+
+    <div class="profile-section-title">Quick pairs</div>
+    <div class="quick-pairs-row" id="quickPairsRow"></div>
 
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
@@ -1134,7 +1177,7 @@ async function renderProfile() {
 
   document.getElementById('nameInput').value = currentProfile.name;
   renderAvatarPreview();
-  renderAvatarGrid();
+  renderSwatchRows();
   updateNavAvatarIcon();
   loadProfileLocations();
 
@@ -1149,41 +1192,59 @@ async function renderProfile() {
 }
 
 function renderAvatarPreview() {
-  const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
   const el = document.getElementById('avatarPreview');
-  if (el) el.innerHTML = avatarSvg(avatar, 92, currentProfile.equipped_accessory);
+  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_breast, 92, currentProfile.equipped);
 }
 
 function updateNavAvatarIcon() {
-  const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
   const iconEl = document.getElementById('navProfileIcon');
-  if (iconEl) {
-    iconEl.innerHTML = avatarSvg(avatar, 20, currentProfile.equipped_accessory);
-    iconEl.style.display = 'inline-flex';
-    iconEl.style.borderRadius = '50%';
-    iconEl.style.overflow = 'hidden';
-  }
+  if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_breast, 27, currentProfile.equipped);
 }
 
-function renderAvatarGrid() {
-  const grid = document.getElementById('avatarGrid');
-  if (!grid) return;
-  grid.innerHTML = AVATAR_OPTIONS.map(a => `
-    <button class="avatar-option ${a.id === currentProfile.avatar_id ? 'selected' : ''}" data-avatar="${a.id}">
-      ${avatarSvg(a, 52)}
-    </button>
-  `).join('');
-  grid.querySelectorAll('.avatar-option').forEach(btn => {
-    btn.onclick = async () => {
-      currentProfile.avatar_id = btn.dataset.avatar;
-      renderAvatarPreview();
-      renderAvatarGrid();
-      updateNavAvatarIcon();
-      const formData = new FormData();
-      formData.append('avatar_id', btn.dataset.avatar);
-      try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
-    };
-  });
+async function saveAvatarColors() {
+  renderAvatarPreview();
+  renderSwatchRows();
+  updateNavAvatarIcon();
+  const formData = new FormData();
+  formData.append('avatar_body', currentProfile.avatar_body);
+  formData.append('avatar_breast', currentProfile.avatar_breast);
+  try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
+}
+
+function renderSwatchRows() {
+  const bodyRow = document.getElementById('bodySwatchRow');
+  if (bodyRow) {
+    bodyRow.innerHTML = BODY_SWATCHES.map(hex => `
+      <button class="color-swatch" data-hex="${hex}" style="background:${hex};border-color:${currentProfile.avatar_body === hex ? 'var(--ink)' : '#fff'}"></button>
+    `).join('');
+    bodyRow.querySelectorAll('.color-swatch').forEach(btn => {
+      btn.onclick = () => { currentProfile.avatar_body = btn.dataset.hex; saveAvatarColors(); };
+    });
+  }
+  const breastRow = document.getElementById('breastSwatchRow');
+  if (breastRow) {
+    breastRow.innerHTML = BREAST_SWATCHES.map(hex => `
+      <button class="color-swatch" data-hex="${hex}" style="background:${hex};border-color:${currentProfile.avatar_breast === hex ? 'var(--ink)' : '#fff'}"></button>
+    `).join('');
+    breastRow.querySelectorAll('.color-swatch').forEach(btn => {
+      btn.onclick = () => { currentProfile.avatar_breast = btn.dataset.hex; saveAvatarColors(); };
+    });
+  }
+  const quickRow = document.getElementById('quickPairsRow');
+  if (quickRow) {
+    quickRow.innerHTML = QUICK_PAIRS.map(p => `
+      <button class="quick-pair-btn" data-body="${p.body}" data-breast="${p.breast}">
+        <span class="quick-pair-swatch"><span style="background:${p.body}"></span><span style="background:${p.breast}"></span></span>${p.name}
+      </button>
+    `).join('');
+    quickRow.querySelectorAll('.quick-pair-btn').forEach(btn => {
+      btn.onclick = () => {
+        currentProfile.avatar_body = btn.dataset.body;
+        currentProfile.avatar_breast = btn.dataset.breast;
+        saveAvatarColors();
+      };
+    });
+  }
 }
 
 async function loadProfileLocations() {
@@ -1231,12 +1292,7 @@ function editLocationPrompt(id, listEl) {
   };
 }
 
-const ACCESSORY_CATEGORIES = [
-  { id: 'hats', name: 'Hats', icon: '🎩' },
-  { id: 'scarves', name: 'Scarves', icon: '🧣' },
-  { id: 'binoculars', name: 'Binoculars', icon: '🔭' },
-];
-
+let dressUpCategories = [];
 let accessoryCatalog = [];
 let selectedCategory = null;
 let currentFeatherTotal = 0;
@@ -1250,7 +1306,8 @@ async function renderDressUp() {
     <div style="width:100%;text-align:center;margin-top:6px;" id="dressUpPreview"></div>
     <div class="collection-count" id="dressUpFeathers">Loading...</div>
     <div class="category-row" id="categoryRow"></div>
-    <div class="carousel-wrap" id="carouselWrap"></div>
+    <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
+    <div class="dressup-hint" id="dressUpHint"></div>
   `;
 
   try {
@@ -1259,7 +1316,9 @@ async function renderDressUp() {
       fetch('/profile'),
       fetch('/feathers'),
     ]);
-    accessoryCatalog = (await accRes.json()).accessories || [];
+    const accData = await accRes.json();
+    accessoryCatalog = accData.accessories || [];
+    dressUpCategories = accData.categories || [];
     currentProfile = await profRes.json();
     const featherData = await featherRes.json();
     currentFeatherTotal = featherData.total_feathers;
@@ -1271,7 +1330,7 @@ async function renderDressUp() {
 
     renderDressUpPreview();
     renderCategoryRow();
-    if (ACCESSORY_CATEGORIES.length) selectCategory(ACCESSORY_CATEGORIES[0].id);
+    if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
   } catch (e) {
     const wrap = document.getElementById('carouselWrap');
     if (wrap) wrap.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
@@ -1279,17 +1338,16 @@ async function renderDressUp() {
 }
 
 function renderDressUpPreview() {
-  const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
   const el = document.getElementById('dressUpPreview');
-  if (el) el.innerHTML = avatarSvg(avatar, 100, currentProfile.equipped_accessory);
+  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_breast, 130, currentProfile.equipped);
 }
 
 function renderCategoryRow() {
   const row = document.getElementById('categoryRow');
   if (!row) return;
-  row.innerHTML = ACCESSORY_CATEGORIES.map(cat => `
+  row.innerHTML = dressUpCategories.map(cat => `
     <button class="category-tile ${selectedCategory === cat.id ? 'active' : ''}" data-category="${cat.id}">
-      <div class="cat-icon">${cat.icon}</div>
+      <span class="cat-icon"><svg viewBox="0 0 24 24" width="24" height="24">${cat.icon_svg}</svg></span>
       <div>${cat.name}</div>
     </button>
   `).join('');
@@ -1304,6 +1362,11 @@ function selectCategory(categoryId) {
   renderCarousel();
 }
 
+function setDressUpHint(text) {
+  const hintEl = document.getElementById('dressUpHint');
+  if (hintEl) hintEl.textContent = text;
+}
+
 function renderCarousel() {
   const wrap = document.getElementById('carouselWrap');
   if (!wrap) return;
@@ -1313,54 +1376,62 @@ function renderCarousel() {
     return;
   }
   wrap.innerHTML = items.map(a => {
-    const isEquipped = currentProfile.equipped_accessory === a.id;
+    const isEquipped = currentProfile.equipped && currentProfile.equipped[a.category] === a.id;
     const canAfford = currentFeatherTotal >= a.cost;
     const priceHtml = a.owned
       ? `<div class="carousel-item-price owned-label">${isEquipped ? 'Worn' : 'Owned'}</div>`
       : `<div class="carousel-item-price ${canAfford ? 'affordable' : 'unaffordable'}">🪶 ${a.cost}</div>`;
     return `
-      <div class="carousel-item ${a.owned ? '' : 'unowned'} ${isEquipped ? 'equipped' : ''}" data-id="${a.id}" data-owned="${a.owned}">
-        <div class="item-icon-wrap">${a.emoji}</div>
+      <div class="carousel-item ${a.owned ? '' : 'unowned'} ${isEquipped ? 'equipped' : ''}" data-id="${a.id}" data-owned="${a.owned}" data-category="${a.category}" data-cost="${a.cost}" data-name="${a.name}">
+        <div class="item-icon-wrap"><svg viewBox="${a.tile_viewbox}" width="100%" height="100%">${a.svg}</svg></div>
         <div class="carousel-item-name">${a.name}</div>
         ${priceHtml}
       </div>
     `;
   }).join('');
   wrap.querySelectorAll('.carousel-item').forEach(el => {
-    el.onclick = () => handleAccessoryTap(el.dataset.id, el.dataset.owned === 'true');
+    el.onclick = () => handleAccessoryTap(el.dataset.id, el.dataset.owned === 'true', el.dataset.category, parseInt(el.dataset.cost, 10), el.dataset.name);
   });
 }
 
-async function handleAccessoryTap(accessoryId, owned) {
+async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
   if (!owned) {
     try {
       const res = await fetch(`/accessories/${accessoryId}/purchase`, { method: 'POST' });
       const data = await res.json();
-      const feathersEl = document.getElementById('dressUpFeathers');
       if (data.status === 'ok') {
         const item = accessoryCatalog.find(a => a.id === accessoryId);
         if (item) item.owned = true;
         currentFeatherTotal = data.new_total;
+        if (!currentProfile.equipped) currentProfile.equipped = {};
+        currentProfile.equipped[category] = accessoryId; // purchase auto-equips, server-side too
+        const feathersEl = document.getElementById('dressUpFeathers');
         if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(currentFeatherTotal)} feathers to spend`;
+        setDressUpHint(`Bought ${name} for ${cost} feathers`);
+        renderDressUpPreview();
         renderCarousel();
-      } else if (feathersEl) {
-        const original = feathersEl.textContent;
-        feathersEl.textContent = 'Not enough feathers yet!';
-        setTimeout(() => { feathersEl.textContent = original; }, 1500);
+        updateNavAvatarIcon();
+      } else {
+        const shortfall = Math.max(0, cost - currentFeatherTotal);
+        setDressUpHint(`Not enough feathers yet — ${Math.round(shortfall)} more to go`);
       }
     } catch (e) { /* fail quietly, nothing to update */ }
     return;
   }
 
-  // Already owned - tapping toggles wearing it.
-  const newEquipped = currentProfile.equipped_accessory === accessoryId ? null : accessoryId;
-  currentProfile.equipped_accessory = newEquipped;
+  // Already owned - tap toggles wearing it in its category's slot.
+  if (!currentProfile.equipped) currentProfile.equipped = {};
+  const currentlyWorn = currentProfile.equipped[category] === accessoryId;
+  const newValue = currentlyWorn ? null : accessoryId;
+  currentProfile.equipped[category] = newValue;
+  setDressUpHint(currentlyWorn ? `Took off ${name}` : `Wearing ${name}`);
   renderDressUpPreview();
   renderCarousel();
   updateNavAvatarIcon();
   try {
     const formData = new FormData();
-    if (newEquipped) formData.append('accessory_id', newEquipped);
+    formData.append('category', category);
+    if (newValue) formData.append('accessory_id', newValue);
     await fetch('/accessories/equip', { method: 'POST', body: formData });
   } catch (e) { /* local state's already updated, ok if the save fails silently */ }
 }
