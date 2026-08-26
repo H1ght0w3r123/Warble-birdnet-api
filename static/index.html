@@ -21,7 +21,7 @@
     color:#fff;
     min-height:100vh;
     display:flex; flex-direction:column; align-items:center;
-    padding:20px 16px 90px;
+    padding:20px 16px 0;
     transition:background 1.2s ease;
   }
 
@@ -45,7 +45,7 @@
 
   /* --- Bottom tab navigation, fixed, present on every screen --- */
   .bottom-nav{
-    position:fixed; bottom:0; left:0; width:100%; background:#fff;
+    position:sticky; bottom:0; width:100%; background:#fff;
     display:flex; justify-content:space-around; align-items:center;
     padding:7px 4px calc(7px + env(safe-area-inset-bottom, 0px));
     box-shadow:0 -4px 16px rgba(0,0,0,0.1); z-index:20;
@@ -255,7 +255,7 @@
   .category-tile .cat-icon{font-size:24px;}
   .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
   .avatar-frame{background:#fff;border-radius:50%;padding:11px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
-  .carousel-wrap{width:100%;overflow-x:auto;display:flex;gap:12px;padding:16px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .carousel-wrap{width:100%;overflow-x:auto;display:flex;gap:12px;padding:16px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
   .carousel-item{
     flex:0 0 auto; width:96px; background:#fff; border-radius:14px; padding:14px 8px;
     display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer;
