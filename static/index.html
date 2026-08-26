@@ -772,21 +772,42 @@ function renderBirdDetail(commonName) {
   document.getElementById('backBtn').onclick = renderCollection;
 }
 
+let currentlyPlayingAudio = null;
+let currentlyPlayingBtn = null;
+let currentlyPlayingLabel = '▶ Hear its call';
+
+function stopAnyPlayingAudio() {
+  if (currentlyPlayingAudio) {
+    currentlyPlayingAudio.pause();
+    currentlyPlayingAudio.currentTime = 0;
+  }
+  if (currentlyPlayingBtn) {
+    currentlyPlayingBtn.textContent = currentlyPlayingLabel;
+    currentlyPlayingBtn.disabled = false;
+  }
+  currentlyPlayingAudio = null;
+  currentlyPlayingBtn = null;
+}
+
 function playBirdCall(url, btnEl) {
   if (!url) return;
+  stopAnyPlayingAudio(); // only one call plays at a time
   const audio = new Audio(url);
-  const originalText = btnEl.textContent;
+  currentlyPlayingLabel = btnEl.textContent;
+  currentlyPlayingAudio = audio;
+  currentlyPlayingBtn = btnEl;
   btnEl.textContent = '⏸ Playing...';
   btnEl.disabled = true;
-  audio.play().catch(() => {
-    btnEl.textContent = originalText;
-    btnEl.disabled = false;
-  });
-  audio.onended = () => {
-    btnEl.textContent = originalText;
-    btnEl.disabled = false;
-  };
+  audio.play().catch(() => stopAnyPlayingAudio());
+  audio.onended = () => stopAnyPlayingAudio();
 }
+
+// Every screen change (any render*() function) fully replaces stage's
+// children - watching for that means audio reliably stops the moment
+// you navigate away or move to a different card, without needing to
+// remember to add a stop-call to every single screen function.
+const stageAudioObserver = new MutationObserver(() => stopAnyPlayingAudio());
+stageAudioObserver.observe(stage, { childList: true });
 
 const HABITAT_ICONS = {
   'Garden & Parks': '🌳', 'Woodland': '🌲', 'Wetland & Coast': '🌊',
