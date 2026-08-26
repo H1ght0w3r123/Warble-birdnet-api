@@ -33,7 +33,9 @@
   body.time-dusk{background:linear-gradient(180deg,var(--dusk) 0%,var(--rose) 45%,var(--terra) 75%,var(--gold) 100%);}
   body.time-night{background:linear-gradient(180deg,var(--ink) 0%,var(--dusk) 60%,var(--dusk-mid) 100%);}
 
-  .top{width:100%;max-width:420px;display:flex;justify-content:flex-end;align-items:center;}
+  .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;}
+  .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  .top-profile-btn svg{width:24px;height:24px;}
   .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--ink);}
   .feathers.feather-pop{animation:featherPop 0.32s ease;}
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
@@ -60,7 +62,8 @@
     color:var(--mist-dk); font-family:'Outfit'; font-size:9px; font-weight:700;
   }
   .nav-tab.active{color:var(--terra);}
-  .nav-tab .nav-icon-svg{width:27px; height:27px; color:var(--mist-dk);}
+  .nav-tab .nav-icon-svg{width:32.4px; height:32.4px; color:var(--mist-dk);}
+  .nav-void{visibility:hidden;pointer-events:none;}
   .nav-tab.active .nav-icon-svg{color:var(--terra);}
 
   /* --- Home gets a raised, circular treatment as the primary tab --- */
@@ -70,7 +73,7 @@
     box-shadow:0 4px 0 var(--terra-dk), 0 6px 14px rgba(0,0,0,0.25);
     justify-content:center;
   }
-  .nav-tab.home-tab .nav-icon-svg{width:34px; height:34px; color:#fff;}
+  .nav-tab.home-tab .nav-icon-svg{width:40.8px; height:40.8px; color:#fff;}
   .nav-tab.home-tab span:last-child{display:none;}
 
   /* --- Recording screen keeps its pine silhouette as the one
@@ -269,6 +272,9 @@
   .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
+  .dressup-avatar-row{display:flex;align-items:center;justify-content:center;gap:18px;width:100%;margin-top:10px;}
+  .swatch-col-group{display:flex;gap:8px;}
+  .swatch-col{display:flex;flex-direction:column;gap:6px;}
   .color-swatch{width:36px;height:36px;border-radius:50%;border:3px solid #fff;cursor:pointer;padding:0;box-shadow:0 0 0 1px rgba(0,0,0,0.12);}
   .quick-pairs-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
   .quick-pair-btn{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 8px;border-radius:20px;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);cursor:pointer;font-family:'Outfit';font-size:12px;font-weight:700;color:#fff;}
@@ -321,6 +327,7 @@
 
   <div class="top">
     <div class="feathers">🪶 <span id="featherCount">–</span></div>
+    <button class="top-profile-btn" id="topProfileBtn"><svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg></button>
   </div>
 
   <div class="hero-wordmark"><div class="wordmark">Warble</div></div>
@@ -328,10 +335,7 @@
   <div class="stage" id="stage"></div>
 
   <div class="bottom-nav">
-    <button class="nav-tab" id="navProfile" data-tab="profile">
-      <span id="navProfileIcon"><svg viewBox="0 0 24 24" class="nav-icon-svg" width="27" height="27"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="currentColor"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="currentColor"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="currentColor"/></svg></span>
-      <span>Profile</span>
-    </button>
+    <div class="nav-tab nav-void" aria-hidden="true"></div>
     <button class="nav-tab" id="navCollection" data-tab="collection">
       <svg viewBox="0 0 24 24" class="nav-icon-svg"><rect x="2.4" y="5.4" width="12.6" height="16.2" rx="1.8" fill="#7EC8A4"/><rect x="7.6" y="3" width="14" height="18.6" rx="2" fill="currentColor"/><circle cx="15.2" cy="13.6" r="2" fill="#fff"/><path d="M17.2 13.6 L19.6 14.3 L17.2 15 Z" fill="#fff"/><path d="M10.6 18.6 Q10.6 14.6 14.4 14.6 Q17 14.6 17 16.8 Q17 18.6 14.4 18.6 Z" fill="#fff"/></svg>
       <span>Collection</span>
@@ -345,7 +349,7 @@
       <span>Trophies</span>
     </button>
     <button class="nav-tab" id="navDressUp" data-tab="dressup">
-      <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M7.4 3 L16.6 3 L16.6 13.2 L7.4 13.2 Z" fill="currentColor"/><rect x="2.4" y="13.2" width="19.2" height="3.4" rx="1.2" fill="currentColor"/><rect x="7.4" y="9.4" width="9.2" height="3.8" fill="#F2C94C"/></svg>
+      <span id="navDressUpIcon"></span>
       <span>Dress up</span>
     </button>
   </div>
@@ -1159,18 +1163,8 @@ async function renderProfile() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">My Profile</div></div>
-    <div style="width:100%;text-align:center;margin-top:12px;" id="avatarPreview"></div>
     <input type="text" id="nameInput" class="location-input" placeholder="Your name" maxlength="24">
     <button class="again-btn" id="saveNameBtn">Save name</button>
-
-    <div class="profile-section-title">Body colour</div>
-    <div class="swatch-row" id="bodySwatchRow"></div>
-
-    <div class="profile-section-title">Breast colour</div>
-    <div class="swatch-row" id="breastSwatchRow"></div>
-
-    <div class="profile-section-title">Quick pairs</div>
-    <div class="quick-pairs-row" id="quickPairsRow"></div>
 
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
@@ -1182,9 +1176,6 @@ async function renderProfile() {
   } catch (e) { /* fall back to defaults already set */ }
 
   document.getElementById('nameInput').value = currentProfile.name;
-  renderAvatarPreview();
-  renderSwatchRows();
-  updateNavAvatarIcon();
   loadProfileLocations();
 
   document.getElementById('saveNameBtn').onclick = async () => {
@@ -1197,18 +1188,13 @@ async function renderProfile() {
   };
 }
 
-function renderAvatarPreview() {
-  const el = document.getElementById('avatarPreview');
-  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_breast, 92, currentProfile.equipped);
-}
-
 function updateNavAvatarIcon() {
-  const iconEl = document.getElementById('navProfileIcon');
+  const iconEl = document.getElementById('navDressUpIcon');
   if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_breast, 27, currentProfile.equipped);
 }
 
 async function saveAvatarColors() {
-  renderAvatarPreview();
+  renderDressUpPreview();
   renderSwatchRows();
   updateNavAvatarIcon();
   const formData = new FormData();
@@ -1309,7 +1295,14 @@ async function renderDressUp() {
   selectedCategory = null;
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Dress Up</div></div>
-    <div style="width:100%;text-align:center;margin-top:6px;" id="dressUpPreview"></div>
+    <div class="dressup-avatar-row">
+      <div class="swatch-col-group">
+        <div class="swatch-col" id="bodySwatchRow"></div>
+        <div class="swatch-col" id="breastSwatchRow"></div>
+      </div>
+      <div id="dressUpPreview"></div>
+    </div>
+    <div class="quick-pairs-row" id="quickPairsRow" style="justify-content:center;margin-top:10px;"></div>
     <div class="collection-count" id="dressUpFeathers">Loading...</div>
     <div class="category-row" id="categoryRow"></div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
@@ -1335,6 +1328,7 @@ async function renderDressUp() {
     if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(currentFeatherTotal)} feathers to spend`;
 
     renderDressUpPreview();
+    renderSwatchRows();
     renderCategoryRow();
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
   } catch (e) {
@@ -1442,7 +1436,7 @@ async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
   } catch (e) { /* local state's already updated, ok if the save fails silently */ }
 }
 
-document.getElementById('navProfile').onclick = renderProfile;
+document.getElementById('topProfileBtn').onclick = renderProfile;
 document.getElementById('navCollection').onclick = renderCollection;
 document.getElementById('navHome').onclick = renderIdle;
 document.getElementById('navTrophies').onclick = renderTrophies;
