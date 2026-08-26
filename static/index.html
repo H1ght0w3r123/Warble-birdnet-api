@@ -223,7 +223,7 @@
 
   /* --- Profile --- */
   .avatar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;width:100%;}
-  .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;justify-content:center;}
+  .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
   .avatar-option.selected{border-color:var(--gold);}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
   .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
@@ -984,6 +984,16 @@ async function loadProfileForNav() {
 }
 loadProfileForNav();
 
+async function loadAccessoryCache() {
+  try {
+    const res = await fetch('/accessories');
+    const data = await res.json();
+    (data.accessories || []).forEach(a => { accessorySvgCache[a.id] = a.svg; });
+    updateNavAvatarIcon(); // re-render now the equipped item's SVG is actually available
+  } catch (e) { /* avatars just show without an accessory if this fails */ }
+}
+loadAccessoryCache();
+
 function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -999,11 +1009,15 @@ const AVATAR_OPTIONS = [
   { id: 'kingfisher', bg: '#2D1B69', body: '#7EC8A4', accent: '#E8845C' },
 ];
 
-function avatarSvg(avatar, size) {
+let accessorySvgCache = {};
+
+function avatarSvg(avatar, size, accessoryId) {
+  const accessorySvg = (accessoryId && accessorySvgCache[accessoryId]) ? accessorySvgCache[accessoryId] : '';
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
     <circle cx="50" cy="50" r="48" fill="${avatar.bg}"/>
     <path d="M28 66 Q22 44 38 33 Q44 22 60 28 L72 22 L66 34 Q78 40 74 56 Q71 70 54 72 Q38 74 28 66 Z" fill="${avatar.body}"/>
     <circle cx="40" cy="36" r="7" fill="${avatar.accent}" opacity="0.9"/>
+    ${accessorySvg}
   </svg>`;
 }
 
@@ -1047,14 +1061,14 @@ async function renderProfile() {
 function renderAvatarPreview() {
   const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
   const el = document.getElementById('avatarPreview');
-  if (el) el.innerHTML = avatarSvg(avatar, 92);
+  if (el) el.innerHTML = avatarSvg(avatar, 92, currentProfile.equipped_accessory);
 }
 
 function updateNavAvatarIcon() {
   const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
   const iconEl = document.getElementById('navProfileIcon');
   if (iconEl) {
-    iconEl.innerHTML = avatarSvg(avatar, 20);
+    iconEl.innerHTML = avatarSvg(avatar, 20, currentProfile.equipped_accessory);
     iconEl.style.display = 'inline-flex';
     iconEl.style.borderRadius = '50%';
     iconEl.style.overflow = 'hidden';
@@ -1127,20 +1141,107 @@ function editLocationPrompt(id, listEl) {
   };
 }
 
-function renderDressUpPlaceholder() {
+let accessoryCatalog = [];
+
+async function renderDressUp() {
   setActiveTab('dressup');
+  stage.classList.add('top-aligned');
   stage.innerHTML = `
-    <div class="done-icon">✨</div>
-    <div class="stage-label">Dress Up</div>
-    <div class="stage-sub">Coming soon!</div>
+    <div class="collection-header"><div class="collection-title">Dress Up</div></div>
+    <div style="width:100%;text-align:center;margin-top:6px;" id="dressUpPreview"></div>
+    <div class="collection-count" id="dressUpFeathers">Loading...</div>
+    <div class="profile-section-title">Your accessories</div>
+    <div class="avatar-grid" id="accessoryGrid"></div>
   `;
+
+  try {
+    const [accRes, profRes, featherRes] = await Promise.all([
+      fetch('/accessories'),
+      fetch('/profile'),
+      fetch('/feathers'),
+    ]);
+    accessoryCatalog = (await accRes.json()).accessories || [];
+    currentProfile = await profRes.json();
+    const featherData = await featherRes.json();
+
+    accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; });
+
+    const feathersEl = document.getElementById('dressUpFeathers');
+    if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(featherData.total_feathers)} feathers to spend`;
+
+    renderDressUpPreview();
+    renderAccessoryGrid();
+  } catch (e) {
+    const grid = document.getElementById('accessoryGrid');
+    if (grid) grid.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
+  }
+}
+
+function renderDressUpPreview() {
+  const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
+  const el = document.getElementById('dressUpPreview');
+  if (el) el.innerHTML = avatarSvg(avatar, 100, currentProfile.equipped_accessory);
+}
+
+function renderAccessoryGrid() {
+  const grid = document.getElementById('accessoryGrid');
+  if (!grid) return;
+  grid.innerHTML = accessoryCatalog.map(a => {
+    const isEquipped = currentProfile.equipped_accessory === a.id;
+    const badge = !a.owned ? `🪶 ${a.cost}` : (isEquipped ? 'Worn' : 'Owned');
+    const badgeColor = a.owned ? 'var(--sage-dk)' : 'var(--gold-dk)';
+    return `
+      <button class="avatar-option ${isEquipped ? 'selected' : ''}" data-id="${a.id}" data-owned="${a.owned}">
+        <div style="font-size:28px;">${a.emoji}</div>
+        <div style="font-family:'Outfit';font-size:10px;font-weight:700;color:var(--dusk);margin-top:3px;text-align:center;">${a.name}</div>
+        <div style="font-family:'Outfit';font-size:10px;font-weight:700;color:${badgeColor};margin-top:1px;">${badge}</div>
+      </button>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.avatar-option').forEach(btn => {
+    btn.onclick = () => handleAccessoryTap(btn.dataset.id, btn.dataset.owned === 'true');
+  });
+}
+
+async function handleAccessoryTap(accessoryId, owned) {
+  if (!owned) {
+    try {
+      const res = await fetch(`/accessories/${accessoryId}/purchase`, { method: 'POST' });
+      const data = await res.json();
+      const feathersEl = document.getElementById('dressUpFeathers');
+      if (data.status === 'ok') {
+        const item = accessoryCatalog.find(a => a.id === accessoryId);
+        if (item) item.owned = true;
+        if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(data.new_total)} feathers to spend`;
+        renderAccessoryGrid();
+      } else if (feathersEl) {
+        const original = feathersEl.textContent;
+        feathersEl.textContent = 'Not enough feathers yet!';
+        setTimeout(() => { feathersEl.textContent = original; }, 1500);
+      }
+    } catch (e) { /* fail quietly, nothing to update */ }
+    return;
+  }
+
+  // Already owned - tapping toggles wearing it.
+  const newEquipped = currentProfile.equipped_accessory === accessoryId ? null : accessoryId;
+  currentProfile.equipped_accessory = newEquipped;
+  renderDressUpPreview();
+  renderAccessoryGrid();
+  updateNavAvatarIcon();
+  try {
+    const formData = new FormData();
+    if (newEquipped) formData.append('accessory_id', newEquipped);
+    await fetch('/accessories/equip', { method: 'POST', body: formData });
+  } catch (e) { /* local state's already updated, ok if the save fails silently */ }
 }
 
 document.getElementById('navProfile').onclick = renderProfile;
 document.getElementById('navCollection').onclick = renderCollection;
 document.getElementById('navHome').onclick = renderIdle;
 document.getElementById('navTrophies').onclick = renderTrophies;
-document.getElementById('navDressUp').onclick = renderDressUpPlaceholder;
+document.getElementById('navDressUp').onclick = renderDressUp;
 
 let allTrophiesRaw = [];
 
