@@ -19,9 +19,7 @@
   body{
     font-family:'Space Grotesk',sans-serif;
     color:#fff;
-    height:100vh;
-    height:100dvh;
-    overflow:hidden;
+    min-height:100vh;
     display:flex; flex-direction:column; align-items:center;
     padding:20px 16px 90px;
     transition:background 1.2s ease;
@@ -37,18 +35,13 @@
   .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
   .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--ink);}
-  .refresh-btn{background:none;border:none;padding:0;margin-left:2px;font-size:16px;line-height:1;color:var(--mist-dk);cursor:pointer;}
   .feathers.feather-pop{animation:featherPop 0.32s ease;}
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
 
   .hero-wordmark{width:100%;max-width:420px;text-align:center;padding:36px 0 18px;}
   .hero-wordmark .wordmark{font-family:'Outfit';font-weight:900;font-size:46px;color:var(--gold);letter-spacing:-0.01em;}
 
-  .stage{
-    width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;
-    flex:1; min-height:0; justify-content:center;
-    overflow-y:auto; -webkit-overflow-scrolling:touch;
-  }
+  .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;}
 
   /* --- Bottom tab navigation, fixed, present on every screen --- */
   .bottom-nav{
@@ -328,10 +321,7 @@
   </svg>
 
   <div class="top">
-    <div class="feathers">
-      🪶 <span id="featherCount">–</span>
-      <button class="refresh-btn" id="refreshBtn" title="Refresh">↻</button>
-    </div>
+    <div class="feathers">🪶 <span id="featherCount">–</span></div>
     <button class="top-profile-btn" id="topProfileBtn"><svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg></button>
   </div>
 
@@ -1420,7 +1410,6 @@ async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
 }
 
 document.getElementById('topProfileBtn').onclick = renderProfile;
-document.getElementById('refreshBtn').onclick = () => location.reload();
 document.getElementById('navCollection').onclick = renderCollection;
 document.getElementById('navHome').onclick = renderIdle;
 document.getElementById('navTrophies').onclick = renderTrophies;
