@@ -490,11 +490,14 @@ def feathers_total():
 @app.get("/joke-of-the-day")
 def joke_of_the_day():
     """Today's joke, only revealed once at least one session has
-    happened today - otherwise unlocked stays false and joke is null."""
+    happened today - otherwise unlocked stays false and setup/punchline
+    are both null."""
     unlocked = has_session_today()
+    joke = get_joke_of_the_day() if unlocked else {"setup": None, "punchline": None}
     return {
         "unlocked": unlocked,
-        "joke": get_joke_of_the_day() if unlocked else None,
+        "setup": joke["setup"],
+        "punchline": joke["punchline"],
     }
 
 

@@ -438,7 +438,18 @@ async function renderJokeOfDay() {
     const data = await res.json();
     const card = document.getElementById('jokeCard');
     if (data.unlocked) {
-      card.innerHTML = `<div class="tip-icon">😄</div><div class="tip-text" style="font-size:15px;">${data.joke}</div>`;
+      card.innerHTML = `
+        <div class="tip-icon">😄</div>
+        <div>
+          <div class="tip-text" style="font-size:15px;">${data.setup}</div>
+          <div class="tip-text joke-punchline" id="jokePunchline" style="font-size:15px;font-weight:700;color:var(--terra-dk);margin-top:10px;display:none;">${data.punchline}</div>
+          <button class="play-call-btn" id="revealJokeBtn" style="margin-top:12px;">Tap to reveal →</button>
+        </div>
+      `;
+      document.getElementById('revealJokeBtn').onclick = (e) => {
+        document.getElementById('jokePunchline').style.display = 'block';
+        e.target.remove();
+      };
     } else {
       card.innerHTML = `<div class="tip-icon">🔒</div><div class="tip-text">Go find your first bird today to unlock the joke — come back after your first warble!</div>`;
     }
