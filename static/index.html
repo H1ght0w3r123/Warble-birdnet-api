@@ -16,10 +16,12 @@
     --rose:#E87EA1; --ink:#1A1128;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
+  html{overflow-x:hidden;}
   body{
     font-family:'Space Grotesk',sans-serif;
     color:#fff;
     min-height:100vh;
+    overflow-x:hidden;
     display:flex; flex-direction:column; align-items:center;
     padding:20px 16px 90px;
     transition:background 1.2s ease;
@@ -243,7 +245,7 @@
   /* --- Dress Up: categories + carousel --- */
   .category-row{display:flex;gap:10px;justify-content:center;width:100%;margin-top:10px;}
   .category-row.vertical{flex-direction:column;width:auto;gap:8px;margin-top:0;}
-  .category-row.vertical .category-tile{padding:9px 6px;max-width:54px;}
+  .category-row.vertical .category-tile{padding:8px 5px;max-width:46px;}
   .category-row.vertical .cat-icon{font-size:20px;}
   .category-row.vertical .category-tile > div{font-size:8.5px;}
   .category-tile{
@@ -271,10 +273,10 @@
   .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-row{display:flex;align-items:center;justify-content:center;gap:18px;width:100%;margin-top:10px;}
+  .dressup-avatar-row{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin-top:10px;}
   .swatch-col-group{display:flex;gap:8px;}
   .swatch-col{display:flex;flex-direction:column;gap:6px;}
-  .color-swatch{width:36px;height:36px;border-radius:50%;border:3px solid #fff;cursor:pointer;padding:0;box-shadow:0 0 0 1px rgba(0,0,0,0.12);}
+  .color-swatch{width:32px;height:32px;border-radius:50%;border:3px solid #fff;cursor:pointer;padding:0;box-shadow:0 0 0 1px rgba(0,0,0,0.12);}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
   .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
   .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
