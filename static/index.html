@@ -56,6 +56,16 @@
   .nav-tab .nav-icon-svg{width:21px; height:21px; color:var(--mist-dk);}
   .nav-tab.active .nav-icon-svg{color:var(--terra);}
 
+  /* --- Home gets a raised, circular treatment as the primary tab --- */
+  .nav-tab.home-tab{
+    width:58px; height:58px; border-radius:50%;
+    background:var(--terra); margin-top:-26px; gap:0;
+    box-shadow:0 4px 0 var(--terra-dk), 0 6px 14px rgba(0,0,0,0.25);
+    justify-content:center;
+  }
+  .nav-tab.home-tab .nav-icon-svg{width:26px; height:26px; color:#fff;}
+  .nav-tab.home-tab span:last-child{display:none;}
+
   /* --- Recording screen keeps its pine silhouette as the one
      screen-specific extra, on top of whatever the global time-of-day
      background currently is --- */
@@ -116,7 +126,7 @@
 
   /* --- Collection --- */
   .stage.top-aligned{justify-content:flex-start;}
-  .collection-header{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .collection-header{width:100%;display:flex;justify-content:center;align-items:center;margin-bottom:4px;}
   .collection-title{font-family:'Outfit';font-weight:900;font-size:20px;color:#fff;}
   .back-btn{background:none;border:none;font-family:'Outfit';font-weight:700;color:#fff;cursor:pointer;font-size:14px;padding:0;}
   .collection-count{font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:14px;}
@@ -202,7 +212,7 @@
     <button class="nav-tab" id="navCollection" data-tab="collection">
       <span class="nav-icon">📚</span><span>Collection</span>
     </button>
-    <button class="nav-tab" id="navHome" data-tab="home">
+    <button class="nav-tab home-tab" id="navHome" data-tab="home">
       <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M12 3 L4 9 L4 21 L20 21 L20 9 Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="15" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
       <span>Home</span>
     </button>
@@ -349,17 +359,11 @@ function renderCollection() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header">
-      <button class="back-btn" id="backBtn">← Back</button>
       <div class="collection-title">My Birds</div>
-      <div style="width:44px"></div>
     </div>
     <div class="collection-count">Loading...</div>
     <div class="collection-grid" id="collectionGrid"></div>
   `;
-  document.getElementById('backBtn').onclick = () => {
-    stage.classList.remove('top-aligned');
-    renderIdle();
-  };
   loadCollection();
 }
 
@@ -637,17 +641,11 @@ async function renderTrophies() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header">
-      <button class="back-btn" id="backBtn">← Back</button>
       <div class="collection-title">Trophies</div>
-      <div style="width:44px"></div>
     </div>
     <div class="collection-count">Loading...</div>
     <div class="trophy-grid" id="trophyGrid"></div>
   `;
-  document.getElementById('backBtn').onclick = () => {
-    stage.classList.remove('top-aligned');
-    renderIdle();
-  };
 
   const countEl = stage.querySelector('.collection-count');
   const grid = document.getElementById('trophyGrid');
