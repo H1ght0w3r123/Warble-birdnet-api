@@ -224,6 +224,31 @@
   /* --- Profile --- */
   .avatar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;width:100%;}
   .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+
+  /* --- Dress Up: categories + carousel --- */
+  .category-row{display:flex;gap:10px;justify-content:center;width:100%;margin-top:10px;}
+  .category-tile{
+    background:#fff; border:2px solid transparent; border-radius:14px; padding:12px 6px;
+    display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
+    font-family:'Outfit'; font-size:11px; font-weight:700; color:var(--dusk);
+    flex:1; max-width:100px;
+  }
+  .category-tile .cat-icon{font-size:24px;}
+  .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
+  .carousel-wrap{width:100%;overflow-x:auto;display:flex;gap:12px;padding:16px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .carousel-item{
+    flex:0 0 auto; width:96px; background:#fff; border-radius:14px; padding:14px 8px;
+    display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer;
+    border:3px solid transparent; scroll-snap-align:start;
+  }
+  .carousel-item.equipped{border-color:var(--gold);}
+  .carousel-item .item-icon-wrap{font-size:32px;}
+  .carousel-item.unowned .item-icon-wrap{opacity:0.5;filter:grayscale(0.4);}
+  .carousel-item-name{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--dusk);text-align:center;}
+  .carousel-item-price{font-family:'Outfit';font-weight:700;font-size:11px;margin-top:1px;}
+  .carousel-item-price.affordable{color:var(--gold-dk);}
+  .carousel-item-price.unaffordable{color:var(--mist-dk);opacity:0.6;}
+  .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
   .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
@@ -1141,17 +1166,26 @@ function editLocationPrompt(id, listEl) {
   };
 }
 
+const ACCESSORY_CATEGORIES = [
+  { id: 'hats', name: 'Hats', icon: '🎩' },
+  { id: 'scarves', name: 'Scarves', icon: '🧣' },
+  { id: 'binoculars', name: 'Binoculars', icon: '🔭' },
+];
+
 let accessoryCatalog = [];
+let selectedCategory = null;
+let currentFeatherTotal = 0;
 
 async function renderDressUp() {
   setActiveTab('dressup');
   stage.classList.add('top-aligned');
+  selectedCategory = null;
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Dress Up</div></div>
     <div style="width:100%;text-align:center;margin-top:6px;" id="dressUpPreview"></div>
     <div class="collection-count" id="dressUpFeathers">Loading...</div>
-    <div class="profile-section-title">Your accessories</div>
-    <div class="avatar-grid" id="accessoryGrid"></div>
+    <div class="category-row" id="categoryRow"></div>
+    <div class="carousel-wrap" id="carouselWrap"></div>
   `;
 
   try {
@@ -1163,17 +1197,19 @@ async function renderDressUp() {
     accessoryCatalog = (await accRes.json()).accessories || [];
     currentProfile = await profRes.json();
     const featherData = await featherRes.json();
+    currentFeatherTotal = featherData.total_feathers;
 
     accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; });
 
     const feathersEl = document.getElementById('dressUpFeathers');
-    if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(featherData.total_feathers)} feathers to spend`;
+    if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(currentFeatherTotal)} feathers to spend`;
 
     renderDressUpPreview();
-    renderAccessoryGrid();
+    renderCategoryRow();
+    if (ACCESSORY_CATEGORIES.length) selectCategory(ACCESSORY_CATEGORIES[0].id);
   } catch (e) {
-    const grid = document.getElementById('accessoryGrid');
-    if (grid) grid.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
+    const wrap = document.getElementById('carouselWrap');
+    if (wrap) wrap.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
   }
 }
 
@@ -1183,24 +1219,50 @@ function renderDressUpPreview() {
   if (el) el.innerHTML = avatarSvg(avatar, 100, currentProfile.equipped_accessory);
 }
 
-function renderAccessoryGrid() {
-  const grid = document.getElementById('accessoryGrid');
-  if (!grid) return;
-  grid.innerHTML = accessoryCatalog.map(a => {
+function renderCategoryRow() {
+  const row = document.getElementById('categoryRow');
+  if (!row) return;
+  row.innerHTML = ACCESSORY_CATEGORIES.map(cat => `
+    <button class="category-tile ${selectedCategory === cat.id ? 'active' : ''}" data-category="${cat.id}">
+      <div class="cat-icon">${cat.icon}</div>
+      <div>${cat.name}</div>
+    </button>
+  `).join('');
+  row.querySelectorAll('.category-tile').forEach(btn => {
+    btn.onclick = () => selectCategory(btn.dataset.category);
+  });
+}
+
+function selectCategory(categoryId) {
+  selectedCategory = categoryId;
+  renderCategoryRow();
+  renderCarousel();
+}
+
+function renderCarousel() {
+  const wrap = document.getElementById('carouselWrap');
+  if (!wrap) return;
+  const items = accessoryCatalog.filter(a => a.category === selectedCategory);
+  if (items.length === 0) {
+    wrap.innerHTML = `<div class="collection-empty">Nothing here yet</div>`;
+    return;
+  }
+  wrap.innerHTML = items.map(a => {
     const isEquipped = currentProfile.equipped_accessory === a.id;
-    const badge = !a.owned ? `🪶 ${a.cost}` : (isEquipped ? 'Worn' : 'Owned');
-    const badgeColor = a.owned ? 'var(--sage-dk)' : 'var(--gold-dk)';
+    const canAfford = currentFeatherTotal >= a.cost;
+    const priceHtml = a.owned
+      ? `<div class="carousel-item-price owned-label">${isEquipped ? 'Worn' : 'Owned'}</div>`
+      : `<div class="carousel-item-price ${canAfford ? 'affordable' : 'unaffordable'}">🪶 ${a.cost}</div>`;
     return `
-      <button class="avatar-option ${isEquipped ? 'selected' : ''}" data-id="${a.id}" data-owned="${a.owned}">
-        <div style="font-size:28px;">${a.emoji}</div>
-        <div style="font-family:'Outfit';font-size:10px;font-weight:700;color:var(--dusk);margin-top:3px;text-align:center;">${a.name}</div>
-        <div style="font-family:'Outfit';font-size:10px;font-weight:700;color:${badgeColor};margin-top:1px;">${badge}</div>
-      </button>
+      <div class="carousel-item ${a.owned ? '' : 'unowned'} ${isEquipped ? 'equipped' : ''}" data-id="${a.id}" data-owned="${a.owned}">
+        <div class="item-icon-wrap">${a.emoji}</div>
+        <div class="carousel-item-name">${a.name}</div>
+        ${priceHtml}
+      </div>
     `;
   }).join('');
-
-  grid.querySelectorAll('.avatar-option').forEach(btn => {
-    btn.onclick = () => handleAccessoryTap(btn.dataset.id, btn.dataset.owned === 'true');
+  wrap.querySelectorAll('.carousel-item').forEach(el => {
+    el.onclick = () => handleAccessoryTap(el.dataset.id, el.dataset.owned === 'true');
   });
 }
 
@@ -1213,8 +1275,9 @@ async function handleAccessoryTap(accessoryId, owned) {
       if (data.status === 'ok') {
         const item = accessoryCatalog.find(a => a.id === accessoryId);
         if (item) item.owned = true;
-        if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(data.new_total)} feathers to spend`;
-        renderAccessoryGrid();
+        currentFeatherTotal = data.new_total;
+        if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(currentFeatherTotal)} feathers to spend`;
+        renderCarousel();
       } else if (feathersEl) {
         const original = feathersEl.textContent;
         feathersEl.textContent = 'Not enough feathers yet!';
@@ -1228,7 +1291,7 @@ async function handleAccessoryTap(accessoryId, owned) {
   const newEquipped = currentProfile.equipped_accessory === accessoryId ? null : accessoryId;
   currentProfile.equipped_accessory = newEquipped;
   renderDressUpPreview();
-  renderAccessoryGrid();
+  renderCarousel();
   updateNavAvatarIcon();
   try {
     const formData = new FormData();
