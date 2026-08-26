@@ -122,11 +122,37 @@ from database import (
     record_session, count_distinct_locations,
     get_earned_trophy_keys, award_trophy,
     get_location_name, save_location_name,
+    get_cached_call_url, get_profile, update_profile,
+    get_all_locations, rename_location,
 )
 from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise
 
 init_db()
+
+XENO_CANTO_API_KEY = os.environ.get("XENO_CANTO_API_KEY", "")
+
+
+def get_bird_call_url(scientific_name: str):
+    """Fetches a real recording of this species' song from xeno-canto,
+    the purpose-built bird sound archive. Filtered for high quality
+    (q:A) and genuine song (not alarm calls etc). Returns None if no
+    key is set, or nothing suitable is found."""
+    if not XENO_CANTO_API_KEY:
+        return None
+    try:
+        response = requests.get(
+            "https://xeno-canto.org/api/3/recordings",
+            params={"query": f'sp:"{scientific_name}" q:A type:song', "key": XENO_CANTO_API_KEY},
+            timeout=10,
+        )
+        response.raise_for_status()
+        recordings = response.json().get("recordings", [])
+        if recordings:
+            return recordings[0].get("file")
+    except Exception as e:
+        print(f"Warning: xeno-canto lookup failed for {scientific_name}: {e}")
+    return None
 
 
 def check_trophies(lat: float, lng: float, moment_utc: datetime.datetime):
@@ -277,7 +303,11 @@ async def analyze_session(
         feathers = calculate_feathers(tier, is_duplicate)
         photo_url, description = get_wikipedia_info(scientific_name)
 
-        save_sighting(common_name, scientific_name, confidence, tier, photo_url, description, lat, lng)
+        call_url = get_cached_call_url(common_name)
+        if call_url is None:
+            call_url = get_bird_call_url(scientific_name)
+
+        save_sighting(common_name, scientific_name, confidence, tier, photo_url, description, lat, lng, call_url)
 
         results.append({
             "common_name": common_name,
@@ -287,6 +317,7 @@ async def analyze_session(
             "nbn_record_count": record_count,
             "is_duplicate": is_duplicate,
             "feathers": feathers,
+            "call_url": call_url,
             "photo_url": photo_url,
             "description": description,
             # Extra context, unused today — kept ready for trophy logic later:
@@ -315,6 +346,29 @@ async def analyze_session(
 async def name_location(lat: float = Form(...), lng: float = Form(...), name: str = Form(...)):
     """Saves a free-text name for wherever (lat, lng) rounds to."""
     save_location_name(lat, lng, name)
+    return {"status": "ok"}
+
+
+@app.get("/locations")
+def list_locations():
+    """Every named location, for viewing/editing on the Profile page."""
+    return {"locations": get_all_locations()}
+
+
+@app.post("/locations/{location_id}/rename")
+async def rename_location_endpoint(location_id: int, name: str = Form(...)):
+    rename_location(location_id, name)
+    return {"status": "ok"}
+
+
+@app.get("/profile")
+def profile():
+    return get_profile()
+
+
+@app.post("/profile")
+async def update_profile_endpoint(name: str = Form(None), avatar_id: str = Form(None)):
+    update_profile(name=name, avatar_id=avatar_id)
     return {"status": "ok"}
 
 

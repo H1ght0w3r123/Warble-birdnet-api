@@ -35,6 +35,7 @@ class Sighting(Base):
     tier = Column(String, nullable=False)
     image_url = Column(String, nullable=True)
     description = Column(String, nullable=True)
+    call_url = Column(String, nullable=True)
     lat = Column(Float, nullable=True)
     lng = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -79,6 +80,16 @@ class Location(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class Profile(Base):
+    """Single-row, same pattern as PlayerStats — no accounts system
+    yet, so there's just one shared profile."""
+    __tablename__ = "profile"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, default="Explorer")
+    avatar_id = Column(String, default="robin")
+
+
 def init_db():
     """Create tables if they don't exist yet, and seed one PlayerStats row."""
     if engine is None:
@@ -95,11 +106,16 @@ def init_db():
         conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS description VARCHAR"))
         conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lat FLOAT"))
         conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lng FLOAT"))
+        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS call_url VARCHAR"))
 
     with SessionLocal() as session:
         existing = session.query(PlayerStats).first()
         if existing is None:
             session.add(PlayerStats(total_feathers=0))
+            session.commit()
+        existing_profile = session.query(Profile).first()
+        if existing_profile is None:
+            session.add(Profile(name="Explorer", avatar_id="robin"))
             session.commit()
 
 
@@ -110,7 +126,7 @@ def has_existing_sighting(common_name: str) -> bool:
         return session.query(Sighting).filter_by(common_name=common_name).first() is not None
 
 
-def save_sighting(common_name, scientific_name, confidence, tier, image_url, description=None, lat=None, lng=None):
+def save_sighting(common_name, scientific_name, confidence, tier, image_url, description=None, lat=None, lng=None, call_url=None):
     if SessionLocal is None:
         print("Warning: no database configured — skipping save.")
         return
@@ -124,8 +140,23 @@ def save_sighting(common_name, scientific_name, confidence, tier, image_url, des
             description=description,
             lat=lat,
             lng=lng,
+            call_url=call_url,
         ))
         session.commit()
+
+
+def get_cached_call_url(common_name: str):
+    """Returns a call recording URL already fetched for this species on
+    an earlier sighting, if any — avoids re-querying xeno-canto for a
+    species that's already been looked up once."""
+    if SessionLocal is None:
+        return None
+    with SessionLocal() as session:
+        existing = session.query(Sighting).filter(
+            Sighting.common_name == common_name,
+            Sighting.call_url.isnot(None),
+        ).first()
+        return existing.call_url if existing else None
 
 
 def add_feathers(amount: float) -> float:
@@ -162,6 +193,7 @@ def get_all_sightings():
                 "tier": r.tier,
                 "image_url": r.image_url,
                 "description": r.description,
+                "call_url": r.call_url,
                 "location_name": location_name,
                 "created_at": r.created_at.isoformat(),
             })
@@ -246,3 +278,48 @@ def save_location_name(lat: float, lng: float, name: str):
         else:
             session.add(Location(lat=rlat, lng=rlng, name=name))
         session.commit()
+
+
+def get_profile():
+    if SessionLocal is None:
+        return {"name": "Explorer", "avatar_id": "robin"}
+    with SessionLocal() as session:
+        p = session.query(Profile).first()
+        if p is None:
+            p = Profile(name="Explorer", avatar_id="robin")
+            session.add(p)
+            session.commit()
+        return {"name": p.name, "avatar_id": p.avatar_id}
+
+
+def update_profile(name: str = None, avatar_id: str = None):
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        p = session.query(Profile).first()
+        if p is None:
+            p = Profile()
+            session.add(p)
+        if name is not None:
+            p.name = name
+        if avatar_id is not None:
+            p.avatar_id = avatar_id
+        session.commit()
+
+
+def get_all_locations():
+    if SessionLocal is None:
+        return []
+    with SessionLocal() as session:
+        rows = session.query(Location).order_by(Location.created_at.desc()).all()
+        return [{"id": l.id, "name": l.name, "lat": l.lat, "lng": l.lng} for l in rows]
+
+
+def rename_location(location_id: int, new_name: str):
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        loc = session.query(Location).filter_by(id=location_id).first()
+        if loc:
+            loc.name = new_name
+            session.commit()

@@ -167,6 +167,16 @@
   .status-badge.status-red{background:#FBDCDC;color:#A83232;}
   .learn-more{display:inline-block;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
+  .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;}
+
+  /* --- Profile --- */
+  .avatar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;width:100%;}
+  .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;justify-content:center;}
+  .avatar-option.selected{border-color:var(--gold);}
+  .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
+  .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
+  .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
+  .profile-section-title{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-top:24px;margin-bottom:4px;width:100%;text-align:left;}
   .location-input{
     margin-top:18px;width:100%;max-width:280px;padding:13px 16px;border-radius:12px;border:none;
     font-family:'Space Grotesk';font-size:15px;text-align:center;
@@ -306,12 +316,15 @@ function renderCard() {
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
           </div>
           <div class="feather-row">🪶 +${bird.feathers}</div>
+          ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">▶ Hear its call</button>` : ''}
           <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         </div>
       </div>
       <button class="next-btn" id="nextBtn">${cardIndex + 1 < sessionResults.length ? 'Next bird →' : 'Done'}</button>
     </div>
   `;
+  const playBtn = stage.querySelector('.play-call-btn');
+  if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
   document.getElementById('nextBtn').onclick = () => {
     cardIndex++;
     if (cardIndex < sessionResults.length) {
@@ -465,11 +478,30 @@ function renderBirdDetail(commonName) {
         ${locationTags ? `<div class="location-tags">${locationTags}</div>` : ''}
         ${buildFactsDashboard(latest.facts)}
         ${(!latest.facts && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
+        ${latest.call_url ? `<button class="play-call-btn" data-call-url="${latest.call_url}">▶ Hear its call</button>` : ''}
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
       </div>
     </div>
   `;
+  const playBtn = stage.querySelector('.play-call-btn');
+  if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
   document.getElementById('backBtn').onclick = renderCollection;
+}
+
+function playBirdCall(url, btnEl) {
+  if (!url) return;
+  const audio = new Audio(url);
+  const originalText = btnEl.textContent;
+  btnEl.textContent = '⏸ Playing...';
+  btnEl.disabled = true;
+  audio.play().catch(() => {
+    btnEl.textContent = originalText;
+    btnEl.disabled = false;
+  });
+  audio.onended = () => {
+    btnEl.textContent = originalText;
+    btnEl.disabled = false;
+  };
 }
 
 const HABITAT_ICONS = {
@@ -623,13 +655,130 @@ function setActiveTab(tabName) {
   });
 }
 
-function renderProfilePlaceholder() {
+const AVATAR_OPTIONS = [
+  { id: 'robin',      bg: '#2D1B69', body: '#E8845C', accent: '#E87EA1' },
+  { id: 'bluetit',    bg: '#C4BFDF', body: '#7EC8A4', accent: '#F2C94C' },
+  { id: 'owl',        bg: '#1A1128', body: '#3D2A85', accent: '#F2C94C' },
+  { id: 'blackbird',  bg: '#7EC8A4', body: '#1A1128', accent: '#F2C94C' },
+  { id: 'wren',       bg: '#F2C94C', body: '#E87EA1', accent: '#B85A36' },
+  { id: 'kingfisher', bg: '#2D1B69', body: '#7EC8A4', accent: '#E8845C' },
+];
+
+function avatarSvg(avatar, size) {
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+    <circle cx="50" cy="50" r="48" fill="${avatar.bg}"/>
+    <path d="M28 66 Q22 44 38 33 Q44 22 60 28 L72 22 L66 34 Q78 40 74 56 Q71 70 54 72 Q38 74 28 66 Z" fill="${avatar.body}"/>
+    <circle cx="40" cy="36" r="7" fill="${avatar.accent}" opacity="0.9"/>
+  </svg>`;
+}
+
+let currentProfile = { name: 'Explorer', avatar_id: 'robin' };
+
+async function renderProfile() {
   setActiveTab('profile');
+  stage.classList.add('top-aligned');
   stage.innerHTML = `
-    <div class="done-icon">👤</div>
-    <div class="stage-label">My Profile</div>
-    <div class="stage-sub">Coming soon!</div>
+    <div class="collection-header"><div class="collection-title">My Profile</div></div>
+    <div style="width:100%;text-align:center;margin-top:12px;" id="avatarPreview"></div>
+    <input type="text" id="nameInput" class="location-input" placeholder="Your name" maxlength="24">
+    <button class="again-btn" id="saveNameBtn">Save name</button>
+
+    <div class="profile-section-title">Choose an avatar</div>
+    <div class="avatar-grid" id="avatarGrid"></div>
+
+    <div class="profile-section-title">My locations</div>
+    <div id="locationsList" style="width:100%;"></div>
   `;
+
+  try {
+    const res = await fetch('/profile');
+    currentProfile = await res.json();
+  } catch (e) { /* fall back to defaults already set */ }
+
+  document.getElementById('nameInput').value = currentProfile.name;
+  renderAvatarPreview();
+  renderAvatarGrid();
+  loadProfileLocations();
+
+  document.getElementById('saveNameBtn').onclick = async () => {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) return;
+    currentProfile.name = name;
+    const formData = new FormData();
+    formData.append('name', name);
+    try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
+  };
+}
+
+function renderAvatarPreview() {
+  const avatar = AVATAR_OPTIONS.find(a => a.id === currentProfile.avatar_id) || AVATAR_OPTIONS[0];
+  const el = document.getElementById('avatarPreview');
+  if (el) el.innerHTML = avatarSvg(avatar, 92);
+}
+
+function renderAvatarGrid() {
+  const grid = document.getElementById('avatarGrid');
+  if (!grid) return;
+  grid.innerHTML = AVATAR_OPTIONS.map(a => `
+    <button class="avatar-option ${a.id === currentProfile.avatar_id ? 'selected' : ''}" data-avatar="${a.id}">
+      ${avatarSvg(a, 52)}
+    </button>
+  `).join('');
+  grid.querySelectorAll('.avatar-option').forEach(btn => {
+    btn.onclick = async () => {
+      currentProfile.avatar_id = btn.dataset.avatar;
+      renderAvatarPreview();
+      renderAvatarGrid();
+      const formData = new FormData();
+      formData.append('avatar_id', btn.dataset.avatar);
+      try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
+    };
+  });
+}
+
+async function loadProfileLocations() {
+  const listEl = document.getElementById('locationsList');
+  if (!listEl) return;
+  try {
+    const res = await fetch('/locations');
+    const data = await res.json();
+    const locations = data.locations || [];
+    if (locations.length === 0) {
+      listEl.innerHTML = `<div class="collection-empty">No locations named yet</div>`;
+      return;
+    }
+    listEl.innerHTML = locations.map(loc => `
+      <div class="location-row" data-id="${loc.id}">
+        <span class="location-row-name">📍 ${loc.name}</span>
+        <button class="location-edit-btn" data-id="${loc.id}">Edit</button>
+      </div>
+    `).join('');
+    listEl.querySelectorAll('.location-edit-btn').forEach(btn => {
+      btn.onclick = () => editLocationPrompt(parseInt(btn.dataset.id, 10), listEl);
+    });
+  } catch (e) {
+    listEl.innerHTML = `<div class="collection-empty">Couldn't load locations right now.</div>`;
+  }
+}
+
+function editLocationPrompt(id, listEl) {
+  const row = listEl.querySelector(`.location-row[data-id="${id}"]`);
+  if (!row) return;
+  const currentName = row.querySelector('.location-row-name').textContent.replace('📍 ', '');
+  row.innerHTML = `
+    <input type="text" class="location-input" style="margin:0;flex:1;padding:8px 12px;" value="${currentName}" id="editInput${id}">
+    <button class="location-edit-btn" id="saveEdit${id}">Save</button>
+  `;
+  document.getElementById(`saveEdit${id}`).onclick = async () => {
+    const newName = document.getElementById(`editInput${id}`).value.trim();
+    if (!newName) return;
+    const formData = new FormData();
+    formData.append('name', newName);
+    try {
+      await fetch(`/locations/${id}/rename`, { method: 'POST', body: formData });
+    } catch (e) { /* ok to fail quietly */ }
+    loadProfileLocations();
+  };
 }
 
 function renderDressUpPlaceholder() {
@@ -641,7 +790,7 @@ function renderDressUpPlaceholder() {
   `;
 }
 
-document.getElementById('navProfile').onclick = renderProfilePlaceholder;
+document.getElementById('navProfile').onclick = renderProfile;
 document.getElementById('navCollection').onclick = renderCollection;
 document.getElementById('navHome').onclick = renderIdle;
 document.getElementById('navTrophies').onclick = renderTrophies;
