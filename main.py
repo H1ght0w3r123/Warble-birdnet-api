@@ -132,9 +132,11 @@ from database import (
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
+    has_session_today,
 )
 from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
+from jokes import get_joke_of_the_day
 
 init_db()
 
@@ -461,6 +463,17 @@ def list_sightings():
 def feathers_total():
     """The current running feather total."""
     return {"total_feathers": get_total_feathers()}
+
+
+@app.get("/joke-of-the-day")
+def joke_of_the_day():
+    """Today's joke, only revealed once at least one session has
+    happened today - otherwise unlocked stays false and joke is null."""
+    unlocked = has_session_today()
+    return {
+        "unlocked": unlocked,
+        "joke": get_joke_of_the_day() if unlocked else None,
+    }
 
 
 if __name__ == "__main__":

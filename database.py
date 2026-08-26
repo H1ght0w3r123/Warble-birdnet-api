@@ -220,6 +220,19 @@ def record_session(lat: float, lng: float):
         return session.query(RecordingSession).count()
 
 
+def has_session_today() -> bool:
+    """Whether at least one recording has happened today (UTC, matching
+    how session timestamps are stored) — used to unlock the joke of
+    the day only after the first warble."""
+    if SessionLocal is None:
+        return False
+    today_start = datetime.datetime.combine(datetime.datetime.utcnow().date(), datetime.time.min)
+    with SessionLocal() as session:
+        return session.query(RecordingSession).filter(
+            RecordingSession.created_at >= today_start
+        ).count() > 0
+
+
 def count_distinct_locations(precision: int = 3) -> int:
     """Counts genuinely different places sessions have happened, by
     rounding coordinates to `precision` decimal places (3 dp is

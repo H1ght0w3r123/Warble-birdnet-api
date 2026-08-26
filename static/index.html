@@ -353,9 +353,65 @@ function renderIdle() {
         <div class="tips-tile-sub">Get better at finding birds</div>
       </div>
     </button>
+    <button class="tips-tile" id="jokeTile" style="margin-top:12px;">
+      <div class="tips-tile-icon" id="jokeTileIcon">😄</div>
+      <div>
+        <div class="tips-tile-title" id="jokeTileTitle">Joke of the Day</div>
+        <div class="tips-tile-sub" id="jokeTileSub">Loading...</div>
+      </div>
+    </button>
   `;
   document.getElementById('recordBtn').onclick = startRecording;
   document.getElementById('tipsTile').onclick = renderTips;
+  document.getElementById('jokeTile').onclick = renderJokeOfDay;
+  loadJokeTileStatus();
+}
+
+async function loadJokeTileStatus() {
+  try {
+    const res = await fetch('/joke-of-the-day');
+    const data = await res.json();
+    const iconEl = document.getElementById('jokeTileIcon');
+    const titleEl = document.getElementById('jokeTileTitle');
+    const subEl = document.getElementById('jokeTileSub');
+    if (!titleEl) return; // already navigated away before this resolved
+    if (data.unlocked) {
+      iconEl.textContent = '😄';
+      titleEl.textContent = 'Joke of the Day';
+      subEl.textContent = "Tap to see today's joke!";
+    } else {
+      iconEl.textContent = '🔒';
+      titleEl.textContent = 'Joke of the Day';
+      subEl.textContent = 'Go warbling first to unlock it!';
+    }
+  } catch (e) { /* leave the loading text if this fails */ }
+}
+
+async function renderJokeOfDay() {
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:14px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:12px;">Joke of the Day</div>
+    <div class="tip-card" id="jokeCard"><div class="tip-text">Loading...</div></div>
+  `;
+  document.getElementById('backBtn').onclick = () => {
+    stage.classList.remove('top-aligned');
+    renderIdle();
+  };
+  try {
+    const res = await fetch('/joke-of-the-day');
+    const data = await res.json();
+    const card = document.getElementById('jokeCard');
+    if (data.unlocked) {
+      card.innerHTML = `<div class="tip-icon">😄</div><div class="tip-text" style="font-size:15px;">${data.joke}</div>`;
+    } else {
+      card.innerHTML = `<div class="tip-icon">🔒</div><div class="tip-text">Go find your first bird today to unlock the joke — come back after your first warble!</div>`;
+    }
+  } catch (e) {
+    document.getElementById('jokeCard').innerHTML = `<div class="tip-text">Couldn't load the joke right now.</div>`;
+  }
 }
 
 const WARBLING_TIPS = [
