@@ -33,6 +33,8 @@
 
   .top{width:100%;max-width:420px;display:flex;justify-content:flex-end;align-items:center;}
   .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--ink);}
+  .feathers.feather-pop{animation:featherPop 0.32s ease;}
+  @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
 
   .hero-wordmark{width:100%;max-width:420px;text-align:center;padding:36px 0 18px;}
   .hero-wordmark .wordmark{font-family:'Outfit';font-weight:900;font-size:46px;color:var(--gold);letter-spacing:-0.01em;}
@@ -91,26 +93,35 @@
 
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
-  .progress{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;}
+  .progress{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;animation:statFadeUp 0.35s ease both;}
   .card{
     width:100%; max-width:300px; background:#fff; border-radius:20px;
     overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.18);
     border:3px solid var(--tier-color, var(--sage));
+    animation:cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transform-style:preserve-3d;
+  }
+  @keyframes cardReveal{
+    0%{transform:scale(0.35) rotateY(180deg); opacity:0;}
+    60%{transform:scale(1.06) rotateY(0deg); opacity:1;}
+    100%{transform:scale(1) rotateY(0deg); opacity:1;}
   }
   .card-photo{width:100%;height:200px;object-fit:cover;background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .card-body{padding:16px 18px 20px;}
   .card-name{font-family:'Outfit';font-weight:900;font-size:22px;color:var(--dusk);}
   .card-sci{font-size:12px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
-  .card-tags{display:flex;gap:8px;margin-top:10px;}
+  .card-tags{display:flex;gap:8px;margin-top:10px;animation:statFadeUp 0.4s ease 0.45s both;}
   .tag{font-family:'Outfit';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
   .tag.tier{background:var(--tier-color, var(--sage)); color:#fff;}
   .tag.new{background:var(--gold); color:var(--ink);}
   .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
-  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:15px;color:var(--gold-dk);}
+  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:15px;color:var(--gold-dk);animation:statFadeUp 0.4s ease 0.6s both;}
+  @keyframes statFadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
   .next-btn{
     margin-top:22px; width:100%; max-width:300px; padding:15px 0;
     background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
+    animation:statFadeUp 0.4s ease 0.7s both;
   }
 
   /* --- Done --- */
@@ -267,8 +278,33 @@ async function refreshFeathers() {
   try {
     const res = await fetch('/feathers');
     const data = await res.json();
-    featherCountEl.textContent = Math.round(data.total_feathers);
+    animateFeatherCount(data.total_feathers);
   } catch (e) { /* fine to fail quietly here */ }
+}
+
+function animateFeatherCount(newTotal) {
+  const el = featherCountEl;
+  const startVal = parseInt(el.textContent, 10) || 0;
+  const endVal = Math.round(newTotal);
+  if (startVal === endVal) { el.textContent = endVal; return; }
+  const duration = 700;
+  const startTime = performance.now();
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out, fast then settling
+    el.textContent = Math.round(startVal + (endVal - startVal) * eased);
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el.textContent = endVal;
+      const pill = el.closest('.feathers');
+      if (pill) {
+        pill.classList.add('feather-pop');
+        setTimeout(() => pill.classList.remove('feather-pop'), 320);
+      }
+    }
+  }
+  requestAnimationFrame(step);
 }
 
 function renderIdle() {
