@@ -104,7 +104,7 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
             lat=lat,
             lon=lng,
             date=datetime.date.today(),
-            min_conf=0.5,
+            min_conf=0.3,
         )
         recording.analyze()
         detections = recording.detections
@@ -335,7 +335,7 @@ async def analyze_session(
             lat=lat,
             lon=lng,
             date=datetime.date.today(),
-            min_conf=0.5,
+            min_conf=0.3,
         )
         recording.analyze()
         detections = recording.detections
