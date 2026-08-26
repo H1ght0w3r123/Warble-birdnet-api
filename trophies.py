@@ -58,6 +58,12 @@ TROPHY_DEFINITIONS = {
         "citation": "You went out after dark and found a night bird!",
         "description": "You stayed out past 9pm with a grown-up and found an owl, nightjar or woodcock — birds that only come out at night. That's proper dedication. Well done, night owl.",
     },
+    "century": {
+        "name": "Century",
+        "emoji": "💯",
+        "citation": "You've found every single bird on the list — outstanding!",
+        "description": "There are 100 different birds on Warble's list, and you've found every single one of them. That's not luck — that's real skill, real patience, and a lot of listening. You're officially a master warbler.",
+    },
 }
 
 # UK species that are genuinely nocturnal — used for the Night Owl trophy.

@@ -286,6 +286,18 @@ def count_distinct_species() -> int:
         return session.query(Sighting.common_name).distinct().count()
 
 
+def count_curated_species_found(curated_set: set) -> int:
+    """How many species from the curated 100-species list have been
+    found so far — used for the Century trophy and the Collection's
+    completion tracker. Detection itself is never restricted to this
+    list; this only counts the overlap."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        found = {row[0] for row in session.query(Sighting.common_name).distinct().all()}
+        return len(found & curated_set)
+
+
 def get_earned_trophy_keys() -> set:
     if SessionLocal is None:
         return set()

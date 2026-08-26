@@ -134,11 +134,13 @@ from database import (
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
     has_session_today,
     get_owned_accessory_ids, purchase_accessory, set_equipped_accessory,
+    count_curated_species_found,
 )
 from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES
+from curated_species import ALL_CURATED_SPECIES
 
 init_db()
 
@@ -213,6 +215,10 @@ def check_detection_trophies(results: list, before_sunrise: bool, moment_utc: da
     if count_distinct_species() >= 20:
         if award_trophy("forager"):
             newly_earned.append("forager")
+
+    if count_curated_species_found(ALL_CURATED_SPECIES) >= len(ALL_CURATED_SPECIES):
+        if award_trophy("century"):
+            newly_earned.append("century")
 
     species_this_session = {r["common_name"] for r in results}
 
@@ -459,6 +465,18 @@ def list_sightings():
     for s in sightings:
         s["facts"] = get_bird_facts(s["common_name"])
     return {"sightings": sightings}
+
+
+@app.get("/curated-progress")
+def curated_progress():
+    """How many of the 100 curated species have been found — the
+    Collection's completion tracker towards the Century trophy.
+    Detection itself is never restricted to this list; this is purely
+    a progress readout."""
+    return {
+        "found": count_curated_species_found(ALL_CURATED_SPECIES),
+        "total": len(ALL_CURATED_SPECIES),
+    }
 
 
 @app.get("/feathers")
