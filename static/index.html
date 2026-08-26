@@ -150,11 +150,16 @@
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
     animation:statFadeUp 0.4s ease 0.3s both;
   }
+  .card-nav-row{display:flex;gap:10px;width:100%;max-width:300px;margin-top:22px;animation:statFadeUp 0.4s ease 0.7s both;}
   .next-btn{
-    margin-top:22px; width:100%; max-width:300px; padding:15px 0;
+    flex:1; padding:15px 0;
     background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
-    animation:statFadeUp 0.4s ease 0.7s both;
+  }
+  .prev-btn{
+    flex:0 0 auto; padding:15px 20px;
+    background:rgba(255,255,255,0.18); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    border:none; border-radius:30px; cursor:pointer;
   }
 
   /* --- Done --- */
@@ -563,11 +568,16 @@ function renderCard() {
           <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         </div>
       </div>
-      <button class="next-btn" id="nextBtn">${cardIndex + 1 < sessionResults.length ? 'Next bird →' : 'Done'}</button>
+      <div class="card-nav-row">
+        ${cardIndex > 0 ? `<button class="prev-btn" id="prevBtn">← Back</button>` : ''}
+        <button class="next-btn" id="nextBtn">${cardIndex + 1 < sessionResults.length ? 'Next bird →' : 'Done'}</button>
+      </div>
     </div>
   `;
   const playBtn = stage.querySelector('.play-call-btn');
   if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
+  const prevBtn = document.getElementById('prevBtn');
+  if (prevBtn) prevBtn.onclick = () => { cardIndex--; renderCard(); };
   document.getElementById('nextBtn').onclick = () => {
     cardIndex++;
     if (cardIndex < sessionResults.length) {
