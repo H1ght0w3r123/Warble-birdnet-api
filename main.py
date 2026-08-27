@@ -119,7 +119,17 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
 
     detections.sort(key=lambda d: d["confidence"], reverse=True)
 
-    return {"detections": detections[:10]}
+    # Same plausibility check /analyze-session uses, applied here too so
+    # a live "yes" and the final result are answering the same question
+    # - only check the top few candidates to keep this endpoint fast
+    # enough for repeated calls during a live preview loop.
+    filtered_detections = []
+    for d in detections[:3]:
+        _, record_count = get_nbn_tier(d["scientific_name"], lat, lng)
+        if record_count >= 3:
+            filtered_detections.append(d)
+
+    return {"detections": filtered_detections}
 
 
 # ============================================================
