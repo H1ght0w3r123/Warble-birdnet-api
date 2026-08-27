@@ -259,39 +259,35 @@
   .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 
   /* --- Dress Up: categories + carousel --- */
-  .category-row{display:flex;gap:10px;justify-content:center;width:100%;margin-top:10px;}
-  .category-row.vertical{flex-direction:column;width:auto;gap:8px;margin-top:0;}
-  .category-row.vertical .category-tile{padding:8px 5px;max-width:46px;}
-  .category-row.vertical .cat-icon{font-size:20px;}
-  .category-row.vertical .category-tile > div{font-size:8.5px;}
+  .category-row{display:flex;gap:6px;justify-content:center;width:100%;margin-top:14px;}
   .category-tile{
-    background:#fff; border:2px solid transparent; border-radius:14px; padding:12px 6px;
+    background:#fff; border:2px solid transparent; border-radius:14px; padding:9px 3px;
     display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
     font-family:'Outfit'; font-size:11px; font-weight:700; color:var(--dusk);
-    flex:1; max-width:100px;
+    flex:1; max-width:58px;
   }
-  .category-tile .cat-icon{font-size:24px;}
+  .category-tile .cat-icon{font-size:26px;line-height:1;}
+  .category-tile .cat-icon svg{width:31px !important;height:31px !important;}
   .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
   .avatar-frame{background:#fff;border-radius:50%;padding:8px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
   .carousel-wrap{width:100%;overflow-x:auto;display:flex;gap:10px;padding:10px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
   .carousel-panel{width:100%;max-width:100%;overflow:hidden;}
   .carousel-item{
-    flex:0 0 auto; width:60px; background:#fff; border-radius:10px; padding:6px 4px;
-    display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
+    flex:0 0 auto; width:78px; background:#fff; border-radius:12px; padding:8px 5px;
+    display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
     border:2px solid transparent; scroll-snap-align:start;
   }
   .carousel-item.equipped{border-color:var(--gold);}
-  .carousel-item .item-icon-wrap{font-size:19px;}
+  .carousel-item .item-icon-wrap{width:44px;height:44px;line-height:1;}
   .carousel-item.unowned .item-icon-wrap{opacity:0.5;filter:grayscale(0.4);}
-  .carousel-item-name{font-family:'Outfit';font-weight:700;font-size:7.5px;color:var(--dusk);text-align:center;line-height:1.1;}
-  .carousel-item-price{font-family:'Outfit';font-weight:700;font-size:7.5px;margin-top:0;}
+  .carousel-item-name{font-family:'Outfit';font-weight:700;font-size:9.8px;color:var(--dusk);text-align:center;line-height:1.1;}
+  .carousel-item-price{font-family:'Outfit';font-weight:700;font-size:9.8px;margin-top:0;}
   .carousel-item-price.affordable{color:var(--gold-dk);}
   .carousel-item-price.unaffordable{color:var(--mist-dk);opacity:0.6;}
   .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;width:100%;margin-top:60px;margin-bottom:20px;}
-  .category-row.vertical{justify-self:end;}
+  .dressup-avatar-row{display:flex;justify-content:center;width:100%;margin-top:60px;margin-bottom:20px;}
   .avatar-frame-wrap{position:relative;justify-self:center;}
   /* The swatches arch over the top of the avatar frame, sitting ON its
      edge circle - so the assembly is barely wider than the avatar
@@ -1370,8 +1366,8 @@ async function renderDressUp() {
           </div>
         </div>
       </div>
-      <div class="category-row vertical" id="categoryRow"></div>
     </div>
+    <div class="category-row" id="categoryRow"></div>
     <div class="collection-count" id="dressUpFeathers">Loading...</div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
     <div class="dressup-hint" id="dressUpHint"></div>
