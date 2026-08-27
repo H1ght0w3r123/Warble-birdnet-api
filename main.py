@@ -126,7 +126,8 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
     filtered_detections = []
     for d in detections[:3]:
         if is_locally_plausible(d["scientific_name"], lat, lng):
-            filtered_detections.append(d)
+            tier, _ = get_nbn_tier(d["scientific_name"], lat, lng)
+            filtered_detections.append({**d, "tier": tier})
 
     return {"detections": filtered_detections}
 
