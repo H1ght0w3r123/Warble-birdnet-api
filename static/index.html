@@ -290,7 +290,7 @@
   .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;width:100%;margin-top:20px;margin-bottom:20px;}
+  .dressup-avatar-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;width:100%;margin-top:32px;margin-bottom:20px;}
   .category-row.vertical{justify-self:end;}
   .avatar-frame-wrap{position:relative;justify-self:center;}
   /* The swatches arch over the top of the avatar frame, sitting ON its
@@ -1270,8 +1270,8 @@ function renderSwatchRows() {
   swatches.forEach((hex, i) => {
     const t = n === 1 ? 0.5 : i / (n - 1);
     const angle = archStart + (archEnd - archStart) * t;
-    const x = 50 + 50 * Math.cos(angle); // % of the frame box, centred at 50%
-    const y = 50 + 50 * Math.sin(angle);
+    const x = 50 + 59 * Math.cos(angle); // % of frame box; 59% (vs the frame's own 50% edge) leaves a real gap
+    const y = 50 + 59 * Math.sin(angle);
     const btn = document.createElement('button');
     btn.className = 'color-swatch';
     btn.style.background = hex;
