@@ -140,6 +140,7 @@ from database import (
     has_session_today,
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
     count_curated_species_found,
+    set_total_feathers,
 )
 from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
@@ -495,6 +496,15 @@ def curated_progress():
 def feathers_total():
     """The current running feather total."""
     return {"total_feathers": get_total_feathers()}
+
+
+@app.get("/dev/set-feathers/{amount}")
+def dev_set_feathers(amount: float):
+    """Dev convenience - set the feather total directly by visiting
+    this URL. Not part of normal gameplay, no auth, just a quick
+    testing tool for now."""
+    new_total = set_total_feathers(amount)
+    return {"status": "ok", "total_feathers": new_total}
 
 
 @app.get("/joke-of-the-day")

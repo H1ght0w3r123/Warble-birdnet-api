@@ -210,6 +210,22 @@ def add_feathers(amount: float) -> float:
         return stats.total_feathers
 
 
+def set_total_feathers(amount: float) -> float:
+    """Sets the running feather total directly (not additive) - a dev
+    convenience for testing, not part of normal gameplay flow."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        stats = session.query(PlayerStats).first()
+        if stats is None:
+            stats = PlayerStats(total_feathers=amount)
+            session.add(stats)
+        else:
+            stats.total_feathers = amount
+        session.commit()
+        return stats.total_feathers
+
+
 def get_all_sightings():
     if SessionLocal is None:
         return []
