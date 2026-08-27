@@ -290,13 +290,17 @@
   .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px;width:100%;margin-top:8px;}
+  .dressup-avatar-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;width:100%;margin-top:20px;margin-bottom:20px;}
   .category-row.vertical{justify-self:end;}
   .avatar-frame-wrap{position:relative;justify-self:center;}
-  .color-wheel{position:relative;width:112px;height:112px;justify-self:start;flex-shrink:0;}
+  /* The swatches arch over the top of the avatar frame, sitting ON its
+     edge circle - so the assembly is barely wider than the avatar
+     itself, unlike a full wheel or a side-by-side column. */
+  .color-wheel{position:absolute;inset:0;pointer-events:none;z-index:2;}
+  .color-wheel .color-swatch{pointer-events:auto;}
   .color-wheel-center{
-    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-    display:flex;flex-direction:column;gap:3px;width:44px;z-index:3;
+    position:absolute; left:50%; bottom:-14px; transform:translateX(-50%);
+    display:flex; flex-direction:row; gap:4px; z-index:3; pointer-events:auto;
   }
   .part-btn{
     background:rgba(255,255,255,0.92); border:none; border-radius:7px; padding:4px 3px;
@@ -1256,18 +1260,24 @@ function renderSwatchRows() {
   // live in their own child element, untouched by this).
   wheel.querySelectorAll('.color-swatch').forEach(el => el.remove());
 
-  const radius = 44; // px from the wheel's centre to each swatch (scaled with the 112px wheel)
+  // The swatches form an arch across the TOP of the avatar frame, sitting
+  // on the frame's own edge circle - so they use the avatar's existing
+  // footprint instead of needing their own space beside or above it.
+  // Percentage-based so it stays correct if the avatar size changes.
   const n = swatches.length;
+  const archStart = Math.PI * 1.16;  // just past 9 o'clock, going over the top
+  const archEnd = Math.PI * 1.84;    // to just before 3 o'clock
   swatches.forEach((hex, i) => {
-    const angle = (2 * Math.PI * i) / n - Math.PI / 2; // start at the top, go clockwise
-    const x = 56 + radius * Math.cos(angle); // wheel is a 112x112 box, centred at (56,56)
-    const y = 56 + radius * Math.sin(angle);
+    const t = n === 1 ? 0.5 : i / (n - 1);
+    const angle = archStart + (archEnd - archStart) * t;
+    const x = 50 + 50 * Math.cos(angle); // % of the frame box, centred at 50%
+    const y = 50 + 50 * Math.sin(angle);
     const btn = document.createElement('button');
     btn.className = 'color-swatch';
     btn.style.background = hex;
     btn.style.borderColor = currentColor === hex ? 'var(--ink)' : '#fff';
-    btn.style.left = `${x}px`;
-    btn.style.top = `${y}px`;
+    btn.style.left = `${x}%`;
+    btn.style.top = `${y}%`;
     btn.onclick = () => {
       currentProfile[`avatar_${selectedColorPart}`] = hex;
       saveAvatarColors();
@@ -1380,7 +1390,7 @@ async function renderDressUp() {
 
 function renderDressUpPreview() {
   const el = document.getElementById('dressUpPreview');
-  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 140, currentProfile.equipped);
+  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 190, currentProfile.equipped);
 }
 
 function renderCategoryRow() {
