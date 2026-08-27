@@ -920,7 +920,6 @@ async function startRecording() {
     recordSeconds = 0;
     renderRecording();
     startEqualizer(stream);
-    startLivePreviewLoop(stream);
     recordTimerInterval = setInterval(() => {
       recordSeconds++;
       const m = Math.floor(recordSeconds / 60), s = recordSeconds % 60;
@@ -933,7 +932,16 @@ async function startRecording() {
 }
 
 // --- Live audio-reactive equalizer, driven by real microphone volume ---
+// Also drives a simple "something detected!" flash during recording,
+// based on genuine audio energy - NOT a live species guess. Running
+// real identification here (as a previous version did, via repeated
+// /identify calls) meant two separate, independently-run analyses
+// that could genuinely disagree - showing a species live, then "no
+// birds found" once the real, more careful analysis finished. This
+// removes that mismatch by construction: there is only ever ONE
+// identification, from the complete recording, once Stop is pressed.
 let eqAudioContext = null, eqAnalyser = null, eqAnimationId = null;
+let recentVolumeHistory = [], lastDetectionFlashTime = 0;
 
 function startEqualizer(stream) {
   eqAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -941,6 +949,8 @@ function startEqualizer(stream) {
   eqAnalyser.fftSize = 64;
   eqAudioContext.createMediaStreamSource(stream).connect(eqAnalyser);
   const dataArray = new Uint8Array(eqAnalyser.frequencyBinCount);
+  recentVolumeHistory = [];
+  lastDetectionFlashTime = 0;
 
   function draw() {
     if (!eqAnalyser) return;
@@ -956,9 +966,37 @@ function startEqualizer(stream) {
       const wobble = Math.sin(now / 150 + i * 1.3) * intensity * 22;
       leaf.style.transform = `rotate(${wobble}deg)`;
     });
+    checkForSoundDetection(dataArray, now);
     eqAnimationId = requestAnimationFrame(draw);
   }
   draw();
+}
+
+function checkForSoundDetection(dataArray, now) {
+  const avgVolume = dataArray.reduce((sum, v) => sum + v, 0) / dataArray.length;
+  recentVolumeHistory.push(avgVolume);
+  if (recentVolumeHistory.length > 40) recentVolumeHistory.shift();
+  const ambientFloor = recentVolumeHistory.reduce((sum, v) => sum + v, 0) / recentVolumeHistory.length;
+
+  // A genuine spike above the recent background level - not just
+  // "loud", but loud RELATIVE to whatever's been typical the last
+  // couple of seconds - with a cooldown so one call doesn't flash
+  // repeatedly the whole time it's singing.
+  const isSpike = avgVolume > ambientFloor * 1.6 && avgVolume > 22;
+  if (isSpike && now - lastDetectionFlashTime > 2500) {
+    lastDetectionFlashTime = now;
+    flashDetectionIndicator();
+  }
+}
+
+function flashDetectionIndicator() {
+  const el = document.getElementById('liveDetections');
+  if (!el) return;
+  const badge = document.createElement('div');
+  badge.className = 'live-detection-badge';
+  badge.textContent = '🎵 Something\'s singing!';
+  el.appendChild(badge);
+  setTimeout(() => badge.remove(), 2200);
 }
 
 function stopEqualizer() {
@@ -968,79 +1006,9 @@ function stopEqualizer() {
   eqAnalyser = null;
 }
 
-// --- Live bird detection while recording, Merlin-style ---
-// Runs entirely separate from the main recording — short independent
-// clips are sent to the existing /identify endpoint purely to show
-// live progress. The real scoring, saving, and card reveal still all
-// happen from the one complete recording when Stop is pressed, exactly
-// as before. If a live preview call fails, nothing else is affected.
-let livePreviewActive = false;
-let liveDetectedSpecies = new Set();
-
-function startLivePreviewLoop(stream) {
-  livePreviewActive = true;
-  liveDetectedSpecies = new Set();
-  captureLiveChunk(stream);
-}
-
-function stopLivePreviewLoop() {
-  livePreviewActive = false;
-}
-
-function captureLiveChunk(stream) {
-  if (!livePreviewActive) return;
-  let chunkRecorder;
-  try {
-    chunkRecorder = new MediaRecorder(stream);
-  } catch (e) {
-    return; // if this fails, live preview just doesn't run — recording itself is unaffected
-  }
-  const chunkParts = [];
-  chunkRecorder.ondataavailable = e => chunkParts.push(e.data);
-  chunkRecorder.onstop = () => {
-    const blob = new Blob(chunkParts, { type: 'audio/webm' });
-    analyzeLiveChunk(blob);
-    if (livePreviewActive) captureLiveChunk(stream);
-  };
-  chunkRecorder.start();
-  setTimeout(() => {
-    if (chunkRecorder.state !== 'inactive') chunkRecorder.stop();
-  }, 3000);
-}
-
-async function analyzeLiveChunk(blob) {
-  try {
-    const formData = new FormData();
-    formData.append('file', blob, 'chunk.webm');
-    if (currentLat !== null && currentLng !== null) {
-      formData.append('lat', currentLat);
-      formData.append('lng', currentLng);
-    }
-    const res = await fetch('/identify', { method: 'POST', body: formData });
-    if (!res.ok) return;
-    const data = await res.json();
-    (data.detections || []).forEach(d => {
-      if (!liveDetectedSpecies.has(d.common_name)) {
-        liveDetectedSpecies.add(d.common_name);
-        showLiveDetection(d.common_name);
-      }
-    });
-  } catch (e) { /* a missed preview chunk doesn't matter, just skip it */ }
-}
-
-function showLiveDetection(name) {
-  const listEl = document.getElementById('liveDetections');
-  if (!listEl) return;
-  const badge = document.createElement('div');
-  badge.className = 'live-detection-badge';
-  badge.textContent = `🐦 ${name}`;
-  listEl.appendChild(badge);
-}
-
 function stopRecording() {
   clearInterval(recordTimerInterval);
   stopEqualizer();
-  stopLivePreviewLoop();
   mediaRecorder.onstop = async () => {
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
     renderProcessing();
