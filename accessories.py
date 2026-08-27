@@ -168,7 +168,7 @@ ACCESSORIES = {
         "name": "Binoculars",
         "emoji": "🔭",
         "cost": 100,
-        "category": "gear",
+        "category": "held",
         "tile_viewbox": "31 58 38 28",
         "svg": '<path d="M35.6 61 C37 60.2 42.4 60.2 43.8 61 L44.6 63.6 C42.4 62.8 37 62.8 34.8 63.6 Z" fill="#3D2A85"></path><path d="M56.2 61 C57.6 60.2 63 60.2 64.4 61 L65.2 63.6 C63 62.8 57.6 62.8 55.4 63.6 Z" fill="#3D2A85"></path><path d="M34.4 66 C34.4 63.6 36 62.4 39.6 62.4 C43.2 62.4 45 63.6 45 66 L46 76.6 C46 80.4 43.4 82.6 39.7 82.6 C36 82.6 33.4 80.4 33.4 76.6 Z" fill="#2D1B69"></path><path d="M55 66 C55 63.6 56.8 62.4 60.4 62.4 C64 62.4 65.6 63.6 65.6 66 L66.6 76.6 C66.6 80.4 64 82.6 60.3 82.6 C56.6 82.6 54 80.4 54 76.6 Z" fill="#2D1B69"></path><path d="M42 62.8 C44.4 63.4 45 64.4 45 66 L46 76.6 C46 79.6 44.2 81.6 41.6 82.4 C43.4 80.4 44 78 43.6 74.6 C43.2 70.6 42.6 66.4 42 62.8 Z" fill="#1A1128" opacity="0.3"></path><path d="M58 62.8 C55.6 63.4 55 64.4 55 66 L54 76.6 C54 79.6 55.8 81.6 58.4 82.4 C56.6 80.4 56 78 56.4 74.6 C56.8 70.6 57.4 66.4 58 62.8 Z" fill="#1A1128" opacity="0.3"></path><path d="M45.4 68.6 C47.6 68 52.4 68 54.6 68.6 L54.6 73.4 C52.4 74 47.6 74 45.4 73.4 Z" fill="#3D2A85"></path><circle cx="50" cy="71" r="3.2" fill="#8E87B8"></circle><path d="M47.2 71 L52.8 71 L52.8 72.4 L47.2 72.4 Z" fill="#1A1128" opacity="0.3"></path><circle cx="39.7" cy="78.4" r="4.6" fill="#C4BFDF"></circle><circle cx="39.7" cy="78.4" r="2.8" fill="#8E87B8"></circle><path d="M37.4 76.6 C38.2 75.6 39.6 75.2 40.8 75.6 C39.4 76 38.2 76.8 37.6 78 Z" fill="#F5EDD6"></path><circle cx="60.3" cy="78.4" r="4.6" fill="#C4BFDF"></circle><circle cx="60.3" cy="78.4" r="2.8" fill="#8E87B8"></circle><path d="M58 76.6 C58.8 75.6 60.2 75.2 61.4 75.6 C60 76 58.8 76.8 58.2 78 Z" fill="#F5EDD6"></path>',
     },
@@ -176,7 +176,7 @@ ACCESSORIES = {
         "name": "Camera",
         "emoji": "📷",
         "cost": 110,
-        "category": "gear",
+        "category": "held",
         "tile_viewbox": "29 56 42 34",
         "svg": '<path d="M36 60.6 C36 59.6 36.8 59 38.2 59 L44 59 C45.4 59 46.2 59.6 46.2 60.6 L46.2 64 L36 64 Z" fill="#3D2A85"></path><path d="M31.6 67 C31.6 65 33 64 35.6 64 L64.4 64 C67 64 68.4 65 68.4 67 L68.4 84 C68.4 86.4 67 87.6 64.4 87.6 L35.6 87.6 C33 87.6 31.6 86.4 31.6 84 Z" fill="#1A1128"></path><path d="M31.6 67 C31.6 65 33 64 35.6 64 L64.4 64 C67 64 68.4 65 68.4 67 L68.4 69.4 L31.6 69.4 Z" fill="#3D2A85"></path><path d="M62 69.4 L68.4 69.4 L68.4 80 C68.4 81.6 66.6 82.4 64 82.4 L62 82.4 Z" fill="#3D2A85" opacity="0.55"></path><circle cx="49" cy="77" r="8.2" fill="#3D2A85"></circle><circle cx="49" cy="77" r="6.4" fill="#8E87B8"></circle><circle cx="49" cy="77" r="4.2" fill="#C4BFDF"></circle><path d="M45.6 74.6 C46.6 73.2 48.4 72.6 50 73 C48 73.6 46.6 74.6 45.8 76.2 Z" fill="#F5EDD6"></path><path d="M57.4 66.6 L64 66.6 L64 70.6 L57.4 70.6 Z" fill="#F2C94C"></path><path d="M57.4 69 L64 69 L64 70.6 L57.4 70.6 Z" fill="#B8901F"></path><circle cx="61.6" cy="66.4" r="1.8" fill="#E8845C"></circle>',
     },
@@ -184,7 +184,7 @@ ACCESSORIES = {
         "name": "Compass",
         "emoji": "🧭",
         "cost": 75,
-        "category": "gear",
+        "category": "held",
         "tile_viewbox": "36 57 28 32",
         "svg": '<path d="M46.6 62 C46.6 60.6 47.6 59.8 50 59.8 C52.4 59.8 53.4 60.6 53.4 62 L53.4 65.4 L46.6 65.4 Z" fill="#B8901F"></path><circle cx="50" cy="76" r="12" fill="#F2C94C"></circle><circle cx="50" cy="76" r="10.4" fill="#B8901F"></circle><circle cx="50" cy="76" r="9" fill="#F5EDD6"></circle><path d="M41.4 78.6 C42.6 82.6 46 85.4 50 85.4 C46 84.6 43 82.2 41.4 78.6 Z" fill="#1A1128" opacity="0.1"></path><path d="M49.2 68.2 L50.8 68.2 L50.8 70.2 L49.2 70.2 Z" fill="#B8901F"></path><path d="M49.2 81.8 L50.8 81.8 L50.8 83.8 L49.2 83.8 Z" fill="#B8901F"></path><path d="M41.2 75.2 L43.2 75.2 L43.2 76.8 L41.2 76.8 Z" fill="#B8901F"></path><path d="M56.8 75.2 L58.8 75.2 L58.8 76.8 L56.8 76.8 Z" fill="#B8901F"></path><path d="M50 68.6 L53 76 L47 76 Z" fill="#E8845C"></path><path d="M50 83.4 L53 76 L47 76 Z" fill="#8E87B8"></path><circle cx="50" cy="76" r="1.6" fill="#B8901F"></circle>',
     },
@@ -192,7 +192,7 @@ ACCESSORIES = {
         "name": "Magnifying Glass",
         "emoji": "🔍",
         "cost": 60,
-        "category": "gear",
+        "category": "held",
         "tile_viewbox": "33 58 34 38",
         "svg": '<path d="M52 79.6 C54 81.6 58.4 86 61.4 89 C63.4 91 60 94.4 58 92.4 C55 89.4 50.6 85 48.6 83 Z" fill="#B85A36"></path><path d="M56 83.6 L59.4 87 L58 88.4 L54.6 85 Z" fill="#F2C94C"></path><path d="M59.4 87 C61.4 89 63.4 91 61.4 92.6 C60.6 93.4 59.6 93.4 58.6 92.6 C60.4 91.4 60.6 89.4 59.4 87 Z" fill="#1A1128" opacity="0.25"></path><path d="M49.6 78 C51.6 79.4 53 80.8 54 82.2 L51 84.6 C50 83 48.6 81.4 47 80 Z" fill="#B8901F"></path><circle cx="46" cy="71.6" r="11.4" fill="#F2C94C"></circle><circle cx="46" cy="71.6" r="9.6" fill="#B8901F"></circle><circle cx="46" cy="71.6" r="8.4" fill="#F5EDD6" opacity="0.9"></circle><path d="M40 68 C41.4 65.6 44 64 46.8 63.8 C43.8 64.8 41.6 66.6 40.6 69.4 Z" fill="#FFFFFF"></path><path d="M39.6 73.6 C40 75 40.6 76.2 41.6 77.2 C40 76.4 39.2 75 39 73.6 Z" fill="#FFFFFF" opacity="0.8"></path>',
     },
@@ -204,11 +204,35 @@ ACCESSORIES = {
         "tile_viewbox": "13 54 74 38",
         "svg": '<path d="M15.4 61 C15.4 58.6 17 57 19.6 57 L26 57 C27.4 57 28 58 28 59.4 L28 73 C28 75 26.6 76 24.4 76 L19.6 76 C17 76 15.4 74.4 15.4 72 Z" fill="#7EC8A4"></path><path d="M24 57.4 C26.6 58 28 59 28 60.6 L28 73 C28 75 26.6 76 24.4 76 C25.4 74 25.6 71.6 25.4 68.6 C25 64.6 24.6 61 24 57.4 Z" fill="#3F7C5C"></path><path d="M84.6 61 C84.6 58.6 83 57 80.4 57 L74 57 C72.6 57 72 58 72 59.4 L72 73 C72 75 73.4 76 75.6 76 L80.4 76 C83 76 84.6 74.4 84.6 72 Z" fill="#7EC8A4"></path><path d="M76 57.4 C73.4 58 72 59 72 60.6 L72 73 C72 75 73.4 76 75.6 76 C74.6 74 74.4 71.6 74.6 68.6 C75 64.6 75.4 61 76 57.4 Z" fill="#3F7C5C"></path><path d="M37.6 61 C39.6 60.4 42.4 60.4 44.4 61 C45.4 69.6 46 78.6 46 87.6 C44 88.2 41.4 88.2 39.4 87.6 C39.4 78.6 38.6 69.6 37.6 61 Z" fill="#3F7C5C"></path><path d="M62.4 61 C60.4 60.4 57.6 60.4 55.6 61 C54.6 69.6 54 78.6 54 87.6 C56 88.2 58.6 88.2 60.6 87.6 C60.6 78.6 61.4 69.6 62.4 61 Z" fill="#3F7C5C"></path><path d="M43 60.6 C44 60.7 44.4 60.8 44.4 61 C45.4 69.6 46 78.6 46 87.6 C45.4 87.8 44.8 88 44.2 88 C44.2 78.6 43.6 69.4 43 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M57 60.6 C56 60.7 55.6 60.8 55.6 61 C54.6 69.6 54 78.6 54 87.6 C54.6 87.8 55.2 88 55.8 88 C55.8 78.6 56.4 69.4 57 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M39 71.6 L46 71.6 L46 76.4 L39 76.4 Z" fill="#F2C94C"></path><path d="M54 71.6 L61 71.6 L61 76.4 L54 76.4 Z" fill="#F2C94C"></path><path d="M41 73 L44 73 L44 75 L41 75 Z" fill="#B8901F"></path><path d="M56 73 L59 73 L59 75 L56 75 Z" fill="#B8901F"></path>',
     },
+    "satchel": {
+        "name": "Satchel",
+        "emoji": "👜",
+        "cost": 40,
+        "category": "gear",
+        "tile_viewbox": "28 50 44 34",
+        "svg": '<path d="M34 60 C34 56 40 53 50 53 C60 53 66 56 66 60 L66 62 L34 62 Z" fill="none" stroke="#B85A36" stroke-width="2.5"></path><rect x="33" y="61" width="34" height="21" rx="3" fill="#E8845C"></rect><path d="M33 61 L67 61 L67 70 C67 71 66 71.5 65 71.5 L35 71.5 C34 71.5 33 71 33 70 Z" fill="#B85A36"></path><rect x="46" y="68" width="8" height="6" rx="1.5" fill="#F2C94C"></rect>',
+    },
+    "cape": {
+        "name": "Little Cape",
+        "emoji": "🦸",
+        "cost": 70,
+        "category": "gear",
+        "tile_viewbox": "20 46 60 44",
+        "svg": '<path d="M32 50 C40 56 60 56 68 50 C72 62 74 78 72 88 C58 84 42 84 28 88 C26 78 28 62 32 50 Z" fill="#C0392B"></path><path d="M32 50 C40 56 60 56 68 50 C69 53 70 57 70.5 60 C60 64 40 64 29.5 60 C30 57 31 53 32 50 Z" fill="#1A1128" opacity="0.18"></path>',
+    },
+    "water_bottle": {
+        "name": "Water Bottle",
+        "emoji": "🍶",
+        "cost": 30,
+        "category": "gear",
+        "tile_viewbox": "36 46 28 40",
+        "svg": '<rect x="44" y="47" width="12" height="6" rx="1.5" fill="#3F7C5C"></rect><rect x="42" y="52" width="16" height="30" rx="4" fill="#7EC8A4"></rect><rect x="42" y="62" width="16" height="7" fill="#F5EDD6"></rect><rect x="45" y="55" width="3" height="24" rx="1.5" fill="#FFFFFF" opacity="0.35"></rect>',
+    },
     "field_notebook": {
         "name": "Field Notebook",
         "emoji": "📓",
         "cost": 45,
-        "category": "gear",
+        "category": "held",
         "tile_viewbox": "31 56 40 34",
         "svg": '<path d="M62.6 59 L66.4 60 L63.6 71 L60.6 70.2 Z" fill="#F2C94C"></path><path d="M60.6 70.2 L63.6 71 L61.6 74 Z" fill="#E9DDBE"></path><path d="M61.6 74 L62.2 72.4 L63 72.6 Z" fill="#1A1128"></path><path d="M33.4 66.6 C33.4 65 34.4 64 36.4 64 L64.6 64 C66.6 64 67.6 65 67.6 66.6 L67.6 85.4 C67.6 87.4 66.6 88.4 64.6 88.4 L36.4 88.4 C34.4 88.4 33.4 87.4 33.4 85.4 Z" fill="#B85A36"></path><path d="M37.4 66.4 L65.6 66.4 C66.4 66.4 66.6 66.8 66.6 67.6 L66.6 84.6 C66.6 85.4 66.4 85.8 65.6 85.8 L37.4 85.8 Z" fill="#F5EDD6"></path><path d="M37.4 69.4 L66.6 69.4 L66.6 70.4 L37.4 70.4 Z" fill="#E9DDBE"></path><path d="M37.4 81 L66.6 81 L66.6 82 L37.4 82 Z" fill="#E9DDBE"></path><path d="M41 73 L60 73 L60 74.4 L41 74.4 Z" fill="#C4BFDF" opacity="0.7"></path><path d="M41 77 L56 77 L56 78.4 L41 78.4 Z" fill="#C4BFDF" opacity="0.7"></path><path d="M33.4 66.6 C33.4 65 34.4 64 36.4 64 L39 64 L39 88.4 L36.4 88.4 C34.4 88.4 33.4 87.4 33.4 85.4 Z" fill="#E8845C"></path><path d="M38 64 L39 64 L39 88.4 L38 88.4 Z" fill="#1A1128" opacity="0.2"></path><path d="M57.4 64 L59.8 64 L59.8 88.4 L57.4 88.4 Z" fill="#1A1128"></path><path d="M59 64 L59.8 64 L59.8 88.4 L59 88.4 Z" fill="#FFFFFF" opacity="0.18"></path>',
     },
@@ -278,19 +302,14 @@ ACCESSORIES = {
     },
 }
 
+# Each category carries its own 24x24 icon inline. Previously icons lived in a
+# separate parallel list matched by index - fragile, and easy to silently
+# mismatch when reordering or adding a category, which this change does both of.
 CATEGORIES = [
-    {"id": "hats", "name": "Hats"},
-    {"id": "neck", "name": "Neck"},
-    {"id": "gear", "name": "Gear"},
-    {"id": "glasses", "name": "Glasses"},
-    {"id": "shoes", "name": "Shoes"},
-]
-
-# 24x24 category icons, one per category above, same order
-CATEGORY_ICONS = [
-    '<path d="M8.6 4.4 L15.4 4.4 L16.4 13.6 L7.6 13.6 Z" fill="#2D1B69"></path><path d="M7.6 10.6 L16.4 10.6 L16.4 13.6 L7.6 13.6 Z" fill="#E8845C"></path><path d="M3.6 14.4 C7 13 17 13 20.4 14.4 C20.4 16.4 17 17.6 12 17.6 C7 17.6 3.6 16.4 3.6 14.4 Z" fill="#2D1B69"></path>',
-    '<path d="M3.6 7 C6 8 9 9.8 10.8 12 C9 14.2 6 16 3.6 17 C4.4 13.6 4.4 10.4 3.6 7 Z" fill="#E87EA1"></path><path d="M20.4 7 C18 8 15 9.8 13.2 12 C15 14.2 18 16 20.4 17 C19.6 13.6 19.6 10.4 20.4 7 Z" fill="#E87EA1"></path><path d="M10.2 9.4 C11.4 9 12.6 9 13.8 9.4 C14.2 10.8 14.2 13.2 13.8 14.6 C12.6 15 11.4 15 10.2 14.6 C9.8 13.2 9.8 10.8 10.2 9.4 Z" fill="#B85A36"></path>',
-    '<path d="M4 8.4 C4 6.8 5 6 7 6 C9 6 10 6.8 10 8.4 L10.4 15.6 C10.4 17.8 9 19 7 19 C5 19 3.6 17.8 3.6 15.6 Z" fill="#2D1B69"></path><path d="M14 8.4 C14 6.8 15 6 17 6 C19 6 20 6.8 20 8.4 L20.4 15.6 C20.4 17.8 19 19 17 19 C15 19 13.6 17.8 13.6 15.6 Z" fill="#2D1B69"></path><path d="M10.2 9.6 C11 9.2 13 9.2 13.8 9.6 L13.8 12.4 C13 12.8 11 12.8 10.2 12.4 Z" fill="#3D2A85"></path><circle cx="7" cy="15.4" r="2.4" fill="#C4BFDF"></circle><circle cx="17" cy="15.4" r="2.4" fill="#C4BFDF"></circle>',
-    '<circle cx="7.4" cy="12.4" r="4.6" fill="#1A1128"></circle><circle cx="16.6" cy="12.4" r="4.6" fill="#1A1128"></circle><circle cx="7.4" cy="12.4" r="2.9" fill="#F5EDD6"></circle><circle cx="16.6" cy="12.4" r="2.9" fill="#F5EDD6"></circle><path d="M10.6 10.6 C11.4 10.1 12.6 10.1 13.4 10.6 L13.4 12 C12.6 11.5 11.4 11.5 10.6 12 Z" fill="#1A1128"></path><path d="M2.8 11 C2 11.2 1.4 11.8 1 12.4 L2 13.4 C2.4 12.9 2.8 12.6 3.4 12.5 Z" fill="#1A1128"></path><path d="M21.2 11 C22 11.2 22.6 11.8 23 12.4 L22 13.4 C21.6 12.9 21.2 12.6 20.6 12.5 Z" fill="#1A1128"></path>',
-    '<path d="M6 5.6 C8.4 5 11 5.2 12.6 6 C13.4 8.4 14.4 10.4 15.4 12 C16 13 15 14 12.6 14.2 C9.4 14.6 6.6 14.4 5.4 13.8 C4.6 13.4 4.4 11.6 4.8 9.6 C5.2 7.8 5.4 6.6 6 5.6 Z" fill="#7EC8A4"></path><path d="M5.6 5.2 C8 4.6 11 4.8 12.8 5.6 L13.2 8 C11 7.2 8 7 5.8 7.6 Z" fill="#F2C94C"></path><path d="M4.2 12 C6.6 11.4 13 11.8 15.6 12.4 C16.2 13.6 15.2 14.6 12.6 14.8 C9.4 15.2 6.6 15 5.4 14.4 C4.6 14 4.2 13 4.2 12 Z" fill="#3F7C5C"></path><path d="M17.6 14 C19 14 20 14.6 20 15.6 C20 16.8 19 17.4 17.6 17.4 C16.2 17.4 15.2 16.8 15.2 15.6 C15.2 14.6 16.2 14 17.6 14 Z" fill="#8E87B8"></path>',
+    {"id": "hats", "name": "Hats", "icon_svg": '<path d="M8.6 4.4 L15.4 4.4 L16.4 13.6 L7.6 13.6 Z" fill="#2D1B69"></path><path d="M7.6 10.6 L16.4 10.6 L16.4 13.6 L7.6 13.6 Z" fill="#E8845C"></path><path d="M3.6 14.4 C7 13 17 13 20.4 14.4 C20.4 16.4 17 17.6 12 17.6 C7 17.6 3.6 16.4 3.6 14.4 Z" fill="#2D1B69"></path>'},
+    {"id": "glasses", "name": "Glasses", "icon_svg": '<circle cx="7.4" cy="12.4" r="4.6" fill="#1A1128"></circle><circle cx="16.6" cy="12.4" r="4.6" fill="#1A1128"></circle><circle cx="7.4" cy="12.4" r="2.9" fill="#F5EDD6"></circle><circle cx="16.6" cy="12.4" r="2.9" fill="#F5EDD6"></circle><path d="M10.6 10.6 C11.4 10.1 12.6 10.1 13.4 10.6 L13.4 12 C12.6 11.5 11.4 11.5 10.6 12 Z" fill="#1A1128"></path><path d="M2.8 11 C2 11.2 1.4 11.8 1 12.4 L2 13.4 C2.4 12.9 2.8 12.6 3.4 12.5 Z" fill="#1A1128"></path><path d="M21.2 11 C22 11.2 22.6 11.8 23 12.4 L22 13.4 C21.6 12.9 21.2 12.6 20.6 12.5 Z" fill="#1A1128"></path>'},
+    {"id": "neck", "name": "Neck", "icon_svg": '<path d="M3.6 7 C6 8 9 9.8 10.8 12 C9 14.2 6 16 3.6 17 C4.4 13.6 4.4 10.4 3.6 7 Z" fill="#E87EA1"></path><path d="M20.4 7 C18 8 15 9.8 13.2 12 C15 14.2 18 16 20.4 17 C19.6 13.6 19.6 10.4 20.4 7 Z" fill="#E87EA1"></path><path d="M10.2 9.4 C11.4 9 12.6 9 13.8 9.4 C14.2 10.8 14.2 13.2 13.8 14.6 C12.6 15 11.4 15 10.2 14.6 C9.8 13.2 9.8 10.8 10.2 9.4 Z" fill="#B85A36"></path>'},
+    {"id": "gear", "name": "Gear", "icon_svg": '<path d="M4 8.4 C4 6.8 5 6 7 6 C9 6 10 6.8 10 8.4 L10.4 15.6 C10.4 17.8 9 19 7 19 C5 19 3.6 17.8 3.6 15.6 Z" fill="#2D1B69"></path><path d="M14 8.4 C14 6.8 15 6 17 6 C19 6 20 6.8 20 8.4 L20.4 15.6 C20.4 17.8 19 19 17 19 C15 19 13.6 17.8 13.6 15.6 Z" fill="#2D1B69"></path><path d="M10.2 9.6 C11 9.2 13 9.2 13.8 9.6 L13.8 12.4 C13 12.8 11 12.8 10.2 12.4 Z" fill="#3D2A85"></path><circle cx="7" cy="15.4" r="2.4" fill="#C4BFDF"></circle><circle cx="17" cy="15.4" r="2.4" fill="#C4BFDF"></circle>'},
+    {"id": "held", "name": "Held", "icon_svg": '<path d="M5 13 C5 10 7 8 10 8 L14 8 C17 8 19 10 19 13 L19 15 C19 17.6 17 19 14 19 L10 19 C7 19 5 17.6 5 15 Z" fill="#8E87B8"></path><circle cx="12" cy="13.4" r="3.2" fill="#F5EDD6"></circle><path d="M9 8 L9 5.4 C9 4.4 9.8 3.8 10.8 3.8 L13.2 3.8 C14.2 3.8 15 4.4 15 5.4 L15 8 Z" fill="#3D2A85"></path>'},
+    {"id": "shoes", "name": "Shoes", "icon_svg": '<path d="M6 5.6 C8.4 5 11 5.2 12.6 6 C13.4 8.4 14.4 10.4 15.4 12 C16 13 15 14 12.6 14.2 C9.4 14.6 6.6 14.4 5.4 13.8 C4.6 13.4 4.4 11.6 4.8 9.6 C5.2 7.8 5.4 6.6 6 5.6 Z" fill="#7EC8A4"></path><path d="M5.6 5.2 C8 4.6 11 4.8 12.8 5.6 L13.2 8 C11 7.2 8 7 5.8 7.6 Z" fill="#F2C94C"></path><path d="M4.2 12 C6.6 11.4 13 11.8 15.6 12.4 C16.2 13.6 15.2 14.6 12.6 14.8 C9.4 15.2 6.6 15 5.4 14.4 C4.6 14 4.2 13 4.2 12 Z" fill="#3F7C5C"></path><path d="M17.6 14 C19 14 20 14.6 20 15.6 C20 16.8 19 17.4 17.6 17.4 C16.2 17.4 15.2 16.8 15.2 15.6 C15.2 14.6 16.2 14 17.6 14 Z" fill="#8E87B8"></path>'},
 ]

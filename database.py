@@ -93,6 +93,7 @@ class Profile(Base):
     equipped_hats = Column(String, nullable=True)
     equipped_neck = Column(String, nullable=True)
     equipped_gear = Column(String, nullable=True)
+    equipped_held = Column(String, nullable=True)
     equipped_glasses = Column(String, nullable=True)
     equipped_shoes = Column(String, nullable=True)
 
@@ -130,6 +131,7 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_held VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_glasses VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_shoes VARCHAR"))
 
@@ -409,7 +411,7 @@ def save_location_name(lat: float, lng: float, name: str):
 def get_profile():
     default = {
         "name": "Explorer", "avatar_body": "#C4BFDF", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
-        "equipped": {"hats": None, "neck": None, "gear": None, "glasses": None, "shoes": None},
+        "equipped": {"hats": None, "neck": None, "gear": None, "held": None, "glasses": None, "shoes": None},
     }
     if SessionLocal is None:
         return default
@@ -428,6 +430,7 @@ def get_profile():
                 "hats": p.equipped_hats,
                 "neck": p.equipped_neck,
                 "gear": p.equipped_gear,
+                "held": p.equipped_held,
                 "glasses": p.equipped_glasses,
                 "shoes": p.equipped_shoes,
             },
@@ -488,10 +491,10 @@ def purchase_accessory(accessory_id: str, cost: float, category: str) -> bool:
 
 def set_equipped_item(category: str, accessory_id):
     """Sets (or clears, if accessory_id is None) the worn item for one
-    of the 5 slots: hats, neck, gear, glasses, shoes."""
+    of the 6 slots: hats, glasses, neck, gear, held, shoes."""
     if SessionLocal is None:
         return
-    if category not in ("hats", "neck", "gear", "glasses", "shoes"):
+    if category not in ("hats", "neck", "gear", "held", "glasses", "shoes"):
         return
     with SessionLocal() as session:
         p = session.query(Profile).first()

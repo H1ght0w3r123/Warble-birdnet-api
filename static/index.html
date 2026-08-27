@@ -259,15 +259,15 @@
   .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 
   /* --- Dress Up: categories + carousel --- */
-  .category-row{display:flex;gap:6px;justify-content:center;width:100%;margin-top:14px;}
+  .category-row{display:flex;gap:5px;justify-content:center;width:100%;margin-top:14px;}
   .category-tile{
     background:#fff; border:2px solid transparent; border-radius:14px; padding:9px 3px;
     display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
-    font-family:'Outfit'; font-size:11px; font-weight:700; color:var(--dusk);
-    flex:1; max-width:58px;
+    font-family:'Outfit'; font-size:9px; font-weight:700; color:var(--dusk);
+    flex:1; max-width:48px;
   }
   .category-tile .cat-icon{font-size:26px;line-height:1;}
-  .category-tile .cat-icon svg{width:31px !important;height:31px !important;}
+  .category-tile .cat-icon svg{width:26px !important;height:26px !important;}
   .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
   .avatar-frame{background:#fff;border-radius:50%;padding:8px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
   .carousel-wrap{width:100%;overflow-x:auto;display:flex;gap:10px;padding:10px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
@@ -1149,7 +1149,7 @@ function setActiveTab(tabName) {
 // One shared palette - every part offers the same 10 colours in the same
 // order, so the arch never reflows when switching between Body/Face/Beak.
 const AVATAR_SWATCHES = ['#C4BFDF', '#8E87B8', '#2D1B69', '#7EC8A4', '#E8845C', '#F2C94C', '#E87EA1', '#1A1128', '#F5EDD6', '#3F7C5C'];
-const ACCESSORY_LAYER_ORDER = ['shoes', 'gear', 'neck', 'glasses', 'hats'];
+const ACCESSORY_LAYER_ORDER = ['shoes', 'gear', 'neck', 'held', 'glasses', 'hats'];
 
 let accessorySvgCache = {};
 

@@ -155,7 +155,7 @@ from database import (
 from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
 from jokes import get_joke_of_the_day
-from accessories import ACCESSORIES, CATEGORIES, CATEGORY_ICONS
+from accessories import ACCESSORIES, CATEGORIES
 from curated_species import ALL_CURATED_SPECIES
 
 init_db()
@@ -579,10 +579,7 @@ def list_accessories():
             {"id": aid, "owned": aid in owned, **info}
             for aid, info in ACCESSORIES.items()
         ],
-        "categories": [
-            {**cat, "icon_svg": CATEGORY_ICONS[i]}
-            for i, cat in enumerate(CATEGORIES)
-        ],
+        "categories": CATEGORIES,
     }
 
 
