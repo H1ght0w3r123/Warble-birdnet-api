@@ -1343,15 +1343,15 @@ async function renderDressUp() {
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Dress Up</div></div>
     <div class="dressup-avatar-row">
-      <div class="color-wheel" id="colorWheel">
-        <div class="color-wheel-center" id="partToggle">
-          <button class="part-btn" data-part="body">Body</button>
-          <button class="part-btn" data-part="face">Face</button>
-          <button class="part-btn" data-part="beak">Beak</button>
-        </div>
-      </div>
       <div class="avatar-frame-wrap">
         <div class="avatar-frame" id="dressUpPreview"></div>
+        <div class="color-wheel" id="colorWheel">
+          <div class="color-wheel-center" id="partToggle">
+            <button class="part-btn" data-part="body">Body</button>
+            <button class="part-btn" data-part="face">Face</button>
+            <button class="part-btn" data-part="beak">Beak</button>
+          </div>
+        </div>
       </div>
       <div class="category-row vertical" id="categoryRow"></div>
     </div>
