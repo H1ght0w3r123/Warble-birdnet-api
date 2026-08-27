@@ -88,7 +88,8 @@ class Profile(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, default="Explorer")
     avatar_body = Column(String, default="#C4BFDF")
-    avatar_breast = Column(String, default="#E8845C")
+    avatar_face = Column(String, default="#E8845C")
+    avatar_beak = Column(String, default="#8E87B8")
     equipped_hats = Column(String, nullable=True)
     equipped_neck = Column(String, nullable=True)
     equipped_gear = Column(String, nullable=True)
@@ -124,6 +125,8 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_accessory VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_body VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_breast VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_face VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_beak VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
@@ -137,9 +140,21 @@ def init_db():
             session.commit()
         existing_profile = session.query(Profile).first()
         if existing_profile is None:
-            session.add(Profile(name="Explorer", avatar_body="#C4BFDF", avatar_breast="#E8845C"))
+            session.add(Profile(name="Explorer", avatar_body="#C4BFDF", avatar_face="#E8845C", avatar_beak="#8E87B8"))
             session.commit()
         else:
+            # One-time migration: "Breast" was renamed to "Face" - avatar_breast
+            # isn't a mapped column any more, so read its old value with raw
+            # SQL and carry it forward into avatar_face if that's still empty,
+            # so nobody's existing colour choice is silently lost.
+            if existing_profile.avatar_face is None:
+                with engine.begin() as conn:
+                    row = conn.execute(text("SELECT avatar_breast FROM profile LIMIT 1")).fetchone()
+                old_breast = row[0] if row else None
+                if old_breast:
+                    existing_profile.avatar_face = old_breast
+                    session.commit()
+
             # One-time migration: an item equipped under the old
             # single-slot system would otherwise be silently lost now
             # that equipping is per-category. equipped_accessory isn't
@@ -393,7 +408,7 @@ def save_location_name(lat: float, lng: float, name: str):
 
 def get_profile():
     default = {
-        "name": "Explorer", "avatar_body": "#C4BFDF", "avatar_breast": "#E8845C",
+        "name": "Explorer", "avatar_body": "#C4BFDF", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
         "equipped": {"hats": None, "neck": None, "gear": None, "glasses": None, "shoes": None},
     }
     if SessionLocal is None:
@@ -401,13 +416,14 @@ def get_profile():
     with SessionLocal() as session:
         p = session.query(Profile).first()
         if p is None:
-            p = Profile(name="Explorer", avatar_body="#C4BFDF", avatar_breast="#E8845C")
+            p = Profile(name="Explorer", avatar_body="#C4BFDF", avatar_face="#E8845C", avatar_beak="#8E87B8")
             session.add(p)
             session.commit()
         return {
             "name": p.name,
             "avatar_body": p.avatar_body or "#C4BFDF",
-            "avatar_breast": p.avatar_breast or "#E8845C",
+            "avatar_face": p.avatar_face or "#E8845C",
+            "avatar_beak": p.avatar_beak or "#8E87B8",
             "equipped": {
                 "hats": p.equipped_hats,
                 "neck": p.equipped_neck,
@@ -418,7 +434,7 @@ def get_profile():
         }
 
 
-def update_profile(name: str = None, avatar_body: str = None, avatar_breast: str = None):
+def update_profile(name: str = None, avatar_body: str = None, avatar_face: str = None, avatar_beak: str = None):
     if SessionLocal is None:
         return
     with SessionLocal() as session:
@@ -430,8 +446,10 @@ def update_profile(name: str = None, avatar_body: str = None, avatar_breast: str
             p.name = name
         if avatar_body is not None:
             p.avatar_body = avatar_body
-        if avatar_breast is not None:
-            p.avatar_breast = avatar_breast
+        if avatar_face is not None:
+            p.avatar_face = avatar_face
+        if avatar_beak is not None:
+            p.avatar_beak = avatar_beak
         session.commit()
 
 

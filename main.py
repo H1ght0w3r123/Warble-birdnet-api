@@ -500,8 +500,8 @@ def profile():
 
 
 @app.post("/profile")
-async def update_profile_endpoint(name: str = Form(None), avatar_body: str = Form(None), avatar_breast: str = Form(None)):
-    update_profile(name=name, avatar_body=avatar_body, avatar_breast=avatar_breast)
+async def update_profile_endpoint(name: str = Form(None), avatar_body: str = Form(None), avatar_face: str = Form(None), avatar_beak: str = Form(None)):
+    update_profile(name=name, avatar_body=avatar_body, avatar_face=avatar_face, avatar_beak=avatar_beak)
     return {"status": "ok"}
 
 
