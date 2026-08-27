@@ -125,8 +125,7 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
     # enough for repeated calls during a live preview loop.
     filtered_detections = []
     for d in detections[:3]:
-        _, record_count = get_nbn_tier(d["scientific_name"], lat, lng)
-        if record_count >= 3:
+        if is_locally_plausible(d["scientific_name"], lat, lng):
             filtered_detections.append(d)
 
     return {"detections": filtered_detections}
@@ -279,6 +278,31 @@ def get_nbn_tier(scientific_name: str, lat: float, lng: float):
     return tier, total
 
 
+def is_locally_plausible(scientific_name: str, lat: float, lng: float) -> bool:
+    """A tighter, more garden-relevant plausibility check than the
+    25km tier calculation above. 25km is wide enough that a real UK
+    species (e.g. a farmland specialist like Yellowhammer) can easily
+    have genuine records somewhere in that radius even though it would
+    never actually turn up at this specific recording spot. Uses a
+    much smaller radius, closer to 'could this realistically be heard
+    from here' than 'does this species exist somewhere in the wider
+    region'. Deliberately separate from get_nbn_tier so the existing,
+    already-calibrated 25km tier/feather system is untouched."""
+    try:
+        response = requests.get(
+            "https://records-ws.nbnatlas.org/occurrences/search",
+            params={"q": scientific_name, "lat": lat, "lon": lng, "radius": 5},
+            timeout=10,
+        )
+        response.raise_for_status()
+        total = response.json().get("totalRecords", 0)
+    except Exception as e:
+        print(f"Warning: local plausibility check failed for {scientific_name}: {e}")
+        return True  # if we can't tell, fail open rather than silently hiding a real find
+
+    return total >= 3
+
+
 def get_wikipedia_info(scientific_name: str):
     """Fetch a photo URL and a short description for this species from
     Wikipedia, in one call. Returns (photo_url, description) — either
@@ -393,13 +417,14 @@ async def analyze_session(
 
         # Real occurrence sanity check, similar in spirit to how Merlin
         # uses eBird's real occurrence data to catch implausible
-        # suggestions: a species with essentially zero genuine UK
-        # records nearby is far more likely a misidentification
-        # (confused with a similar-sounding species) than an actual
-        # rare vagrant - genuine rare-but-real UK birds still have a
-        # handful of real records, not zero.
-        if record_count < 3:
-            print(f"Discarding likely misidentification: {common_name} had only {record_count} NBN records nearby")
+        # suggestions - but tightened to a 5km radius (see
+        # is_locally_plausible) rather than reusing the 25km tier
+        # count, since 25km is wide enough that a real UK species
+        # (e.g. a farmland specialist) can have genuine records
+        # somewhere in that radius without being remotely plausible
+        # at this specific spot.
+        if not is_locally_plausible(scientific_name, lat, lng):
+            print(f"Discarding likely misidentification: {common_name} not locally plausible near this location")
             continue
 
         is_duplicate = has_existing_sighting(common_name)
