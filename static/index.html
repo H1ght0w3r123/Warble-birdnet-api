@@ -228,14 +228,24 @@
   .status-badge.status-red{background:#FBDCDC;color:#A83232;}
   .learn-more{display:inline-block;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
-  .branch-eq{width:100%;max-width:220px;height:60px;margin-top:18px;}
-  .leaf{transform-box:fill-box;transform-origin:center;}
-  .live-detections{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:20px;min-height:32px;}
-  .live-detection-badge{
-    background:rgba(255,255,255,0.92); color:var(--dusk); font-family:'Outfit'; font-weight:700; font-size:13px;
-    padding:6px 16px; border-radius:20px; animation:popIn 0.3s ease;
+
+  /* --- Recording tree: pulses, and its canopy clusters rustle with real audio --- */
+  .rec-tree{width:170px;height:190px;position:relative;z-index:1;}
+  .rec-tree.pulsing{animation:treePulse 2.4s ease-in-out infinite;}
+  @keyframes treePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.025);}}
+  .tree-cluster{transform-box:fill-box;transform-origin:center;}
+
+  /* --- Live bird detection badges: persist and stack for the whole recording --- */
+  .live-bird-stack{display:flex;justify-content:center;margin-bottom:10px;min-height:50px;position:relative;z-index:1;}
+  .live-bird-badge{
+    width:44px;height:44px;border-radius:50%;background:#fff;
+    border:3px solid var(--tier-color, var(--sage));
+    margin-left:-14px; box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
-  @keyframes popIn{from{transform:scale(0.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .live-bird-badge:first-child{margin-left:0;}
+
   .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;}
 
   /* --- Profile --- */
@@ -517,25 +527,38 @@ function renderTips() {
 }
 
 function renderRecording() {
+  liveDetectedBirds = [];
+  liveBadgedSpecies = new Set();
   stage.innerHTML = `
     <div class="pines"></div>
+    <div class="live-bird-stack" id="liveBirdStack"></div>
+    <svg viewBox="0 0 160 190" class="rec-tree pulsing" id="recTree">
+      <path d="M72 190 L72 138 Q80 128 88 138 L88 190 Z" fill="#6B4A35"/>
+      <circle class="tree-cluster" cx="80" cy="42" r="34" fill="var(--sage)"/>
+      <circle class="tree-cluster" cx="46" cy="64" r="30" fill="var(--terra)"/>
+      <circle class="tree-cluster" cx="114" cy="64" r="30" fill="var(--sage)"/>
+      <circle class="tree-cluster" cx="42" cy="100" r="27" fill="var(--gold)"/>
+      <circle class="tree-cluster" cx="118" cy="100" r="27" fill="var(--sage)"/>
+      <circle class="tree-cluster" cx="80" cy="110" r="32" fill="var(--terra)"/>
+    </svg>
     <button class="mic-btn recording" id="stopBtn">■</button>
     <div class="timer" id="timer">0:00</div>
-    <div class="stage-sub">Tap to stop</div>
-    <svg viewBox="0 0 220 60" class="branch-eq" id="branchEq">
-      <path d="M5 44 Q60 20 115 28 T215 18" stroke="#6B4A35" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <ellipse class="leaf" cx="24" cy="40" rx="7" ry="4" fill="var(--sage)"/>
-      <ellipse class="leaf" cx="42" cy="30" rx="7" ry="4" fill="var(--gold)"/>
-      <ellipse class="leaf" cx="62" cy="24" rx="7" ry="4" fill="var(--sage)"/>
-      <ellipse class="leaf" cx="85" cy="24" rx="7" ry="4" fill="var(--terra)"/>
-      <ellipse class="leaf" cx="108" cy="27" rx="7" ry="4" fill="var(--sage)"/>
-      <ellipse class="leaf" cx="130" cy="23" rx="7" ry="4" fill="var(--gold)"/>
-      <ellipse class="leaf" cx="155" cy="20" rx="7" ry="4" fill="var(--sage)"/>
-      <ellipse class="leaf" cx="180" cy="18" rx="7" ry="4" fill="var(--terra)"/>
-    </svg>
-    <div class="live-detections" id="liveDetections"></div>
   `;
   document.getElementById('stopBtn').onclick = stopRecording;
+}
+
+const TIER_ORDER = { Rare: 0, Visitor: 1, Common: 2 };
+let liveDetectedBirds = [];
+let liveBadgedSpecies = new Set();
+
+function renderLiveBirdStack() {
+  const el = document.getElementById('liveBirdStack');
+  if (!el) return;
+  const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 3) - (TIER_ORDER[b.tier] ?? 3));
+  el.innerHTML = sorted.map(bird => {
+    const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+    return `<div class="live-bird-badge" style="--tier-color:${tierColor}">🐦</div>`;
+  }).join('');
 }
 
 function renderProcessing() {
@@ -951,30 +974,20 @@ function startEqualizer(stream) {
   function draw() {
     if (!eqAnalyser) return;
     eqAnalyser.getByteFrequencyData(dataArray);
-    const leaves = document.querySelectorAll('.leaf');
+    const leaves = document.querySelectorAll('.tree-cluster');
     const now = performance.now();
     leaves.forEach((leaf, i) => {
       const value = dataArray[i * Math.floor(dataArray.length / leaves.length)] || 0;
       const intensity = value / 255; // real volume for this leaf's slice, 0 to 1
-      // Each leaf has its own timing offset so they don't all swing in
+      // Each cluster has its own timing offset so they don't all swing in
       // lockstep - genuine rustling rather than a mechanical sweep -
       // but the AMPLITUDE of the wobble is driven entirely by real audio.
-      const wobble = Math.sin(now / 150 + i * 1.3) * intensity * 22;
+      const wobble = Math.sin(now / 150 + i * 1.3) * intensity * 14;
       leaf.style.transform = `rotate(${wobble}deg)`;
     });
     eqAnimationId = requestAnimationFrame(draw);
   }
   draw();
-}
-
-function flashDetectionIndicator() {
-  const el = document.getElementById('liveDetections');
-  if (!el) return;
-  const badge = document.createElement('div');
-  badge.className = 'live-detection-badge';
-  badge.textContent = "🐦 A bird was heard!";
-  el.appendChild(badge);
-  setTimeout(() => badge.remove(), 2200);
 }
 
 function stopEqualizer() {
@@ -1031,9 +1044,13 @@ async function checkLiveChunk(blob) {
     const res = await fetch('/identify', { method: 'POST', body: formData });
     if (!res.ok) return;
     const data = await res.json();
-    if ((data.detections || []).length > 0) {
-      flashDetectionIndicator();
-    }
+    (data.detections || []).forEach(d => {
+      if (!liveBadgedSpecies.has(d.common_name)) {
+        liveBadgedSpecies.add(d.common_name);
+        liveDetectedBirds.push({ tier: d.tier });
+        renderLiveBirdStack();
+      }
+    });
   } catch (e) { /* a missed preview chunk doesn't matter, just skip it */ }
 }
 
