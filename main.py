@@ -379,8 +379,20 @@ async def analyze_session(
         scientific_name = detection["scientific_name"]
         confidence = detection["confidence"]
 
-        is_duplicate = has_existing_sighting(common_name)
         tier, record_count = get_nbn_tier(scientific_name, lat, lng)
+
+        # Real occurrence sanity check, similar in spirit to how Merlin
+        # uses eBird's real occurrence data to catch implausible
+        # suggestions: a species with essentially zero genuine UK
+        # records nearby is far more likely a misidentification
+        # (confused with a similar-sounding species) than an actual
+        # rare vagrant - genuine rare-but-real UK birds still have a
+        # handful of real records, not zero.
+        if record_count < 3:
+            print(f"Discarding likely misidentification: {common_name} had only {record_count} NBN records nearby")
+            continue
+
+        is_duplicate = has_existing_sighting(common_name)
         feathers = calculate_feathers(tier, is_duplicate)
         photo_url, description = get_wikipedia_info(scientific_name)
 
