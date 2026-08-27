@@ -290,7 +290,7 @@
   .carousel-item-price.owned-label{color:var(--sage-dk);}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;width:100%;margin-top:32px;margin-bottom:20px;}
+  .dressup-avatar-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;width:100%;margin-top:74px;margin-bottom:20px;}
   .category-row.vertical{justify-self:end;}
   .avatar-frame-wrap{position:relative;justify-self:center;}
   /* The swatches arch over the top of the avatar frame, sitting ON its
@@ -299,13 +299,14 @@
   .color-wheel{position:absolute;inset:0;pointer-events:none;z-index:2;}
   .color-wheel .color-swatch{pointer-events:auto;}
   .color-wheel-center{
-    position:absolute; left:50%; bottom:-14px; transform:translateX(-50%);
-    display:flex; flex-direction:row; gap:4px; z-index:3; pointer-events:auto;
+    position:absolute; inset:0; z-index:3; pointer-events:none;
   }
   .part-btn{
-    background:rgba(255,255,255,0.92); border:none; border-radius:7px; padding:4px 3px;
+    position:absolute; transform-origin:center;
+    background:rgba(255,255,255,0.92); border:none; border-radius:7px; padding:4px 7px;
     font-family:'Outfit'; font-weight:700; font-size:8.5px; color:var(--dusk);
     cursor:pointer; text-transform:uppercase; letter-spacing:0; line-height:1.2;
+    pointer-events:auto; white-space:nowrap;
   }
   .part-btn.active{background:var(--terra); color:#fff;}
   .color-wheel .color-swatch{
@@ -1245,9 +1246,25 @@ let selectedColorPart = 'body';
 function renderSwatchRows() {
   const toggle = document.getElementById('partToggle');
   if (toggle) {
+    // Position the three buttons on an arc OUTSIDE the swatch arch (which
+    // sits at 59%), each rotated to follow the curve's tangent. Face is
+    // dead centre at the top (12 o'clock, no tilt); Body and Beak sit
+    // either side, tilted symmetrically.
+    const btnRadius = 78;                       // % of frame box - outside the 59% swatch arch
+    const btnAngles = { body: -34, face: 0, beak: 34 }; // degrees from vertical
     toggle.querySelectorAll('.part-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.part === selectedColorPart);
-      btn.onclick = () => { selectedColorPart = btn.dataset.part; renderSwatchRows(); };
+      const part = btn.dataset.part;
+      const deg = btnAngles[part] ?? 0;
+      const rad = (deg - 90) * Math.PI / 180;   // -90 so 0deg means straight up
+      const x = 50 + btnRadius * Math.cos(rad);
+      const y = 50 + btnRadius * Math.sin(rad);
+      btn.style.left = `${x}%`;
+      btn.style.top = `${y}%`;
+      // translate(-50%,-50%) centres the button on its point; the rotation
+      // matches the arc's tangent at that angle, so it follows the curve.
+      btn.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
+      btn.classList.toggle('active', part === selectedColorPart);
+      btn.onclick = () => { selectedColorPart = part; renderSwatchRows(); };
     });
   }
 
