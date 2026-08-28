@@ -354,96 +354,44 @@ def calculate_feathers(tier: str, is_duplicate: bool) -> float:
 
 @app.post("/analyze-session")
 async def analyze_session(
-    file: UploadFile = File(...),
-    lat: float = 51.5074,
-    lng: float = -0.1278,
+    lat: float = Form(51.5074),
+    lng: float = Form(-0.1278),
     live_detections: str = Form("[]"),
 ):
     """
-    The all-in-one endpoint. Identifies every bird in a recording, checks
-    each one's rarity tier and duplicate status, calculates feathers,
-    fetches a photo, saves it to the database, and returns the full
-    enriched list — ready to display directly on the page.
-    """
-    if analyzer is None:
-        return JSONResponse(
-            status_code=503,
-            content={"status": "loading", "message": "Analyzer is still loading, try again shortly."},
-        )
+    Takes the species already identified live during recording, then does the
+    enrichment: rarity tier, duplicate check, feathers, photo, saving, and
+    trophies - returning the full list ready to display.
 
+    No audio is uploaded or analysed here. Identification happens entirely in
+    the live pass during recording (short clips sent to /identify), which is
+    now the single source of truth. Earlier versions re-analysed the whole
+    recording server-side as well - first as a rival result, then merged - but
+    running two passes proved unreliable in practice.
+
+    Trade-off worth knowing: the live pass scores independent ~3.5s clips, so
+    a call straddling a clip boundary can be split and missed. Continuous
+    analysis of the whole recording didn't have that weakness. Recording for
+    longer is the practical mitigation - more clips, more chances.
+    """
     print(f"analyze-session: received lat={lat}, lng={lng}")
 
-    suffix = Path(file.filename).suffix or ".wav"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_in:
-        contents = await file.read()
-        tmp_in.write(contents)
-        tmp_in_path = tmp_in.name
-
-    tmp_wav_path = tmp_in_path + "_converted.wav"
-    try:
-        audio = AudioSegment.from_file(tmp_in_path)
-        audio.export(tmp_wav_path, format="wav")
-    except Exception as e:
-        os.unlink(tmp_in_path)
-        return JSONResponse(
-            status_code=400,
-            content={"status": "error", "message": f"Could not read this audio file: {e}"},
-        )
-
-    try:
-        from birdnetlib import Recording
-        # NOT passing lat/lon/date here deliberately - birdnetlib's own
-        # geographic+seasonal species filtering was tried and appears to
-        # have caused a real regression (recordings that used to detect
-        # correctly stopped detecting anything, even after separately
-        # confirming the confidence threshold wasn't the cause). NBN
-        # Atlas tiering already does the "how plausible is this here"
-        # job, more transparently (tags as Rare rather than silently
-        # hiding a detection) - so it's the sole mechanism for that now.
-        recording = Recording(
-            analyzer,
-            tmp_wav_path,
-            min_conf=0.25,
-        )
-        recording.analyze()
-        detections = recording.detections
-    finally:
-        os.unlink(tmp_in_path)
-        os.unlink(tmp_wav_path)
-
-    # Merge in anything already confirmed during recording. The two passes see
-    # genuinely different audio: this one analyses the whole recording
-    # continuously, while the live pass sampled independent 3.5s clips - so a
-    # call sitting across a clip boundary can be missed live but caught here,
-    # and a brief call can occasionally be caught live but washed out across
-    # the longer file. Taking the union means the badges a user watched appear
-    # during recording can never contradict the final result, without losing
-    # what either pass found on its own.
-    seen = {d["common_name"] for d in detections}
+    # Already confidence-filtered and plausibility-checked by /identify during
+    # recording, so no further filtering here - just deduplicate by species.
+    detections = []
+    seen_names = set()
     try:
         for d in json.loads(live_detections):
-            if d.get("common_name") and d["common_name"] not in seen:
-                seen.add(d["common_name"])
+            name = d.get("common_name")
+            if name and name not in seen_names:
+                seen_names.add(name)
                 detections.append({
-                    "common_name": d["common_name"],
+                    "common_name": name,
                     "scientific_name": d.get("scientific_name", ""),
                     "confidence": d.get("confidence", 0.0),
                 })
     except (ValueError, TypeError) as e:
-        print(f"Warning: couldn't parse live_detections, ignoring them: {e}")
-
-    detections.sort(key=lambda d: d["confidence"], reverse=True)
-
-    # If the same species was heard more than once in this one recording,
-    # only keep its strongest detection — one card per bird per listen,
-    # not one per moment it happened to call.
-    seen_species = set()
-    unique_detections = []
-    for d in detections:
-        if d["common_name"] not in seen_species:
-            seen_species.add(d["common_name"])
-            unique_detections.append(d)
-    detections = unique_detections
+        print(f"Warning: couldn't parse live_detections: {e}")
 
     now = datetime.datetime.now(datetime.timezone.utc)
     results = []
@@ -457,19 +405,12 @@ async def analyze_session(
         scientific_name = detection["scientific_name"]
         confidence = detection["confidence"]
 
+        # No plausibility check here any more - /identify already ran
+        # is_locally_plausible on everything during recording, so a second
+        # pass would only reject birds the user already watched a badge
+        # appear for, recreating exactly the disappearing-detection problem
+        # this restructure removes.
         tier, record_count = get_nbn_tier(scientific_name, lat, lng)
-
-        # Real occurrence sanity check, similar in spirit to how Merlin
-        # uses eBird's real occurrence data to catch implausible
-        # suggestions - but tightened to a 5km radius (see
-        # is_locally_plausible) rather than reusing the 25km tier
-        # count, since 25km is wide enough that a real UK species
-        # (e.g. a farmland specialist) can have genuine records
-        # somewhere in that radius without being remotely plausible
-        # at this specific spot.
-        if not is_locally_plausible(scientific_name, lat, lng):
-            print(f"Discarding likely misidentification: {common_name} not locally plausible near this location")
-            continue
 
         is_duplicate = has_existing_sighting(common_name)
         feathers = calculate_feathers(tier, is_duplicate)

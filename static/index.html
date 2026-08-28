@@ -1329,18 +1329,17 @@ function stopRecording() {
   stopEqualizer();
   stopLivePreviewLoop();
   mediaRecorder.onstop = async () => {
-    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
     renderProcessing();
     try {
+      // The recording audio is no longer uploaded - identification already
+      // happened live during recording. This call only enriches and saves
+      // what was found, so it's a small JSON payload rather than an audio
+      // upload, and returns much faster.
       const formData = new FormData();
-      formData.append('file', audioBlob, 'recording.webm');
       if (currentLat !== null && currentLng !== null) {
         formData.append('lat', currentLat);
         formData.append('lng', currentLng);
       }
-      // Anything already confirmed live goes to the server too, so the final
-      // result is the union of both passes rather than a second opinion that
-      // can contradict the badges the user just watched appear.
       formData.append('live_detections', JSON.stringify(liveDetectedBirds));
       const res = await fetch('/analyze-session', { method: 'POST', body: formData });
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
