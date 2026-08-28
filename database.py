@@ -484,6 +484,88 @@ def update_profile(first_name: str = None, last_name: str = None,
         session.commit()
 
 
+def count_owned_accessories() -> int:
+    """How many Dress Up items have been bought - used for Preener."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        return session.query(OwnedAccessory).count()
+
+
+def distinct_seasons_warbled() -> int:
+    """How many of the four seasons have had at least one session - Evergreen.
+    Meteorological seasons (Dec-Feb winter, etc), from UTC timestamps."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        rows = session.query(RecordingSession.created_at).all()
+    seasons = set()
+    for (created,) in rows:
+        if created:
+            seasons.add((created.month % 12) // 3)   # 0 winter, 1 spring, 2 summer, 3 autumn
+    return len(seasons)
+
+
+def max_consecutive_warble_days() -> int:
+    """Longest run of consecutive calendar days with at least one session -
+    used for Tailwind."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        rows = session.query(RecordingSession.created_at).all()
+    days = sorted({c.date() for (c,) in rows if c})
+    if not days:
+        return 0
+    best = run = 1
+    for prev, cur in zip(days, days[1:]):
+        run = run + 1 if (cur - prev).days == 1 else 1
+        best = max(best, run)
+    return best
+
+
+def has_species_found_far_apart(min_km: float = 5.0) -> bool:
+    """True if any single species has been found in two places at least
+    min_km apart - used for Migrator. Uses the haversine formula rather than
+    flat coordinate differences, since a degree of longitude is much shorter
+    than a degree of latitude at UK latitudes."""
+    if SessionLocal is None:
+        return False
+    import math
+    with SessionLocal() as session:
+        rows = session.query(Sighting.common_name, Sighting.lat, Sighting.lng).all()
+
+    by_species = {}
+    for name, lat, lng in rows:
+        if lat is None or lng is None:
+            continue
+        by_species.setdefault(name, set()).add((round(lat, 3), round(lng, 3)))
+
+    def km_between(a, b):
+        R = 6371.0
+        p1, p2 = math.radians(a[0]), math.radians(b[0])
+        dp = p2 - p1
+        dl = math.radians(b[1] - a[1])
+        h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+        return 2 * R * math.asin(math.sqrt(h))
+
+    for points in by_species.values():
+        pts = list(points)
+        for i in range(len(pts)):
+            for j in range(i + 1, len(pts)):
+                if km_between(pts[i], pts[j]) >= min_km:
+                    return True
+    return False
+
+
+def count_species_found_in(habitat_species: set) -> int:
+    """How many species from a given habitat group have been found."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        found = {r[0] for r in session.query(Sighting.common_name).distinct().all()}
+    return len(found & habitat_species)
+
+
 def get_detection_stats():
     """Headline stats for the Profile page. Returns None for any stat there
     isn't enough data to answer honestly, rather than inventing a default."""

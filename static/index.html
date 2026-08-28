@@ -282,6 +282,8 @@
   /* Sits on the tier row, pushed to the right edge of the card frame. */
   .detail-tier-row{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;}
   .play-call-inline{margin-top:0 !important;padding:7px 13px;font-size:11px;flex-shrink:0;}
+  .detail-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .share-bird-btn{background:var(--dusk);color:#fff;border:none;border-radius:20px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;}
   .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;}
 
   /* --- Profile --- */
@@ -988,7 +990,10 @@ function renderBirdDetail(commonName) {
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
         <div class="card-tags detail-tier-row" style="margin-top:10px;">
           <span class="tag tier">${latest.tier}</span>
-          ${latest.call_url ? `<button class="play-call-btn play-call-inline" data-call-url="${latest.call_url}">▶ Hear its call</button>` : ''}
+          <span class="detail-actions">
+            ${latest.call_url ? `<button class="play-call-btn play-call-inline" data-call-url="${latest.call_url}">▶ Hear its call</button>` : ''}
+            <button class="share-bird-btn" id="shareBirdBtn" aria-label="Share this bird">⇪</button>
+          </span>
         </div>
         <div class="detail-stats">
           <div>
@@ -1009,6 +1014,8 @@ function renderBirdDetail(commonName) {
   `;
   const playBtn = stage.querySelector('.play-call-btn');
   if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
+  const shareBtn = document.getElementById('shareBirdBtn');
+  if (shareBtn) shareBtn.onclick = () => shareBird(latest);
   document.getElementById('backBtn').onclick = renderCollection;
 }
 
@@ -1995,6 +2002,15 @@ const TROPHY_EMBLEMS = {
   dawn_chorus: '<path d="M-11 5 h22" stroke="#F5EDD6" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/><ellipse cx="-5" cy="4" rx="3.4" ry="2.6" fill="#F5EDD6" transform="rotate(-18 -5 4)"/><path d="M-2 4 V-8 q5 1.5 6 4" fill="none" stroke="#F5EDD6" stroke-width="2"/><ellipse cx="6" cy="0" rx="3" ry="2.3" fill="#F2C94C" transform="rotate(-18 6 0)"/><path d="M8.8 0 V-9" stroke="#F2C94C" stroke-width="1.8"/>',
   forager: '<path d="M0 10 q-1 -9 0 -14" stroke="#E4D5AE" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M0 -2 q-9 -2 -9 -9 q9 -1 9 9z" fill="#7EC8A4"/><path d="M0 1 q9 -2 9 -9 q-9 -1 -9 9z" fill="#5FB88F"/>',
   night_owl: '<circle cx="0" cy="0" r="11" fill="#3D2A85"/><path d="M-9 -5 q1 -7 5 -6 M9 -5 q-1 -7 -5 -6" fill="none" stroke="#F5EDD6" stroke-width="2" stroke-linecap="round"/><circle cx="-4" cy="-1" r="4" fill="#F5EDD6"/><circle cx="4" cy="-1" r="4" fill="#F5EDD6"/><circle cx="-4" cy="-1" r="1.8" fill="#1A1128"/><circle cx="4" cy="-1" r="1.8" fill="#1A1128"/><path d="M0 3 l2.5 3 l-2.5 3 l-2.5 -3z" fill="#F2C94C"/>',
+  preener: '<path d="M0 11 q-2 -11 0 -20" stroke="#E4D5AE" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M0 -9 q8 4 6 12 q-2 7 -6 8 q-4 -1 -6 -8 q-2 -8 6 -12z" fill="#F5EDD6"/><path d="M0 -9 q8 4 6 12 q-2 7 -6 8z" fill="#E4D5AE"/>',
+  evergreen: '<path d="M0 -11 l6 8 h-3 l5 7 h-3 l5 7 H-10 l5 -7 h-3 l5 -7 h-3z" fill="#5FB88F"/><rect x="-2" y="11" width="4" height="4" fill="#8B5A2B"/>',
+  tailwind: '<path d="M-11 -4 h12 a3.5 3.5 0 1 0 -3.5 -3.5" fill="none" stroke="#F5EDD6" stroke-width="2.2" stroke-linecap="round"/><path d="M-11 2 h16 a3.5 3.5 0 1 1 -3.5 3.5" fill="none" stroke="#F5EDD6" stroke-width="2.2" stroke-linecap="round"/><path d="M-11 8 h8" stroke="#F5EDD6" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>',
+  migrator: '<circle cx="0" cy="0" r="11" fill="#5FB88F"/><path d="M-11 -1 q6 -4 11 0 q5 4 11 0" fill="none" stroke="#F5EDD6" stroke-width="1.6" opacity="0.8"/><path d="M-6 -8 q4 5 0 10 M6 -8 q-4 5 0 10" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.6"/><path d="M-7 6 q3 -3 6 0 q3 -3 6 0" fill="none" stroke="#F2C94C" stroke-width="2" stroke-linecap="round"/>',
+  skylark: '<path d="M-11 10 h22" stroke="#E4D5AE" stroke-width="2" stroke-linecap="round"/><path d="M-7 10 V0 M0 10 V-3 M7 10 V0" stroke="#F2C94C" stroke-width="2.4" stroke-linecap="round"/><path d="M-7 0 q-2 -4 0 -5 q2 1 0 5z" fill="#F2C94C"/><path d="M0 -3 q-2 -4 0 -5 q2 1 0 5z" fill="#F2C94C"/><path d="M7 0 q-2 -4 0 -5 q2 1 0 5z" fill="#F2C94C"/>',
+  high_flyer: '<path d="M0 -10 q8 1 12 7 q-6 -2 -9 0 q5 2 7 6 q-7 -3 -10 0 q-3 -3 -10 0 q2 -4 7 -6 q-3 -2 -9 0 q4 -6 12 -7z" fill="#F5EDD6"/><circle cx="0" cy="-6" r="1.6" fill="#2D1B69"/><path d="M0 4 q2 4 0 8 q-2 -4 0 -8z" fill="#F2C94C"/>',
+  still_water: '<path d="M-11 -2 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#5FB88F" stroke-width="2.4" stroke-linecap="round"/><path d="M-11 4 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#7EC8A4" stroke-width="2.4" stroke-linecap="round"/><path d="M-11 10 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#C4BFDF" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/><circle cx="0" cy="-8" r="2.6" fill="#F5EDD6"/>',
+  brooder: '<path d="M-10 -1 a6 6 0 0 1 4 -6 a7 7 0 0 1 13 2 a5 5 0 0 1 -1 10 H-6 a5 5 0 0 1 -4 -6z" fill="#F5EDD6"/><path d="M-6 7 l-2 6 M0 7 l-2 7 M6 7 l-2 6" stroke="#5B93C4" stroke-width="2" stroke-linecap="round"/>',
+  wingman: '<path d="M-11 2 q4 -5 8 -2 l3 2" fill="none" stroke="#F5EDD6" stroke-width="2.4" stroke-linecap="round"/><path d="M11 2 q-4 -5 -8 -2 l-3 2" fill="none" stroke="#F2C94C" stroke-width="2.4" stroke-linecap="round"/><circle cx="-5" cy="-6" r="3.2" fill="#F5EDD6"/><circle cx="5" cy="-6" r="3.2" fill="#F2C94C"/><path d="M-4 6 q4 3 8 0" fill="none" stroke="#F5EDD6" stroke-width="2" stroke-linecap="round"/>',
   century: '<circle cx="0" cy="0" r="11" fill="none" stroke="#F5EDD6" stroke-width="2"/><text x="0" y="4.5" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="900" font-size="12" fill="#F5EDD6">100</text>',
 };
 
@@ -2083,7 +2099,7 @@ function layoutTrophyCarousel() {
   const caption = document.getElementById('trophyCaption');
   if (t && caption) {
     caption.innerHTML = `
-      <div class="trophy-caption-name">${t.name}</div>
+      <div class="trophy-caption-name">${t.earned ? t.name : '???'}</div>
       <div class="trophy-caption-req">${t.earned ? t.citation : t.requirement}</div>
       ${t.earned ? '<div class="trophy-caption-tap">Tap for more</div>' : ''}
     `;
@@ -2115,6 +2131,30 @@ function attachTrophySwipe(el) {
     if (Math.abs(dx) > 35) moveTrophy(dx < 0 ? 1 : -1);
     mouseDown = null;
   });
+}
+
+async function shareBird(bird) {
+  const text = `I found a ${bird.common_name} on Warble!`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Warble', text });
+    } else {
+      // Web Share isn't available on all browsers (notably desktop Firefox),
+      // so fall back to the clipboard rather than doing nothing.
+      await navigator.clipboard.writeText(text);
+      alert('Copied to your clipboard!');
+    }
+  } catch (e) {
+    return;   // user cancelled the share sheet - not an achievement
+  }
+  try {
+    const res = await fetch('/trophies/wingman', { method: 'POST' });
+    const data = await res.json();
+    if ((data.newly_earned_trophies || []).length) {
+      newlyEarnedTrophies = data.newly_earned_trophies;
+      alert(`Trophy unlocked: ${data.newly_earned_trophies[0].name}!`);
+    }
+  } catch (e) { /* sharing worked; the trophy can wait */ }
 }
 
 function renderTrophyDetail(trophyKey) {

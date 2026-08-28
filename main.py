@@ -171,6 +171,8 @@ from database import (
     get_location_name, save_location_name,
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location, delete_location, get_detection_stats,
+    count_owned_accessories, distinct_seasons_warbled, max_consecutive_warble_days,
+    has_species_found_far_apart, count_species_found_in,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
     has_session_today,
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
@@ -181,7 +183,7 @@ from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
-from curated_species import ALL_CURATED_SPECIES
+from curated_species import ALL_CURATED_SPECIES, CURATED_SPECIES
 
 init_db()
 
@@ -238,6 +240,24 @@ def check_session_trophies(lat: float, lng: float, moment_utc: datetime.datetime
         if award_trophy("rooster"):
             newly_earned.append("rooster")
 
+    if distinct_seasons_warbled() >= 4:
+        if award_trophy("evergreen"):
+            newly_earned.append("evergreen")
+
+    if max_consecutive_warble_days() >= 3:
+        if award_trophy("tailwind"):
+            newly_earned.append("tailwind")
+
+    if count_owned_accessories() >= 10:
+        if award_trophy("preener"):
+            newly_earned.append("preener")
+
+    # Only call the weather API while this is still unearned - no point paying
+    # the latency on every session once it's already won.
+    if "brooder" not in get_earned_trophy_keys() and is_raining(lat, lng):
+        if award_trophy("brooder"):
+            newly_earned.append("brooder")
+
     return newly_earned, before_sunrise
 
 
@@ -260,6 +280,21 @@ def check_detection_trophies(results: list, before_sunrise: bool, moment_utc: da
     if count_curated_species_found(ALL_CURATED_SPECIES) >= len(ALL_CURATED_SPECIES):
         if award_trophy("century"):
             newly_earned.append("century")
+
+    # Habitat-group trophies, counted against the curated 100-species list
+    habitat_trophies = [
+        ("skylark", "Farmland & Hedgerow"),
+        ("high_flyer", "Raptors & Others"),
+        ("still_water", "Wetland & Water"),
+    ]
+    for key, habitat in habitat_trophies:
+        if count_species_found_in(set(CURATED_SPECIES[habitat])) >= 5:
+            if award_trophy(key):
+                newly_earned.append(key)
+
+    if has_species_found_far_apart(5.0):
+        if award_trophy("migrator"):
+            newly_earned.append("migrator")
 
     species_this_session = {r["common_name"] for r in results}
 
@@ -299,6 +334,26 @@ def is_non_bird(common_name: str) -> bool:
     if name in NON_BIRD_LABELS:
         return True
     return "human" in name or "noise" in name
+
+
+def is_raining(lat: float, lng: float) -> bool:
+    """Whether it's currently raining at this spot, via Open-Meteo (free, no
+    API key needed). Used for the Brooder trophy. Returns False if the lookup
+    fails - better to not award a trophy than to award one wrongly."""
+    try:
+        response = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={"latitude": lat, "longitude": lng, "current": "precipitation"},
+            timeout=6,
+        )
+        response.raise_for_status()
+        mm = response.json().get("current", {}).get("precipitation", 0) or 0
+        if mm > 0:
+            print(f"Brooder: {mm}mm precipitation at {lat},{lng} - it's raining")
+        return mm > 0
+    except Exception as e:
+        print(f"Warning: weather lookup failed for {lat},{lng}: {e}")
+        return False
 
 
 def get_nbn_tier(scientific_name: str, lat: float, lng: float):
@@ -521,6 +576,17 @@ def where_am_i(lat: float, lng: float):
         print(f"Warning: reverse geocode failed for {lat},{lng}: {e}")
 
     return {"name": None, "source": None}
+
+
+@app.post("/trophies/wingman")
+def award_wingman():
+    """Awarded when a bird is shared from the app. Called by the share button
+    rather than inferred, since there's no reliable way to detect that a share
+    actually completed."""
+    newly = []
+    if award_trophy("wingman"):
+        newly.append({"key": "wingman", **TROPHY_DEFINITIONS["wingman"]})
+    return {"newly_earned_trophies": newly}
 
 
 @app.get("/detection-stats")
