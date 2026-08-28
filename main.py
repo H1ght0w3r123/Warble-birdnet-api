@@ -60,7 +60,15 @@ def status():
 
 
 @app.post("/identify")
-async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: float = -0.1278):
+async def identify(
+    file: UploadFile = File(...),
+    # Must be Form(), not bare params: the frontend sends these as form
+    # fields, and FastAPI treats undecorated scalars as QUERY params - so
+    # these were silently ignored and every plausibility check ran against
+    # the London defaults regardless of where the user actually was.
+    lat: float = Form(51.5074),
+    lng: float = Form(-0.1278),
+):
     """
     Send a WAV (or MP3) audio file as multipart form-data under the field
     name 'file'. Returns the species BirdNET detected, ranked by
@@ -117,28 +125,9 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
         os.unlink(tmp_in_path)
         os.unlink(tmp_wav_path)
 
-    # Merge in anything already confirmed during recording. The two passes see
-    # genuinely different audio: this one analyses the whole recording
-    # continuously, while the live pass sampled independent 3.5s clips - so a
-    # call sitting across a clip boundary can be missed live but caught here,
-    # and a brief call can occasionally be caught live but washed out across
-    # the longer file. Taking the union means the badges a user watched appear
-    # during recording can never contradict the final result, without losing
-    # what either pass found on its own.
-    seen = {d["common_name"] for d in detections}
-    try:
-        for d in json.loads(live_detections):
-            if d.get("common_name") and d["common_name"] not in seen:
-                seen.add(d["common_name"])
-                detections.append({
-                    "common_name": d["common_name"],
-                    "scientific_name": d.get("scientific_name", ""),
-                    "confidence": d.get("confidence", 0.0),
-                })
-    except (ValueError, TypeError) as e:
-        print(f"Warning: couldn't parse live_detections, ignoring them: {e}")
-
     detections.sort(key=lambda d: d["confidence"], reverse=True)
+    print(f"identify: BirdNET returned {len(detections)} detection(s) at {lat},{lng}"
+          + (": " + ", ".join(f"{d['common_name']} {d['confidence']:.2f}" for d in detections[:5]) if detections else ""))
 
     # Same plausibility check /analyze-session uses, applied here too so
     # a live "yes" and the final result are answering the same question
@@ -149,6 +138,11 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
         if is_locally_plausible(d["scientific_name"], lat, lng):
             tier, _ = get_nbn_tier(d["scientific_name"], lat, lng)
             filtered_detections.append({**d, "tier": tier})
+
+    if len(filtered_detections) < len(detections[:3]):
+        rejected = [d["common_name"] for d in detections[:3]
+                    if d["common_name"] not in {f["common_name"] for f in filtered_detections}]
+        print(f"identify: rejected as not locally plausible: {rejected}")
 
     return {"detections": filtered_detections}
 
