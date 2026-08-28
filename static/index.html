@@ -95,7 +95,9 @@
     cursor:pointer; transition:transform .1s; position:relative; z-index:1;
   }
   .mic-btn:active{transform:translateY(6px); box-shadow:0 2px 0 var(--terra-dk);}
-  .mic-btn.recording{box-shadow:0 8px 0 var(--terra-dk);}
+  /* Matches the 84px 'go again' mic button, not the larger 120px Home mic. */
+  .mic-btn.recording{width:84px;height:84px;font-size:26px;box-shadow:0 6px 0 var(--terra-dk);margin-top:16px;}
+  .mic-btn.recording:active{transform:translateY(4px); box-shadow:0 2px 0 var(--terra-dk);}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:#fff;text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
@@ -245,21 +247,28 @@
   .learn-more:hover{text-decoration:underline;}
 
   /* --- Recording tree: pulses, and its canopy clusters rustle with real audio --- */
-  .rec-tree{width:170px;height:190px;position:relative;z-index:1;}
+  .rec-tree{width:170px;height:190px;position:relative;z-index:1;display:block;margin:0 auto;}
   .rec-tree.pulsing{animation:treePulse 2.4s ease-in-out infinite;}
   @keyframes treePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.025);}}
   .tree-cluster{transform-box:fill-box;transform-origin:center;}
 
   /* --- Live bird detection badges: persist and stack for the whole recording --- */
-  .live-bird-stack{display:flex;justify-content:center;margin-bottom:10px;min-height:50px;position:relative;z-index:1;}
+  /* Fixed-height void so the tree and everything below it don't shift
+     downward as badges appear during a recording. */
+  .rec-column{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;}
+  .live-bird-stack{display:flex;justify-content:center;align-items:center;margin-bottom:14px;height:56px;position:relative;z-index:1;}
   .live-bird-badge{
-    width:44px;height:44px;border-radius:50%;background:#fff;
-    border:3px solid var(--tier-color, var(--sage));
-    margin-left:-14px; box-shadow:0 4px 10px rgba(0,0,0,0.22);
-    display:flex;align-items:center;justify-content:center;font-size:20px;
+    width:46px;height:46px;border-radius:50%;background:#fff;
+    border:5px solid var(--tier-color, var(--sage));
+    margin-left:-14px; box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5);
+    display:flex;align-items:center;justify-content:center;
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .live-bird-badge:first-child{margin-left:0;}
+  .rec-location{
+    font-family:'Outfit'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);
+    text-align:center; margin-top:18px; min-height:17px;
+  }
 
   .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;}
 
@@ -560,21 +569,42 @@ function renderRecording() {
   liveBadgedSpecies = new Set();
   stage.innerHTML = `
     <div class="pines"></div>
-    <div class="live-bird-stack" id="liveBirdStack"></div>
-    <svg viewBox="0 0 160 190" class="rec-tree pulsing" id="recTree">
-      <path d="M72 190 L72 138 Q80 128 88 138 L88 190 Z" fill="#6B4A35"/>
-      <ellipse class="tree-cluster" cx="80" cy="42" rx="34" ry="25" fill="var(--sage)"/>
-      <ellipse class="tree-cluster" cx="46" cy="64" rx="30" ry="22" fill="var(--terra)"/>
-      <ellipse class="tree-cluster" cx="114" cy="64" rx="30" ry="22" fill="var(--sage)"/>
-      <ellipse class="tree-cluster" cx="42" cy="100" rx="27" ry="20" fill="var(--gold)"/>
-      <ellipse class="tree-cluster" cx="118" cy="100" rx="27" ry="20" fill="var(--sage)"/>
-      <ellipse class="tree-cluster" cx="80" cy="110" rx="32" ry="24" fill="var(--terra)"/>
-    </svg>
-    <button class="mic-btn recording" id="stopBtn">■</button>
-    <div class="timer" id="timer">0:00</div>
+    <div class="rec-column">
+      <div class="live-bird-stack" id="liveBirdStack"></div>
+      <svg viewBox="0 0 160 190" class="rec-tree pulsing" id="recTree">
+        <path d="M72 190 L72 138 Q80 128 88 138 L88 190 Z" fill="#6B4A35"/>
+        <ellipse class="tree-cluster" cx="80" cy="42" rx="34" ry="25" fill="var(--sage)"/>
+        <ellipse class="tree-cluster" cx="46" cy="64" rx="30" ry="22" fill="var(--terra)"/>
+        <ellipse class="tree-cluster" cx="114" cy="64" rx="30" ry="22" fill="var(--sage)"/>
+        <ellipse class="tree-cluster" cx="42" cy="100" rx="27" ry="20" fill="var(--gold)"/>
+        <ellipse class="tree-cluster" cx="118" cy="100" rx="27" ry="20" fill="var(--sage)"/>
+        <ellipse class="tree-cluster" cx="80" cy="110" rx="32" ry="24" fill="var(--terra)"/>
+      </svg>
+      <div class="rec-location" id="recLocation"></div>
+      <button class="mic-btn recording" id="stopBtn">■</button>
+      <div class="timer" id="timer">0:00</div>
+    </div>
   `;
   document.getElementById('stopBtn').onclick = stopRecording;
+  loadRecordingLocation();
 }
+
+async function loadRecordingLocation() {
+  const el = document.getElementById('recLocation');
+  if (!el || currentLat === null || currentLng === null) return;
+  try {
+    const res = await fetch(`/where-am-i?lat=${currentLat}&lng=${currentLng}`);
+    const data = await res.json();
+    // Element may be gone if recording stopped while this was in flight
+    const target = document.getElementById('recLocation');
+    if (target && data.name) target.textContent = `Listening in ${data.name}`;
+  } catch (e) { /* no location line is fine - just leave it empty */ }
+}
+
+// The same two-hue bird bust used for the Profile icon, reused for the
+// live detection badges so they read as "a bird" in Warble's own style
+// rather than a generic emoji.
+const BADGE_BIRD_SVG = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
 
 const TIER_ORDER = { Rare: 0, Visitor: 1, Common: 2 };
 let liveDetectedBirds = [];
@@ -586,7 +616,7 @@ function renderLiveBirdStack() {
   const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 3) - (TIER_ORDER[b.tier] ?? 3));
   el.innerHTML = sorted.map(bird => {
     const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
-    return `<div class="live-bird-badge" style="--tier-color:${tierColor}">🐦</div>`;
+    return `<div class="live-bird-badge" style="--tier-color:${tierColor}">${BADGE_BIRD_SVG}</div>`;
   }).join('');
 }
 
@@ -955,6 +985,10 @@ function requestGpsPosition() {
       currentLat = pos.coords.latitude;
       currentLng = pos.coords.longitude;
       console.log(`GPS fix: ${currentLat}, ${currentLng} (accuracy: ~${Math.round(pos.coords.accuracy)}m)`);
+      // GPS is fire-and-forget, so the recording screen has usually already
+      // rendered by now with an empty location line - fill it in once we
+      // actually know where we are. No-ops if we're not on that screen.
+      loadRecordingLocation();
     },
     (err) => {
       console.log('GPS unavailable, using default location:', err.message);

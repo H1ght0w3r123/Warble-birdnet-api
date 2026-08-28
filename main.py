@@ -482,6 +482,39 @@ async def name_location(lat: float = Form(...), lng: float = Form(...), name: st
     return {"status": "ok"}
 
 
+@app.get("/where-am-i")
+def where_am_i(lat: float, lng: float):
+    """A friendly name for where a recording is happening. Prefers a
+    name the user has already given this spot; otherwise falls back to
+    a town/country lookup via OpenStreetMap's Nominatim. Returns None
+    if neither is available, so the caller can just omit the line."""
+    saved = get_location_name(lat, lng)
+    if saved:
+        return {"name": saved, "source": "saved"}
+
+    try:
+        response = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lng, "format": "json", "zoom": 12},
+            headers={"User-Agent": "Warble/1.0 (bird identification app for children)"},
+            timeout=6,
+        )
+        response.raise_for_status()
+        addr = response.json().get("address", {})
+        # Nominatim uses different keys depending on how built-up the area is
+        town = (addr.get("town") or addr.get("city") or addr.get("village")
+                or addr.get("suburb") or addr.get("hamlet") or addr.get("county"))
+        country = addr.get("country")
+        if town and country:
+            return {"name": f"{town}, {country}", "source": "gps"}
+        if town or country:
+            return {"name": town or country, "source": "gps"}
+    except Exception as e:
+        print(f"Warning: reverse geocode failed for {lat},{lng}: {e}")
+
+    return {"name": None, "source": None}
+
+
 @app.get("/locations")
 def list_locations():
     """Every named location, for viewing/editing on the Profile page."""
