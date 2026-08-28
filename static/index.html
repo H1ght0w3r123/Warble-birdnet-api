@@ -1119,6 +1119,16 @@ let eqAudioContext = null, eqAnalyser = null, eqAnimationId = null;
 const TREE_CX = 80, TREE_CY = 72;
 const LEAF_COLORS = ['#F2C94C', '#5FB88F', '#7EC8A4', '#3F7C5C'];
 let treeShards = [], fallingLeaves = [], activeRustle = null, lastFrameTime = 0;
+// Tracks how loud things have been recently, so the quiver scales to the
+// actual environment. Without this the design's numbers - tuned in a demo
+// against a synthetic signal - produce well under 1 degree of rotation from
+// a real phone mic in a quiet garden, which is invisible.
+let binCeiling = 40;
+// Multiplies the design's per-facet amplitudes (3.4-6.1 deg). At 1.0 the
+// quiver tops out around 2-4 deg even when loud; this brings a normal
+// sound up to roughly the 6-10 deg the old placeholder tree used, which
+// is the level that actually reads on a phone screen.
+const QUIVER_GAIN = 2.4;
 
 function startEqualizer(stream) {
   eqAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1143,6 +1153,7 @@ function startEqualizer(stream) {
   fallingLeaves = [];
   activeRustle = null;
   lastFrameTime = 0;
+  binCeiling = 40;   // reset per recording, don't carry a loud session into a quiet one
 
   function draw(now) {
     if (!eqAnalyser) return;
@@ -1150,6 +1161,15 @@ function startEqualizer(stream) {
     const dt = Math.min(0.05, (now - (lastFrameTime || now)) / 1000);
     lastFrameTime = now;
     eqAnalyser.getByteFrequencyData(bins);
+
+    // Adapt to the current environment: track the loudest bin, rising fast and
+    // decaying slowly, and scale against that. A quiet garden and a noisy
+    // street both produce visible movement, rather than the tree only reacting
+    // to shouting. The floor stops near-silence being amplified into noise.
+    let frameMax = 0;
+    for (let i = 0; i < bins.length; i++) if (bins[i] > frameMax) frameMax = bins[i];
+    binCeiling += (frameMax - binCeiling) * (frameMax > binCeiling ? 0.25 : 0.015);
+    const ceiling = Math.max(binCeiling, 26);
 
     const breath = 0.9;               // gentle idle motion so it's never fully dead
     const r = activeRustle;
@@ -1159,9 +1179,9 @@ function startEqualizer(stream) {
     for (const s of treeShards) {
       // LEVEL 1 - quiver: proportional to this facet's own frequency band,
       // with a fast attack and slow release so it breathes rather than flickers.
-      const raw = Math.pow(bins[s.bin] / 255, 1.6);
+      const raw = Math.pow(Math.min(1, bins[s.bin] / ceiling), 1.25);
       s.lvl += (raw - s.lvl) * (raw > s.lvl ? 0.32 : 0.07);
-      let a = breath * Math.sin(t * 1.63 + s.phase) + s.lvl * s.amp;
+      let a = breath * Math.sin(t * 1.63 + s.phase) + s.lvl * s.amp * QUIVER_GAIN;
       let ox = 0, oy = 0;
 
       // LEVEL 2 - rustle: a wave leaving the landing point at 240px/s. Each
