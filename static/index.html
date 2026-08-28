@@ -333,8 +333,7 @@
   .profile-photo-actions{display:flex;gap:8px;}
   .photo-btn{background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:20px;cursor:pointer;}
   .photo-btn-clear{background:rgba(255,255,255,0.2);}
-  .nav-avatar-photo{width:27px;height:27px;border-radius:50%;object-fit:cover;display:block;}
-  .dressup-photo{width:190px;height:190px;border-radius:50%;object-fit:cover;display:block;}
+  .nav-avatar-photo{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
   .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:11px 14px;width:100%;font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);cursor:pointer;}
   .toggle-row input{width:20px;height:20px;accent-color:var(--terra);cursor:pointer;}
   .location-row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
@@ -701,6 +700,10 @@ async function loadRecordingLocation() {
 // The same two-hue bird bust used for the Profile icon, reused for the
 // live detection badges so they read as "a bird" in Warble's own style
 // rather than a generic emoji.
+// The fixed two-hue bird bust used by the top-bar profile button, kept here
+// so it can be restored after a photo is cleared.
+const PROFILE_BIRD_SVG = '<svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
+
 const BADGE_BIRD_SVG = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
 
 const TIER_ORDER = { Rare: 0, Visitor: 1, Common: 2 };
@@ -1573,12 +1576,23 @@ function firstNameOrDefault() {
   return (!n || n === 'Explorer') ? '' : n;
 }
 
+// Dress Up's nav icon is ALWAYS the bird avatar - it's the entry point to
+// customising that bird, so a photo there would be misleading. Only the
+// top-bar profile button reflects a chosen photo.
 function updateNavAvatarIcon() {
   const iconEl = document.getElementById('navDressUpIcon');
-  if (!iconEl) return;
-  iconEl.innerHTML = currentProfile.avatar_photo
-    ? `<img class="nav-avatar-photo" src="${currentProfile.avatar_photo}" alt="">`
-    : avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 27, currentProfile.equipped);
+  if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 27, currentProfile.equipped);
+  updateTopProfileIcon();
+}
+
+// The top-bar profile button: the user's photo if they've set one, otherwise
+// the fixed two-hue bird bust it has always shown.
+function updateTopProfileIcon() {
+  const btn = document.getElementById('topProfileBtn');
+  if (!btn) return;
+  btn.innerHTML = currentProfile.avatar_photo
+    ? `<img class="nav-avatar-photo" src="${currentProfile.avatar_photo}" alt="Your photo">`
+    : PROFILE_BIRD_SVG;
 }
 
 async function saveAvatarColors() {
@@ -1774,11 +1788,9 @@ async function renderDressUp() {
 }
 
 function renderDressUpPreview() {
+  // Always the avatar here, regardless of any profile photo - this is the
+  // bird being dressed, so the accessories have something to sit on.
   const el = document.getElementById('dressUpPreview');
-  if (el && currentProfile.avatar_photo) {
-    el.innerHTML = `<img class="dressup-photo" src="${currentProfile.avatar_photo}" alt="Your photo">`;
-    return;
-  }
   if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 190, currentProfile.equipped);
 }
 
