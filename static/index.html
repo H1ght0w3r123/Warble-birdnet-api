@@ -357,6 +357,10 @@
   .location-map-link{color:var(--dusk);text-decoration:none;}
   .location-map-link:hover{text-decoration:underline;}
   .location-delete-btn{background:none;border:none;color:var(--mist-dk);font-size:15px;font-weight:700;cursor:pointer;padding:2px 6px;line-height:1;}
+  .stat-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:6px;width:100%;}
+  .stat-label{font-family:'Outfit';font-weight:700;font-size:12px;color:var(--mist-dk);}
+  .stat-value{font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);text-align:right;}
+  .stat-empty{font-size:12px;color:rgba(255,255,255,0.85);text-align:center;padding:10px 0;}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
   .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
   .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
@@ -415,7 +419,7 @@
     <div class="nav-tab nav-void" aria-hidden="true"></div>
     <button class="nav-tab" id="navCollection" data-tab="collection">
       <svg viewBox="0 0 24 24" class="nav-icon-svg"><rect x="2.4" y="5.4" width="12.6" height="16.2" rx="1.8" fill="#7EC8A4"/><rect x="7.6" y="3" width="14" height="18.6" rx="2" fill="currentColor"/><circle cx="15.2" cy="13.6" r="2" fill="#fff"/><path d="M17.2 13.6 L19.6 14.3 L17.2 15 Z" fill="#fff"/><path d="M10.6 18.6 Q10.6 14.6 14.4 14.6 Q17 14.6 17 16.8 Q17 18.6 14.4 18.6 Z" fill="#fff"/></svg>
-      <span>Collection</span>
+      <span>My Birds</span>
     </button>
     <button class="nav-tab home-tab" id="navHome" data-tab="home">
       <svg viewBox="0 0 24 24" class="nav-icon-svg"><path d="M12 1.8 L22.6 10.2 L1.4 10.2 Z" fill="currentColor"/><rect x="4.4" y="10.2" width="15.2" height="11.4" fill="#F2C94C"/><circle cx="12" cy="14.6" r="3.3" fill="currentColor"/><rect x="11.1" y="17.6" width="1.8" height="4" fill="currentColor"/></svg>
@@ -427,7 +431,7 @@
     </button>
     <button class="nav-tab" id="navDressUp" data-tab="dressup">
       <span id="navDressUpIcon"></span>
-      <span>Dress up</span>
+      <span>Dress Up</span>
     </button>
   </div>
 
@@ -917,6 +921,9 @@ async function loadCollection() {
         uniqueBirds.push(s);
       }
     }
+    // Alphabetical by name, so the grid has a predictable order to scan
+    // rather than shuffling as new birds are found.
+    uniqueBirds.sort((a, b) => a.common_name.localeCompare(b.common_name));
 
     if (countEl) countEl.textContent = `${uniqueBirds.length} species found`;
 
@@ -1512,6 +1519,9 @@ async function renderProfile() {
       <input type="checkbox" id="sciNamesToggle">
     </label>
 
+    <div class="profile-section-title">My warbling</div>
+    <div id="detectionStats" style="width:100%;"></div>
+
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
   `;
@@ -1526,6 +1536,7 @@ async function renderProfile() {
   document.getElementById('sciNamesToggle').checked = currentProfile.show_scientific_names !== false;
   renderPhotoPreview();
   loadProfileLocations();
+  loadDetectionStats();
 
   document.getElementById('saveNameBtn').onclick = async () => {
     const first = document.getElementById('firstNameInput').value.trim();
@@ -1550,6 +1561,32 @@ async function renderProfile() {
     if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
   };
   document.getElementById('clearPhotoBtn').onclick = () => savePhoto('none');
+}
+
+async function loadDetectionStats() {
+  const el = document.getElementById('detectionStats');
+  if (!el) return;
+  try {
+    const res = await fetch('/detection-stats');
+    const s = await res.json();
+    if (!s.total_detections) {
+      el.innerHTML = `<div class="stat-empty">Go warbling to start building your stats!</div>`;
+      return;
+    }
+    // Any stat with no data yet is simply omitted rather than shown as a
+    // placeholder - e.g. favourite location needs at least one named spot.
+    const rows = [
+      ['Total detections', String(s.total_detections)],
+      s.top_bird && ['Most detected bird', `${s.top_bird.name} (${s.top_bird.count})`],
+      s.top_location && ['Favourite spot', `${s.top_location.name} (${s.top_location.count})`],
+      s.top_time && ['Favourite time', `${s.top_time.name} (${s.top_time.count})`],
+    ].filter(Boolean);
+    el.innerHTML = rows.map(([label, value]) => `
+      <div class="stat-row"><span class="stat-label">${label}</span><span class="stat-value">${value}</span></div>
+    `).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="stat-empty">Couldn't load your stats right now.</div>`;
+  }
 }
 
 function renderPhotoPreview() {

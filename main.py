@@ -125,6 +125,16 @@ async def identify(
         os.unlink(tmp_in_path)
         os.unlink(tmp_wav_path)
 
+    # BirdNET's model includes non-bird classes alongside real species -
+    # human speech being the one most likely to fire in a garden with a child
+    # narrating. These are never valid finds, so they're dropped before any
+    # other filtering rather than being allowed to occupy one of the top-3
+    # candidate slots below.
+    before_nonbird = len(detections)
+    detections = [d for d in detections if not is_non_bird(d["common_name"])]
+    if len(detections) < before_nonbird:
+        print(f"identify: filtered out {before_nonbird - len(detections)} non-bird detection(s)")
+
     detections.sort(key=lambda d: d["confidence"], reverse=True)
     print(f"identify: BirdNET returned {len(detections)} detection(s) at {lat},{lng}"
           + (": " + ", ".join(f"{d['common_name']} {d['confidence']:.2f}" for d in detections[:5]) if detections else ""))
@@ -160,7 +170,7 @@ from database import (
     get_earned_trophy_keys, award_trophy,
     get_location_name, save_location_name,
     get_cached_call_url, get_profile, update_profile,
-    get_all_locations, rename_location, delete_location,
+    get_all_locations, rename_location, delete_location, get_detection_stats,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
     has_session_today,
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
@@ -269,6 +279,26 @@ def check_detection_trophies(results: list, before_sunrise: bool, moment_utc: da
             newly_earned.append("night_owl")
 
     return newly_earned
+
+
+# BirdNET's label set isn't purely birds - it also classifies human speech,
+# dogs, sirens, engines and general noise. None are valid finds for Warble.
+NON_BIRD_LABELS = {
+    "human vocal", "human non-vocal", "human whistle", "human",
+    "dog", "engine", "environmental", "fireworks", "gun",
+    "noise", "power tools", "siren",
+}
+
+
+def is_non_bird(common_name: str) -> bool:
+    """True if this label is one of BirdNET's non-bird classes. Substring
+    checks on 'human' and 'noise' too, so variants of those labels across
+    model versions are caught rather than slipping through on an exact-match
+    miss - a human voice reported as a bird is the worst case here."""
+    name = (common_name or "").strip().lower()
+    if name in NON_BIRD_LABELS:
+        return True
+    return "human" in name or "noise" in name
 
 
 def get_nbn_tier(scientific_name: str, lat: float, lng: float):
@@ -491,6 +521,12 @@ def where_am_i(lat: float, lng: float):
         print(f"Warning: reverse geocode failed for {lat},{lng}: {e}")
 
     return {"name": None, "source": None}
+
+
+@app.get("/detection-stats")
+def detection_stats():
+    """Headline warbling stats for the Profile page."""
+    return get_detection_stats()
 
 
 @app.get("/locations")

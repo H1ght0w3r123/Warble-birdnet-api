@@ -484,6 +484,69 @@ def update_profile(first_name: str = None, last_name: str = None,
         session.commit()
 
 
+def get_detection_stats():
+    """Headline stats for the Profile page. Returns None for any stat there
+    isn't enough data to answer honestly, rather than inventing a default."""
+    if SessionLocal is None:
+        return {"total_detections": 0, "top_bird": None, "top_location": None, "top_time": None}
+
+    with SessionLocal() as session:
+        sightings = session.query(Sighting.common_name, Sighting.lat, Sighting.lng,
+                                 Sighting.created_at).all()
+        total = len(sightings)
+        if total == 0:
+            return {"total_detections": 0, "top_bird": None, "top_location": None, "top_time": None}
+
+        bird_counts = {}
+        for s in sightings:
+            bird_counts[s.common_name] = bird_counts.get(s.common_name, 0) + 1
+        top_name, top_count = max(bird_counts.items(), key=lambda kv: kv[1])
+
+        # Only count locations the user has actually named - an unnamed spot
+        # has nothing meaningful to display.
+        named = {(l.lat, l.lng): l.name for l in session.query(Location).all()}
+        loc_counts = {}
+        for s in sightings:
+            if s.lat is None or s.lng is None:
+                continue
+            key = (round(s.lat, LOCATION_PRECISION), round(s.lng, LOCATION_PRECISION))
+            if key in named:
+                loc_counts[named[key]] = loc_counts.get(named[key], 0) + 1
+        top_location = None
+        if loc_counts:
+            name, count = max(loc_counts.items(), key=lambda kv: kv[1])
+            top_location = {"name": name, "count": count}
+
+        # NOTE: timestamps are stored in UTC, so these buckets are UTC hours.
+        # During British Summer Time they'll sit about an hour off local time -
+        # the same known simplification as the Night Owl trophy.
+        def bucket(hour):
+            if 5 <= hour < 8:
+                return "Dawn"
+            if 8 <= hour < 12:
+                return "Morning"
+            if 12 <= hour < 17:
+                return "Afternoon"
+            return "Evening"
+
+        time_counts = {}
+        for s in sightings:
+            if s.created_at:
+                b = bucket(s.created_at.hour)
+                time_counts[b] = time_counts.get(b, 0) + 1
+        top_time = None
+        if time_counts:
+            name, count = max(time_counts.items(), key=lambda kv: kv[1])
+            top_time = {"name": name, "count": count}
+
+        return {
+            "total_detections": total,
+            "top_bird": {"name": top_name, "count": top_count},
+            "top_location": top_location,
+            "top_time": top_time,
+        }
+
+
 def delete_location(location_id: int):
     """Removes a saved location name. The recording sessions that happened
     there are untouched - this only forgets the label, so the spot simply
