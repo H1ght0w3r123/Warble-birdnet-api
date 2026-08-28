@@ -572,7 +572,8 @@ async def update_profile_endpoint(
 
 @app.get("/trophies")
 def list_trophies():
-    """All 3 built trophies, each marked earned or not."""
+    """Every trophy, each marked earned or not. Unearned ones are still
+    returned in full - the Trophies page now shows what they require."""
     earned = get_earned_trophy_keys()
     return {
         "trophies": [
