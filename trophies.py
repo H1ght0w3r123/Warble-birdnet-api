@@ -73,6 +73,13 @@ TROPHY_DEFINITIONS = {
         "citation": "You've found every single bird on the list — outstanding!",
         "description": "There are 100 different birds on Warble's list, and you've found every single one of them. That's not luck — that's real skill, real patience, and a lot of listening. You're officially a master warbler.",
     },
+    "empty_nester": {
+        "name": "Empty Nester",
+        "requirement": "Go warbling 20 times without hearing a bird",
+        "emoji": "\U0001FAB9",
+        "citation": "Twenty quiet warbles - and you kept going anyway!",
+        "description": "Twenty times you went out, listened hard, and heard nothing at all. Every real birdwatcher knows that feeling. Coming back and trying again after a quiet day is the hardest part of all - and you did it twenty times.",
+    },
     "preener": {
         "name": "Preener",
         "requirement": "Collect 10 Dress Up items",

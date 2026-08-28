@@ -171,6 +171,8 @@ from database import (
     get_location_name, save_location_name,
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location, delete_location, get_detection_stats,
+    set_session_bird_count, count_successful_sessions_today, count_successful_sessions_this_week,
+    count_empty_sessions, award_bonus_once,
     count_owned_accessories, distinct_seasons_warbled, max_consecutive_warble_days,
     has_species_found_far_apart, count_species_found_in,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
@@ -216,11 +218,12 @@ def check_session_trophies(lat: float, lng: float, moment_utc: datetime.datetime
     """
     Checks trophies that only depend on the session happening at all -
     not on what (if anything) gets detected. Called before the
-    detection loop. Returns (newly_earned_keys, is_before_sunrise) -
-    the sunrise flag is handed back so check_detection_trophies
-    doesn't need to recompute it.
+    detection loop. Returns (newly_earned_keys, is_before_sunrise, session_id)
+    - the sunrise flag is handed back so check_detection_trophies doesn't need
+    to recompute it, and the session id lets the caller record how many birds
+    were found once detection has finished.
     """
-    total_sessions = record_session(lat, lng)
+    total_sessions, session_id = record_session(lat, lng)
     newly_earned = []
 
     if total_sessions == 1:
@@ -252,13 +255,19 @@ def check_session_trophies(lat: float, lng: float, moment_utc: datetime.datetime
         if award_trophy("preener"):
             newly_earned.append("preener")
 
+    # Checked here rather than in the detection pass, since it's about
+    # sessions that found nothing - the detection pass never runs for those.
+    if count_empty_sessions() >= 20:
+        if award_trophy("empty_nester"):
+            newly_earned.append("empty_nester")
+
     # Only call the weather API while this is still unearned - no point paying
     # the latency on every session once it's already won.
     if "brooder" not in get_earned_trophy_keys() and is_raining(lat, lng):
         if award_trophy("brooder"):
             newly_earned.append("brooder")
 
-    return newly_earned, before_sunrise
+    return newly_earned, before_sunrise, session_id
 
 
 def check_detection_trophies(results: list, before_sunrise: bool, moment_utc: datetime.datetime):
@@ -423,10 +432,20 @@ def get_wikipedia_info(scientific_name: str):
         return None, None
 
 
+# Reward tuning. Duplicates pay meaningfully now because once a child has
+# found their local birds, repeats are what going outside actually produces -
+# the old 1-feather duplicate meant the app stopped paying right when the
+# habit should have been forming.
+SESSION_BONUS = 10        # per successful session, max 2/day
+WEEKLY_TARGET = 3         # successful sessions per week
+WEEKLY_BONUS = 40
+HABITAT_SET_BONUS = 100
+
+
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
     values = {
         ("Common", False): 5, ("Visitor", False): 25, ("Rare", False): 50,
-        ("Common", True): 1, ("Visitor", True): 2, ("Rare", True): 10,
+        ("Common", True): 3, ("Visitor", True): 8, ("Rare", True): 20,
     }
     return values.get((tier, is_duplicate), 0)
 
@@ -475,7 +494,7 @@ async def analyze_session(
     now = datetime.datetime.now(datetime.timezone.utc)
     results = []
 
-    session_trophy_keys, before_sunrise = check_session_trophies(lat, lng, now)
+    session_trophy_keys, before_sunrise, session_id = check_session_trophies(lat, lng, now)
     existing_location_name = get_location_name(lat, lng)
     needs_location_name = existing_location_name is None
 
@@ -524,11 +543,40 @@ async def analyze_session(
     newly_earned_trophies = [{"key": k, **TROPHY_DEFINITIONS[k]} for k in all_earned_keys]
 
     session_feathers = sum(r["feathers"] for r in results)
+    bonuses = []
+
+    # Record what this session found before any of the bonus checks below,
+    # since they all read from it.
+    set_session_bird_count(session_id, len(results))
+
+    if results:
+        # Rewards showing up, not just discovering something new - which is the
+        # behaviour that keeps going once the local birds are all found. Capped
+        # at 2/day so it can't be farmed by tapping record repeatedly.
+        if count_successful_sessions_today() <= 2:
+            session_feathers += SESSION_BONUS
+            bonuses.append({"label": "Warble bonus", "feathers": SESSION_BONUS})
+
+        # Weekly target - a week absorbs bad weather and busy days in a way a
+        # daily streak can't, and can't be gamed by a token doorway recording.
+        week_key = datetime.datetime.utcnow().strftime("week:%G-W%V")
+        if count_successful_sessions_this_week() >= WEEKLY_TARGET and award_bonus_once(week_key):
+            session_feathers += WEEKLY_BONUS
+            bonuses.append({"label": f"{WEEKLY_TARGET} warbles this week!", "feathers": WEEKLY_BONUS})
+
+        # Habitat sets - completing one is a real milestone worth paying for
+        for habitat, species in CURATED_SPECIES.items():
+            if count_species_found_in(set(species)) >= len(species):
+                if award_bonus_once(f"habitat:{habitat}"):
+                    session_feathers += HABITAT_SET_BONUS
+                    bonuses.append({"label": f"{habitat} complete!", "feathers": HABITAT_SET_BONUS})
+
     new_total = add_feathers(session_feathers)
 
     return {
         "detections": results,
         "total_feathers_this_session": session_feathers,
+        "bonuses": bonuses,
         "total_feathers": new_total,
         "newly_earned_trophies": newly_earned_trophies,
         "needs_location_name": needs_location_name,
@@ -587,6 +635,37 @@ def award_wingman():
     if award_trophy("wingman"):
         newly.append({"key": "wingman", **TROPHY_DEFINITIONS["wingman"]})
     return {"newly_earned_trophies": newly}
+
+
+@app.get("/habitats")
+def list_habitats():
+    """The six habitat sets with progress, for the Habitats screen. Unfound
+    species are returned as names so the client can render silhouettes and
+    keep the collection's shape visible, without revealing what they are."""
+    found = set()
+    for s in get_all_sightings():
+        found.add(s["common_name"])
+    sets = []
+    for habitat, species in CURATED_SPECIES.items():
+        got = [s for s in species if s in found]
+        sets.append({
+            "name": habitat,
+            "total": len(species),
+            "found_count": len(got),
+            "found": got,
+            "complete": len(got) >= len(species),
+        })
+    return {"habitats": sets, "set_bonus": HABITAT_SET_BONUS}
+
+
+@app.get("/weekly-progress")
+def weekly_progress():
+    """How many successful warbles so far this week, against the target."""
+    return {
+        "sessions": count_successful_sessions_this_week(),
+        "target": WEEKLY_TARGET,
+        "bonus": WEEKLY_BONUS,
+    }
 
 
 @app.get("/detection-stats")

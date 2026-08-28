@@ -57,6 +57,7 @@ class RecordingSession(Base):
     id = Column(Integer, primary_key=True)
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
+    bird_count = Column(Integer, default=0)   # filled in after detection
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
@@ -78,6 +79,17 @@ class Location(Base):
     lng = Column(Float, nullable=False)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class AwardedBonus(Base):
+    """One row per one-off feather bonus already paid, keyed by something
+    unique to the occasion - "week:2026-W35", "habitat:Woodland". Keeps
+    bonuses idempotent without needing a column per bonus type."""
+    __tablename__ = "awarded_bonuses"
+
+    id = Column(Integer, primary_key=True)
+    key = Column(String, unique=True, nullable=False)
+    awarded_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
 class Profile(Base):
@@ -136,6 +148,7 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS last_name VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS show_scientific_names BOOLEAN DEFAULT TRUE"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_photo TEXT"))
+        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS bird_count INTEGER DEFAULT 0"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
@@ -290,15 +303,76 @@ def get_total_feathers() -> float:
 
 
 def record_session(lat: float, lng: float):
-    """Log that a recording happened, regardless of what (if anything)
-    was heard. Returns the total number of sessions ever, including
-    this one — useful for the Fledgling check without a second query."""
+    """Log that a recording happened, regardless of what (if anything) was
+    heard. Returns (total_sessions_ever, this_session_id) — the count feeds
+    the Fledgling check without a second query, and the id lets the caller
+    fill in bird_count once detection has finished."""
+    if SessionLocal is None:
+        return 0, None
+    with SessionLocal() as session:
+        row = RecordingSession(lat=lat, lng=lng)
+        session.add(row)
+        session.commit()
+        return session.query(RecordingSession).count(), row.id
+
+
+def set_session_bird_count(session_id, count: int):
+    """Records how many birds a session found, once detection is done."""
+    if SessionLocal is None or session_id is None:
+        return
+    with SessionLocal() as session:
+        row = session.query(RecordingSession).filter_by(id=session_id).first()
+        if row:
+            row.bird_count = count
+            session.commit()
+
+
+def count_successful_sessions_today() -> int:
+    """Sessions today that actually found a bird - caps the per-session bonus
+    so it can't be farmed by tapping record repeatedly."""
+    if SessionLocal is None:
+        return 0
+    start = datetime.datetime.combine(datetime.datetime.utcnow().date(), datetime.time.min)
+    with SessionLocal() as session:
+        return session.query(RecordingSession).filter(
+            RecordingSession.created_at >= start,
+            RecordingSession.bird_count > 0,
+        ).count()
+
+
+def count_successful_sessions_this_week() -> int:
+    """Successful sessions since Monday - drives the weekly target."""
+    if SessionLocal is None:
+        return 0
+    today = datetime.datetime.utcnow().date()
+    monday = today - datetime.timedelta(days=today.weekday())
+    start = datetime.datetime.combine(monday, datetime.time.min)
+    with SessionLocal() as session:
+        return session.query(RecordingSession).filter(
+            RecordingSession.created_at >= start,
+            RecordingSession.bird_count > 0,
+        ).count()
+
+
+def count_empty_sessions() -> int:
+    """Sessions that found nothing - used for the Empty Nester trophy."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
-        session.add(RecordingSession(lat=lat, lng=lng))
+        return session.query(RecordingSession).filter(RecordingSession.bird_count == 0).count()
+
+
+def award_bonus_once(key: str) -> bool:
+    """Claims a one-off bonus. True only the first time for a given key, so
+    callers can pay out without checking first."""
+    if SessionLocal is None:
+        return False
+    with SessionLocal() as session:
+        if session.query(AwardedBonus).filter_by(key=key).first():
+            return False
+        session.add(AwardedBonus(key=key))
         session.commit()
-        return session.query(RecordingSession).count()
+        return True
 
 
 def has_session_today() -> bool:
