@@ -7,7 +7,7 @@ now — no accounts yet, so there's just one shared total).
 import os
 import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -86,7 +86,11 @@ class Profile(Base):
     __tablename__ = "profile"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, default="Explorer")
+    name = Column(String, default="Explorer")   # legacy single-field name, kept for migration
+    first_name = Column(String, default="Explorer")
+    last_name = Column(String, nullable=True)
+    show_scientific_names = Column(Boolean, default=True)
+    avatar_photo = Column(Text, nullable=True)   # data URL, replaces the bird avatar when set
     avatar_body = Column(String, default="#C4BFDF")
     avatar_face = Column(String, default="#E8845C")
     avatar_beak = Column(String, default="#8E87B8")
@@ -128,6 +132,10 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_breast VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_face VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_beak VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS first_name VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS last_name VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS show_scientific_names BOOLEAN DEFAULT TRUE"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_photo TEXT"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
@@ -410,7 +418,9 @@ def save_location_name(lat: float, lng: float, name: str):
 
 def get_profile():
     default = {
-        "name": "Explorer", "avatar_body": "#C4BFDF", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
+        "first_name": "Explorer", "last_name": None,
+        "avatar_body": "#C4BFDF", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
+        "avatar_photo": None, "show_scientific_names": True,
         "equipped": {"hats": None, "neck": None, "gear": None, "held": None, "glasses": None, "shoes": None},
     }
     if SessionLocal is None:
@@ -418,14 +428,22 @@ def get_profile():
     with SessionLocal() as session:
         p = session.query(Profile).first()
         if p is None:
-            p = Profile(name="Explorer", avatar_body="#C4BFDF", avatar_face="#E8845C", avatar_beak="#8E87B8")
+            p = Profile(first_name="Explorer", avatar_body="#C4BFDF", avatar_face="#E8845C", avatar_beak="#8E87B8")
             session.add(p)
             session.commit()
+        # One-time migration: the name used to be a single field. Carry it into
+        # first_name so nobody's existing name is lost by the split.
+        if not p.first_name and p.name:
+            p.first_name = p.name
+            session.commit()
         return {
-            "name": p.name,
+            "first_name": p.first_name or "Explorer",
+            "last_name": p.last_name,
             "avatar_body": p.avatar_body or "#C4BFDF",
             "avatar_face": p.avatar_face or "#E8845C",
             "avatar_beak": p.avatar_beak or "#8E87B8",
+            "avatar_photo": p.avatar_photo,
+            "show_scientific_names": True if p.show_scientific_names is None else p.show_scientific_names,
             "equipped": {
                 "hats": p.equipped_hats,
                 "neck": p.equipped_neck,
@@ -437,7 +455,11 @@ def get_profile():
         }
 
 
-def update_profile(name: str = None, avatar_body: str = None, avatar_face: str = None, avatar_beak: str = None):
+def update_profile(first_name: str = None, last_name: str = None,
+                   avatar_body: str = None, avatar_face: str = None, avatar_beak: str = None,
+                   show_scientific_names: bool = None, avatar_photo: str = None):
+    """avatar_photo accepts the string "none" to clear a photo, since an empty
+    form field is indistinguishable from "not provided"."""
     if SessionLocal is None:
         return
     with SessionLocal() as session:
@@ -445,15 +467,34 @@ def update_profile(name: str = None, avatar_body: str = None, avatar_face: str =
         if p is None:
             p = Profile()
             session.add(p)
-        if name is not None:
-            p.name = name
+        if first_name is not None:
+            p.first_name = first_name
+        if last_name is not None:
+            p.last_name = last_name
         if avatar_body is not None:
             p.avatar_body = avatar_body
         if avatar_face is not None:
             p.avatar_face = avatar_face
         if avatar_beak is not None:
             p.avatar_beak = avatar_beak
+        if show_scientific_names is not None:
+            p.show_scientific_names = show_scientific_names
+        if avatar_photo is not None:
+            p.avatar_photo = None if avatar_photo == "none" else avatar_photo
         session.commit()
+
+
+def delete_location(location_id: int):
+    """Removes a saved location name. The recording sessions that happened
+    there are untouched - this only forgets the label, so the spot simply
+    becomes unnamed again and can be renamed on a future visit."""
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        loc = session.query(Location).filter_by(id=location_id).first()
+        if loc:
+            session.delete(loc)
+            session.commit()
 
 
 def get_owned_accessory_ids() -> set:

@@ -327,6 +327,20 @@
     position:absolute; width:24px; height:24px; border-radius:50%; border:2px solid #fff;
     cursor:pointer; padding:0; box-shadow:0 2px 6px rgba(0,0,0,0.28); transform:translate(-50%,-50%);
   }
+  .profile-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px;}
+  .profile-photo-preview{width:104px;height:104px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,0.22);}
+  .profile-photo-preview img{width:100%;height:100%;object-fit:cover;}
+  .profile-photo-actions{display:flex;gap:8px;}
+  .photo-btn{background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:20px;cursor:pointer;}
+  .photo-btn-clear{background:rgba(255,255,255,0.2);}
+  .nav-avatar-photo{width:27px;height:27px;border-radius:50%;object-fit:cover;display:block;}
+  .dressup-photo{width:190px;height:190px;border-radius:50%;object-fit:cover;display:block;}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:11px 14px;width:100%;font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);cursor:pointer;}
+  .toggle-row input{width:20px;height:20px;accent-color:var(--terra);cursor:pointer;}
+  .location-row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+  .location-map-link{color:var(--dusk);text-decoration:none;}
+  .location-map-link:hover{text-decoration:underline;}
+  .location-delete-btn{background:none;border:none;color:var(--mist-dk);font-size:15px;font-weight:700;cursor:pointer;padding:2px 6px;line-height:1;}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
   .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
   .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
@@ -449,7 +463,7 @@ function renderIdle() {
   stage.innerHTML = `
     <div class="home-wordmark">Warble</div>
     <button class="mic-btn" id="recordBtn">🎙</button>
-    <div class="stage-label">Go Warbling</div>
+    <div class="stage-label">${firstNameOrDefault() ? `Go Warbling, ${firstNameOrDefault()}` : 'Go Warbling'}</div>
     <div class="stage-sub">Tap, then listen for a bird</div>
     <button class="tips-tile" id="tipsTile">
       <div class="tips-tile-icon">💡</div>
@@ -758,7 +772,7 @@ function renderCard() {
         ${bird.photo_url ? `<img class="card-photo" src="${bird.photo_url}">` : `<div class="card-photo"></div>`}
         <div class="card-body">
           <div class="card-name">${bird.common_name}</div>
-          <div class="card-sci">${bird.scientific_name}</div>
+          ${currentProfile.show_scientific_names !== false ? `<div class="card-sci">${bird.scientific_name}</div>` : ''}
           <div class="card-tags">
             <span class="tag tier">${bird.tier}</span>
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
@@ -931,7 +945,7 @@ function renderBirdDetail(commonName) {
       ${latest.image_url ? `<img class="detail-photo" src="${latest.image_url}">` : `<div class="detail-photo"></div>`}
       <div class="detail-body">
         <div class="detail-name">${latest.common_name}</div>
-        <div class="detail-sci">${latest.scientific_name}</div>
+        ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
         <div class="card-tags" style="margin-top:10px;">
           <span class="tag tier">${latest.tier}</span>
         </div>
@@ -1449,8 +1463,26 @@ async function renderProfile() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">My Profile</div></div>
-    <input type="text" id="nameInput" class="location-input" placeholder="Your name" maxlength="24">
+
+    <div class="profile-photo-wrap">
+      <div class="profile-photo-preview" id="photoPreview"></div>
+      <div class="profile-photo-actions">
+        <label class="photo-btn" for="photoInput">Choose photo</label>
+        <input type="file" id="photoInput" accept="image/*" style="display:none">
+        <button class="photo-btn photo-btn-clear" id="clearPhotoBtn">Use bird</button>
+      </div>
+    </div>
+
+    <div class="profile-section-title">My name</div>
+    <input type="text" id="firstNameInput" class="location-input" placeholder="First name" maxlength="24">
+    <input type="text" id="lastNameInput" class="location-input" placeholder="Last name" maxlength="24">
     <button class="again-btn" id="saveNameBtn">Save name</button>
+
+    <div class="profile-section-title">Bird names</div>
+    <label class="toggle-row">
+      <span>Show scientific names</span>
+      <input type="checkbox" id="sciNamesToggle">
+    </label>
 
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
@@ -1461,22 +1493,92 @@ async function renderProfile() {
     currentProfile = await res.json();
   } catch (e) { /* fall back to defaults already set */ }
 
-  document.getElementById('nameInput').value = currentProfile.name;
+  document.getElementById('firstNameInput').value = currentProfile.first_name || '';
+  document.getElementById('lastNameInput').value = currentProfile.last_name || '';
+  document.getElementById('sciNamesToggle').checked = currentProfile.show_scientific_names !== false;
+  renderPhotoPreview();
   loadProfileLocations();
 
   document.getElementById('saveNameBtn').onclick = async () => {
-    const name = document.getElementById('nameInput').value.trim();
-    if (!name) return;
-    currentProfile.name = name;
+    const first = document.getElementById('firstNameInput').value.trim();
+    const last = document.getElementById('lastNameInput').value.trim();
+    if (!first) return;
+    currentProfile.first_name = first;
+    currentProfile.last_name = last;
     const formData = new FormData();
-    formData.append('name', name);
+    formData.append('first_name', first);
+    formData.append('last_name', last);
     try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
   };
+
+  document.getElementById('sciNamesToggle').onchange = async (e) => {
+    currentProfile.show_scientific_names = e.target.checked;
+    const formData = new FormData();
+    formData.append('show_scientific_names', e.target.checked);
+    try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
+  };
+
+  document.getElementById('photoInput').onchange = (e) => {
+    if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
+  };
+  document.getElementById('clearPhotoBtn').onclick = () => savePhoto('none');
+}
+
+function renderPhotoPreview() {
+  const el = document.getElementById('photoPreview');
+  if (!el) return;
+  el.innerHTML = currentProfile.avatar_photo
+    ? `<img src="${currentProfile.avatar_photo}" alt="Your photo">`
+    : avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 96, currentProfile.equipped);
+}
+
+// Photos are shrunk to 240px square and re-encoded as JPEG before upload.
+// They're stored as a data URL in the database, so sending a multi-megabyte
+// phone photo straight up would be far too heavy - this lands around 15-25KB.
+function handlePhotoChosen(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const SIZE = 240;
+      const canvas = document.createElement('canvas');
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      // Centre-crop to a square so it fills the circular frame without squashing
+      const side = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, SIZE, SIZE);
+      savePhoto(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => alert("Sorry, that image couldn't be read.");
+    img.src = reader.result;
+  };
+  reader.onerror = () => alert("Sorry, that image couldn't be read.");
+  reader.readAsDataURL(file);
+}
+
+async function savePhoto(dataUrl) {
+  currentProfile.avatar_photo = dataUrl === 'none' ? null : dataUrl;
+  renderPhotoPreview();
+  updateNavAvatarIcon();
+  const formData = new FormData();
+  formData.append('avatar_photo', dataUrl);
+  try { await fetch('/profile', { method: 'POST', body: formData }); }
+  catch (e) { /* local state already updated; fine if the save fails */ }
+}
+
+// First name only, for greetings elsewhere in the app. Returns '' when it's
+// still the untouched default, so we greet by name only once one is set.
+function firstNameOrDefault() {
+  const n = (currentProfile.first_name || '').trim();
+  return (!n || n === 'Explorer') ? '' : n;
 }
 
 function updateNavAvatarIcon() {
   const iconEl = document.getElementById('navDressUpIcon');
-  if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 27, currentProfile.equipped);
+  if (!iconEl) return;
+  iconEl.innerHTML = currentProfile.avatar_photo
+    ? `<img class="nav-avatar-photo" src="${currentProfile.avatar_photo}" alt="">`
+    : avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 27, currentProfile.equipped);
 }
 
 async function saveAvatarColors() {
@@ -1566,12 +1668,28 @@ async function loadProfileLocations() {
     }
     listEl.innerHTML = locations.map(loc => `
       <div class="location-row" data-id="${loc.id}">
-        <span class="location-row-name">📍 ${loc.name}</span>
-        <button class="location-edit-btn" data-id="${loc.id}">Edit</button>
+        <a class="location-row-name location-map-link"
+           href="https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lng}#map=16/${loc.lat}/${loc.lng}"
+           target="_blank" rel="noopener">📍 ${loc.name}</a>
+        <span class="location-row-actions">
+          <button class="location-edit-btn" data-id="${loc.id}">Edit</button>
+          <button class="location-delete-btn" data-id="${loc.id}" aria-label="Delete ${loc.name}">✕</button>
+        </span>
       </div>
     `).join('');
     listEl.querySelectorAll('.location-edit-btn').forEach(btn => {
       btn.onclick = () => editLocationPrompt(parseInt(btn.dataset.id, 10), listEl);
+    });
+    listEl.querySelectorAll('.location-delete-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const row = btn.closest('.location-row');
+        const name = row.querySelector('.location-row-name').textContent.replace('📍 ', '');
+        if (!confirm(`Forget the name "${name}"? The place stays, it just becomes unnamed again.`)) return;
+        try {
+          await fetch(`/locations/${btn.dataset.id}/delete`, { method: 'POST' });
+          loadProfileLocations();
+        } catch (e) { /* leave the list as-is if it fails */ }
+      };
     });
   } catch (e) {
     listEl.innerHTML = `<div class="collection-empty">Couldn't load locations right now.</div>`;
@@ -1657,6 +1775,10 @@ async function renderDressUp() {
 
 function renderDressUpPreview() {
   const el = document.getElementById('dressUpPreview');
+  if (el && currentProfile.avatar_photo) {
+    el.innerHTML = `<img class="dressup-photo" src="${currentProfile.avatar_photo}" alt="Your photo">`;
+    return;
+  }
   if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 190, currentProfile.equipped);
 }
 

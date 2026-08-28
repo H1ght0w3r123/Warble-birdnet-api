@@ -160,7 +160,7 @@ from database import (
     get_earned_trophy_keys, award_trophy,
     get_location_name, save_location_name,
     get_cached_call_url, get_profile, update_profile,
-    get_all_locations, rename_location,
+    get_all_locations, rename_location, delete_location,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
     has_session_today,
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
@@ -499,6 +499,12 @@ def list_locations():
     return {"locations": get_all_locations()}
 
 
+@app.post("/locations/{location_id}/delete")
+async def delete_location_endpoint(location_id: int):
+    delete_location(location_id)
+    return {"status": "ok"}
+
+
 @app.post("/locations/{location_id}/rename")
 async def rename_location_endpoint(location_id: int, name: str = Form(...)):
     rename_location(location_id, name)
@@ -511,8 +517,20 @@ def profile():
 
 
 @app.post("/profile")
-async def update_profile_endpoint(name: str = Form(None), avatar_body: str = Form(None), avatar_face: str = Form(None), avatar_beak: str = Form(None)):
-    update_profile(name=name, avatar_body=avatar_body, avatar_face=avatar_face, avatar_beak=avatar_beak)
+async def update_profile_endpoint(
+    first_name: str = Form(None),
+    last_name: str = Form(None),
+    avatar_body: str = Form(None),
+    avatar_face: str = Form(None),
+    avatar_beak: str = Form(None),
+    show_scientific_names: bool = Form(None),
+    avatar_photo: str = Form(None),
+):
+    update_profile(
+        first_name=first_name, last_name=last_name,
+        avatar_body=avatar_body, avatar_face=avatar_face, avatar_beak=avatar_beak,
+        show_scientific_names=show_scientific_names, avatar_photo=avatar_photo,
+    )
     return {"status": "ok"}
 
 
