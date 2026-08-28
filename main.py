@@ -172,7 +172,7 @@ from database import (
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location, delete_location, get_detection_stats,
     set_session_bird_count, count_successful_sessions_today, count_successful_sessions_this_week,
-    count_empty_sessions, award_bonus_once,
+    count_empty_sessions, award_bonus_once, get_week_stats,
     count_owned_accessories, distinct_seasons_warbled, max_consecutive_warble_days,
     has_species_found_far_apart, count_species_found_in,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
@@ -186,6 +186,7 @@ from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
 from curated_species import ALL_CURATED_SPECIES, CURATED_SPECIES
+from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
 
 init_db()
 
@@ -437,8 +438,6 @@ def get_wikipedia_info(scientific_name: str):
 # the old 1-feather duplicate meant the app stopped paying right when the
 # habit should have been forming.
 SESSION_BONUS = 10        # per successful session, max 2/day
-WEEKLY_TARGET = 3         # successful sessions per week
-WEEKLY_BONUS = 40
 HABITAT_SET_BONUS = 100
 
 
@@ -557,12 +556,18 @@ async def analyze_session(
             session_feathers += SESSION_BONUS
             bonuses.append({"label": "Warble bonus", "feathers": SESSION_BONUS})
 
-        # Weekly target - a week absorbs bad weather and busy days in a way a
-        # daily streak can't, and can't be gamed by a token doorway recording.
-        week_key = datetime.datetime.utcnow().strftime("week:%G-W%V")
-        if count_successful_sessions_this_week() >= WEEKLY_TARGET and award_bonus_once(week_key):
-            session_feathers += WEEKLY_BONUS
-            bonuses.append({"label": f"{WEEKLY_TARGET} warbles this week!", "feathers": WEEKLY_BONUS})
+        # Weekly challenges. The old standalone "3 warbles a week" bonus is now
+        # just one of these, so there's a single weekly mechanic rather than two
+        # competing ones.
+        for ch, done, _ in evaluate_week_challenges():
+            if done and award_bonus_once(f"challenge:{current_week_key()}:{ch['id']}"):
+                session_feathers += ch["feathers"]
+                bonuses.append({"label": ch["text"], "feathers": ch["feathers"]})
+
+        if all(done for _, done, _ in evaluate_week_challenges()):
+            if award_bonus_once(f"challenge:{current_week_key()}:ALL"):
+                session_feathers += ALL_COMPLETE_BONUS
+                bonuses.append({"label": "All 5 challenges done!", "feathers": ALL_COMPLETE_BONUS})
 
         # Habitat sets - completing one is a real milestone worth paying for
         for habitat, species in CURATED_SPECIES.items():
@@ -637,6 +642,34 @@ def award_wingman():
     return {"newly_earned_trophies": newly}
 
 
+def evaluate_week_challenges():
+    """This week's five challenges with their live progress. Returns a list of
+    (challenge, is_complete, progress) so callers can award or display."""
+    stats = get_week_stats()
+    out = []
+    for ch in get_week_challenges():
+        progress = ch["progress"](stats)
+        out.append((ch, progress >= ch["target"], progress))
+    return out
+
+
+@app.get("/weekly-challenges")
+def weekly_challenges():
+    """This week's challenges and progress, for the Home lozenge."""
+    items = []
+    for ch, done, progress in evaluate_week_challenges():
+        items.append({
+            "id": ch["id"], "text": ch["text"], "target": ch["target"],
+            "feathers": ch["feathers"],
+            "progress": min(progress, ch["target"]), "complete": done,
+        })
+    return {
+        "challenges": items,
+        "completed": sum(1 for i in items if i["complete"]),
+        "all_bonus": ALL_COMPLETE_BONUS,
+    }
+
+
 @app.get("/habitats")
 def list_habitats():
     """The six habitat sets with progress, for the Habitats screen. Unfound
@@ -656,16 +689,6 @@ def list_habitats():
             "complete": len(got) >= len(species),
         })
     return {"habitats": sets, "set_bonus": HABITAT_SET_BONUS}
-
-
-@app.get("/weekly-progress")
-def weekly_progress():
-    """How many successful warbles so far this week, against the target."""
-    return {
-        "sessions": count_successful_sessions_this_week(),
-        "target": WEEKLY_TARGET,
-        "bonus": WEEKLY_BONUS,
-    }
 
 
 @app.get("/detection-stats")

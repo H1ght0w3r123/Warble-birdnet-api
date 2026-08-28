@@ -354,6 +354,48 @@ def count_successful_sessions_this_week() -> int:
         ).count()
 
 
+def _week_start():
+    today = datetime.datetime.utcnow().date()
+    monday = today - datetime.timedelta(days=today.weekday())
+    return datetime.datetime.combine(monday, datetime.time.min)
+
+
+def get_week_stats():
+    """Everything the weekly challenges need, gathered in one pass rather than
+    one query per challenge. Week runs Monday to Sunday, UTC."""
+    blank = {
+        "sessions": 0, "days": 0, "locations": 0, "species": set(),
+        "best_session_birds": 0, "tiers": set(), "earliest_hour": None,
+    }
+    if SessionLocal is None:
+        return blank
+
+    start = _week_start()
+    with SessionLocal() as session:
+        rows = session.query(
+            RecordingSession.lat, RecordingSession.lng,
+            RecordingSession.bird_count, RecordingSession.created_at,
+        ).filter(RecordingSession.created_at >= start,
+                 RecordingSession.bird_count > 0).all()
+        sightings = session.query(
+            Sighting.common_name, Sighting.tier,
+        ).filter(Sighting.created_at >= start).all()
+
+    if not rows and not sightings:
+        return blank
+
+    return {
+        "sessions": len(rows),
+        "days": len({r.created_at.date() for r in rows if r.created_at}),
+        "locations": len({(round(r.lat, LOCATION_PRECISION), round(r.lng, LOCATION_PRECISION))
+                          for r in rows if r.lat is not None}),
+        "species": {s.common_name for s in sightings},
+        "best_session_birds": max((r.bird_count or 0 for r in rows), default=0),
+        "tiers": {s.tier for s in sightings},
+        "earliest_hour": min((r.created_at.hour for r in rows if r.created_at), default=None),
+    }
+
+
 def count_empty_sessions() -> int:
     """Sessions that found nothing - used for the Empty Nester trophy."""
     if SessionLocal is None:
