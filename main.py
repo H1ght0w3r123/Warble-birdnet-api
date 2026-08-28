@@ -109,13 +109,34 @@ async def identify(file: UploadFile = File(...), lat: float = 51.5074, lng: floa
         recording = Recording(
             analyzer,
             tmp_wav_path,
-            min_conf=0.3,
+            min_conf=0.25,
         )
         recording.analyze()
         detections = recording.detections
     finally:
         os.unlink(tmp_in_path)
         os.unlink(tmp_wav_path)
+
+    # Merge in anything already confirmed during recording. The two passes see
+    # genuinely different audio: this one analyses the whole recording
+    # continuously, while the live pass sampled independent 3.5s clips - so a
+    # call sitting across a clip boundary can be missed live but caught here,
+    # and a brief call can occasionally be caught live but washed out across
+    # the longer file. Taking the union means the badges a user watched appear
+    # during recording can never contradict the final result, without losing
+    # what either pass found on its own.
+    seen = {d["common_name"] for d in detections}
+    try:
+        for d in json.loads(live_detections):
+            if d.get("common_name") and d["common_name"] not in seen:
+                seen.add(d["common_name"])
+                detections.append({
+                    "common_name": d["common_name"],
+                    "scientific_name": d.get("scientific_name", ""),
+                    "confidence": d.get("confidence", 0.0),
+                })
+    except (ValueError, TypeError) as e:
+        print(f"Warning: couldn't parse live_detections, ignoring them: {e}")
 
     detections.sort(key=lambda d: d["confidence"], reverse=True)
 
@@ -336,6 +357,7 @@ async def analyze_session(
     file: UploadFile = File(...),
     lat: float = 51.5074,
     lng: float = -0.1278,
+    live_detections: str = Form("[]"),
 ):
     """
     The all-in-one endpoint. Identifies every bird in a recording, checks
@@ -381,13 +403,34 @@ async def analyze_session(
         recording = Recording(
             analyzer,
             tmp_wav_path,
-            min_conf=0.3,
+            min_conf=0.25,
         )
         recording.analyze()
         detections = recording.detections
     finally:
         os.unlink(tmp_in_path)
         os.unlink(tmp_wav_path)
+
+    # Merge in anything already confirmed during recording. The two passes see
+    # genuinely different audio: this one analyses the whole recording
+    # continuously, while the live pass sampled independent 3.5s clips - so a
+    # call sitting across a clip boundary can be missed live but caught here,
+    # and a brief call can occasionally be caught live but washed out across
+    # the longer file. Taking the union means the badges a user watched appear
+    # during recording can never contradict the final result, without losing
+    # what either pass found on its own.
+    seen = {d["common_name"] for d in detections}
+    try:
+        for d in json.loads(live_detections):
+            if d.get("common_name") and d["common_name"] not in seen:
+                seen.add(d["common_name"])
+                detections.append({
+                    "common_name": d["common_name"],
+                    "scientific_name": d.get("scientific_name", ""),
+                    "confidence": d.get("confidence", 0.0),
+                })
+    except (ValueError, TypeError) as e:
+        print(f"Warning: couldn't parse live_detections, ignoring them: {e}")
 
     detections.sort(key=lambda d: d["confidence"], reverse=True)
 

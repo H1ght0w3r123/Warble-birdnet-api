@@ -1309,7 +1309,12 @@ async function checkLiveChunk(blob) {
     (data.detections || []).forEach(d => {
       if (!liveBadgedSpecies.has(d.common_name)) {
         liveBadgedSpecies.add(d.common_name);
-        liveDetectedBirds.push({ tier: d.tier });
+        liveDetectedBirds.push({
+          tier: d.tier,
+          common_name: d.common_name,
+          scientific_name: d.scientific_name,
+          confidence: d.confidence,
+        });
         renderLiveBirdStack();
         // Fire the rustle on the same frame the badge appears, so the two
         // read as one event rather than two unrelated things happening.
@@ -1333,6 +1338,10 @@ function stopRecording() {
         formData.append('lat', currentLat);
         formData.append('lng', currentLng);
       }
+      // Anything already confirmed live goes to the server too, so the final
+      // result is the union of both passes rather than a second opinion that
+      // can contradict the badges the user just watched appear.
+      formData.append('live_detections', JSON.stringify(liveDetectedBirds));
       const res = await fetch('/analyze-session', { method: 'POST', body: formData });
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
