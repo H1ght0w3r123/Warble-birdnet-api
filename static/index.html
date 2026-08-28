@@ -247,10 +247,10 @@
   .learn-more:hover{text-decoration:underline;}
 
   /* --- Recording tree: pulses, and its canopy clusters rustle with real audio --- */
-  .rec-tree{width:170px;height:190px;position:relative;z-index:1;display:block;margin:0 auto;}
-  .rec-tree.pulsing{animation:treePulse 2.4s ease-in-out infinite;}
-  @keyframes treePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.025);}}
-  .tree-cluster{transform-box:fill-box;transform-origin:center;}
+  /* Facets are rotated individually via SVG transform attributes in the
+     animation loop, so no CSS animation or transform-origin here - the old
+     whole-tree pulse and .tree-cluster rules are gone with the old tree. */
+  .rec-tree{width:190px;height:226px;position:relative;z-index:1;display:block;margin:0 auto;}
 
   /* --- Live bird detection badges: persist and stack for the whole recording --- */
   /* Fixed-height void so the tree and everything below it don't shift
@@ -571,14 +571,97 @@ function renderRecording() {
     <div class="pines"></div>
     <div class="rec-column">
       <div class="live-bird-stack" id="liveBirdStack"></div>
-      <svg viewBox="0 0 160 190" class="rec-tree pulsing" id="recTree">
-        <path d="M72 190 L72 138 Q80 128 88 138 L88 190 Z" fill="#6B4A35"/>
-        <ellipse class="tree-cluster" cx="80" cy="42" rx="34" ry="25" fill="var(--sage)"/>
-        <ellipse class="tree-cluster" cx="46" cy="64" rx="30" ry="22" fill="var(--terra)"/>
-        <ellipse class="tree-cluster" cx="114" cy="64" rx="30" ry="22" fill="var(--sage)"/>
-        <ellipse class="tree-cluster" cx="42" cy="100" rx="27" ry="20" fill="var(--gold)"/>
-        <ellipse class="tree-cluster" cx="118" cy="100" rx="27" ry="20" fill="var(--sage)"/>
-        <ellipse class="tree-cluster" cx="80" cy="110" rx="32" ry="24" fill="var(--terra)"/>
+      <svg id="recTree" viewBox="0 0 160 190" class="rec-tree" style="overflow:visible">
+      <defs>
+      <clipPath id="canopyClip">
+      <circle cx="80" cy="52" r="44"></circle>
+      <circle cx="44" cy="84" r="34"></circle>
+      <circle cx="116" cy="84" r="34"></circle>
+      <circle cx="80" cy="92" r="40"></circle>
+      </clipPath>
+      </defs>
+      <ellipse cx="80" cy="188" rx="36" ry="6" fill="#1A1128" opacity="0.3"></ellipse>
+      <g clip-path="url(#canopyClip)">
+      <circle cx="80" cy="52" r="44" fill="#3F7C5C"></circle>
+      <circle cx="44" cy="84" r="34" fill="#3F7C5C"></circle>
+      <circle cx="116" cy="84" r="34" fill="#3F7C5C"></circle>
+      <circle cx="80" cy="92" r="40" fill="#3F7C5C"></circle>
+      <g id="canopy">
+      <polygon data-shard="" data-bin="3" data-amp="3.4" data-pivot="56.0,22.3" points="56,5 40,31 72,31" fill="#F2C94C"></polygon>
+      <polygon data-shard="" data-bin="6" data-amp="3.6" data-pivot="72.0,13.7" points="56,5 88,5 72,31" fill="#8FD8B6"></polygon>
+      <polygon data-shard="" data-bin="17" data-amp="4.8" data-pivot="82.7,19.4" points="88,5 72,31 88.0,22.3" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="24" data-amp="4.8" data-pivot="88.0,28.1" points="72,31 104,31 88.0,22.3" fill="#7EC8A4"></polygon>
+      <polygon data-shard="" data-bin="5" data-amp="4.8" data-pivot="93.3,19.4" points="104,31 88,5 88.0,22.3" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="12" data-amp="4.1" data-pivot="104.0,13.7" points="88,5 120,5 104,31" fill="#7EC8A4"></polygon>
+      <polygon data-shard="" data-bin="15" data-amp="4.3" data-pivot="120.0,22.3" points="120,5 104,31 136,31" fill="#7EC8A4"></polygon>
+      <polygon data-shard="" data-bin="18" data-amp="4.5" data-pivot="8.0,48.3" points="8,31 -8,57 24,57" fill="#7EC8A4"></polygon>
+      <polygon data-shard="" data-bin="21" data-amp="4.7" data-pivot="24.0,39.7" points="8,31 40,31 24,57" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="14" data-amp="6.1" data-pivot="34.7,45.4" points="40,31 24,57 40.0,48.3" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="21" data-amp="6.1" data-pivot="40.0,54.1" points="24,57 56,57 40.0,48.3" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="28" data-amp="6.1" data-pivot="45.3,45.4" points="56,57 40,31 40.0,48.3" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="27" data-amp="5.2" data-pivot="56.0,39.7" points="40,31 72,31 56,57" fill="#7EC8A4"></polygon>
+      <polygon data-shard="" data-bin="4" data-amp="3.4" data-pivot="72.0,48.3" points="72,31 56,57 88,57" fill="#7EC8A4"></polygon>
+      <polygon data-shard="" data-bin="7" data-amp="3.6" data-pivot="88.0,39.7" points="72,31 104,31 88,57" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="10" data-amp="3.8" data-pivot="104.0,48.3" points="104,31 88,57 120,57" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="11" data-amp="5.1" data-pivot="120.0,33.9" points="104,31 136,31 120.0,39.7" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="18" data-amp="5.1" data-pivot="125.3,42.6" points="136,31 120,57 120.0,39.7" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="25" data-amp="5.1" data-pivot="114.7,42.6" points="120,57 104,31 120.0,39.7" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="16" data-amp="4.3" data-pivot="136.0,48.3" points="136,31 120,57 152,57" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="19" data-amp="4.5" data-pivot="8.0,65.7" points="-8,57 24,57 8,83" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="22" data-amp="4.7" data-pivot="24.0,74.3" points="24,57 8,83 40,83" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="25" data-amp="4.9" data-pivot="40.0,65.7" points="24,57 56,57 40,83" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="8" data-amp="6.5" data-pivot="50.7,71.4" points="56,57 40,83 56.0,74.3" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="15" data-amp="6.5" data-pivot="56.0,80.1" points="40,83 72,83 56.0,74.3" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="22" data-amp="6.5" data-pivot="61.3,71.4" points="72,83 56,57 56.0,74.3" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="5" data-amp="3.4" data-pivot="72.0,65.7" points="56,57 88,57 72,83" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="8" data-amp="3.6" data-pivot="88.0,74.3" points="88,57 72,83 104,83" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="11" data-amp="3.8" data-pivot="104.0,65.7" points="88,57 120,57 104,83" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="14" data-amp="4.1" data-pivot="120.0,74.3" points="120,57 104,83 136,83" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="17" data-amp="4.3" data-pivot="136.0,65.7" points="120,57 152,57 136,83" fill="#F2C94C"></polygon>
+      <polygon data-shard="" data-bin="20" data-amp="4.5" data-pivot="152.0,74.3" points="152,57 136,83 168,83" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="23" data-amp="4.7" data-pivot="8.0,100.3" points="8,83 -8,109 24,109" fill="#5FB88F"></polygon>
+      <polygon data-shard="" data-bin="26" data-amp="4.9" data-pivot="24.0,91.7" points="8,83 40,83 24,109" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="3" data-amp="5.2" data-pivot="40.0,100.3" points="40,83 24,109 56,109" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="14" data-amp="4.3" data-pivot="56.0,85.9" points="40,83 72,83 56.0,91.7" fill="#4A9270"></polygon>
+      <polygon data-shard="" data-bin="21" data-amp="4.3" data-pivot="61.3,94.6" points="72,83 56,109 56.0,91.7" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="28" data-amp="4.3" data-pivot="50.7,94.6" points="56,109 40,83 56.0,91.7" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="9" data-amp="3.6" data-pivot="72.0,100.3" points="72,83 56,109 88,109" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="12" data-amp="3.8" data-pivot="88.0,91.7" points="72,83 104,83 88,109" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="15" data-amp="4.1" data-pivot="104.0,100.3" points="104,83 88,109 120,109" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="18" data-amp="4.3" data-pivot="120.0,91.7" points="104,83 136,83 120,109" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="11" data-amp="5.6" data-pivot="130.7,97.4" points="136,83 120,109 136.0,100.3" fill="#2C5F45"></polygon>
+      <polygon data-shard="" data-bin="18" data-amp="5.6" data-pivot="136.0,106.1" points="120,109 152,109 136.0,100.3" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="25" data-amp="5.6" data-pivot="141.3,97.4" points="152,109 136,83 136.0,100.3" fill="#245039"></polygon>
+      <polygon data-shard="" data-bin="24" data-amp="4.7" data-pivot="152.0,91.7" points="136,83 168,83 152,109" fill="#2C5F45"></polygon>
+      <polygon data-shard="" data-bin="27" data-amp="4.9" data-pivot="8.0,117.7" points="-8,109 24,109 8,135" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="4" data-amp="5.2" data-pivot="24.0,126.3" points="24,109 8,135 40,135" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="7" data-amp="3.4" data-pivot="40.0,117.7" points="24,109 56,109 40,135" fill="#F2C94C"></polygon>
+      <polygon data-shard="" data-bin="8" data-amp="4.5" data-pivot="50.7,123.4" points="56,109 40,135 56.0,126.3" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="15" data-amp="4.5" data-pivot="56.0,132.1" points="40,135 72,135 56.0,126.3" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="22" data-amp="4.5" data-pivot="61.3,123.4" points="72,135 56,109 56.0,126.3" fill="#3F7C5C"></polygon>
+      <polygon data-shard="" data-bin="13" data-amp="3.8" data-pivot="72.0,117.7" points="56,109 88,109 72,135" fill="#336A4E"></polygon>
+      <polygon data-shard="" data-bin="16" data-amp="4.1" data-pivot="88.0,126.3" points="88,109 72,135 104,135" fill="#245039"></polygon>
+      <polygon data-shard="" data-bin="19" data-amp="4.3" data-pivot="104.0,117.7" points="88,109 120,109 104,135" fill="#2C5F45"></polygon>
+      <polygon data-shard="" data-bin="22" data-amp="4.5" data-pivot="120.0,126.3" points="120,109 104,135 136,135" fill="#245039"></polygon>
+      <polygon data-shard="" data-bin="5" data-amp="5.9" data-pivot="136.0,111.9" points="120,109 152,109 136.0,117.7" fill="#2C5F45"></polygon>
+      <polygon data-shard="" data-bin="12" data-amp="5.9" data-pivot="141.3,120.6" points="152,109 136,135 136.0,117.7" fill="#245039"></polygon>
+      <polygon data-shard="" data-bin="19" data-amp="5.9" data-pivot="130.7,120.6" points="136,135 120,109 136.0,117.7" fill="#336A4E"></polygon>
+      </g>
+      </g>
+      <polygon points="73.4,123.1 57.0,116.1 40.3,108.4 39.7,109.6 55.0,119.9 70.6,128.9" fill="#B85A36"></polygon>
+      <polygon points="72.0,126.0 56.0,118.0 40.0,109.0 39.7,109.6 55.0,119.9 70.6,128.9" fill="#5A3A28"></polygon>
+      <polygon points="90.3,126.9 105.9,118.9 120.3,109.6 119.7,108.4 104.1,115.1 87.7,121.1" fill="#B85A36"></polygon>
+      <polygon points="89.0,124.0 105.0,117.0 120.0,109.0 119.7,108.4 104.1,115.1 87.7,121.1" fill="#5A3A28"></polygon>
+      <polygon points="86.7,138.9 74.6,118.0 64.6,100.0 56.8,82.7 55.2,83.3 59.4,102.0 65.4,122.0 73.3,145.1" fill="#B85A36"></polygon>
+      <polygon points="80.0,142.0 70.0,120.0 62.0,101.0 56.0,83.0 55.2,83.3 59.4,102.0 65.4,122.0 73.3,145.1" fill="#5A3A28"></polygon>
+      <polygon points="86.6,145.3 95.5,122.1 101.6,101.9 104.8,83.2 103.2,82.8 96.4,100.1 86.5,117.9 73.4,138.7" fill="#B85A36"></polygon>
+      <polygon points="80.0,142.0 91.0,120.0 99.0,101.0 104.0,83.0 103.2,82.8 96.4,100.1 86.5,117.9 73.4,138.7" fill="#5A3A28"></polygon>
+      <polygon points="86.0,140.0 83.8,111.7 78.0,84.7 72.8,56.9 71.2,57.1 74.0,85.3 76.2,112.3 74.0,140.0" fill="#B85A36"></polygon>
+      <polygon points="80.0,140.0 80.0,112.0 76.0,85.0 72.0,57.0 71.2,57.1 74.0,85.3 76.2,112.3 74.0,140.0" fill="#5A3A28"></polygon>
+      <polygon points="100.0,190.0 96.5,169.5 92.5,156.0 90.5,144.6 88.4,138.0 71.6,138.0 69.5,143.4 65.5,156.0 63.5,170.5 60.0,190.0" fill="#B85A36"></polygon>
+      <polygon points="80.0,190.0 80.0,170.0 79.0,156.0 80.0,144.0 80.0,138.0 71.6,138.0 69.5,143.4 65.5,156.0 63.5,170.5 60.0,190.0" fill="#5A3A28"></polygon>
+      <polygon points="60,190 63.5,170 65.5,156 69.5,144 72,138 75,139 71,150 68,166 66,190" fill="#E8845C" opacity="0.5"></polygon>
+      <g id="leaves"></g>
       </svg>
       <div class="rec-location" id="recLocation"></div>
       <button class="mic-btn recording" id="stopBtn">■</button>
@@ -1033,30 +1116,120 @@ async function startRecording() {
 // that a real one was heard - keeping the reveal for after Stop.
 let eqAudioContext = null, eqAnalyser = null, eqAnimationId = null;
 
+const TREE_CX = 80, TREE_CY = 72;
+const LEAF_COLORS = ['#F2C94C', '#5FB88F', '#7EC8A4', '#3F7C5C'];
+let treeShards = [], fallingLeaves = [], activeRustle = null, lastFrameTime = 0;
+
 function startEqualizer(stream) {
   eqAudioContext = new (window.AudioContext || window.webkitAudioContext)();
   eqAnalyser = eqAudioContext.createAnalyser();
   eqAnalyser.fftSize = 64;
   eqAudioContext.createMediaStreamSource(stream).connect(eqAnalyser);
-  const dataArray = new Uint8Array(eqAnalyser.frequencyBinCount);
+  const bins = new Uint8Array(eqAnalyser.frequencyBinCount);
 
-  function draw() {
+  // Each canopy facet carries its own pivot, frequency bin and amplitude,
+  // baked into the SVG by the design. Cache them once rather than re-reading
+  // attributes 59 times every frame.
+  treeShards = Array.from(document.querySelectorAll('[data-shard]')).map((el, i) => {
+    const p = el.getAttribute('data-pivot').split(',').map(Number);
+    const nx = p[0] - TREE_CX, ny = p[1] - TREE_CY;
+    const len = Math.hypot(nx, ny) || 1;
+    return {
+      el, px: p[0], py: p[1], nx: nx / len, ny: ny / len,
+      bin: +el.getAttribute('data-bin'), amp: +el.getAttribute('data-amp'),
+      phase: i * 0.73, lvl: 0,
+    };
+  });
+  fallingLeaves = [];
+  activeRustle = null;
+  lastFrameTime = 0;
+
+  function draw(now) {
     if (!eqAnalyser) return;
-    eqAnalyser.getByteFrequencyData(dataArray);
-    const leaves = document.querySelectorAll('.tree-cluster');
-    const now = performance.now();
-    leaves.forEach((leaf, i) => {
-      const value = dataArray[i * Math.floor(dataArray.length / leaves.length)] || 0;
-      const intensity = value / 255; // real volume for this leaf's slice, 0 to 1
-      // Each cluster has its own timing offset so they don't all swing in
-      // lockstep - genuine rustling rather than a mechanical sweep -
-      // but the AMPLITUDE of the wobble is driven entirely by real audio.
-      const wobble = Math.sin(now / 150 + i * 1.3) * intensity * 18;
-      leaf.style.transform = `rotate(${wobble}deg)`;
-    });
+    const t = now / 1000;
+    const dt = Math.min(0.05, (now - (lastFrameTime || now)) / 1000);
+    lastFrameTime = now;
+    eqAnalyser.getByteFrequencyData(bins);
+
+    const breath = 0.9;               // gentle idle motion so it's never fully dead
+    const r = activeRustle;
+    const rAge = r ? t - r.t : 999;
+    if (r && rAge > 2.2) activeRustle = null;
+
+    for (const s of treeShards) {
+      // LEVEL 1 - quiver: proportional to this facet's own frequency band,
+      // with a fast attack and slow release so it breathes rather than flickers.
+      const raw = Math.pow(bins[s.bin] / 255, 1.6);
+      s.lvl += (raw - s.lvl) * (raw > s.lvl ? 0.32 : 0.07);
+      let a = breath * Math.sin(t * 1.63 + s.phase) + s.lvl * s.amp;
+      let ox = 0, oy = 0;
+
+      // LEVEL 2 - rustle: a wave leaving the landing point at 240px/s. Each
+      // facet fires as the wave reaches it, so the tree moves in sequence and
+      // has a visible direction - which is what distinguishes it from quiver.
+      if (r) {
+        const d = Math.hypot(s.px - r.ox, s.py - r.oy);
+        const tt = rAge - d / 240;
+        if (tt > 0 && tt < 1.2) {
+          const fall = Math.max(0.3, 1 - d / 190);
+          const dir = (s.px - r.ox) >= 0 ? 1 : -1;
+          const env = Math.exp(-tt / 0.2) * Math.sin(Math.PI * 2 * 4.2 * tt);
+          a += 16 * fall * dir * env;
+          const push = 4 * fall * Math.exp(-tt / 0.24) * Math.sin(Math.PI * 2 * 4.2 * tt);
+          ox = s.nx * push; oy = s.ny * push;
+        }
+      }
+
+      s.el.setAttribute('transform',
+        `rotate(${a.toFixed(2)},${s.px},${s.py}) translate(${ox.toFixed(2)},${oy.toFixed(2)}) ` +
+        `translate(${s.px},${s.py}) scale(1.07) translate(${-s.px},${-s.py})`);
+    }
+
+    // Leaves shaken loose by a rustle - the "consequence" cue.
+    for (let i = fallingLeaves.length - 1; i >= 0; i--) {
+      const l = fallingLeaves[i];
+      const age = t - l.born;
+      if (age > l.life) { l.el.remove(); fallingLeaves.splice(i, 1); continue; }
+      l.vy += 34 * dt;
+      l.x += (l.vx + Math.sin(t * l.sway * 3 + l.ph) * 9) * dt;
+      l.y += l.vy * dt;
+      l.rot += l.spin * dt;
+      l.el.setAttribute('transform', `translate(${l.x.toFixed(1)},${l.y.toFixed(1)}) rotate(${l.rot.toFixed(0)})`);
+      l.el.setAttribute('opacity', String(Math.max(0, 1 - Math.pow(age / l.life, 3))));
+    }
+
     eqAnimationId = requestAnimationFrame(draw);
   }
-  draw();
+  eqAnimationId = requestAnimationFrame(draw);
+}
+
+function fireTreeRustle() {
+  if (!treeShards.length) return;
+  // Start from an outer facet so the wave visibly travels inward across the
+  // tree, as though something just landed on the edge of the canopy.
+  const edge = treeShards.filter(s => Math.hypot(s.px - 80, s.py - 70) > 38);
+  const pool = edge.length ? edge : treeShards;
+  const s = pool[Math.floor(Math.random() * pool.length)];
+  activeRustle = { t: performance.now() / 1000, ox: s.px, oy: s.py };
+  spawnFallingLeaves(s.px, s.py);
+}
+
+function spawnFallingLeaves(x, y) {
+  const layer = document.getElementById('leaves');
+  if (!layer) return;
+  for (let i = 0; i < 9; i++) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    el.setAttribute('points', '0,-3 4,0 0,3.5 -3.5,0.5');
+    el.setAttribute('fill', LEAF_COLORS[i % LEAF_COLORS.length]);
+    layer.appendChild(el);
+    fallingLeaves.push({
+      el, x: x + (Math.random() - 0.5) * 16, y: y + (Math.random() - 0.5) * 12,
+      vx: (Math.random() - 0.5) * 14, vy: -6 - Math.random() * 10,
+      rot: Math.random() * 360, spin: (Math.random() - 0.5) * 260,
+      sway: 1.4 + Math.random() * 2.2, ph: Math.random() * 6.3,
+      born: performance.now() / 1000, life: 1.5 + Math.random() * 0.7,
+    });
+  }
 }
 
 function stopEqualizer() {
@@ -1118,6 +1291,9 @@ async function checkLiveChunk(blob) {
         liveBadgedSpecies.add(d.common_name);
         liveDetectedBirds.push({ tier: d.tier });
         renderLiveBirdStack();
+        // Fire the rustle on the same frame the badge appears, so the two
+        // read as one event rather than two unrelated things happening.
+        fireTreeRustle();
       }
     });
   } catch (e) { /* a missed preview chunk doesn't matter, just skip it */ }
