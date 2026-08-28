@@ -36,7 +36,7 @@
   .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;position:relative;}
   .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
-  .feathers{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--parch-dk);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--ink);}
+  .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.35);}
   .feathers.feather-pop{animation:featherPop 0.32s ease;}
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
   .top-wordmark{
@@ -58,10 +58,15 @@
     padding:4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
     box-shadow:0 -4px 16px rgba(0,0,0,0.1); z-index:20;
   }
+  /* flex:1 on every slot (with the Home circle fixed) is what actually
+     centres Home. Previously the empty void slot was only as wide as its
+     padding while the real tabs sized to their labels, so the left side was
+     much narrower than the right and Home sat off-centre. */
   .nav-tab{
     display:flex; flex-direction:column; align-items:center; gap:1px;
     background:none; border:none; cursor:pointer; padding:2px 6px;
     color:var(--mist-dk); font-family:'Outfit'; font-size:9px; font-weight:700;
+    flex:1 1 0; min-width:0;
   }
   .nav-tab.active{color:var(--terra);}
   .nav-tab .nav-icon-svg{width:32.4px; height:32.4px; color:var(--mist-dk);}
@@ -70,6 +75,7 @@
 
   /* --- Home gets a raised, circular treatment as the primary tab --- */
   .nav-tab.home-tab{
+    flex:0 0 70px;
     width:70px; height:70px; border-radius:50%;
     background:var(--terra); margin-top:-26px; gap:0;
     box-shadow:0 4px 0 var(--terra-dk), 0 6px 14px rgba(0,0,0,0.25);
@@ -161,6 +167,9 @@
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .silhouette-card:first-child{margin-left:0;}
+  .reveal-hint{font-family:'Outfit';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);margin-top:22px;text-align:center;animation:statFadeUp 0.4s ease 0.3s both;}
+  .silhouette-card.tappable{cursor:pointer;animation:cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1) both, revealPulse 1.6s ease-in-out 0.8s infinite;}
+  @keyframes revealPulse{0%,100%{box-shadow:0 6px 14px rgba(0,0,0,0.18);}50%{box-shadow:0 6px 22px rgba(255,255,255,0.55);}}
   .reveal-btn{
     margin-top:30px; width:100%; max-width:280px; padding:15px 0;
     background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
@@ -270,6 +279,9 @@
     text-align:center; margin-top:18px; min-height:17px;
   }
 
+  /* Sits on the tier row, pushed to the right edge of the card frame. */
+  .detail-tier-row{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;}
+  .play-call-inline{margin-top:0 !important;padding:7px 13px;font-size:11px;flex-shrink:0;}
   .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;}
 
   /* --- Profile --- */
@@ -277,6 +289,11 @@
   .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 
   /* --- Dress Up: categories + carousel --- */
+  .reset-accessories-btn{
+    background:rgba(255,255,255,0.18); color:#fff; border:none; border-radius:20px;
+    padding:7px 20px; font-family:'Outfit'; font-weight:700; font-size:11px;
+    cursor:pointer; margin:4px auto 0; display:block;
+  }
   .category-row{display:flex;gap:5px;justify-content:center;width:100%;margin-top:14px;}
   .category-tile{
     background:#fff; border:2px solid transparent; border-radius:14px; padding:9px 3px;
@@ -387,7 +404,7 @@
 
   <div class="top">
     <div class="feathers">🪶 <span id="featherCount">–</span></div>
-    <div class="top-wordmark">Warble</div>
+    <div class="top-wordmark" id="topWordmark">Warble</div>
     <button class="top-profile-btn" id="topProfileBtn"><svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg></button>
   </div>
 
@@ -756,12 +773,15 @@ function renderSessionResults() {
     <div class="results-title">You heard ${sessionResults.length} bird${sessionResults.length === 1 ? '' : 's'}!</div>
     <div class="results-sub">${timeStr} session${locationLine}</div>
     <div class="silhouette-row">${silhouettes}</div>
-    <button class="reveal-btn" id="revealBtn">Reveal →</button>
+    <div class="reveal-hint">Tap the first card to reveal</div>
   `;
-  document.getElementById('revealBtn').onclick = () => {
-    cardIndex = 0;
-    renderCard();
-  };
+  // The first (frontmost) card is the tap target, so the gesture matches the
+  // instruction rather than needing a separate button.
+  const firstCard = stage.querySelector('.silhouette-card');
+  if (firstCard) {
+    firstCard.classList.add('tappable');
+    firstCard.onclick = () => { cardIndex = 0; renderCard(); };
+  }
 }
 
 function renderCard() {
@@ -949,8 +969,9 @@ function renderBirdDetail(commonName) {
       <div class="detail-body">
         <div class="detail-name">${latest.common_name}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
-        <div class="card-tags" style="margin-top:10px;">
+        <div class="card-tags detail-tier-row" style="margin-top:10px;">
           <span class="tag tier">${latest.tier}</span>
+          ${latest.call_url ? `<button class="play-call-btn play-call-inline" data-call-url="${latest.call_url}">▶ Hear its call</button>` : ''}
         </div>
         <div class="detail-stats">
           <div>
@@ -965,7 +986,6 @@ function renderBirdDetail(commonName) {
         ${locationTags ? `<div class="location-tags">${locationTags}</div>` : ''}
         ${buildFactsDashboard(latest.facts)}
         ${(!latest.facts && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
-        ${latest.call_url ? `<button class="play-call-btn" data-call-url="${latest.call_url}">▶ Hear its call</button>` : ''}
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
       </div>
     </div>
@@ -1414,6 +1434,11 @@ function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
+  // Home already shows the big hero wordmark, so the small top-bar one would
+  // just duplicate it. Kept as visibility rather than display so the feather
+  // count and profile button don't shift position between screens.
+  const wm = document.getElementById('topWordmark');
+  if (wm) wm.style.visibility = (tabName === 'home') ? 'hidden' : 'visible';
 }
 
 // One shared palette - every part offers the same 10 colours in the same
@@ -1753,8 +1778,8 @@ async function renderDressUp() {
         </div>
       </div>
     </div>
+    <button class="reset-accessories-btn" id="resetAccessoriesBtn">Reset</button>
     <div class="category-row" id="categoryRow"></div>
-    <div class="collection-count" id="dressUpFeathers">Loading...</div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
     <div class="dressup-hint" id="dressUpHint"></div>
   `;
@@ -1774,16 +1799,33 @@ async function renderDressUp() {
 
     accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; });
 
-    const feathersEl = document.getElementById('dressUpFeathers');
-    if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(currentFeatherTotal)} feathers to spend`;
-
     renderDressUpPreview();
     renderSwatchRows();
     renderCategoryRow();
+    document.getElementById('resetAccessoriesBtn').onclick = resetAllAccessories;
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
   } catch (e) {
     const wrap = document.getElementById('carouselWrap');
     if (wrap) wrap.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
+  }
+}
+
+async function resetAllAccessories() {
+  const worn = Object.entries(currentProfile.equipped || {}).filter(([, id]) => id);
+  if (!worn.length) { setDressUpHint('Nothing to take off'); return; }
+
+  currentProfile.equipped = {};
+  renderDressUpPreview();
+  renderCarousel();
+  updateNavAvatarIcon();
+  setDressUpHint('Took everything off');
+
+  // Clear each slot server-side. Items stay owned - this only unequips.
+  for (const [category] of worn) {
+    const formData = new FormData();
+    formData.append('category', category);
+    try { await fetch('/accessories/equip', { method: 'POST', body: formData }); }
+    catch (e) { /* local state already updated */ }
   }
 }
 
@@ -1858,8 +1900,6 @@ async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
         animateFeatherCount(currentFeatherTotal);
         if (!currentProfile.equipped) currentProfile.equipped = {};
         currentProfile.equipped[category] = accessoryId; // purchase auto-equips, server-side too
-        const feathersEl = document.getElementById('dressUpFeathers');
-        if (feathersEl) feathersEl.textContent = `🪶 ${Math.round(currentFeatherTotal)} feathers to spend`;
         setDressUpHint(`Bought ${name} for ${cost} feathers`);
         renderDressUpPreview();
         renderCarousel();
