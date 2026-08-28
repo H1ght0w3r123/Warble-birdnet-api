@@ -186,6 +186,15 @@
     background:var(--dusk); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--dusk-mid); cursor:pointer;
   }
+  /* The "go again" variant: a round mic button that starts a new recording
+     straight away, rather than a text button that returns to Home first. */
+  .again-btn.mic-again-btn{
+    width:84px; height:84px; padding:0; border-radius:50%;
+    background:var(--terra); box-shadow:0 6px 0 var(--terra-dk);
+    font-size:30px; display:flex; align-items:center; justify-content:center;
+    transition:transform .1s;
+  }
+  .again-btn.mic-again-btn:active{transform:translateY(4px); box-shadow:0 2px 0 var(--terra-dk);}
   .error{color:#FFD9D2;font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
 
   /* --- Collection --- */
@@ -702,10 +711,12 @@ function renderNoBirds() {
     <div class="done-icon">🪹</div>
     <div class="done-title">No birds heard this time</div>
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
-    <button class="again-btn" id="againBtn">Go again</button>
+    <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">🎙</button>
   `;
   document.getElementById('againBtn').onclick = () => {
-    if (needsLocationName) renderNameLocation(renderIdle); else renderIdle();
+    // Location naming still has to happen first if it's pending, but once
+    // that's done, go straight into recording rather than back to Home.
+    if (needsLocationName) renderNameLocation(startRecording); else startRecording();
   };
 }
 
@@ -922,9 +933,9 @@ function renderDone() {
     <div class="done-title">Nice warble!</div>
     <div class="done-sub">You earned ${total} feathers this session</div>
     ${trophyBanners}
-    <button class="again-btn" id="againBtn">Go again</button>
+    <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">🎙</button>
   `;
-  document.getElementById('againBtn').onclick = renderIdle;
+  document.getElementById('againBtn').onclick = startRecording;
   newlyEarnedTrophies = [];
   refreshFeathers();
 }
@@ -954,6 +965,10 @@ function requestGpsPosition() {
 
 async function startRecording() {
   try {
+    // Can now be reached directly from the Done / No-birds screens via the
+    // mic button, not just from Home - so make sure the Home tab reads as
+    // active rather than leaving whatever tab was highlighted before.
+    setActiveTab('home');
     requestGpsPosition();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
