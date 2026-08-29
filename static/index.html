@@ -431,6 +431,33 @@
   .summary-chip{background:#fff;border:2px solid var(--tier-color,var(--sage));border-radius:20px;padding:5px 13px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--dusk);}
   .done-feathers{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;}
   .go-again-ask{font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
+  /* Dancing avatar on the Done screen. Each limb has its own duration so they
+     drift out of sync rather than moving as one puppet - that's what reads as
+     dancing rather than rocking. transform-origin is in viewBox units, at each
+     limb's real joint. The held item shares the right wing's pivot and timing,
+     so anything carried moves with the wing holding it. */
+  .avatar-dancing .av-wing-l{transform-origin:27px 51px;animation:wingL 0.72s ease-in-out infinite;}
+  .avatar-dancing .av-wing-r,
+  .avatar-dancing .av-held{transform-origin:73px 51px;animation:wingR 0.94s ease-in-out infinite;}
+  .avatar-dancing .av-leg-l{transform-origin:44px 80px;animation:legL 0.61s ease-in-out infinite;}
+  .avatar-dancing .av-leg-r{transform-origin:56px 80px;animation:legR 0.83s ease-in-out infinite;}
+  @keyframes wingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(16deg);}}
+  @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-16deg);}}
+  @keyframes legL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-11deg);}}
+  @keyframes legR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(11deg);}}
+  .done-avatar{margin-bottom:4px;}
+  .done-trophy{cursor:pointer;}
+  .done-trophy.celebrating{animation:trophyCelebrate .9s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes trophyCelebrate{
+    0%{transform:scale(1) rotate(0);}
+    25%{transform:scale(1.22) rotate(-7deg);}
+    50%{transform:scale(1.22) rotate(7deg);}
+    75%{transform:scale(1.28) rotate(-4deg);}
+    100%{transform:scale(1.12) rotate(0);}
+  }
+  .trophy-banner-tap{font-family:'Outfit';font-weight:700;font-size:10px;color:var(--gold-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
+  .done-feathers.tappable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;border-radius:20px;padding:6px 18px;}
+  .spark{position:fixed;z-index:200;pointer-events:none;font-size:18px;will-change:transform,opacity;}
   .bonus-list{width:100%;max-width:300px;margin-top:12px;}
   .bonus-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.18);border-radius:10px;padding:8px 13px;margin-bottom:6px;font-family:'Outfit';font-weight:700;font-size:12.5px;color:#fff;}
   .bonus-feathers{color:var(--gold);}
@@ -966,9 +993,8 @@ function renderCard() {
     cardEl.onclick = null;                   // one tap only, mid-flight taps ignored
     cardEl.classList.remove('collectable');
     if (hint) hint.textContent = '';
-    flyFeathersToCounter(cardEl, bird.feathers, () => {
-      flyCardToCollection(cardEl, advanceReveal);
-    });
+    // Feathers are collected once, on the Done screen - not per card.
+    flyCardToCollection(cardEl, advanceReveal);
   };
 }
 
@@ -1288,16 +1314,24 @@ function buildFactsDashboard(facts) {
 }
 
 function renderDone() {
-  // Use the server's total, not a sum of the birds - bonuses (session,
-  // weekly target, habitat sets) are added server-side and would be
-  // invisible if this recalculated from detections alone.
+  // Server total, not a sum of the birds - bonuses are added server-side.
   const total = sessionFeatherTotal || sessionResults.reduce((sum, b) => sum + b.feathers, 0);
   const bonusRows = sessionBonuses.map(b => `
     <div class="bonus-row"><span>${b.label}</span><span class="bonus-feathers">+${b.feathers}</span></div>
   `).join('');
+
+  // Summary by tier, not by name - the birds have had their moment on the cards.
+  const tierCounts = {};
+  sessionResults.forEach(b => { tierCounts[b.tier] = (tierCounts[b.tier] || 0) + 1; });
+  const tierChips = ['Rare', 'Visitor', 'Common']
+    .filter(t => tierCounts[t])
+    .map(t => `<span class="summary-chip" style="--tier-color:${TIER_COLORS[t] || 'var(--sage)'}">${tierCounts[t]} ${t}</span>`)
+    .join('');
+  const n = sessionResults.length;
+
   const trophyBanners = newlyEarnedTrophies.map(t => `
-    <div class="trophy-banner">
-      <div class="trophy-banner-title">🏆 Trophy earned!</div>
+    <div class="trophy-banner done-trophy">
+      <div class="trophy-banner-title">\u{1F3C6} Trophy earned!</div>
       <div class="trophy-banner-row">
         <div class="trophy-banner-emoji">${t.emoji}</div>
         <div class="trophy-banner-text">
@@ -1305,34 +1339,95 @@ function renderDone() {
           <div class="trophy-banner-citation">${t.citation}</div>
         </div>
       </div>
+      <div class="trophy-banner-tap">Tap to celebrate</div>
     </div>
   `).join('');
-  // Summary by tier rather than by name - the birds have already had their
-  // moment on the cards, so this is about the shape of the session.
-  const tierCounts = {};
-  sessionResults.forEach(b => { tierCounts[b.tier] = (tierCounts[b.tier] || 0) + 1; });
-  const newCount = sessionResults.filter(b => !b.is_duplicate).length;
-  const tierChips = ['Rare', 'Visitor', 'Common']
-    .filter(t => tierCounts[t])
-    .map(t => `<span class="summary-chip" style="--tier-color:${TIER_COLORS[t] || 'var(--sage)'}">${tierCounts[t]} ${t}</span>`)
-    .join('');
-  const n = sessionResults.length;
 
   stage.innerHTML = `
-    <div class="done-icon">✨</div>
+    <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 140, currentProfile.equipped, true)}</div>
     <div class="done-title">Nice warble!</div>
-    <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
+    <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}</div>
     ${tierChips ? `<div class="summary-chips">${tierChips}</div>` : ''}
-    <div class="done-feathers">🪶 ${total} feathers earned</div>
     ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
     ${trophyBanners}
-    <div class="go-again-ask">Go again?</div>
-    <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">🎙</button>
+    <div class="done-feathers tappable" id="doneFeathers">\u{1FAB6} ${total} feathers earned</div>
+    <div class="collect-hint" id="doneHint">Tap your feathers to collect them</div>
+    <div id="goAgainWrap"></div>
   `;
-  document.getElementById('againBtn').onclick = startRecording;
+
+  stage.querySelectorAll('.done-trophy').forEach(el => {
+    el.onclick = () => { el.onclick = null; celebrateTrophy(el); };
+  });
+
+  const featherEl = document.getElementById('doneFeathers');
+  featherEl.onclick = () => {
+    featherEl.onclick = null;
+    featherEl.classList.remove('tappable');
+    const hint = document.getElementById('doneHint');
+    if (hint) hint.textContent = '';
+    flyFeathersToCounter(featherEl, total, () => {
+      featherEl.style.opacity = '0.45';
+      // Another go is only offered once the feathers have been collected,
+      // so it isn't possible to leave the session's reward on the table.
+      const wrap = document.getElementById('goAgainWrap');
+      if (wrap) {
+        wrap.innerHTML = `
+          <div class="go-again-ask">Go again?</div>
+          <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">\u{1F399}</button>`;
+        document.getElementById('againBtn').onclick = startRecording;
+      }
+      refreshFeathers();   // reconcile against the server once animations finish
+    });
+  };
+
   newlyEarnedTrophies = [];
   sessionBonuses = [];
-  refreshFeathers();   // reconciles against the server after the per-card animations
+}
+
+function celebrateTrophy(el) {
+  el.classList.add('celebrating');
+  burstSparks(el);
+  setTimeout(() => {
+    el.classList.remove('celebrating');
+    flyElementTo(el, document.getElementById('navTrophies'));
+  }, 900);
+}
+
+// A burst of stars around an element - the trophy celebration
+function burstSparks(el) {
+  const r = el.getBoundingClientRect();
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.textContent = ['\u2728', '\u2B50', '\u{1F31F}'][i % 3];
+    s.style.left = `${r.left + r.width / 2}px`;
+    s.style.top = `${r.top + r.height / 2}px`;
+    document.body.appendChild(s);
+    const angle = (Math.PI * 2 * i) / 12;
+    const dist = 70 + Math.random() * 50;
+    requestAnimationFrame(() => {
+      s.style.transition = 'transform .85s cubic-bezier(.2,.8,.3,1), opacity .85s ease';
+      s.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) scale(.4)`;
+      s.style.opacity = '0';
+    });
+    setTimeout(() => s.remove(), 900);
+  }
+}
+
+// Shrink an element away into one of the nav tabs
+function flyElementTo(el, target) {
+  if (!el) return;
+  if (!target) { el.style.display = 'none'; return; }
+  const from = el.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+  const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+  el.style.transition = 'transform .62s cubic-bezier(.55,0,.65,1), opacity .25s ease .38s';
+  el.style.transform = `translate(${dx}px, ${dy}px) scale(.08)`;
+  el.style.opacity = '0';
+  target.classList.add('nav-pop');
+  setTimeout(() => target.classList.remove('nav-pop'), 600);
+  setTimeout(() => { el.style.display = 'none'; }, 640);
 }
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
@@ -1695,28 +1790,38 @@ const ACCESSORY_LAYER_ORDER = ['shoes', 'gear', 'neck', 'held', 'glasses', 'hats
 
 let accessorySvgCache = {};
 
-function avatarSvg(body, face, beak, size, equipped) {
+function avatarSvg(body, face, beak, size, equipped, dancing) {
   equipped = equipped || {};
-  const accessoryLayers = ACCESSORY_LAYER_ORDER
-    .map(cat => (equipped[cat] && accessorySvgCache[equipped[cat]]) ? accessorySvgCache[equipped[cat]] : '')
-    .join('');
+  // Held items ride with the right wing, so they're pulled out of the normal
+  // layer stack and animated alongside it. Everything else layers as usual.
+  const layer = cat => (equipped[cat] && accessorySvgCache[equipped[cat]]) ? accessorySvgCache[equipped[cat]] : '';
+  const accessoryLayers = ACCESSORY_LAYER_ORDER.filter(cat => cat !== 'held').map(layer).join('');
+  const heldLayer = layer('held');
 
-  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" class="${dancing ? 'avatar-dancing' : ''}">
+    <g class="av-leg-l">
     <path d="M44 80 L42.5 93" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3.2" stroke-linecap="round"/>
     <path d="M42.5 93 L36 97.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
     <path d="M42.5 93 L42 99.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
     <path d="M42.5 93 L48.5 97" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g class="av-leg-r">
     <path d="M56 80 L57.5 93" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3.2" stroke-linecap="round"/>
     <path d="M57.5 93 L64 97.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
     <path d="M57.5 93 L58 99.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
     <path d="M57.5 93 L51.5 97" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+    </g>
     <path d="M13 50 C13 29.57 29.57 13 50 13 C70.43 13 87 29.57 87 50 Z" fill="${body}"/>
     <path d="M13 50 C13 70.43 29.57 87 50 87 C70.43 87 87 70.43 87 50 Z" fill="${body}"/>
     <path d="M13 50 C13 70.43 29.57 87 50 87 C70.43 87 87 70.43 87 50 Z" fill="#F5EDD6" opacity="0.38"/>
+    <g class="av-wing-l">
     <path d="M27 51 C20 54 15 63 11.5 73 C10.5 76 12 78.5 14.5 78 C16 77.7 17 76.5 17.8 74.8 C18.6 77.6 20 79 22 78.4 C23.8 77.9 24.7 76.2 25.2 74 C26.6 76 28.4 76.3 29.6 74.8 C30.8 73.3 30.9 70.6 30.6 67.5 C30.1 60 29.5 54.5 27 51 Z" fill="${body}"/>
     <path d="M27 51 C20 54 15 63 11.5 73 C10.5 76 12 78.5 14.5 78 C16 77.7 17 76.5 17.8 74.8 C18.6 77.6 20 79 22 78.4 C23.8 77.9 24.7 76.2 25.2 74 C26.6 76 28.4 76.3 29.6 74.8 C30.8 73.3 30.9 70.6 30.6 67.5 C30.1 60 29.5 54.5 27 51 Z" fill="#1A1128" opacity="0.28"/>
+    </g>
+    <g class="av-wing-r">
     <path d="M73 51 C80 54 85 63 88.5 73 C89.5 76 88 78.5 85.5 78 C84 77.7 83 76.5 82.2 74.8 C81.4 77.6 80 79 78 78.4 C76.2 77.9 75.3 76.2 74.8 74 C73.4 76 71.6 76.3 70.4 74.8 C69.2 73.3 69.1 70.6 69.4 67.5 C69.9 60 70.5 54.5 73 51 Z" fill="${body}"/>
     <path d="M73 51 C80 54 85 63 88.5 73 C89.5 76 88 78.5 85.5 78 C84 77.7 83 76.5 82.2 74.8 C81.4 77.6 80 79 78 78.4 C76.2 77.9 75.3 76.2 74.8 74 C73.4 76 71.6 76.3 70.4 74.8 C69.2 73.3 69.1 70.6 69.4 67.5 C69.9 60 70.5 54.5 73 51 Z" fill="#1A1128" opacity="0.28"/>
+    </g>
     <path d="M22 48 C22 40 25 32 31 29 C35 27 39 29 42.5 26.5 C45.5 24.4 47 22.5 50 22.5 C53 22.5 54.5 24.4 57.5 26.5 C61 29 65 27 69 29 C75 32 78 40 78 48 C78 57 74 64.5 67 69 C61 72.8 55 74 50 74 C45 74 39 72.8 33 69 C26 64.5 22 57 22 48 Z" fill="${face}"/>
     <ellipse cx="33.5" cy="56" rx="7" ry="4.2" fill="#E87EA1" opacity="0.5"/>
     <ellipse cx="66.5" cy="56" rx="7" ry="4.2" fill="#E87EA1" opacity="0.5"/>
@@ -1730,6 +1835,7 @@ function avatarSvg(body, face, beak, size, equipped) {
     <path d="M42.5 52 L57.5 52 L50 60.5 Z" fill="${beak}"/>
     <path d="M42.5 52 L57.5 52 L50 60.5 Z" fill="#1A1128" opacity="0.42"/>
     ${accessoryLayers}
+    <g class="av-held">${heldLayer}</g>
   </svg>`;
 }
 
