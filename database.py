@@ -7,7 +7,7 @@ now — no accounts yet, so there's just one shared total).
 import os
 import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -46,6 +46,7 @@ class PlayerStats(Base):
 
     id = Column(Integer, primary_key=True)
     total_feathers = Column(Float, default=0)
+    share_count = Column(Integer, default=0)
 
 
 class RecordingSession(Base):
@@ -58,6 +59,8 @@ class RecordingSession(Base):
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
     bird_count = Column(Integer, default=0)   # filled in after detection
+    before_sunrise = Column(Boolean, default=False)
+    was_raining = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
@@ -65,8 +68,10 @@ class EarnedTrophy(Base):
     __tablename__ = "earned_trophies"
 
     id = Column(Integer, primary_key=True)
-    trophy_key = Column(String, unique=True, nullable=False)
+    trophy_key = Column(String, nullable=False)
+    level = Column(Integer, default=1, nullable=False)
     earned_at = Column(DateTime, default=datetime.datetime.utcnow)
+    __table_args__ = (UniqueConstraint("trophy_key", "level", name="uq_trophy_level"),)
 
 
 class Location(Base):
@@ -149,6 +154,15 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS show_scientific_names BOOLEAN DEFAULT TRUE"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_photo TEXT"))
         conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS bird_count INTEGER DEFAULT 0"))
+        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS before_sunrise BOOLEAN DEFAULT FALSE"))
+        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS was_raining BOOLEAN DEFAULT FALSE"))
+        conn.execute(text("ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS share_count INTEGER DEFAULT 0"))
+        # trophy_key was unique when trophies were one-shot; levels need one row per level
+        conn.execute(text("ALTER TABLE earned_trophies ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1"))
+        try:
+            conn.execute(text("ALTER TABLE earned_trophies DROP CONSTRAINT IF EXISTS earned_trophies_trophy_key_key"))
+        except Exception as e:
+            print(f"Note: could not drop old trophy_key constraint: {e}")
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
@@ -333,7 +347,7 @@ def get_total_feathers() -> float:
         return stats.total_feathers if stats else 0
 
 
-def record_session(lat: float, lng: float):
+def record_session(lat: float, lng: float, before_sunrise: bool = False, was_raining: bool = False):
     """Log that a recording happened, regardless of what (if anything) was
     heard. Returns (total_sessions_ever, this_session_id) — the count feeds
     the Fledgling check without a second query, and the id lets the caller
@@ -341,7 +355,7 @@ def record_session(lat: float, lng: float):
     if SessionLocal is None:
         return 0, None
     with SessionLocal() as session:
-        row = RecordingSession(lat=lat, lng=lng)
+        row = RecordingSession(lat=lat, lng=lng, before_sunrise=before_sunrise, was_raining=was_raining)
         session.add(row)
         session.commit()
         return session.query(RecordingSession).count(), row.id
@@ -425,6 +439,105 @@ def get_week_stats():
         "tiers": {s.tier for s in sightings},
         "earliest_hour": min((r.created_at.hour for r in rows if r.created_at), default=None),
     }
+
+
+def count_all_sessions() -> int:
+    """Every session ever - Fledgling's measure."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        return session.query(RecordingSession).count()
+
+
+def count_pre_sunrise_sessions() -> int:
+    """Sessions started before sunrise - Early Bird's measure."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        return session.query(RecordingSession).filter(
+            RecordingSession.before_sunrise == True,  # noqa: E712
+            RecordingSession.bird_count > 0).count()
+
+
+def count_rainy_sessions() -> int:
+    """Sessions warbled in the rain - Brooder's measure."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        return session.query(RecordingSession).filter(
+            RecordingSession.was_raining == True).count()  # noqa: E712
+
+
+def best_pre_sunrise_session() -> int:
+    """Most birds heard in a single pre-sunrise session - Dawn Chorus."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        rows = session.query(RecordingSession.bird_count).filter(
+            RecordingSession.before_sunrise == True).all()  # noqa: E712
+    return max((r[0] or 0 for r in rows), default=0)
+
+
+def count_sightings_of(species: set) -> int:
+    """How many sightings belong to a given set of species - Night Owl counts
+    nocturnal birds this way."""
+    if SessionLocal is None or not species:
+        return 0
+    with SessionLocal() as session:
+        return session.query(Sighting).filter(Sighting.common_name.in_(species)).count()
+
+
+def count_species_found_far_apart(min_km: float = 5.0) -> int:
+    """How many species have been found in two places at least min_km apart -
+    Migrator's measure. Was a yes/no check; levels need a count."""
+    if SessionLocal is None:
+        return 0
+    import math
+    with SessionLocal() as session:
+        rows = session.query(Sighting.common_name, Sighting.lat, Sighting.lng).all()
+
+    by_species = {}
+    for name, lat, lng in rows:
+        if lat is None or lng is None:
+            continue
+        by_species.setdefault(name, set()).add((round(lat, 3), round(lng, 3)))
+
+    def km_between(a, b):
+        R = 6371.0
+        p1, p2 = math.radians(a[0]), math.radians(b[0])
+        dp, dl = p2 - p1, math.radians(b[1] - a[1])
+        h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+        return 2 * R * math.asin(math.sqrt(h))
+
+    total = 0
+    for points in by_species.values():
+        pts = list(points)
+        if any(km_between(pts[i], pts[j]) >= min_km
+               for i in range(len(pts)) for j in range(i + 1, len(pts))):
+            total += 1
+    return total
+
+
+def get_share_count() -> int:
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        stats = session.query(PlayerStats).first()
+        return (stats.share_count or 0) if stats else 0
+
+
+def increment_share_count() -> int:
+    """Wingman counts shares, so they have to be recorded rather than inferred."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        stats = session.query(PlayerStats).first()
+        if stats is None:
+            stats = PlayerStats(total_feathers=0, share_count=0)
+            session.add(stats)
+        stats.share_count = (stats.share_count or 0) + 1
+        session.commit()
+        return stats.share_count
 
 
 def count_empty_sessions() -> int:
@@ -517,23 +630,37 @@ def count_curated_species_found(curated_set: set) -> int:
 
 
 def get_earned_trophy_keys() -> set:
+    """Keys of every trophy earned at any level."""
     if SessionLocal is None:
         return set()
     with SessionLocal() as session:
         return {t.trophy_key for t in session.query(EarnedTrophy).all()}
 
 
-def award_trophy(trophy_key: str) -> bool:
-    """Awards a trophy if it hasn't been earned already. Returns True
-    if this call newly awarded it, False if it was already earned (or
-    the database isn't configured)."""
+def get_trophy_levels() -> dict:
+    """Highest level reached for each trophy, e.g. {"night_owl": 2}."""
+    if SessionLocal is None:
+        return {}
+    out = {}
+    with SessionLocal() as session:
+        for t in session.query(EarnedTrophy).all():
+            lvl = t.level or 1
+            if lvl > out.get(t.trophy_key, 0):
+                out[t.trophy_key] = lvl
+    return out
+
+
+def award_trophy(trophy_key: str, level: int = 1) -> bool:
+    """Awards one level of a trophy. Returns True only the first time that
+    specific level is earned, so a level can't pay out twice."""
     if SessionLocal is None:
         return False
     with SessionLocal() as session:
-        existing = session.query(EarnedTrophy).filter_by(trophy_key=trophy_key).first()
+        existing = session.query(EarnedTrophy).filter_by(
+            trophy_key=trophy_key, level=level).first()
         if existing is not None:
             return False
-        session.add(EarnedTrophy(trophy_key=trophy_key))
+        session.add(EarnedTrophy(trophy_key=trophy_key, level=level))
         session.commit()
         return True
 

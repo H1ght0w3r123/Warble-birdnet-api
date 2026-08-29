@@ -165,7 +165,10 @@ async def identify(
 
 from database import (
     init_db, has_existing_sighting, save_sighting, get_tiers_found_for,
-    count_full_collector_sets,
+    count_full_collector_sets, get_trophy_levels,
+    count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
+    count_sightings_of, count_species_found_far_apart,
+    get_share_count, increment_share_count, count_all_sessions,
     reset_dress_up, reset_feathers, reset_sightings, reset_everything,
     delete_species, export_everything,
     add_feathers, get_all_sightings, get_total_feathers,
@@ -185,7 +188,7 @@ from database import (
     set_total_feathers,
 )
 from bird_facts import get_bird_facts
-from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
+from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, requirement_text
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
 from curated_species import ALL_CURATED_SPECIES, CURATED_SPECIES
@@ -219,119 +222,60 @@ def get_bird_call_url(scientific_name: str):
     return None
 
 
-def check_session_trophies(lat: float, lng: float, moment_utc: datetime.datetime):
+def measure_all_trophies():
+    """Current value of every trophy's measure, in one place.
+
+    Replaces the old pile of separate if-statements: each trophy is now a
+    number compared against its own thresholds, which is what lets levels work
+    without inventing a new check per level.
     """
-    Checks trophies that only depend on the session happening at all -
-    not on what (if anything) gets detected. Called before the
-    detection loop. Returns (newly_earned_keys, is_before_sunrise, session_id)
-    - the sunrise flag is handed back so check_detection_trophies doesn't need
-    to recompute it, and the session id lets the caller record how many birds
-    were found once detection has finished.
-    """
-    total_sessions, session_id = record_session(lat, lng)
-    newly_earned = []
-
-    if total_sessions == 1:
-        if award_trophy("fledgling"):
-            newly_earned.append("fledgling")
-
-    before_sunrise = is_before_sunrise(lat, lng, moment_utc)
-    if before_sunrise:
-        if award_trophy("early_bird"):
-            newly_earned.append("early_bird")
-
-    if count_distinct_locations() >= 10:
-        if award_trophy("nomad"):
-            newly_earned.append("nomad")
-
-    if max_sessions_at_one_location() >= 5:
-        if award_trophy("rooster"):
-            newly_earned.append("rooster")
-
-    if distinct_seasons_warbled() >= 4:
-        if award_trophy("evergreen"):
-            newly_earned.append("evergreen")
-
-    if max_consecutive_warble_days() >= 3:
-        if award_trophy("tailwind"):
-            newly_earned.append("tailwind")
-
-    if count_owned_accessories() >= 10:
-        if award_trophy("preener"):
-            newly_earned.append("preener")
-
-    # Checked here rather than in the detection pass, since it's about
-    # sessions that found nothing - the detection pass never runs for those.
-    if count_empty_sessions() >= 20:
-        if award_trophy("empty_nester"):
-            newly_earned.append("empty_nester")
-
-    # Only call the weather API while this is still unearned - no point paying
-    # the latency on every session once it's already won.
-    if "brooder" not in get_earned_trophy_keys() and is_raining(lat, lng):
-        if award_trophy("brooder"):
-            newly_earned.append("brooder")
-
-    return newly_earned, before_sunrise, session_id
+    return {
+        "fledgling":     count_all_sessions(),
+        "early_bird":    count_pre_sunrise_sessions(),
+        "nomad":         count_distinct_locations(),
+        "rooster":       max_sessions_at_one_location(),
+        "golden_eagle":  count_rare_sightings(),
+        "dawn_chorus":   best_pre_sunrise_session(),
+        "forager":       count_distinct_species(),
+        "night_owl":     count_sightings_of(NOCTURNAL_SPECIES),
+        "century":       count_curated_species_found(ALL_CURATED_SPECIES),
+        "globetrotter":  count_full_collector_sets(COLLECTOR_SPECIES),
+        "empty_nester":  count_empty_sessions(),
+        "preener":       count_owned_accessories(),
+        "evergreen":     distinct_seasons_warbled(),
+        "tailwind":      max_consecutive_warble_days(),
+        "migrator":      count_species_found_far_apart(5.0),
+        "skylark":       count_species_found_in(set(CURATED_SPECIES["Farmland & Hedgerow"])),
+        "high_flyer":    count_species_found_in(set(CURATED_SPECIES["Raptors & Others"])),
+        "still_water":   count_species_found_in(set(CURATED_SPECIES["Wetland & Water"])),
+        "brooder":       count_rainy_sessions(),
+        "wingman":       get_share_count(),
+    }
 
 
-def check_detection_trophies(results: list, before_sunrise: bool, moment_utc: datetime.datetime):
-    """
-    Checks trophies that depend on what was actually detected this
-    session - called after the detection loop, once results (and
-    their tiers) are known.
-    """
-    newly_earned = []
+def check_all_trophies():
+    """Awards every trophy level now qualified for. Returns the newly earned
+    ones, each tagged with which level it was.
 
-    if count_rare_sightings() >= 5:
-        if award_trophy("golden_eagle"):
-            newly_earned.append("golden_eagle")
-
-    if count_distinct_species() >= 20:
-        if award_trophy("forager"):
-            newly_earned.append("forager")
-
-    if count_curated_species_found(ALL_CURATED_SPECIES) >= len(ALL_CURATED_SPECIES):
-        if award_trophy("century"):
-            newly_earned.append("century")
-
-    # Habitat-group trophies, counted against the curated 100-species list
-    habitat_trophies = [
-        ("skylark", "Farmland & Hedgerow"),
-        ("high_flyer", "Raptors & Others"),
-        ("still_water", "Wetland & Water"),
-    ]
-    for key, habitat in habitat_trophies:
-        if count_species_found_in(set(CURATED_SPECIES[habitat])) >= 5:
-            if award_trophy(key):
-                newly_earned.append(key)
-
-    if has_species_found_far_apart(5.0):
-        if award_trophy("migrator"):
-            newly_earned.append("migrator")
-
-    if count_full_collector_sets(COLLECTOR_SPECIES) >= 1:
-        if award_trophy("globetrotter"):
-            newly_earned.append("globetrotter")
-
-    species_this_session = {r["common_name"] for r in results}
-
-    if before_sunrise and len(species_this_session) >= 5:
-        if award_trophy("dawn_chorus"):
-            newly_earned.append("dawn_chorus")
-
-    # NOTE: this hour check is in UTC, same as Early Bird's sunrise
-    # comparison. Unlike sunrise (which is itself computed in UTC, so
-    # the comparison is self-consistent), "9pm" is a fixed civil-clock
-    # threshold - during British Summer Time this will be roughly an
-    # hour off from true UK local time. A reasonable simplification for
-    # now, not a silent bug - worth a proper timezone fix later if it
-    # matters in practice.
-    if moment_utc.hour >= 21 and any(name in NOCTURNAL_SPECIES for name in species_this_session):
-        if award_trophy("night_owl"):
-            newly_earned.append("night_owl")
-
-    return newly_earned
+    Levels are checked from the top down and every unearned level below the
+    one reached is awarded too - so a big jump can't leave gaps, and an
+    existing player who already passed level 1 still collects it."""
+    measures = measure_all_trophies()
+    newly = []
+    for key, value in measures.items():
+        thresholds = TROPHY_DEFINITIONS[key]["levels"]
+        for i, threshold in enumerate(thresholds):
+            if value >= threshold and award_trophy(key, i + 1):
+                newly.append({
+                    "key": key,
+                    "level": i + 1,
+                    "level_count": len(thresholds),
+                    "name": TROPHY_DEFINITIONS[key]["name"],
+                    "emoji": TROPHY_DEFINITIONS[key]["emoji"],
+                    "citation": TROPHY_DEFINITIONS[key]["citations"][i],
+                    "description": TROPHY_DEFINITIONS[key]["description"],
+                })
+    return newly
 
 
 # BirdNET's label set isn't purely birds - it also classifies human speech,
@@ -501,7 +445,12 @@ async def analyze_session(
     now = datetime.datetime.now(datetime.timezone.utc)
     results = []
 
-    session_trophy_keys, before_sunrise, session_id = check_session_trophies(lat, lng, now)
+    # Conditions are recorded on the session itself so the level counters can
+    # be derived later, rather than only being known at this moment.
+    before_sunrise = is_before_sunrise(lat, lng, now)
+    raining = is_raining(lat, lng)
+    _, session_id = record_session(lat, lng, before_sunrise=before_sunrise, was_raining=raining)
+
     existing_location_name = get_location_name(lat, lng)
     needs_location_name = existing_location_name is None
 
@@ -550,16 +499,13 @@ async def analyze_session(
             "lng": lng,
         })
 
-    detection_trophy_keys = check_detection_trophies(results, before_sunrise, now)
-    all_earned_keys = session_trophy_keys + detection_trophy_keys
-    newly_earned_trophies = [{"key": k, **TROPHY_DEFINITIONS[k]} for k in all_earned_keys]
+    # Bird count has to be stored before trophies are measured - several of
+    # them count sessions that found something.
+    set_session_bird_count(session_id, len(results))
+    newly_earned_trophies = check_all_trophies()
 
     session_feathers = sum(r["feathers"] for r in results)
     bonuses = []
-
-    # Record what this session found before any of the bonus checks below,
-    # since they all read from it.
-    set_session_bird_count(session_id, len(results))
 
     if results:
         # Rewards showing up, not just discovering something new - which is the
@@ -649,10 +595,8 @@ def award_wingman():
     """Awarded when a bird is shared from the app. Called by the share button
     rather than inferred, since there's no reliable way to detect that a share
     actually completed."""
-    newly = []
-    if award_trophy("wingman"):
-        newly.append({"key": "wingman", **TROPHY_DEFINITIONS["wingman"]})
-    return {"newly_earned_trophies": newly}
+    increment_share_count()
+    return {"newly_earned_trophies": check_all_trophies()}
 
 
 def evaluate_week_challenges():
@@ -808,15 +752,32 @@ async def update_profile_endpoint(
 
 @app.get("/trophies")
 def list_trophies():
-    """Every trophy, each marked earned or not. Unearned ones are still
-    returned in full - the Trophies page now shows what they require."""
-    earned = get_earned_trophy_keys()
-    return {
-        "trophies": [
-            {"key": key, "earned": key in earned, **info}
-            for key, info in TROPHY_DEFINITIONS.items()
-        ]
-    }
+    """Every trophy with the level reached, its next target, and progress
+    towards it. Unearned trophies still return their first requirement - the
+    Trophies page shows what everything needs."""
+    levels = get_trophy_levels()
+    measures = measure_all_trophies()
+    out = []
+    for key, t in TROPHY_DEFINITIONS.items():
+        level = levels.get(key, 0)
+        value = measures.get(key, 0)
+        maxed = level >= len(t["levels"])
+        next_i = min(level, len(t["levels"]) - 1)
+        out.append({
+            "key": key,
+            "name": t["name"],
+            "emoji": t["emoji"],
+            "description": t["description"],
+            "earned": level > 0,
+            "level": level,
+            "level_count": len(t["levels"]),
+            "maxed": maxed,
+            "progress": value,
+            "next_target": None if maxed else t["levels"][next_i],
+            "requirement": requirement_text(key, next_i),
+            "citation": t["citations"][level - 1] if level > 0 else None,
+        })
+    return {"trophies": out}
 
 
 @app.get("/sightings")
