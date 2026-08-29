@@ -413,6 +413,8 @@
   .nav-avatar-photo{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
   .remove-bird-btn{display:block;width:100%;margin-top:16px;background:none;border:none;font-family:'Outfit';font-weight:700;font-size:11.5px;color:var(--mist-dk);cursor:pointer;text-decoration:underline;}
   .danger-title{color:#FFD9D2;}
+  .feather-set-row{display:flex;gap:8px;width:100%;align-items:stretch;margin-bottom:6px;}
+  .feather-set-btn{margin:0;padding:12px 22px;flex-shrink:0;}
   .reset-note{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:10px;width:100%;}
   .reset-btn{width:100%;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-family:'Outfit';font-weight:700;font-size:13px;cursor:pointer;text-align:left;}
   .reset-btn.danger{background:rgba(192,57,43,0.55);}
@@ -435,6 +437,7 @@
     margin-top:18px;width:100%;max-width:280px;padding:13px 16px;border-radius:12px;border:none;
     font-family:'Space Grotesk';font-size:15px;text-align:center;
   }
+  .feather-input{flex:1;margin:0;max-width:none;}
   .skip-btn{background:none;border:none;color:rgba(255,255,255,0.85);font-family:'Outfit';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
   .location-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
   .location-tag{display:flex;align-items:center;gap:4px;background:var(--rose);color:#fff;font-family:'Outfit';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
@@ -2157,6 +2160,14 @@ async function renderSettings() {
     <div class="profile-section-title">Sound check</div>
     <div id="micCheck" style="width:100%;"></div>
 
+    <div class="profile-section-title">Feathers</div>
+    <div class="feather-set-row">
+      <input type="number" id="featherInput" class="location-input feather-input"
+             min="0" max="99999" placeholder="Feathers">
+      <button class="again-btn feather-set-btn" id="setFeathersBtn">Set</button>
+    </div>
+    <div class="reset-note" id="featherSetNote">For testing — sets your balance to any number.</div>
+
     <div class="profile-section-title">Backup</div>
     <div class="reset-note">Save a copy of everything before you reset.</div>
     <button class="reset-btn" id="exportBtn">Download my data</button>
@@ -2190,6 +2201,33 @@ async function renderSettings() {
   };
 
   renderMicCheck();
+
+  // Prefill with the current balance so it's clear what's being changed
+  try {
+    const fRes = await fetch('/feathers');
+    const fData = await fRes.json();
+    currentFeatherTotal = fData.total_feathers;
+    document.getElementById('featherInput').value = Math.round(fData.total_feathers);
+  } catch (e) { /* leave it blank */ }
+
+  document.getElementById('setFeathersBtn').onclick = async () => {
+    const input = document.getElementById('featherInput');
+    const note = document.getElementById('featherSetNote');
+    const amount = parseInt(input.value, 10);
+    if (isNaN(amount) || amount < 0) {
+      note.textContent = 'Enter a number of 0 or more.';
+      return;
+    }
+    try {
+      const res = await fetch(`/dev/set-feathers/${amount}`);
+      const data = await res.json();
+      currentFeatherTotal = data.total_feathers;
+      animateFeatherCount(currentFeatherTotal);
+      note.textContent = `Feathers set to ${Math.round(data.total_feathers)}.`;
+    } catch (e) {
+      note.textContent = "Couldn't set feathers right now.";
+    }
+  };
 
   document.getElementById('exportBtn').onclick = async () => {
     try {
