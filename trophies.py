@@ -117,12 +117,12 @@ TROPHY_DEFINITIONS = {
     },
     "globetrotter": {
         "name": "Globetrotter", "emoji": "\U0001F30D",
-        "verb": "Collect", "unit": "birds at all three tiers",
-        "levels": [1, 3, 8],
+        "verb": "Complete", "unit": "collector packs",
+        "levels": [1, 2, 3],
         "citations": [
-            "The same bird, common in one place and rare in another!",
-            "Three birds collected at every tier. You've travelled.",
-            "Eight full sets. You've heard the country properly.",
+            "A whole pack completed - every bird at every tier!",
+            "Two packs finished. You've really covered the country.",
+            "Every collector pack complete. Nothing left to chase.",
         ],
         "description": "A bird everyone sees at home can be a special sight somewhere else. You had to travel to learn that.",
     },

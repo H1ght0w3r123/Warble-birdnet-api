@@ -165,7 +165,7 @@ async def identify(
 
 from database import (
     init_db, has_existing_sighting, save_sighting, get_tiers_found_for,
-    count_full_collector_sets, get_trophy_levels,
+    count_full_collector_sets, get_tiers_by_species, get_trophy_levels,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_sightings_of, count_species_found_far_apart,
     get_share_count, increment_share_count, count_all_sessions,
@@ -192,7 +192,7 @@ from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, r
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
 from curated_species import ALL_CURATED_SPECIES, CURATED_SPECIES
-from collector_species import COLLECTOR_SPECIES, TIERS
+from collector_species import COLLECTOR_SPECIES, COLLECTOR_PACKS, TIERS, pack_for_species
 from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
 
 init_db()
@@ -239,7 +239,7 @@ def measure_all_trophies():
         "forager":       count_distinct_species(),
         "night_owl":     count_sightings_of(NOCTURNAL_SPECIES),
         "century":       count_curated_species_found(ALL_CURATED_SPECIES),
-        "globetrotter":  count_full_collector_sets(COLLECTOR_SPECIES),
+        "globetrotter":  sum(1 for p in pack_progress() if p["complete"]),
         "empty_nester":  count_empty_sessions(),
         "preener":       count_owned_accessories(),
         "evergreen":     distinct_seasons_warbled(),
@@ -394,6 +394,11 @@ HABITAT_SET_BONUS = 100
 
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
+    """Only collector-pack birds carry a tier. Everything else pays a flat
+    rate - sitting between Common and Visitor, since an untiered bird has no
+    rarity upside to chase."""
+    if tier is None:
+        return 4 if is_duplicate else 12
     values = {
         ("Common", False): 5, ("Visitor", False): 25, ("Rare", False): 50,
         ("Common", True): 3, ("Visitor", True): 8, ("Rare", True): 20,
@@ -464,11 +469,16 @@ async def analyze_session(
         # pass would only reject birds the user already watched a badge
         # appear for, recreating exactly the disappearing-detection problem
         # this restructure removes.
-        tier, record_count = get_nbn_tier(scientific_name, lat, lng)
-
-        # Collector species are held per tier, so the same bird at a tier you
-        # haven't got yet is a genuinely new find and pays new-bird feathers.
+        # Rarity is a collector-pack feature only. Everything else is simply
+        # found or not - which keeps the tier badge meaningful instead of
+        # appearing on every sighting.
         is_collector = common_name in COLLECTOR_SPECIES
+        if is_collector:
+            tier, record_count = get_nbn_tier(scientific_name, lat, lng)
+        else:
+            tier, record_count = None, None
+
+        # A pack bird at a tier you haven't got yet is a genuinely new find.
         is_duplicate = has_existing_sighting(common_name, tier if is_collector else None)
         feathers = calculate_feathers(tier, is_duplicate)
         photo_url, description = get_wikipedia_info(scientific_name)
@@ -487,6 +497,7 @@ async def analyze_session(
             "nbn_record_count": record_count,
             "is_collector": is_collector,
             "tiers_found": get_tiers_found_for(common_name) if is_collector else None,
+            "pack": pack_for_species(common_name),
             "is_duplicate": is_duplicate,
             "feathers": feathers,
             "call_url": call_url,
@@ -656,6 +667,32 @@ async def reset_data(scope: str):
     actions[scope]()
     print(f"RESET performed: {scope}")
     return {"status": "ok", "scope": scope}
+
+
+def pack_progress():
+    """Per-pack progress: how many of the 15 cards (5 birds x 3 tiers) are held,
+    and which tiers of each bird."""
+    tiers_held = get_tiers_by_species(COLLECTOR_SPECIES)
+    packs = []
+    for key, pack in COLLECTOR_PACKS.items():
+        birds = []
+        for name in pack["species"]:
+            got = sorted(tiers_held.get(name, set()), key=TIERS.index)
+            birds.append({"common_name": name, "tiers_found": got, "complete": len(got) == 3})
+        cards = sum(len(b["tiers_found"]) for b in birds)
+        packs.append({
+            "key": key, "name": pack["name"], "blurb": pack["blurb"],
+            "emoji": pack["emoji"], "birds": birds,
+            "cards_found": cards, "cards_total": len(pack["species"]) * len(TIERS),
+            "complete": cards == len(pack["species"]) * len(TIERS),
+        })
+    return packs
+
+
+@app.get("/collector-packs")
+def list_collector_packs():
+    """The three collector packs with progress, for the Collections screen."""
+    return {"packs": pack_progress(), "tiers": TIERS}
 
 
 @app.get("/collector-species")
