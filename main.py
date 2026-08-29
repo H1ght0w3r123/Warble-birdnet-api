@@ -117,7 +117,7 @@ async def identify(
         recording = Recording(
             analyzer,
             tmp_wav_path,
-            min_conf=0.25,
+            min_conf=0.15,
         )
         recording.analyze()
         detections = recording.detections

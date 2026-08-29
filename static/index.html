@@ -1464,7 +1464,34 @@ async function startRecording() {
     // active rather than leaving whatever tab was highlighted before.
     setActiveTab('home');
     requestGpsPosition();
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // { audio: true } accepts the browser's voice-call defaults: noise
+    // suppression, echo cancellation and automatic gain control all on. Those
+    // are tuned for speech and actively strip sustained non-speech sound -
+    // which is exactly what birdsong is. Quiet or distant birds get filtered
+    // out before BirdNET ever sees them. All three are turned off here to get
+    // the rawest audio the device will give us.
+    //
+    // echoCancellation:false matters more than it looks: on Chrome, AGC can't
+    // be disabled by the autoGainControl constraint alone - echo cancellation
+    // has to go too, or gain control stays on regardless.
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        noiseSuppression: false,
+        echoCancellation: false,
+        autoGainControl: false,
+        channelCount: 1,
+      },
+    });
+
+    // Log what the device actually granted - constraints are requests, not
+    // guarantees, and some devices silently ignore them.
+    const settings = stream.getAudioTracks()[0]?.getSettings?.() || {};
+    console.log('Mic settings:', {
+      noiseSuppression: settings.noiseSuppression,
+      echoCancellation: settings.echoCancellation,
+      autoGainControl: settings.autoGainControl,
+      sampleRate: settings.sampleRate,
+    });
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
