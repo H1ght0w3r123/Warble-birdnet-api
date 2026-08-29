@@ -673,12 +673,23 @@ def pack_progress():
     """Per-pack progress: how many of the 15 cards (5 birds x 3 tiers) are held,
     and which tiers of each bird."""
     tiers_held = get_tiers_by_species(COLLECTOR_SPECIES)
+    # Newest photo per species, so a found card can show the real bird
+    photos = {}
+    for s in get_all_sightings():
+        photos.setdefault(s["common_name"], s.get("image_url"))
+
     packs = []
     for key, pack in COLLECTOR_PACKS.items():
         birds = []
         for name in pack["species"]:
             got = sorted(tiers_held.get(name, set()), key=TIERS.index)
-            birds.append({"common_name": name, "tiers_found": got, "complete": len(got) == 3})
+            birds.append({
+                "common_name": name,
+                "tiers_found": got,
+                "complete": len(got) == 3,
+                "found": bool(got),
+                "photo_url": photos.get(name) if got else None,
+            })
         cards = sum(len(b["tiers_found"]) for b in birds)
         packs.append({
             "key": key, "name": pack["name"], "blurb": pack["blurb"],

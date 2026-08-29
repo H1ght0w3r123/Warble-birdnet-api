@@ -460,14 +460,30 @@
   .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Outfit';font-weight:700;}
   .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Outfit';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
   .habitat-card{cursor:pointer;}
+  .pack-card{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;width:100%;}
+  .pack-card.complete{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
+  .pack-head{display:flex;justify-content:space-between;align-items:baseline;}
+  .pack-title{font-family:'Outfit';font-weight:900;font-size:15px;color:var(--dusk);}
+  .pack-count{font-family:'Outfit';font-weight:700;font-size:12px;color:var(--mist-dk);}
+  .fan-row{display:flex;justify-content:center;align-items:flex-start;height:104px;margin-top:14px;}
+  .fan-card{
+    width:56px; height:82px; border-radius:8px; background:var(--parch);
+    border:2px solid var(--mist); margin-left:-12px; flex-shrink:0;
+    box-shadow:0 3px 8px rgba(0,0,0,0.22); overflow:hidden; position:relative;
+    transform-origin:bottom center; transition:transform .25s ease;
+  }
+  .fan-card:first-child{margin-left:0;}
+  .fan-card.complete{border-color:var(--gold);}
+  .fan-card.unfound{filter:grayscale(1) brightness(.92);}
+  .fan-photo{width:100%;height:60px;object-fit:cover;display:block;}
+  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.3;background:var(--parch-dk);}
+  .fan-pips{display:flex;gap:3px;justify-content:center;padding:4px 0;}
+  .fan-pip{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
+  .fan-pip.got{background:var(--tier-color);opacity:1;}
+  .pack-names{display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:center;margin-top:10px;font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist);}
+  .pack-names .got{color:var(--dusk);}
+  .pack-done{text-align:center;font-family:'Outfit';font-weight:900;font-size:11px;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.05em;margin-top:10px;}
   .pack-blurb{font-size:11px;color:var(--mist-dk);margin-top:4px;line-height:1.4;}
-  .pack-birds{margin-top:9px;display:flex;flex-direction:column;gap:5px;}
-  .pack-bird{display:flex;justify-content:space-between;align-items:center;gap:10px;}
-  .pack-bird-name{font-family:'Outfit';font-weight:700;font-size:11.5px;color:var(--mist-dk);}
-  .pack-bird.complete .pack-bird-name{color:var(--dusk);}
-  .pack-pips{display:flex;gap:4px;flex-shrink:0;}
-  .pack-pip{width:11px;height:11px;border-radius:50%;border:2px solid var(--tier-color);opacity:.35;}
-  .pack-pip.got{background:var(--tier-color);opacity:1;}
   .habitat-tap{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
   .hab-list{width:100%;display:flex;flex-direction:column;gap:6px;}
   .hab-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:7px 12px 7px 8px;}
@@ -2883,27 +2899,42 @@ async function loadCollectorPacks() {
     const res = await fetch('/collector-packs');
     const d = await res.json();
     el.innerHTML = (d.packs || []).map(p => {
-      // Three pips per bird - one per rarity, filled as each is found.
-      const birds = p.birds.map(b => {
+      // Fanned like a real hand of cards. Each card is one bird; the three
+      // pips along its foot are its rarities, filling in as they're found.
+      const n = p.birds.length;
+      const fan = p.birds.map((b, i) => {
+        // Spread evenly about centre so the fan is symmetrical whatever the
+        // pack size, rather than hard-coding angles for exactly five.
+        const angle = (i - (n - 1) / 2) * 7;
+        const lift = Math.abs(i - (n - 1) / 2) * 4;
         const pips = (d.tiers || []).map(t => `
-          <span class="pack-pip ${b.tiers_found.includes(t) ? 'got' : ''}"
-                style="--tier-color:${TIER_COLORS[t]}" title="${t}"></span>`).join('');
+          <span class="fan-pip ${b.tiers_found.includes(t) ? 'got' : ''}"
+                style="--tier-color:${TIER_COLORS[t]}"></span>`).join('');
+        const face = b.photo_url
+          ? `<img class="fan-photo" src="${b.photo_url}" alt="">`
+          : `<div class="fan-photo empty">${b.found ? '' : '🐦'}</div>`;
         return `
-          <div class="pack-bird ${b.complete ? 'complete' : ''}">
-            <span class="pack-bird-name">${b.common_name}</span>
-            <span class="pack-pips">${pips}</span>
+          <div class="fan-card ${b.complete ? 'complete' : ''} ${b.found ? '' : 'unfound'}"
+               style="transform:rotate(${angle}deg) translateY(${lift}px); z-index:${10 - Math.abs(i - (n - 1) / 2)}"
+               title="${b.common_name}">
+            ${face}
+            <div class="fan-pips">${pips}</div>
           </div>`;
       }).join('');
-      const pct = Math.round((p.cards_found / p.cards_total) * 100);
+
       return `
-        <div class="habitat-card ${p.complete ? 'complete' : ''}">
-          <div class="habitat-top">
-            <span class="habitat-name">${p.emoji} ${p.name}</span>
-            <span class="habitat-count">${p.cards_found}/${p.cards_total}</span>
+        <div class="pack-card ${p.complete ? 'complete' : ''}">
+          <div class="pack-head">
+            <span class="pack-title">${p.emoji} ${p.name}</span>
+            <span class="pack-count">${p.cards_found}/${p.cards_total}</span>
           </div>
           <div class="pack-blurb">${p.blurb}</div>
-          <div class="habitat-bar"><div class="habitat-bar-fill" style="width:${pct}%"></div></div>
-          <div class="pack-birds">${birds}</div>
+          <div class="fan-row">${fan}</div>
+          ${p.complete
+            ? '<div class="pack-done">Pack complete!</div>'
+            : `<div class="pack-names">${p.birds.map(b =>
+                 `<span class="${b.found ? 'got' : ''}">${b.found ? b.common_name : '???'}</span>`
+               ).join('')}</div>`}
         </div>`;
     }).join('');
   } catch (e) {
