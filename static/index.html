@@ -236,9 +236,9 @@
   .collection-title{font-family:'Outfit';font-weight:900;font-size:20px;color:#fff;}
   .back-btn{background:none;border:none;font-family:'Outfit';font-weight:700;color:#fff;cursor:pointer;font-size:14px;padding:0;}
   .collection-count{font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:14px;}
-  .curated-progress{font-size:11px;color:rgba(255,255,255,0.85);text-align:center;width:100%;margin-top:-8px;margin-bottom:16px;font-family:'Outfit';font-weight:700;}
-  .curated-bar{width:100%;max-width:220px;height:6px;background:rgba(255,255,255,0.25);border-radius:3px;margin:6px auto 0;overflow:hidden;}
-  .curated-bar-fill{height:100%;background:var(--gold);border-radius:3px;transition:width 0.6s ease;}
+  .sort-row{display:flex;gap:6px;justify-content:center;width:100%;margin-bottom:12px;}
+  .sort-btn{background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit';font-weight:700;font-size:11.5px;cursor:pointer;transition:background .2s ease,color .2s ease;}
+  .sort-btn.active{background:#fff;color:var(--dusk);}
   .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   .collection-item{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--tier-color,var(--sage));}
   .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
@@ -1119,6 +1119,9 @@ function renderNoBirds() {
   };
 }
 
+let collectionSort = 'az';
+let collectionBirds = [];
+
 function renderCollection() {
   setActiveTab('collection');
   stage.classList.add('top-aligned');
@@ -1127,24 +1130,96 @@ function renderCollection() {
       <div class="collection-title">My Birds</div>
     </div>
     <div class="collection-count">Loading...</div>
-    <div class="curated-progress" id="curatedProgress"></div>
+    <div class="sort-row" id="sortRow">
+      <button class="sort-btn" data-sort="az">A–Z</button>
+      <button class="sort-btn" data-sort="rarity">Rarity</button>
+      <button class="sort-btn" data-sort="date">Discovered</button>
+    </div>
     <div class="collection-grid" id="collectionGrid"></div>
   `;
+  stage.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.onclick = () => {
+      if (collectionSort === btn.dataset.sort) return;
+      collectionSort = btn.dataset.sort;
+      updateSortButtons();
+      shuffleCollectionTo(sortCollection(collectionBirds));
+    };
+  });
+  updateSortButtons();
   loadCollection();
-  loadCuratedProgress();
 }
 
-async function loadCuratedProgress() {
-  const el = document.getElementById('curatedProgress');
-  if (!el) return;
-  try {
-    const res = await fetch('/curated-progress');
-    const data = await res.json();
-    el.innerHTML = `
-      🎯 ${data.found} of ${data.total} on Warble's list
-      <div class="curated-bar"><div class="curated-bar-fill" style="width:${Math.round((data.found / data.total) * 100)}%"></div></div>
-    `;
-  } catch (e) { /* fine to just leave this blank if it fails */ }
+function updateSortButtons() {
+  stage.querySelectorAll('.sort-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.sort === collectionSort));
+}
+
+const SORT_TIER_RANK = { Rare: 0, Visitor: 1, Common: 2 };
+function sortCollection(birds) {
+  const out = [...birds];
+  if (collectionSort === 'rarity') {
+    // Rarest first, alphabetical within a tier so it's stable
+    out.sort((a, b) => (SORT_TIER_RANK[a.tier] ?? 3) - (SORT_TIER_RANK[b.tier] ?? 3)
+                    || a.common_name.localeCompare(b.common_name));
+  } else if (collectionSort === 'date') {
+    // First discovered first - first_found is the oldest sighting per species
+    out.sort((a, b) => new Date(a.first_found) - new Date(b.first_found));
+  } else {
+    out.sort((a, b) => a.common_name.localeCompare(b.common_name));
+  }
+  return out;
+}
+
+function collectionCardHtml(bird) {
+  const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+  const photo = bird.image_url
+    ? `<img src="${bird.image_url}">`
+    : `<div style="height:70px;background:var(--parch-dk);"></div>`;
+  return `
+    <div class="collection-item" style="--tier-color:${tierColor}" data-name="${bird.common_name}">
+      ${photo}
+      <div class="ci-name">${bird.common_name}</div>
+    </div>`;
+}
+
+function bindCollectionCards() {
+  const grid = document.getElementById('collectionGrid');
+  if (!grid) return;
+  grid.querySelectorAll('.collection-item').forEach(el => {
+    el.onclick = () => renderBirdDetail(el.dataset.name);
+  });
+}
+
+// FLIP: measure where every card is now, re-render in the new order, then
+// animate each from its old position to its new one. Doing it this way means
+// the cards genuinely slide between positions rather than the grid snapping.
+function shuffleCollectionTo(sorted) {
+  const grid = document.getElementById('collectionGrid');
+  if (!grid) return;
+
+  const before = new Map();
+  grid.querySelectorAll('.collection-item').forEach(el => {
+    before.set(el.dataset.name, el.getBoundingClientRect());
+  });
+
+  grid.innerHTML = sorted.map(collectionCardHtml).join('');
+  bindCollectionCards();
+
+  grid.querySelectorAll('.collection-item').forEach((el, i) => {
+    const old = before.get(el.dataset.name);
+    if (!old) return;
+    const now = el.getBoundingClientRect();
+    const dx = old.left - now.left;
+    const dy = old.top - now.top;
+    if (!dx && !dy) return;
+    // Start it back where it was, then let it travel to its real place
+    el.style.transform = `translate(${dx}px, ${dy}px)`;
+    el.style.transition = 'none';
+    requestAnimationFrame(() => {
+      el.style.transition = `transform .5s cubic-bezier(.34,1.1,.64,1) ${Math.min(i * 12, 180)}ms`;
+      el.style.transform = '';
+    });
+  });
 }
 
 async function loadCollection() {
@@ -1155,44 +1230,30 @@ async function loadCollection() {
     const data = await res.json();
     allSightingsRaw = data.sightings || [];
 
-    // The backend logs every individual sighting — collapse that down
-    // to one entry per species for the collection grid, keeping the
-    // most recent (the list already arrives newest-first).
-    const seen = new Set();
-    const uniqueBirds = [];
+    // The backend logs every individual sighting - collapse that down to one
+    // entry per species, keeping the most recent (the list arrives
+    // newest-first) but remembering when it was FIRST found, for date sorting.
+    const seen = new Map();
     for (const s of allSightingsRaw) {
       if (!seen.has(s.common_name)) {
-        seen.add(s.common_name);
-        uniqueBirds.push(s);
+        seen.set(s.common_name, { ...s, first_found: s.created_at });
+      } else {
+        // Still newer-to-older, so each later row is an earlier sighting
+        seen.get(s.common_name).first_found = s.created_at;
       }
     }
-    // Alphabetical by name, so the grid has a predictable order to scan
-    // rather than shuffling as new birds are found.
-    uniqueBirds.sort((a, b) => a.common_name.localeCompare(b.common_name));
+    collectionBirds = [...seen.values()];
 
-    if (countEl) countEl.textContent = `${uniqueBirds.length} species found`;
+    if (countEl) countEl.textContent = `${collectionBirds.length} species found`;
 
-    if (uniqueBirds.length === 0) {
+    if (collectionBirds.length === 0) {
       if (grid) grid.outerHTML = `<div class="collection-empty">Nothing found yet — go warbling!</div>`;
       return;
     }
 
     if (grid) {
-      grid.innerHTML = uniqueBirds.map(bird => {
-        const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
-        const photo = bird.image_url
-          ? `<img src="${bird.image_url}">`
-          : `<div style="height:70px;background:var(--parch-dk);"></div>`;
-        return `
-          <div class="collection-item" style="--tier-color:${tierColor}" data-name="${bird.common_name}">
-            ${photo}
-            <div class="ci-name">${bird.common_name}</div>
-          </div>
-        `;
-      }).join('');
-      grid.querySelectorAll('.collection-item').forEach(el => {
-        el.onclick = () => renderBirdDetail(el.dataset.name);
-      });
+      grid.innerHTML = sortCollection(collectionBirds).map(collectionCardHtml).join('');
+      bindCollectionCards();
     }
   } catch (e) {
     if (countEl) countEl.textContent = '';
