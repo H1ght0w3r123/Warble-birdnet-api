@@ -188,6 +188,15 @@
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
     animation:statFadeUp 0.4s ease 0.3s both;
   }
+  .collect-hint{font-family:'Outfit';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);text-align:center;margin-top:16px;min-height:16px;animation:statFadeUp .4s ease both;}
+  .card.collectable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;}
+  @keyframes collectGlow{
+    0%,100%{box-shadow:0 12px 30px rgba(45,27,105,0.18);}
+    50%{box-shadow:0 12px 34px rgba(255,255,255,0.6);}
+  }
+  .flying-feather{position:fixed;z-index:200;font-size:20px;pointer-events:none;will-change:transform,opacity;}
+  .nav-pop{animation:navPop .5s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes navPop{0%,100%{transform:scale(1);}40%{transform:scale(1.28);}}
   .card-nav-row{display:flex;gap:10px;width:100%;max-width:300px;margin-top:22px;animation:statFadeUp 0.4s ease 0.7s both;}
   .next-btn{
     flex:1; padding:15px 0;
@@ -486,12 +495,16 @@ const TIER_COLORS = { Common: 'var(--sage)', Visitor: 'var(--terra)', Rare: 'var
 let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
 let sessionResults = [], cardIndex = 0;
 let sessionBonuses = [], sessionFeatherTotal = 0;
+// Running feather total, kept in step with the counter in the top bar so the
+// per-card fly-and-count animation can add to it without re-fetching.
+let currentFeatherTotal = 0;
 let allSightingsRaw = [];
 
 async function refreshFeathers() {
   try {
     const res = await fetch('/feathers');
     const data = await res.json();
+    currentFeatherTotal = data.total_feathers;
     animateFeatherCount(data.total_feathers);
   } catch (e) { /* fine to fail quietly here */ }
 }
@@ -898,6 +911,18 @@ function renderSessionResults() {
   }
 }
 
+// Reveal order builds towards the best find: commonest first, and within a
+// tier the ones already in the collection before genuinely new ones. So the
+// last card of a session is the rarest new bird - the moment worth waiting for.
+const REVEAL_TIER_RANK = { Common: 0, Visitor: 1, Rare: 2 };
+function sortForReveal(birds) {
+  return [...birds].sort((a, b) => {
+    const t = (REVEAL_TIER_RANK[a.tier] ?? 0) - (REVEAL_TIER_RANK[b.tier] ?? 0);
+    if (t !== 0) return t;
+    return (a.is_duplicate ? 0 : 1) - (b.is_duplicate ? 0 : 1);
+  });
+}
+
 function renderCard() {
   if (sessionResults.length === 0) { renderNoBirds(); return; }
   const bird = sessionResults[cardIndex];
@@ -905,7 +930,7 @@ function renderCard() {
   stage.innerHTML = `
     <div class="card-wrap">
       <div class="progress">Bird ${cardIndex + 1} of ${sessionResults.length}</div>
-      <div class="card" style="--tier-color:${tierColor}">
+      <div class="card" id="revealCard" style="--tier-color:${tierColor}">
         ${bird.photo_url ? `<img class="card-photo" src="${bird.photo_url}">` : `<div class="card-photo"></div>`}
         <div class="card-body">
           <div class="card-name">${bird.common_name}</div>
@@ -919,26 +944,101 @@ function renderCard() {
           <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         </div>
       </div>
-      <div class="card-nav-row">
-        ${cardIndex > 0 ? `<button class="prev-btn" id="prevBtn">← Back</button>` : ''}
-        <button class="next-btn" id="nextBtn">${cardIndex + 1 < sessionResults.length ? 'Next bird →' : 'Done'}</button>
-      </div>
+      <div class="collect-hint" id="collectHint"></div>
     </div>
   `;
   const playBtn = stage.querySelector('.play-call-btn');
-  if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
-  const prevBtn = document.getElementById('prevBtn');
-  if (prevBtn) prevBtn.onclick = () => { cardIndex--; renderCard(); };
-  document.getElementById('nextBtn').onclick = () => {
-    cardIndex++;
-    if (cardIndex < sessionResults.length) {
-      renderCard();
-    } else if (needsLocationName) {
-      renderNameLocation(renderDone);
-    } else {
-      renderDone();
-    }
-  };
+  if (playBtn) playBtn.onclick = (e) => { e.stopPropagation(); playBirdCall(playBtn.dataset.callUrl, playBtn); };
+
+  const cardEl = document.getElementById('revealCard');
+  // Feathers fly to the counter first; only then does the card invite a tap.
+  flyFeathersToCounter(cardEl, bird.feathers, () => {
+    cardEl.classList.add('collectable');
+    const hint = document.getElementById('collectHint');
+    if (hint) hint.textContent = 'Tap to add to your collection';
+    cardEl.onclick = () => {
+      cardEl.onclick = null;                 // one tap only, mid-flight taps ignored
+      flyCardToCollection(cardEl, advanceReveal);
+    };
+  });
+}
+
+function advanceReveal() {
+  cardIndex++;
+  if (cardIndex < sessionResults.length) {
+    renderCard();
+  } else if (needsLocationName) {
+    renderNameLocation(finishSession);
+  } else {
+    finishSession();
+  }
+}
+
+function finishSession() {
+  // Feathers have already been counted up card by card, so the Done screen is
+  // only worth showing when it has something else to say - a trophy or a
+  // bonus. Otherwise go straight home, as asked.
+  if (newlyEarnedTrophies.length || sessionBonuses.length) {
+    renderDone();
+  } else {
+    sessionBonuses = [];
+    renderIdle();
+  }
+}
+
+// --- Animation 1: feathers fly from the card to the counter, which counts up
+function flyFeathersToCounter(cardEl, feathers, onDone) {
+  const counter = document.querySelector('.feathers');
+  if (!cardEl || !counter || !feathers) { setTimeout(onDone, 450); return; }
+
+  const from = cardEl.getBoundingClientRect();
+  const to = counter.getBoundingClientRect();
+  // One feather per 5 earned reads as "more feathers" without a swarm of 50.
+  const count = Math.max(3, Math.min(10, Math.round(feathers / 5)));
+  const startTotal = currentFeatherTotal;
+
+  for (let i = 0; i < count; i++) {
+    const f = document.createElement('div');
+    f.className = 'flying-feather';
+    f.textContent = '🪶';
+    f.style.left = `${from.left + from.width / 2}px`;
+    f.style.top = `${from.top + from.height / 2}px`;
+    document.body.appendChild(f);
+    const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+    const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+    // Stagger so they stream rather than move as one block
+    const delay = i * 70;
+    requestAnimationFrame(() => {
+      f.style.transition = `transform .75s cubic-bezier(.4,0,.5,1) ${delay}ms, opacity .3s ease ${delay + 550}ms`;
+      f.style.transform = `translate(${dx}px, ${dy}px) scale(.5) rotate(${(Math.random() - .5) * 120}deg)`;
+      f.style.opacity = '0';
+    });
+    setTimeout(() => f.remove(), delay + 900);
+  }
+
+  const flightTime = (count - 1) * 70 + 750;
+  currentFeatherTotal = startTotal + feathers;
+  setTimeout(() => animateFeatherCount(currentFeatherTotal), 400);
+  setTimeout(onDone, flightTime);
+}
+
+// --- Animation 2: card shrinks away into the My Birds tab
+function flyCardToCollection(cardEl, onDone) {
+  const target = document.getElementById('navCollection');
+  if (!cardEl || !target) { onDone(); return; }
+  const from = cardEl.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+  const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+
+  cardEl.classList.remove('collectable');
+  cardEl.style.transition = 'transform .62s cubic-bezier(.55,0,.65,1), opacity .25s ease .38s';
+  cardEl.style.transform = `translate(${dx}px, ${dy}px) scale(.08) rotate(8deg)`;
+  cardEl.style.opacity = '0';
+
+  target.classList.add('nav-pop');
+  setTimeout(() => target.classList.remove('nav-pop'), 600);
+  setTimeout(onDone, 640);
 }
 
 function renderNameLocation(onDone) {
@@ -1217,7 +1317,7 @@ function renderDone() {
   document.getElementById('againBtn').onclick = startRecording;
   newlyEarnedTrophies = [];
   sessionBonuses = [];
-  refreshFeathers();
+  refreshFeathers();   // reconciles against the server after the per-card animations
 }
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
@@ -1511,7 +1611,7 @@ function stopRecording() {
       const res = await fetch('/analyze-session', { method: 'POST', body: formData });
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
-      sessionResults = data.detections || [];
+      sessionResults = sortForReveal(data.detections || []);
       sessionBonuses = data.bonuses || [];
       sessionFeatherTotal = data.total_feathers_this_session || 0;
       newlyEarnedTrophies = data.newly_earned_trophies || [];
@@ -1920,7 +2020,6 @@ function editLocationPrompt(id, listEl) {
 let dressUpCategories = [];
 let accessoryCatalog = [];
 let selectedCategory = null;
-let currentFeatherTotal = 0;
 
 async function renderDressUp() {
   setActiveTab('dressup');
