@@ -1271,13 +1271,20 @@ function stopAnyPlayingAudio() {
 
 function playBirdCall(url, btnEl) {
   if (!url) return;
+
+  // Tapping the button while it's already playing stops it. The button used
+  // to show a pause icon but was disabled, so the pause was unclickable.
+  if (currentlyPlayingBtn === btnEl && currentlyPlayingAudio) {
+    stopAnyPlayingAudio();
+    return;
+  }
+
   stopAnyPlayingAudio(); // only one call plays at a time
   const audio = new Audio(url);
   currentlyPlayingLabel = btnEl.textContent;
   currentlyPlayingAudio = audio;
   currentlyPlayingBtn = btnEl;
-  btnEl.textContent = '⏸ Playing...';
-  btnEl.disabled = true;
+  btnEl.textContent = '⏸ Stop';
   audio.play().catch(() => stopAnyPlayingAudio());
   audio.onended = () => stopAnyPlayingAudio();
 }
@@ -1331,6 +1338,7 @@ function renderDone() {
   // Summary by tier, not by name - the birds have had their moment on the cards.
   const tierCounts = {};
   sessionResults.forEach(b => { tierCounts[b.tier] = (tierCounts[b.tier] || 0) + 1; });
+  const newCount = sessionResults.filter(b => !b.is_duplicate).length;
   const tierChips = ['Rare', 'Visitor', 'Common']
     .filter(t => tierCounts[t])
     .map(t => `<span class="summary-chip" style="--tier-color:${TIER_COLORS[t] || 'var(--sage)'}">${tierCounts[t]} ${t}</span>`)
@@ -1353,7 +1361,7 @@ function renderDone() {
 
   stage.innerHTML = `
     <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 140, currentProfile.equipped, true)}</div>
-    <div class="done-title">Nice warble!</div>
+    <div class="done-title">${pickDoneMessage(n, newCount, tierCounts)}</div>
     <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}</div>
     ${tierChips ? `<div class="summary-chips">${tierChips}</div>` : ''}
     ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
@@ -1390,6 +1398,29 @@ function renderDone() {
 
   newlyEarnedTrophies = [];
   sessionBonuses = [];
+}
+
+// Well-done messages. The specific ones are checked first so a genuinely
+// notable session gets a message that reflects it, rather than a generic one.
+const DONE_MESSAGES = {
+  rare:    ['Wow, a rare one!', 'Something special!', 'What a find!', 'That was rare!'],
+  big:     ['What a haul!', 'So many birds!', 'The birds love you!', 'A brilliant warble!'],
+  allNew:  ['All new birds!', 'Every one a first!', 'What a discovery!'],
+  someNew: ['New bird alert!', 'One for the collection!', 'A great find!', 'Something new!'],
+  one:     ['One good bird!', 'Found one!', 'Nice listening!', 'Got one!'],
+  general: ['Nice warble!', 'Well done!', 'Great listening!', 'Lovely warbling!',
+            'Good ears!', 'Brilliant!', 'What a listener!', 'Top warbling!'],
+};
+
+function pickDoneMessage(count, newCount, tierCounts) {
+  let pool;
+  if (tierCounts['Rare']) pool = DONE_MESSAGES.rare;
+  else if (count >= 5) pool = DONE_MESSAGES.big;
+  else if (newCount && newCount === count) pool = DONE_MESSAGES.allNew;
+  else if (newCount) pool = DONE_MESSAGES.someNew;
+  else if (count === 1) pool = DONE_MESSAGES.one;
+  else pool = DONE_MESSAGES.general;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function celebrateTrophy(el) {
