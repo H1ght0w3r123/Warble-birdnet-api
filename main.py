@@ -165,6 +165,7 @@ async def identify(
 
 from database import (
     init_db, has_existing_sighting, save_sighting, get_tiers_found_for,
+    count_full_collector_sets,
     add_feathers, get_all_sightings, get_total_feathers,
     record_session, count_distinct_locations,
     get_earned_trophy_keys, award_trophy,
@@ -306,6 +307,10 @@ def check_detection_trophies(results: list, before_sunrise: bool, moment_utc: da
     if has_species_found_far_apart(5.0):
         if award_trophy("migrator"):
             newly_earned.append("migrator")
+
+    if count_full_collector_sets(COLLECTOR_SPECIES) >= 1:
+        if award_trophy("globetrotter"):
+            newly_earned.append("globetrotter")
 
     species_this_session = {r["common_name"] for r in results}
 

@@ -212,6 +212,20 @@ def has_existing_sighting(common_name: str, tier: str = None) -> bool:
         return q.first() is not None
 
 
+def count_full_collector_sets(collector_species: set) -> int:
+    """How many collector species are held at all three tiers - the Globetrotter
+    trophy. Counts distinct tiers per species and looks for a full three."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        rows = session.query(Sighting.common_name, Sighting.tier).distinct().all()
+    by_species = {}
+    for name, tier in rows:
+        if name in collector_species and tier:
+            by_species.setdefault(name, set()).add(tier)
+    return sum(1 for tiers in by_species.values() if len(tiers) >= 3)
+
+
 def get_tiers_found_for(common_name: str):
     """Which tiers of a species are already collected."""
     if SessionLocal is None:

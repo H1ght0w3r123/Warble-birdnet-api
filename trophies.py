@@ -73,6 +73,13 @@ TROPHY_DEFINITIONS = {
         "citation": "You've found every single bird on the list — outstanding!",
         "description": "There are 100 different birds on Warble's list, and you've found every single one of them. That's not luck — that's real skill, real patience, and a lot of listening. You're officially a master warbler.",
     },
+    "globetrotter": {
+        "name": "Globetrotter",
+        "requirement": "Collect one bird at all three rarity tiers",
+        "emoji": "\U0001F30D",
+        "citation": "The same bird, common in one place and rare in another!",
+        "description": "You found the same bird in places so far apart that it counted as common in one and rare in another. That's a real thing birdwatchers know: a bird everyone sees at home can be a special sight somewhere else. You had to travel to learn it.",
+    },
     "empty_nester": {
         "name": "Empty Nester",
         "requirement": "Go warbling 20 times without hearing a bird",
