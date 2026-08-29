@@ -437,12 +437,16 @@
   .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Outfit';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
   .habitat-card{cursor:pointer;}
   .habitat-tap{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
-  .hab-bird{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--sage);}
-  .hab-bird.mystery{border-color:var(--mist);background:rgba(255,255,255,0.55);}
-  .hab-bird-photo{width:100%;aspect-ratio:1;object-fit:cover;display:flex;align-items:center;justify-content:center;background:var(--parch-dk);}
-  .hab-bird-silhouette{font-size:26px;filter:grayscale(1) brightness(.45);opacity:.5;}
-  .hab-bird-name{font-family:'Outfit';font-weight:700;font-size:10px;color:var(--dusk);text-align:center;padding:6px 4px;}
-  .hab-bird.mystery .hab-bird-name{color:var(--mist-dk);}
+  .hab-list{width:100%;display:flex;flex-direction:column;gap:6px;}
+  .hab-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:7px 12px 7px 8px;}
+  .hab-row.mystery{background:rgba(255,255,255,0.42);}
+  .hab-row-num{font-family:'Outfit';font-weight:900;font-size:11px;color:var(--mist-dk);width:18px;text-align:center;flex-shrink:0;}
+  .hab-row-thumb{width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--parch-dk);display:flex;align-items:center;justify-content:center;}
+  .hab-row-silhouette{font-size:19px;filter:grayscale(1) brightness(.4);opacity:.45;}
+  .hab-row-name{flex:1;font-family:'Outfit';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
+  .hab-row.mystery .hab-row-name{color:var(--mist-dk);font-weight:400;font-style:italic;}
+  .hab-row-mark{font-family:'Outfit';font-weight:900;font-size:14px;color:var(--mist-dk);flex-shrink:0;}
+  .hab-row-mark.found{color:var(--sage-dk);}
   .trophy-carousel{position:relative;width:100%;height:210px;margin-top:8px;overflow:hidden;touch-action:pan-y;}
   .trophy-slide{
     position:absolute; left:50%; top:8px; width:130px; cursor:pointer;
@@ -2610,20 +2614,29 @@ function renderHabitatDetail(habitatName) {
   if (!h) return;
   stage.classList.add('top-aligned');
 
-  const foundCards = h.found.map(b => `
-    <div class="hab-bird found">
-      ${b.photo_url ? `<img class="hab-bird-photo" src="${b.photo_url}" alt="">`
-                    : `<div class="hab-bird-photo"></div>`}
-      <div class="hab-bird-name">${b.common_name}</div>
+  // A habitat set is a checklist, not a gallery - so it's laid out as rows
+  // rather than reusing My Birds' photo grid, which made the two screens look
+  // interchangeable. Rows also handle the unfound entries far better: a blank
+  // row reads as "still to find", where a blank grid tile just looks broken.
+  const foundRows = h.found.map((b, i) => `
+    <div class="hab-row found">
+      <div class="hab-row-num">${i + 1}</div>
+      ${b.photo_url ? `<img class="hab-row-thumb" src="${b.photo_url}" alt="">`
+                    : `<div class="hab-row-thumb"></div>`}
+      <div class="hab-row-name">${b.common_name}</div>
+      <div class="hab-row-mark found">✓</div>
     </div>`).join('');
 
-  // Unfound birds are silhouettes with no name - the count is visible, the
-  // identities aren't, so there's still something to discover.
-  const mysteryCards = Array.from({ length: h.remaining }, () => `
-    <div class="hab-bird mystery">
-      <div class="hab-bird-photo"><span class="hab-bird-silhouette">🐦</span></div>
-      <div class="hab-bird-name">?</div>
+  // Unfound birds stay nameless - the count is visible, the identities aren't.
+  const mysteryRows = Array.from({ length: h.remaining }, (_, i) => `
+    <div class="hab-row mystery">
+      <div class="hab-row-num">${h.found_count + i + 1}</div>
+      <div class="hab-row-thumb"><span class="hab-row-silhouette">🐦</span></div>
+      <div class="hab-row-name">Still to find</div>
+      <div class="hab-row-mark">?</div>
     </div>`).join('');
+
+  const pct = Math.round((h.found_count / h.total) * 100);
 
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
@@ -2631,7 +2644,10 @@ function renderHabitatDetail(habitatName) {
     </div>
     <div class="collection-title" style="margin-bottom:4px;">${h.name}</div>
     <div class="collection-count">${h.found_count} of ${h.total} found${h.complete ? ' · Complete!' : ''}</div>
-    <div class="collection-grid">${foundCards}${mysteryCards}</div>
+    <div class="habitat-bar" style="max-width:300px;margin-bottom:14px;">
+      <div class="habitat-bar-fill" style="width:${pct}%"></div>
+    </div>
+    <div class="hab-list">${foundRows}${mysteryRows}</div>
   `;
   document.getElementById('backBtn').onclick = renderHabitats;
 }
