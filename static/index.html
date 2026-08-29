@@ -1120,6 +1120,7 @@ function renderNoBirds() {
 }
 
 let collectionSort = 'az';
+let collectionSortDesc = false;
 let collectionBirds = [];
 
 function renderCollection() {
@@ -1139,8 +1140,12 @@ function renderCollection() {
   `;
   stage.querySelectorAll('.sort-btn').forEach(btn => {
     btn.onclick = () => {
-      if (collectionSort === btn.dataset.sort) return;
-      collectionSort = btn.dataset.sort;
+      if (collectionSort === btn.dataset.sort) {
+        collectionSortDesc = !collectionSortDesc;   // tap again to invert
+      } else {
+        collectionSort = btn.dataset.sort;
+        collectionSortDesc = false;                 // new sort starts ascending
+      }
       updateSortButtons();
       shuffleCollectionTo(sortCollection(collectionBirds));
     };
@@ -1149,9 +1154,16 @@ function renderCollection() {
   loadCollection();
 }
 
+const SORT_LABELS = { az: 'A–Z', rarity: 'Rarity', date: 'Discovered' };
+
 function updateSortButtons() {
-  stage.querySelectorAll('.sort-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.sort === collectionSort));
+  stage.querySelectorAll('.sort-btn').forEach(b => {
+    const isActive = b.dataset.sort === collectionSort;
+    b.classList.toggle('active', isActive);
+    // The arrow only appears on the active button, so it reads as "this is
+    // the sort, and this is its direction" rather than three competing arrows.
+    b.textContent = SORT_LABELS[b.dataset.sort] + (isActive ? (collectionSortDesc ? ' ↓' : ' ↑') : '');
+  });
 }
 
 const SORT_TIER_RANK = { Rare: 0, Visitor: 1, Common: 2 };
@@ -1167,7 +1179,9 @@ function sortCollection(birds) {
   } else {
     out.sort((a, b) => a.common_name.localeCompare(b.common_name));
   }
-  return out;
+  // Reversing the sorted list handles all three cases, including the
+  // tie-break within a rarity tier, which flips with it.
+  return collectionSortDesc ? out.reverse() : out;
 }
 
 function collectionCardHtml(bird) {
