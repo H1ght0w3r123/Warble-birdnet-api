@@ -221,6 +221,7 @@
   /* The "go again" variant: a round mic button that starts a new recording
      straight away, rather than a text button that returns to Home first. */
   .again-btn.mic-again-btn{
+    margin-top:12px;
     width:84px; height:84px; padding:0; border-radius:50%;
     background:var(--terra); box-shadow:0 6px 0 var(--terra-dk);
     font-size:30px; display:flex; align-items:center; justify-content:center;
@@ -426,6 +427,10 @@
   .trophy-caption-name{font-family:'Outfit';font-weight:900;font-size:19px;color:#fff;}
   .trophy-caption-req{font-size:12.5px;color:rgba(255,255,255,0.88);margin-top:4px;line-height:1.4;}
   .trophy-caption-tap{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .summary-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+  .summary-chip{background:#fff;border:2px solid var(--tier-color,var(--sage));border-radius:20px;padding:5px 13px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--dusk);}
+  .done-feathers{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;}
+  .go-again-ask{font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
   .bonus-list{width:100%;max-width:300px;margin-top:12px;}
   .bonus-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.18);border-radius:10px;padding:8px 13px;margin-bottom:6px;font-family:'Outfit';font-weight:700;font-size:12.5px;color:#fff;}
   .bonus-feathers{color:var(--gold);}
@@ -951,16 +956,20 @@ function renderCard() {
   if (playBtn) playBtn.onclick = (e) => { e.stopPropagation(); playBirdCall(playBtn.dataset.callUrl, playBtn); };
 
   const cardEl = document.getElementById('revealCard');
-  // Feathers fly to the counter first; only then does the card invite a tap.
-  flyFeathersToCounter(cardEl, bird.feathers, () => {
-    cardEl.classList.add('collectable');
-    const hint = document.getElementById('collectHint');
-    if (hint) hint.textContent = 'Tap to add to your collection';
-    cardEl.onclick = () => {
-      cardEl.onclick = null;                 // one tap only, mid-flight taps ignored
+  const hint = document.getElementById('collectHint');
+
+  // The card is tappable as soon as it's revealed. One tap drives the whole
+  // sequence: feathers fly to the counter, then the card flies to My Birds.
+  cardEl.classList.add('collectable');
+  if (hint) hint.textContent = 'Tap to add to your collection';
+  cardEl.onclick = () => {
+    cardEl.onclick = null;                   // one tap only, mid-flight taps ignored
+    cardEl.classList.remove('collectable');
+    if (hint) hint.textContent = '';
+    flyFeathersToCounter(cardEl, bird.feathers, () => {
       flyCardToCollection(cardEl, advanceReveal);
-    };
-  });
+    });
+  };
 }
 
 function advanceReveal() {
@@ -975,15 +984,7 @@ function advanceReveal() {
 }
 
 function finishSession() {
-  // Feathers have already been counted up card by card, so the Done screen is
-  // only worth showing when it has something else to say - a trophy or a
-  // bonus. Otherwise go straight home, as asked.
-  if (newlyEarnedTrophies.length || sessionBonuses.length) {
-    renderDone();
-  } else {
-    sessionBonuses = [];
-    renderIdle();
-  }
+  renderDone();
 }
 
 // --- Animation 1: feathers fly from the card to the counter, which counts up
@@ -1306,12 +1307,26 @@ function renderDone() {
       </div>
     </div>
   `).join('');
+  // Summary by tier rather than by name - the birds have already had their
+  // moment on the cards, so this is about the shape of the session.
+  const tierCounts = {};
+  sessionResults.forEach(b => { tierCounts[b.tier] = (tierCounts[b.tier] || 0) + 1; });
+  const newCount = sessionResults.filter(b => !b.is_duplicate).length;
+  const tierChips = ['Rare', 'Visitor', 'Common']
+    .filter(t => tierCounts[t])
+    .map(t => `<span class="summary-chip" style="--tier-color:${TIER_COLORS[t] || 'var(--sage)'}">${tierCounts[t]} ${t}</span>`)
+    .join('');
+  const n = sessionResults.length;
+
   stage.innerHTML = `
     <div class="done-icon">✨</div>
     <div class="done-title">Nice warble!</div>
-    <div class="done-sub">You earned ${total} feathers this session</div>
+    <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
+    ${tierChips ? `<div class="summary-chips">${tierChips}</div>` : ''}
+    <div class="done-feathers">🪶 ${total} feathers earned</div>
     ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
     ${trophyBanners}
+    <div class="go-again-ask">Go again?</div>
     <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">🎙</button>
   `;
   document.getElementById('againBtn').onclick = startRecording;
