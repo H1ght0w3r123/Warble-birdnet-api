@@ -197,11 +197,28 @@ def init_db():
                         session.commit()
 
 
-def has_existing_sighting(common_name: str) -> bool:
+def has_existing_sighting(common_name: str, tier: str = None) -> bool:
+    """Whether this bird is already in the collection.
+
+    For collector species a tier is passed in, and the same bird at a tier you
+    haven't got yet counts as NEW - that's what makes all three collectable.
+    For everything else tier is None and any previous sighting counts."""
     if SessionLocal is None:
         return False
     with SessionLocal() as session:
-        return session.query(Sighting).filter_by(common_name=common_name).first() is not None
+        q = session.query(Sighting).filter_by(common_name=common_name)
+        if tier is not None:
+            q = q.filter_by(tier=tier)
+        return q.first() is not None
+
+
+def get_tiers_found_for(common_name: str):
+    """Which tiers of a species are already collected."""
+    if SessionLocal is None:
+        return []
+    with SessionLocal() as session:
+        rows = session.query(Sighting.tier).filter_by(common_name=common_name).distinct().all()
+        return [r[0] for r in rows if r[0]]
 
 
 def save_sighting(common_name, scientific_name, confidence, tier, image_url, description=None, lat=None, lng=None, call_url=None):

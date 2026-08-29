@@ -157,6 +157,16 @@
   }
   /* A Rare find gets a violet halo as well as the border, so it announces
      itself before the tier label is even read. */
+  .collector-strip{margin-top:12px;padding-top:11px;border-top:1px dashed var(--parch-dk);}
+  .collector-label{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .collector-pips{display:flex;gap:5px;justify-content:center;}
+  .collector-pip{
+    flex:1; font-family:'Outfit'; font-weight:700; font-size:9.5px; padding:4px 0;
+    border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
+    opacity:.4; text-align:center;
+  }
+  .collector-pip.got{background:var(--tier-color);color:#fff;opacity:1;}
+  .collector-pip.got:nth-child(3){color:var(--ink);}
   .card.rare-card{box-shadow:0 12px 34px rgba(255,195,0,0.6), 0 0 0 6px rgba(255,195,0,0.2);}
   /* White text on bright gold is 1.6:1 - unreadable. Ink is 11.3:1. */
   .tag.tier-rare{color:var(--ink);box-shadow:0 0 14px rgba(255,195,0,0.85);}
@@ -250,6 +260,7 @@
   .sort-btn{background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit';font-weight:700;font-size:11.5px;cursor:pointer;transition:background .2s ease,color .2s ease;}
   .sort-btn.active{background:#fff;color:var(--dusk);}
   .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .ci-tier{font-family:'Outfit';font-weight:900;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;background:var(--tier-color,var(--sage));color:#fff;padding:2px 0;text-align:center;}
   .collection-item{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--tier-color,var(--sage));}
   .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;}
@@ -973,6 +984,21 @@ function sortForReveal(birds) {
   });
 }
 
+// The 25 collector species can be held at all three tiers, so their cards
+// show which ones are in the bag and which are still missing.
+function collectorStripHtml(tiersFound) {
+  const found = tiersFound || [];
+  const pips = ['Common', 'Visitor', 'Rare'].map(t => `
+    <span class="collector-pip ${found.includes(t) ? 'got' : ''}"
+          style="--tier-color:${TIER_COLORS[t]}">${t}</span>`).join('');
+  const complete = found.length === 3;
+  return `
+    <div class="collector-strip">
+      <div class="collector-label">${complete ? 'Full set!' : 'Collect all three'}</div>
+      <div class="collector-pips">${pips}</div>
+    </div>`;
+}
+
 function renderCard() {
   if (sessionResults.length === 0) { renderNoBirds(); return; }
   const bird = sessionResults[cardIndex];
@@ -989,6 +1015,7 @@ function renderCard() {
             <span class="tag tier ${bird.tier === 'Rare' ? 'tier-rare' : ''}">${bird.tier}</span>
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
           </div>
+          ${bird.is_collector ? collectorStripHtml(bird.tiers_found) : ''}
           <div class="feather-row">🪶 +${bird.feathers}</div>
           ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">▶ Hear its call</button>` : ''}
           <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
@@ -1129,6 +1156,18 @@ function renderNoBirds() {
   };
 }
 
+// Filled from /collector-species at startup. Empty until it loads, which
+// just means cards render as normal singles for that first moment.
+let COLLECTOR_SPECIES = new Set();
+
+async function loadCollectorSpecies() {
+  try {
+    const res = await fetch('/collector-species');
+    const d = await res.json();
+    COLLECTOR_SPECIES = new Set(d.species || []);
+  } catch (e) { /* cards just render as singles if this fails */ }
+}
+
 let collectionSort = 'az';
 let collectionSortDesc = false;
 let collectionBirds = [];
@@ -1199,9 +1238,12 @@ function collectionCardHtml(bird) {
   const photo = bird.image_url
     ? `<img src="${bird.image_url}">`
     : `<div style="height:70px;background:var(--parch-dk);"></div>`;
+  const isCollector = COLLECTOR_SPECIES.has(bird.common_name);
   return `
-    <div class="collection-item" style="--tier-color:${tierColor}" data-name="${bird.common_name}">
+    <div class="collection-item" style="--tier-color:${tierColor}"
+         data-name="${bird.common_name}" data-key="${bird.key || bird.common_name}">
       ${photo}
+      ${isCollector ? `<div class="ci-tier">${bird.tier}</div>` : ''}
       <div class="ci-name">${bird.common_name}</div>
     </div>`;
 }
@@ -1223,14 +1265,14 @@ function shuffleCollectionTo(sorted) {
 
   const before = new Map();
   grid.querySelectorAll('.collection-item').forEach(el => {
-    before.set(el.dataset.name, el.getBoundingClientRect());
+    before.set(el.dataset.key, el.getBoundingClientRect());
   });
 
   grid.innerHTML = sorted.map(collectionCardHtml).join('');
   bindCollectionCards();
 
   grid.querySelectorAll('.collection-item').forEach((el, i) => {
-    const old = before.get(el.dataset.name);
+    const old = before.get(el.dataset.key);
     if (!old) return;
     const now = el.getBoundingClientRect();
     const dx = old.left - now.left;
@@ -1257,13 +1299,19 @@ async function loadCollection() {
     // The backend logs every individual sighting - collapse that down to one
     // entry per species, keeping the most recent (the list arrives
     // newest-first) but remembering when it was FIRST found, for date sorting.
+    // Collector species are keyed by species AND tier, so the same bird heard
+    // at two different tiers gets two cards - that's the point of them.
+    // Everything else is one card per species, as before.
     const seen = new Map();
     for (const s of allSightingsRaw) {
-      if (!seen.has(s.common_name)) {
-        seen.set(s.common_name, { ...s, first_found: s.created_at });
+      const key = COLLECTOR_SPECIES.has(s.common_name)
+        ? `${s.common_name}|${s.tier}`
+        : s.common_name;
+      if (!seen.has(key)) {
+        seen.set(key, { ...s, first_found: s.created_at, key });
       } else {
         // Still newer-to-older, so each later row is an earlier sighting
-        seen.get(s.common_name).first_found = s.created_at;
+        seen.get(key).first_found = s.created_at;
       }
     }
     collectionBirds = [...seen.values()];
@@ -1927,6 +1975,7 @@ async function loadAccessoryCache() {
   } catch (e) { /* avatars just show without an accessory if this fails */ }
 }
 loadAccessoryCache();
+loadCollectorSpecies();
 
 function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {

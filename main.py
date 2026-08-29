@@ -164,7 +164,7 @@ async def identify(
 # ============================================================
 
 from database import (
-    init_db, has_existing_sighting, save_sighting,
+    init_db, has_existing_sighting, save_sighting, get_tiers_found_for,
     add_feathers, get_all_sightings, get_total_feathers,
     record_session, count_distinct_locations,
     get_earned_trophy_keys, award_trophy,
@@ -186,6 +186,7 @@ from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
 from curated_species import ALL_CURATED_SPECIES, CURATED_SPECIES
+from collector_species import COLLECTOR_SPECIES, TIERS
 from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
 
 init_db()
@@ -509,7 +510,10 @@ async def analyze_session(
         # this restructure removes.
         tier, record_count = get_nbn_tier(scientific_name, lat, lng)
 
-        is_duplicate = has_existing_sighting(common_name)
+        # Collector species are held per tier, so the same bird at a tier you
+        # haven't got yet is a genuinely new find and pays new-bird feathers.
+        is_collector = common_name in COLLECTOR_SPECIES
+        is_duplicate = has_existing_sighting(common_name, tier if is_collector else None)
         feathers = calculate_feathers(tier, is_duplicate)
         photo_url, description = get_wikipedia_info(scientific_name)
 
@@ -525,6 +529,8 @@ async def analyze_session(
             "confidence": confidence,
             "tier": tier,
             "nbn_record_count": record_count,
+            "is_collector": is_collector,
+            "tiers_found": get_tiers_found_for(common_name) if is_collector else None,
             "is_duplicate": is_duplicate,
             "feathers": feathers,
             "call_url": call_url,
@@ -667,6 +673,22 @@ def weekly_challenges():
         "challenges": items,
         "completed": sum(1 for i in items if i["complete"]),
         "all_bonus": ALL_COMPLETE_BONUS,
+    }
+
+
+@app.get("/collector-species")
+def list_collector_species():
+    """The 25 birds collectable at all three tiers, with which tiers are
+    already held. Served rather than duplicated in the frontend, so there's
+    one source of truth for the list."""
+    found = {}
+    for s in get_all_sightings():
+        found.setdefault(s["common_name"], set()).add(s["tier"])
+    return {
+        "species": sorted(COLLECTOR_SPECIES),
+        "tiers": TIERS,
+        "progress": {name: sorted(found.get(name, set()), key=TIERS.index)
+                     for name in sorted(COLLECTOR_SPECIES)},
     }
 
 
