@@ -1431,6 +1431,9 @@ function flyElementTo(el, target) {
 }
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
+// What the device actually granted for the mic. Constraints are requests,
+// not guarantees, so this is worth being able to see without a USB cable.
+let lastMicSettings = null;
 let currentProfile = { name: 'Explorer', avatar_id: 'robin' };
 let needsLocationName = false, sessionLat = null, sessionLng = null, sessionLocationName = null;
 
@@ -1486,6 +1489,8 @@ async function startRecording() {
     // Log what the device actually granted - constraints are requests, not
     // guarantees, and some devices silently ignore them.
     const settings = stream.getAudioTracks()[0]?.getSettings?.() || {};
+    lastMicSettings = settings;
+    try { localStorage.setItem('warbleMicSettings', JSON.stringify(settings)); } catch (e) {}
     console.log('Mic settings:', {
       noiseSuppression: settings.noiseSuppression,
       echoCancellation: settings.echoCancellation,
@@ -1892,6 +1897,9 @@ async function renderProfile() {
       <input type="checkbox" id="sciNamesToggle">
     </label>
 
+    <div class="profile-section-title">Sound check</div>
+    <div id="micCheck" style="width:100%;"></div>
+
     <div class="profile-section-title">My warbling</div>
     <div id="detectionStats" style="width:100%;"></div>
 
@@ -1910,6 +1918,7 @@ async function renderProfile() {
   renderPhotoPreview();
   loadProfileLocations();
   loadDetectionStats();
+  renderMicCheck();
 
   document.getElementById('saveNameBtn').onclick = async () => {
     const first = document.getElementById('firstNameInput').value.trim();
@@ -1934,6 +1943,36 @@ async function renderProfile() {
     if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
   };
   document.getElementById('clearPhotoBtn').onclick = () => savePhoto('none');
+}
+
+function renderMicCheck() {
+  const el = document.getElementById('micCheck');
+  if (!el) return;
+  let s = lastMicSettings;
+  if (!s) {
+    try { s = JSON.parse(localStorage.getItem('warbleMicSettings') || 'null'); } catch (e) { s = null; }
+  }
+  if (!s) {
+    el.innerHTML = `<div class="stat-empty">Go warbling once, then come back here to see your microphone settings.</div>`;
+    return;
+  }
+  // All three should read Off. If any says On, the device overrode the
+  // request and is stripping quiet birdsong before the app ever hears it.
+  const rows = [
+    ['Noise suppression', s.noiseSuppression],
+    ['Echo cancellation', s.echoCancellation],
+    ['Auto gain control', s.autoGainControl],
+  ].map(([label, on]) => `
+    <div class="stat-row">
+      <span class="stat-label">${label}</span>
+      <span class="stat-value" style="color:${on ? '#C0392B' : 'var(--sage-dk)'}">${on ? 'On — bad' : 'Off ✓'}</span>
+    </div>`).join('');
+  const anyOn = [s.noiseSuppression, s.echoCancellation, s.autoGainControl].some(Boolean);
+  el.innerHTML = rows + `<div class="stat-empty" style="text-align:left;padding-top:4px;">${
+    anyOn
+      ? "Your phone is filtering the audio, which can hide quiet birds."
+      : "Your phone is giving Warble the raw audio. That's what we want."
+  }</div>`;
 }
 
 async function loadDetectionStats() {
