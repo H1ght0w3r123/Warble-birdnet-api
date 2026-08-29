@@ -1026,11 +1026,12 @@ def get_owned_accessory_ids() -> set:
         return {a.accessory_id for a in session.query(OwnedAccessory).all()}
 
 
-def purchase_accessory(accessory_id: str, cost: float, category: str) -> bool:
-    """Attempts to buy an accessory - deducts feathers if affordable
-    and not already owned, then wears it immediately in its category's
-    slot (replacing whatever was there). Returns True only if the
-    purchase actually went through."""
+def purchase_accessory(accessory_id: str, cost: float, category: str = None) -> bool:
+    """Buys an accessory: deducts feathers if affordable and not already
+    owned. Returns True only if the purchase went through.
+
+    Deliberately does NOT equip it. Buying and wearing are separate choices -
+    auto-equipping would silently replace whatever the bird already had on."""
     if SessionLocal is None:
         return False
     with SessionLocal() as session:
@@ -1042,12 +1043,6 @@ def purchase_accessory(accessory_id: str, cost: float, category: str) -> bool:
             return False
         stats.total_feathers -= cost
         session.add(OwnedAccessory(accessory_id=accessory_id))
-        p = session.query(Profile).first()
-        if p is None:
-            p = Profile()
-            session.add(p)
-        if category in ("hats", "neck", "gear", "glasses", "shoes"):
-            setattr(p, f"equipped_{category}", accessory_id)
         session.commit()
         return True
 

@@ -353,14 +353,26 @@
   .category-tile .cat-icon svg{width:26px !important;height:26px !important;}
   .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
   .avatar-frame{background:#fff;border-radius:50%;padding:8px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
-  .carousel-wrap{width:100%;overflow-x:auto;display:flex;gap:10px;padding:10px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
-  .carousel-panel{width:100%;max-width:100%;overflow:hidden;}
+  .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:18px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
+  .carousel-panel{width:100%;max-width:100%;overflow-x:hidden;overflow-y:visible;}
   .carousel-item{
     flex:0 0 auto; width:78px; background:#fff; border-radius:12px; padding:8px 5px;
     display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
     border:2px solid transparent; scroll-snap-align:start;
   }
+  .carousel-item{transition:transform .25s cubic-bezier(.34,1.4,.64,1), box-shadow .25s ease, width .25s ease;}
   .carousel-item.equipped{border-color:var(--gold);}
+  /* Tapping an unowned item lifts it out of the row and makes room for Buy */
+  .carousel-item.expanded{
+    width:96px; transform:translateY(-10px) scale(1.06); z-index:5;
+    box-shadow:0 10px 22px rgba(0,0,0,0.32); border-color:var(--terra);
+  }
+  .item-buy-btn{
+    margin-top:5px; width:100%; background:var(--terra); color:#fff; border:none;
+    border-radius:10px; padding:5px 4px; font-family:'Outfit'; font-weight:900;
+    font-size:10px; cursor:pointer; box-shadow:0 2px 0 var(--terra-dk);
+  }
+  .item-buy-btn.cant-afford{background:var(--mist-dk); box-shadow:0 2px 0 var(--dusk-mid); font-size:8.5px;}
   .carousel-item .item-icon-wrap{width:44px;height:44px;line-height:1;}
   .carousel-item.unowned .item-icon-wrap{opacity:0.5;filter:grayscale(0.4);}
   .carousel-item-name{font-family:'Outfit';font-weight:700;font-size:9.8px;color:var(--dusk);text-align:center;line-height:1.1;}
@@ -2579,6 +2591,7 @@ function renderCategoryRow() {
 
 function selectCategory(categoryId) {
   selectedCategory = categoryId;
+  expandedItemId = null;   // don't carry an open card into another category
   renderCategoryRow();
   renderCarousel();
 }
@@ -2588,10 +2601,16 @@ function setDressUpHint(text) {
   if (hintEl) hintEl.textContent = text;
 }
 
+let expandedItemId = null;
+
 function renderCarousel() {
   const wrap = document.getElementById('carouselWrap');
   if (!wrap) return;
-  const items = accessoryCatalog.filter(a => a.category === selectedCategory);
+  // Cheapest first, so the carousel reads as a ladder - what you can afford
+  // now at the front, what you're saving for further along.
+  const items = accessoryCatalog
+    .filter(a => a.category === selectedCategory)
+    .sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name));
   if (items.length === 0) {
     wrap.innerHTML = `<div class="collection-empty">Nothing here yet</div>`;
     return;
@@ -2599,45 +2618,83 @@ function renderCarousel() {
   wrap.innerHTML = items.map(a => {
     const isEquipped = currentProfile.equipped && currentProfile.equipped[a.category] === a.id;
     const canAfford = currentFeatherTotal >= a.cost;
+    const isOpen = expandedItemId === a.id;
     const priceHtml = a.owned
       ? `<div class="carousel-item-price owned-label">${isEquipped ? 'Worn' : 'Owned'}</div>`
       : `<div class="carousel-item-price ${canAfford ? 'affordable' : 'unaffordable'}">🪶 ${a.cost}</div>`;
+
+    // Only unowned items expand - an owned one just toggles on and off, so
+    // there's nothing to confirm.
+    const action = (isOpen && !a.owned)
+      ? `<button class="item-buy-btn ${canAfford ? '' : 'cant-afford'}" data-buy="${a.id}">
+           ${canAfford ? 'Buy' : `${Math.round(a.cost - currentFeatherTotal)} more`}
+         </button>`
+      : '';
+
     return `
-      <div class="carousel-item ${a.owned ? '' : 'unowned'} ${isEquipped ? 'equipped' : ''}" data-id="${a.id}" data-owned="${a.owned}" data-category="${a.category}" data-cost="${a.cost}" data-name="${a.name}">
+      <div class="carousel-item ${a.owned ? '' : 'unowned'} ${isEquipped ? 'equipped' : ''} ${isOpen ? 'expanded' : ''}"
+           data-id="${a.id}" data-owned="${a.owned}" data-category="${a.category}"
+           data-cost="${a.cost}" data-name="${a.name}">
         <div class="item-icon-wrap"><svg viewBox="${a.tile_viewbox}" width="100%" height="100%">${a.svg}</svg></div>
         <div class="carousel-item-name">${a.name}</div>
         ${priceHtml}
+        ${action}
       </div>
     `;
   }).join('');
+
   wrap.querySelectorAll('.carousel-item').forEach(el => {
-    el.onclick = () => handleAccessoryTap(el.dataset.id, el.dataset.owned === 'true', el.dataset.category, parseInt(el.dataset.cost, 10), el.dataset.name);
+    el.onclick = (e) => {
+      // The buy button has its own handler; don't let the tile's tap collapse
+      // the card out from under it.
+      if (e.target.closest('.item-buy-btn')) return;
+      const owned = el.dataset.owned === 'true';
+      if (owned) {
+        handleAccessoryTap(el.dataset.id, true, el.dataset.category,
+                           parseInt(el.dataset.cost, 10), el.dataset.name);
+      } else {
+        expandedItemId = expandedItemId === el.dataset.id ? null : el.dataset.id;
+        renderCarousel();
+      }
+    };
+  });
+
+  wrap.querySelectorAll('.item-buy-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const el = btn.closest('.carousel-item');
+      buyAccessory(el.dataset.id, el.dataset.category,
+                   parseInt(el.dataset.cost, 10), el.dataset.name);
+    };
   });
 }
 
-async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
-  if (!owned) {
-    try {
-      const res = await fetch(`/accessories/${accessoryId}/purchase`, { method: 'POST' });
-      const data = await res.json();
-      if (data.status === 'ok') {
-        const item = accessoryCatalog.find(a => a.id === accessoryId);
-        if (item) item.owned = true;
-        currentFeatherTotal = data.new_total;
-        animateFeatherCount(currentFeatherTotal);
-        if (!currentProfile.equipped) currentProfile.equipped = {};
-        currentProfile.equipped[category] = accessoryId; // purchase auto-equips, server-side too
-        setDressUpHint(`Bought ${name} for ${cost} feathers`);
-        renderDressUpPreview();
-        renderCarousel();
-        updateNavAvatarIcon();
-      } else {
-        const shortfall = Math.max(0, cost - currentFeatherTotal);
-        setDressUpHint(`Not enough feathers yet — ${Math.round(shortfall)} more to go`);
-      }
-    } catch (e) { /* fail quietly, nothing to update */ }
+async function buyAccessory(accessoryId, category, cost, name) {
+  if (currentFeatherTotal < cost) {
+    setDressUpHint(`Not enough feathers yet — ${Math.round(cost - currentFeatherTotal)} more to go`);
     return;
   }
+  try {
+    const res = await fetch(`/accessories/${accessoryId}/purchase`, { method: 'POST' });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      const item = accessoryCatalog.find(a => a.id === accessoryId);
+      if (item) item.owned = true;
+      currentFeatherTotal = data.new_total;
+      animateFeatherCount(currentFeatherTotal);
+      // Bought, not worn - tap it again to put it on.
+      expandedItemId = null;
+      setDressUpHint(`Bought ${name} — tap it to wear it`);
+      renderCarousel();
+    } else {
+      setDressUpHint("That didn't work — try again");
+    }
+  } catch (e) { /* fail quietly, nothing to update */ }
+}
+
+async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
+  // Only ever called for owned items now - buying goes through buyAccessory()
+  // from the expanded tile's Buy button.
 
   // Already owned - tap toggles wearing it in its category's slot.
   if (!currentProfile.equipped) currentProfile.equipped = {};
