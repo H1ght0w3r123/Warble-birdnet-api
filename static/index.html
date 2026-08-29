@@ -399,6 +399,7 @@
   .photo-btn{background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:20px;cursor:pointer;}
   .photo-btn-clear{background:rgba(255,255,255,0.2);}
   .nav-avatar-photo{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
+  .remove-bird-btn{display:block;width:100%;margin-top:16px;background:none;border:none;font-family:'Outfit';font-weight:700;font-size:11.5px;color:var(--mist-dk);cursor:pointer;text-decoration:underline;}
   .danger-title{color:#FFD9D2;}
   .reset-note{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:10px;width:100%;}
   .reset-btn{width:100%;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-family:'Outfit';font-weight:700;font-size:13px;cursor:pointer;text-align:left;}
@@ -1392,9 +1393,17 @@ function renderBirdDetail(commonName) {
         ${buildFactsDashboard(latest.facts)}
         ${(!latest.facts && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
+        <button class="remove-bird-btn" id="removeBirdBtn">Not this bird? Remove it</button>
       </div>
     </div>
   `;
+  document.getElementById('removeBirdBtn').onclick = async () => {
+    if (!confirm(`Remove ${commonName} from your collection?\n\nUse this if it was heard wrong. Your feathers are kept.`)) return;
+    try {
+      await fetch(`/species/${encodeURIComponent(commonName)}/delete`, { method: 'POST' });
+      renderCollection();
+    } catch (e) { alert("Couldn't remove that bird right now."); }
+  };
   const playBtn = stage.querySelector('.play-call-btn');
   if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
   const shareBtn = document.getElementById('shareBirdBtn');
@@ -2134,8 +2143,12 @@ async function renderSettings() {
     <div class="profile-section-title">Sound check</div>
     <div id="micCheck" style="width:100%;"></div>
 
+    <div class="profile-section-title">Backup</div>
+    <div class="reset-note">Save a copy of everything before you reset.</div>
+    <button class="reset-btn" id="exportBtn">Download my data</button>
+
     <div class="profile-section-title danger-title">Reset</div>
-    <div class="reset-note">These can't be undone.</div>
+    <div class="reset-note">These can't be undone — take a backup first.</div>
     <button class="reset-btn" data-scope="dressup">Reset Dress Up</button>
     <button class="reset-btn" data-scope="feathers">Reset feathers</button>
     <button class="reset-btn" data-scope="sightings">Reset birds, habitats &amp; trophies</button>
@@ -2163,6 +2176,19 @@ async function renderSettings() {
   };
 
   renderMicCheck();
+
+  document.getElementById('exportBtn').onclick = async () => {
+    try {
+      const res = await fetch('/export');
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `warble-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) { alert("Couldn't export right now."); }
+  };
 
   const RESET_COPY = {
     dressup:    ['Reset Dress Up?', 'All bought items are forgotten and your bird is undressed. Feathers and colours are kept.'],

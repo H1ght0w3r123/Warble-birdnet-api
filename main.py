@@ -167,6 +167,7 @@ from database import (
     init_db, has_existing_sighting, save_sighting, get_tiers_found_for,
     count_full_collector_sets,
     reset_dress_up, reset_feathers, reset_sightings, reset_everything,
+    delete_species, export_everything,
     add_feathers, get_all_sightings, get_total_feathers,
     record_session, count_distinct_locations,
     get_earned_trophy_keys, award_trophy,
@@ -680,6 +681,20 @@ def weekly_challenges():
         "completed": sum(1 for i in items if i["complete"]),
         "all_bonus": ALL_COMPLETE_BONUS,
     }
+
+
+@app.post("/species/{common_name}/delete")
+async def delete_species_endpoint(common_name: str):
+    """Removes one species from the collection - for misidentifications."""
+    removed = delete_species(common_name)
+    print(f"Deleted species '{common_name}' ({removed} sighting(s))")
+    return {"status": "ok", "removed": removed}
+
+
+@app.get("/export")
+def export_data():
+    """Full snapshot of everything, so a reset isn't irreversible."""
+    return export_everything()
 
 
 @app.post("/reset/{scope}")

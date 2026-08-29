@@ -713,6 +713,50 @@ def count_species_found_in(habitat_species: set) -> int:
     return len(found & habitat_species)
 
 
+def delete_species(common_name: str) -> int:
+    """Removes every sighting of one species - for clearing out a
+    misidentification. Returns how many rows went.
+
+    Deliberately does NOT refund or deduct feathers: they were genuinely
+    earned at the time, and clawing them back for a bad detection that wasn't
+    the user's fault would feel like a punishment."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        n = session.query(Sighting).filter_by(common_name=common_name).delete()
+        session.commit()
+        return n
+
+
+def export_everything():
+    """A full snapshot of the user's data, so a reset can be undone by hand if
+    something was cleared that shouldn't have been."""
+    if SessionLocal is None:
+        return {}
+    with SessionLocal() as session:
+        return {
+            "exported_at": datetime.datetime.utcnow().isoformat(),
+            "sightings": [
+                {"common_name": s.common_name, "scientific_name": s.scientific_name,
+                 "confidence": s.confidence, "tier": s.tier, "lat": s.lat, "lng": s.lng,
+                 "created_at": s.created_at.isoformat() if s.created_at else None}
+                for s in session.query(Sighting).all()
+            ],
+            "sessions": [
+                {"lat": r.lat, "lng": r.lng, "bird_count": r.bird_count,
+                 "created_at": r.created_at.isoformat() if r.created_at else None}
+                for r in session.query(RecordingSession).all()
+            ],
+            "trophies": [t.trophy_key for t in session.query(EarnedTrophy).all()],
+            "locations": [{"name": l.name, "lat": l.lat, "lng": l.lng}
+                          for l in session.query(Location).all()],
+            "accessories": [a.accessory_id for a in session.query(OwnedAccessory).all()],
+            "bonuses": [b.key for b in session.query(AwardedBonus).all()],
+            "feathers": (session.query(PlayerStats).first().total_feathers
+                         if session.query(PlayerStats).first() else 0),
+        }
+
+
 # --- Resets -----------------------------------------------------------------
 # Deliberately explicit about which tables each scope clears, rather than one
 # vague "wipe everything" - so it's obvious what survives each one.
