@@ -14,12 +14,11 @@
     --sage:#7EC8A4; --sage-dk:#3F7C5C;
     --mist:#C4BFDF; --mist-dk:#8E87B8;
     --rose:#E87EA1; --ink:#1A1128;
-    /* Rare's own colour. Previously gold-dk, which sat only 27 degrees from
-       Visitor's terra on the colour wheel - both warm oranges, so Rare read
-       as a muddier Visitor rather than something better. This violet is 227
-       degrees from Visitor and 120 from Common's sage, so it can't be
-       confused with either, and it's the most saturated of the three. */
-    --rare:#A855F7; --rare-dk:#7E22CE;
+    /* Rare is a bright, fully saturated gold - the treasure colour. Visitor
+       moves to a warm azure so the two can't be confused: they now sit 163
+       degrees apart, where the old terra/gold-dk pairing was only 27. */
+    --rare:#FFC300; --rare-dk:#C79600;
+    --visitor:#3B82C4; --visitor-dk:#2A5F91;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{overflow-x:hidden;}
@@ -158,8 +157,9 @@
   }
   /* A Rare find gets a violet halo as well as the border, so it announces
      itself before the tier label is even read. */
-  .card.rare-card{box-shadow:0 12px 34px rgba(168,85,247,0.55), 0 0 0 6px rgba(168,85,247,0.16);}
-  .tag.tier-rare{box-shadow:0 0 12px rgba(168,85,247,0.7);}
+  .card.rare-card{box-shadow:0 12px 34px rgba(255,195,0,0.6), 0 0 0 6px rgba(255,195,0,0.2);}
+  /* White text on bright gold is 1.6:1 - unreadable. Ink is 11.3:1. */
+  .tag.tier-rare{color:var(--ink);box-shadow:0 0 14px rgba(255,195,0,0.85);}
   @keyframes cardReveal{
     0%{transform:scale(0.35) rotateY(180deg); opacity:0;}
     60%{transform:scale(1.06) rotateY(0deg); opacity:1;}
@@ -540,7 +540,7 @@
 const stage = document.getElementById('stage');
 const featherCountEl = document.getElementById('featherCount');
 
-const TIER_COLORS = { Common: 'var(--sage)', Visitor: 'var(--terra)', Rare: 'var(--rare)' };
+const TIER_COLORS = { Common: 'var(--sage)', Visitor: 'var(--visitor)', Rare: 'var(--rare)' };
 
 let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
 let sessionResults = [], cardIndex = 0;
