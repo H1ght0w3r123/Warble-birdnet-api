@@ -672,20 +672,28 @@ def weekly_challenges():
 
 @app.get("/habitats")
 def list_habitats():
-    """The six habitat sets with progress, for the Habitats screen. Unfound
-    species are returned as names so the client can render silhouettes and
-    keep the collection's shape visible, without revealing what they are."""
-    found = set()
+    """The six habitat sets with progress, for the Habitats screen.
+
+    Found birds come back with their photo and name. Unfound ones are sent as
+    a bare count, not names - deliberately, so the client can show how many
+    are left without revealing what they are.
+    """
+    # Newest first from get_all_sightings, so the first photo seen for a
+    # species is its most recent one.
+    photos = {}
     for s in get_all_sightings():
-        found.add(s["common_name"])
+        photos.setdefault(s["common_name"], s.get("image_url"))
+
     sets = []
     for habitat, species in CURATED_SPECIES.items():
-        got = [s for s in species if s in found]
+        got = [{"common_name": name, "photo_url": photos.get(name)}
+               for name in species if name in photos]
         sets.append({
             "name": habitat,
             "total": len(species),
             "found_count": len(got),
             "found": got,
+            "remaining": len(species) - len(got),
             "complete": len(got) >= len(species),
         })
     return {"habitats": sets, "set_bonus": HABITAT_SET_BONUS}

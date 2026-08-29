@@ -414,6 +414,14 @@
   .hab-dot.found{background:var(--sage);opacity:1;}
   .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Outfit';font-weight:700;}
   .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Outfit';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
+  .habitat-card{cursor:pointer;}
+  .habitat-tap{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
+  .hab-bird{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--sage);}
+  .hab-bird.mystery{border-color:var(--mist);background:rgba(255,255,255,0.55);}
+  .hab-bird-photo{width:100%;aspect-ratio:1;object-fit:cover;display:flex;align-items:center;justify-content:center;background:var(--parch-dk);}
+  .hab-bird-silhouette{font-size:26px;filter:grayscale(1) brightness(.45);opacity:.5;}
+  .hab-bird-name{font-family:'Outfit';font-weight:700;font-size:10px;color:var(--dusk);text-align:center;padding:6px 4px;}
+  .hab-bird.mystery .hab-bird-name{color:var(--mist-dk);}
   .trophy-carousel{position:relative;width:100%;height:210px;margin-top:8px;overflow:hidden;touch-action:pan-y;}
   .trophy-slide{
     position:absolute; left:50%; top:8px; width:130px; cursor:pointer;
@@ -2429,6 +2437,39 @@ function trophySvg(trophy) {
 
 let trophyIndex = 0;
 
+let allHabitatsRaw = [], habitatSetBonus = 100;
+
+function renderHabitatDetail(habitatName) {
+  const h = allHabitatsRaw.find(x => x.name === habitatName);
+  if (!h) return;
+  stage.classList.add('top-aligned');
+
+  const foundCards = h.found.map(b => `
+    <div class="hab-bird found">
+      ${b.photo_url ? `<img class="hab-bird-photo" src="${b.photo_url}" alt="">`
+                    : `<div class="hab-bird-photo"></div>`}
+      <div class="hab-bird-name">${b.common_name}</div>
+    </div>`).join('');
+
+  // Unfound birds are silhouettes with no name - the count is visible, the
+  // identities aren't, so there's still something to discover.
+  const mysteryCards = Array.from({ length: h.remaining }, () => `
+    <div class="hab-bird mystery">
+      <div class="hab-bird-photo"><span class="hab-bird-silhouette">🐦</span></div>
+      <div class="hab-bird-name">?</div>
+    </div>`).join('');
+
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:12px;">
+      <button class="back-btn" id="backBtn">← Habitats</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:4px;">${h.name}</div>
+    <div class="collection-count">${h.found_count} of ${h.total} found${h.complete ? ' · Complete!' : ''}</div>
+    <div class="collection-grid">${foundCards}${mysteryCards}</div>
+  `;
+  document.getElementById('backBtn').onclick = renderHabitats;
+}
+
 async function renderHabitats() {
   setActiveTab('habitats');
   stage.classList.add('top-aligned');
@@ -2441,7 +2482,9 @@ async function renderHabitats() {
   try {
     const res = await fetch('/habitats');
     const data = await res.json();
-    list.innerHTML = (data.habitats || []).map(h => {
+    allHabitatsRaw = data.habitats || [];
+    habitatSetBonus = data.set_bonus;
+    list.innerHTML = allHabitatsRaw.map(h => {
       const pct = Math.round((h.found_count / h.total) * 100);
       // Found birds show their name; the rest are silhouettes only, so the
       // collection's shape is visible without giving away what's in it.
@@ -2451,7 +2494,7 @@ async function renderHabitats() {
           : `<span class="hab-dot"></span>`
       ).join('');
       return `
-        <div class="habitat-card ${h.complete ? 'complete' : ''}">
+        <div class="habitat-card ${h.complete ? 'complete' : ''}" data-habitat="${h.name}">
           <div class="habitat-top">
             <span class="habitat-name">${h.name}</span>
             <span class="habitat-count">${h.found_count}/${h.total}</span>
@@ -2461,8 +2504,12 @@ async function renderHabitats() {
           ${h.complete
             ? '<div class="habitat-done">Complete!</div>'
             : `<div class="habitat-reward">Complete this set for ${data.set_bonus} feathers</div>`}
+          <div class="habitat-tap">Tap to see the birds</div>
         </div>`;
     }).join('');
+    list.querySelectorAll('.habitat-card').forEach(el => {
+      el.onclick = () => renderHabitatDetail(el.dataset.habitat);
+    });
   } catch (e) {
     list.innerHTML = `<div class="collection-empty">Couldn't load habitats right now.</div>`;
   }
