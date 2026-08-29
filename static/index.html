@@ -39,6 +39,9 @@
   body.time-night{background:linear-gradient(180deg,var(--ink) 0%,var(--dusk) 60%,var(--dusk-mid) 100%);}
 
   .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;position:relative;}
+  .top-actions{display:flex;align-items:center;gap:8px;}
+  .top-settings-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  .top-settings-btn svg{width:23px;height:23px;}
   .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
   .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.35);}
@@ -522,7 +525,12 @@
   <div class="top">
     <div class="feathers">🪶 <span id="featherCount">–</span></div>
     <div class="top-wordmark" id="topWordmark">Warble</div>
+    <div class="top-actions">
+    <button class="top-settings-btn" id="topSettingsBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><path d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zm8.3 3.6c0-.5-.05-1-.13-1.47l2.05-1.55-2-3.46-2.4 1a8.4 8.4 0 0 0-2.55-1.48L15 2.2H11l-.27 2.84a8.4 8.4 0 0 0-2.55 1.48l-2.4-1-2 3.46 2.05 1.55a8.7 8.7 0 0 0 0 2.94L3.78 15.02l2 3.46 2.4-1a8.4 8.4 0 0 0 2.55 1.48L11 21.8h4l.27-2.84a8.4 8.4 0 0 0 2.55-1.48l2.4 1 2-3.46-2.05-1.55c.08-.47.13-.97.13-1.47z" fill="#8E87B8"/></svg>
+    </button>
     <button class="top-profile-btn" id="topProfileBtn"><svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg></button>
+    </div>
   </div>
 
 
@@ -2068,15 +2076,6 @@ async function renderProfile() {
     <input type="text" id="lastNameInput" class="location-input" placeholder="Last name" maxlength="24">
     <button class="again-btn" id="saveNameBtn">Save name</button>
 
-    <div class="profile-section-title">Bird names</div>
-    <label class="toggle-row">
-      <span>Show scientific names</span>
-      <input type="checkbox" id="sciNamesToggle">
-    </label>
-
-    <div class="profile-section-title">Sound check</div>
-    <div id="micCheck" style="width:100%;"></div>
-
     <div class="profile-section-title">My warbling</div>
     <div id="detectionStats" style="width:100%;"></div>
 
@@ -2091,11 +2090,9 @@ async function renderProfile() {
 
   document.getElementById('firstNameInput').value = currentProfile.first_name || '';
   document.getElementById('lastNameInput').value = currentProfile.last_name || '';
-  document.getElementById('sciNamesToggle').checked = currentProfile.show_scientific_names !== false;
   renderPhotoPreview();
   loadProfileLocations();
   loadDetectionStats();
-  renderMicCheck();
 
   document.getElementById('saveNameBtn').onclick = async () => {
     const first = document.getElementById('firstNameInput').value.trim();
@@ -2109,17 +2106,51 @@ async function renderProfile() {
     try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
   };
 
-  document.getElementById('sciNamesToggle').onchange = async (e) => {
+  document.getElementById('photoInput').onchange = (e) => {
+    if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
+  };
+  document.getElementById('clearPhotoBtn').onclick = () => savePhoto('none');
+}
+
+async function renderSettings() {
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:12px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:14px;">Settings</div>
+
+    <div class="profile-section-title">Bird names</div>
+    <label class="toggle-row">
+      <span>Show scientific names</span>
+      <input type="checkbox" id="sciNamesToggle">
+    </label>
+
+    <div class="profile-section-title">Sound check</div>
+    <div id="micCheck" style="width:100%;"></div>
+  `;
+  document.getElementById('backBtn').onclick = () => {
+    stage.classList.remove('top-aligned');
+    renderIdle();
+  };
+
+  // Settings can be opened before the profile has been fetched this session,
+  // so make sure the toggle reflects what's actually saved.
+  try {
+    const res = await fetch('/profile');
+    currentProfile = await res.json();
+  } catch (e) { /* fall back to whatever's in memory */ }
+
+  const toggle = document.getElementById('sciNamesToggle');
+  toggle.checked = currentProfile.show_scientific_names !== false;
+  toggle.onchange = async (e) => {
     currentProfile.show_scientific_names = e.target.checked;
     const formData = new FormData();
     formData.append('show_scientific_names', e.target.checked);
     try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
   };
 
-  document.getElementById('photoInput').onchange = (e) => {
-    if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
-  };
-  document.getElementById('clearPhotoBtn').onclick = () => savePhoto('none');
+  renderMicCheck();
 }
 
 function renderMicCheck() {
@@ -2555,6 +2586,7 @@ async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
 }
 
 document.getElementById('topProfileBtn').onclick = renderProfile;
+document.getElementById('topSettingsBtn').onclick = renderSettings;
 document.getElementById('navCollection').onclick = renderCollection;
 document.getElementById('navHome').onclick = renderIdle;
 document.getElementById('navTrophies').onclick = renderTrophies;
