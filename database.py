@@ -713,6 +713,65 @@ def count_species_found_in(habitat_species: set) -> int:
     return len(found & habitat_species)
 
 
+# --- Resets -----------------------------------------------------------------
+# Deliberately explicit about which tables each scope clears, rather than one
+# vague "wipe everything" - so it's obvious what survives each one.
+
+def reset_dress_up():
+    """Sold-back wardrobe: forget owned items and unequip everything. Avatar
+    colours are kept - they're the bird's identity, not a purchase."""
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        session.query(OwnedAccessory).delete()
+        p = session.query(Profile).first()
+        if p:
+            for slot in ("hats", "neck", "gear", "held", "glasses", "shoes"):
+                setattr(p, f"equipped_{slot}", None)
+        session.commit()
+
+
+def reset_feathers():
+    """Feather balance back to zero. Owned items are kept - this is the
+    balance, not the wardrobe."""
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        stats = session.query(PlayerStats).first()
+        if stats:
+            stats.total_feathers = 0
+        session.commit()
+
+
+def reset_sightings():
+    """Every bird, session, trophy and one-off bonus. Trophies and bonuses go
+    too because they're earned FROM sightings and sessions - leaving them
+    would mean holding a trophy for birds that no longer exist, and would
+    silently block those bonuses from ever paying out again."""
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        session.query(Sighting).delete()
+        session.query(RecordingSession).delete()
+        session.query(EarnedTrophy).delete()
+        session.query(AwardedBonus).delete()
+        session.query(Location).delete()
+        session.commit()
+
+
+def reset_everything():
+    """Back to a first-open state, profile included."""
+    if SessionLocal is None:
+        return
+    reset_sightings()
+    reset_dress_up()
+    with SessionLocal() as session:
+        session.query(PlayerStats).delete()
+        session.query(Profile).delete()
+        session.commit()
+    init_db()   # recreate the single-row PlayerStats and Profile defaults
+
+
 def get_detection_stats():
     """Headline stats for the Profile page. Returns None for any stat there
     isn't enough data to answer honestly, rather than inventing a default."""

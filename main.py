@@ -166,6 +166,7 @@ async def identify(
 from database import (
     init_db, has_existing_sighting, save_sighting, get_tiers_found_for,
     count_full_collector_sets,
+    reset_dress_up, reset_feathers, reset_sightings, reset_everything,
     add_feathers, get_all_sightings, get_total_feathers,
     record_session, count_distinct_locations,
     get_earned_trophy_keys, award_trophy,
@@ -679,6 +680,23 @@ def weekly_challenges():
         "completed": sum(1 for i in items if i["complete"]),
         "all_bonus": ALL_COMPLETE_BONUS,
     }
+
+
+@app.post("/reset/{scope}")
+async def reset_data(scope: str):
+    """Destructive resets, kept behind explicit named scopes so a mis-typed
+    call can't wipe more than intended."""
+    actions = {
+        "dressup": reset_dress_up,
+        "feathers": reset_feathers,
+        "sightings": reset_sightings,
+        "everything": reset_everything,
+    }
+    if scope not in actions:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Unknown reset scope."})
+    actions[scope]()
+    print(f"RESET performed: {scope}")
+    return {"status": "ok", "scope": scope}
 
 
 @app.get("/collector-species")

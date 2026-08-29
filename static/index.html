@@ -399,6 +399,11 @@
   .photo-btn{background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:20px;cursor:pointer;}
   .photo-btn-clear{background:rgba(255,255,255,0.2);}
   .nav-avatar-photo{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
+  .danger-title{color:#FFD9D2;}
+  .reset-note{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:10px;width:100%;}
+  .reset-btn{width:100%;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-family:'Outfit';font-weight:700;font-size:13px;cursor:pointer;text-align:left;}
+  .reset-btn.danger{background:rgba(192,57,43,0.55);}
+  .reset-btn:disabled{opacity:.6;}
   .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:11px 14px;width:100%;font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);cursor:pointer;}
   .toggle-row input{width:20px;height:20px;accent-color:var(--terra);cursor:pointer;}
   .location-row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
@@ -2128,6 +2133,13 @@ async function renderSettings() {
 
     <div class="profile-section-title">Sound check</div>
     <div id="micCheck" style="width:100%;"></div>
+
+    <div class="profile-section-title danger-title">Reset</div>
+    <div class="reset-note">These can't be undone.</div>
+    <button class="reset-btn" data-scope="dressup">Reset Dress Up</button>
+    <button class="reset-btn" data-scope="feathers">Reset feathers</button>
+    <button class="reset-btn" data-scope="sightings">Reset birds, habitats &amp; trophies</button>
+    <button class="reset-btn danger" data-scope="everything">Reset everything</button>
   `;
   document.getElementById('backBtn').onclick = () => {
     stage.classList.remove('top-aligned');
@@ -2151,6 +2163,37 @@ async function renderSettings() {
   };
 
   renderMicCheck();
+
+  const RESET_COPY = {
+    dressup:    ['Reset Dress Up?', 'All bought items are forgotten and your bird is undressed. Feathers and colours are kept.'],
+    feathers:   ['Reset feathers?', 'Your feather balance goes back to zero. Items you already own are kept.'],
+    sightings:  ['Reset birds, habitats and trophies?', 'Every bird, warble, named place, trophy and weekly bonus is deleted. Feathers and Dress Up items are kept.'],
+    everything: ['Reset EVERYTHING?', 'The whole app goes back to how it was the first time you opened it. Birds, trophies, feathers, Dress Up, your name and photo - all of it.'],
+  };
+
+  stage.querySelectorAll('.reset-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const scope = btn.dataset.scope;
+      const [title, detail] = RESET_COPY[scope];
+      if (!confirm(`${title}\n\n${detail}\n\nThis cannot be undone.`)) return;
+      // Full reset asks twice - it's the one there's no recovering from.
+      if (scope === 'everything' && !confirm('Really wipe everything? Last chance.')) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Resetting...';
+      try {
+        const res = await fetch(`/reset/${scope}`, { method: 'POST' });
+        if (!res.ok) throw new Error('reset failed');
+        // Reload rather than patching state by hand - far too many caches
+        // (profile, accessories, collection, feathers) would otherwise be
+        // left holding data that no longer exists.
+        location.reload();
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Reset failed - tap to retry';
+      }
+    };
+  });
 }
 
 function renderMicCheck() {
