@@ -145,9 +145,19 @@ async def identify(
     # enough for repeated calls during a live preview loop.
     filtered_detections = []
     for d in detections[:3]:
-        if is_locally_plausible(d["scientific_name"], lat, lng):
+        if not is_locally_plausible(d["scientific_name"], lat, lng):
+            continue
+        # Tier ONLY for collector-pack birds, matching what /analyze-session
+        # does. Computing it for everything here meant a live badge could show
+        # a rarity ring that the final card then didn't have - the same
+        # badge-contradicts-result problem the single-pass rewrite removed.
+        # It also skips a second NBN Atlas call for the ~85% of birds that
+        # aren't pack birds, on an endpoint hit every few seconds.
+        if d["common_name"] in COLLECTOR_SPECIES:
             tier, _ = get_nbn_tier(d["scientific_name"], lat, lng)
-            filtered_detections.append({**d, "tier": tier})
+        else:
+            tier = None
+        filtered_detections.append({**d, "tier": tier})
 
     if len(filtered_detections) < len(detections[:3]):
         rejected = [d["common_name"] for d in detections[:3]

@@ -620,6 +620,11 @@
 const stage = document.getElementById('stage');
 const featherCountEl = document.getElementById('featherCount');
 
+// Untiered birds (everything outside a collector pack) get a neutral edge.
+// Falling back to sage would have coloured them exactly like a Common bird,
+// which claims a rarity they don't have.
+function tierColorOf(tier) { return tier ? TIER_COLORS[tier] : 'var(--mist)'; }
+
 const TIER_COLORS = { Common: 'var(--sage)', Visitor: 'var(--visitor)', Rare: 'var(--rare)' };
 
 let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
@@ -987,9 +992,12 @@ let liveBadgedSpecies = new Set();
 function renderLiveBirdStack() {
   const el = document.getElementById('liveBirdStack');
   if (!el) return;
+  // Tiered (pack) birds first and rarest-first; untiered birds after them.
   const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 3) - (TIER_ORDER[b.tier] ?? 3));
   el.innerHTML = sorted.map(bird => {
-    const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+    // Only pack birds carry a tier. Falling back to --sage would have made an
+    // untiered bird look exactly like a Common one, which is a different claim.
+    const tierColor = bird.tier ? TIER_COLORS[bird.tier] : 'var(--mist)';
     return `<div class="live-bird-badge" style="--tier-color:${tierColor}">${BADGE_BIRD_SVG}</div>`;
   }).join('');
 }
@@ -1021,7 +1029,7 @@ function renderSessionResults() {
   const locationLine = sessionLocationName ? ` at ${sessionLocationName}` : '';
 
   const silhouettes = sessionResults.map((bird, i) => {
-    const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+    const tierColor = tierColorOf(bird.tier);
     const angle = (i % 2 === 0 ? -1 : 1) * (5 + i * 2);
     return `<div class="silhouette-card" style="--tier-color:${tierColor}; transform:rotate(${angle}deg); animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">🐦</span></div>`;
   }).join('');
@@ -1071,7 +1079,7 @@ function collectorStripHtml(tiersFound) {
 function renderCard() {
   if (sessionResults.length === 0) { renderNoBirds(); return; }
   const bird = sessionResults[cardIndex];
-  const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+  const tierColor = tierColorOf(bird.tier);
   stage.innerHTML = `
     <div class="card-wrap">
       <div class="progress">Bird ${cardIndex + 1} of ${sessionResults.length}</div>
@@ -1304,7 +1312,7 @@ function sortCollection(birds) {
 }
 
 function collectionCardHtml(bird) {
-  const tierColor = TIER_COLORS[bird.tier] || 'var(--sage)';
+  const tierColor = tierColorOf(bird.tier);
   const photo = bird.image_url
     ? `<img src="${bird.image_url}">`
     : `<div style="height:70px;background:var(--parch-dk);"></div>`;
@@ -1410,7 +1418,7 @@ function renderBirdDetail(commonName) {
 
   const latest = matches[0]; // list arrives newest-first
   const firstFound = matches[matches.length - 1];
-  const tierColor = TIER_COLORS[latest.tier] || 'var(--sage)';
+  const tierColor = tierColorOf(latest.tier);
   const firstDate = new Date(firstFound.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   const locationNames = [...new Set(matches.map(m => m.location_name).filter(Boolean))];
   const locationTags = locationNames.map(name => `<span class="location-tag">📍 ${name}</span>`).join('');
