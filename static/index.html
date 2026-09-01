@@ -2848,6 +2848,8 @@ function trophySvg(trophy) {
 
 let trophyIndex = 0;
 
+let allPacksRaw = [], packTiers = [], selectedPack = 0;
+
 async function loadCollectorPacks() {
   const el = document.getElementById('packList');
   if (!el) return;
