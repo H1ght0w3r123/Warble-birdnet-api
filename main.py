@@ -189,8 +189,7 @@ from database import (
     count_curated_species_found,
     set_total_feathers,
 )
-from bird_facts import get_bird_facts
-from bird_stats import stats_for, STAT_LABELS
+from birds import bird_data, STAT_LABELS, HABITAT_ICONS
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, requirement_text
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
@@ -794,12 +793,11 @@ def list_trophies():
 @app.get("/sightings")
 def list_sightings():
     """Every bird ever found, newest first — for a Collection screen.
-    Each one includes curated facts when we've researched that species, plus
-    Top Trumps stats, which exist for all 100."""
+    Each one carries its full bird record - stat tiles, Top Trumps ratings and,
+    where the species has been researched, conservation status too."""
     sightings = get_all_sightings()
     for s in sightings:
-        s["facts"] = get_bird_facts(s["common_name"])
-        s["stats"] = stats_for(s["common_name"])
+        s["bird"] = bird_data(s["common_name"])
     return {"sightings": sightings, "stat_labels": STAT_LABELS}
 
 

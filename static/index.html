@@ -1448,10 +1448,10 @@ function renderBirdDetail(commonName, onBack) {
           </div>
         </div>
         ${locationTags ? `<div class="location-tags">${locationTags}</div>` : ''}
-        ${buildCoreTiles(latest.stats, latest.facts)}
-        ${buildStatBars(latest.stats)}
-        ${buildFactsDashboard(latest.facts)}
-        ${(!latest.facts && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
+        ${buildCoreTiles(latest.bird)}
+        ${buildStatBars(latest.bird)}
+        ${buildConservation(latest.bird)}
+        ${(!latest.bird?.conservation_status && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         <button class="remove-bird-btn" id="removeBirdBtn">Not this bird? Remove it</button>
       </div>
@@ -1520,15 +1520,15 @@ const HABITAT_ICONS = {
   'Farmland': '🌾', 'Towns & Cities': '🏘️',
 };
 
-// Mirrors STAT_LABELS in bird_stats.py. Kept in a fixed order so the bars
+// Mirrors STAT_LABELS in birds.py. Kept in a fixed order so the bars
 // always read the same way down every card.
 const STAT_LABELS = { size: 'Size', speed: 'Speed', population: 'Population',
                      song: 'Song', brains: 'Brains' };
 
-function buildStatBars(stats) {
-  if (!stats || !stats.ratings) return '';
+function buildStatBars(bird) {
+  if (!bird || !bird.ratings) return '';
   const rows = Object.entries(STAT_LABELS).map(([key, label]) => {
-    const v = stats.ratings[key] ?? 0;
+    const v = bird.ratings[key] ?? 0;
     return `
       <div class="tt-row">
         <span class="tt-label">${label}</span>
@@ -1543,17 +1543,16 @@ function buildStatBars(stats) {
     </div>`;
 }
 
-// Habitat and diet come from bird_stats, which covers all 100 - unlike the
-// richer facts data, which only exists for the ones researched so far.
-function buildCoreTiles(stats, facts) {
-  if (!stats) return '';
-  const weight = stats.weight_g >= 1000
-    ? `${(stats.weight_g / 1000).toFixed(1)}kg` : `${stats.weight_g}g`;
+// Every bird carries these four, so no card is ever missing them.
+function buildCoreTiles(bird) {
+  if (!bird) return '';
+  const weight = bird.weight_g >= 1000
+    ? `${(bird.weight_g / 1000).toFixed(1)}kg` : `${bird.weight_g}g`;
   const tiles = [
     ['⚖️', weight, 'Weight'],
-    ['📏', `${stats.length_cm}cm`, 'Length'],
-    ['🏞️', stats.habitat, 'Where it lives'],
-    ['🍽️', stats.diet, 'What it eats'],
+    ['📏', `${bird.length_cm}cm`, 'Length'],
+    ['🏞️', bird.habitat, 'Where it lives'],
+    ['🍽️', bird.diet, 'What it eats'],
   ];
   return `<div class="facts-grid">${tiles.map(([icon, num, label]) => `
     <div class="fact-tile">
@@ -1563,16 +1562,17 @@ function buildCoreTiles(stats, facts) {
     </div>`).join('')}</div>`;
 }
 
-function buildFactsDashboard(facts) {
-  if (!facts) return '';
-  const habitatTags = (facts.habitats || [])
+// Only the researched birds carry a conservation status and habitat tags.
+function buildConservation(bird) {
+  if (!bird || !bird.conservation_status) return '';
+  const tags = (bird.habitat_tags || [])
     .map(h => `<span class="habitat-tag">${HABITAT_ICONS[h] || '📍'} ${h}</span>`)
     .join('');
-  const statusClass = facts.conservation_status === 'Green' ? 'status-green'
-    : facts.conservation_status === 'Amber' ? 'status-amber' : 'status-red';
+  const statusClass = bird.conservation_status === 'Green' ? 'status-green'
+    : bird.conservation_status === 'Amber' ? 'status-amber' : 'status-red';
   return `
-    ${habitatTags ? `<div class="habitat-tags">${habitatTags}</div>` : ''}
-    <div class="status-badge ${statusClass}">🛡️ ${facts.conservation_status} status</div>
+    ${tags ? `<div class="habitat-tags">${tags}</div>` : ''}
+    <div class="status-badge ${statusClass}">🛡️ ${bird.conservation_status} status</div>
   `;
 }
 
