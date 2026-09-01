@@ -147,17 +147,10 @@ async def identify(
     for d in detections[:3]:
         if not is_locally_plausible(d["scientific_name"], lat, lng):
             continue
-        # Tier ONLY for collector-pack birds, matching what /analyze-session
-        # does. Computing it for everything here meant a live badge could show
-        # a rarity ring that the final card then didn't have - the same
-        # badge-contradicts-result problem the single-pass rewrite removed.
-        # It also skips a second NBN Atlas call for the ~85% of birds that
-        # aren't pack birds, on an endpoint hit every few seconds.
-        if d["common_name"] in COLLECTOR_SPECIES:
-            tier, _ = get_nbn_tier(d["scientific_name"], lat, lng)
-        else:
-            tier = None
-        filtered_detections.append({**d, "tier": tier})
+        # Rarity is a fixed property of the species now, straight from the
+        # curated list - no NBN lookup, no per-location variation. A Hawfinch
+        # is rare wherever you hear it.
+        filtered_detections.append({**d, "tier": rarity_of(d["common_name"])})
 
     if len(filtered_detections) < len(detections[:3]):
         rejected = [d["common_name"] for d in detections[:3]
@@ -174,8 +167,7 @@ async def identify(
 # ============================================================
 
 from database import (
-    init_db, has_existing_sighting, save_sighting, get_tiers_found_for,
-    count_full_collector_sets, get_tiers_by_species, get_trophy_levels,
+    init_db, has_existing_sighting, save_sighting, get_trophy_levels,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_sightings_of, count_species_found_far_apart,
     get_share_count, increment_share_count, count_all_sessions,
@@ -201,8 +193,10 @@ from bird_facts import get_bird_facts
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, requirement_text
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
-from curated_species import ALL_CURATED_SPECIES, CURATED_SPECIES
-from collector_species import COLLECTOR_SPECIES, COLLECTOR_PACKS, TIERS, pack_for_species
+from curated_species import (
+    ALL_CURATED_SPECIES, PACKS, SPECIES_RARITY, TIERS,
+    rarity_of, pack_for_species,
+)
 from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
 
 init_db()
@@ -232,6 +226,11 @@ def get_bird_call_url(scientific_name: str):
     return None
 
 
+def pack_species(key: str) -> set:
+    p = PACKS[key]
+    return set(p["common"] + p["rare"])
+
+
 def measure_all_trophies():
     """Current value of every trophy's measure, in one place.
 
@@ -255,9 +254,10 @@ def measure_all_trophies():
         "evergreen":     distinct_seasons_warbled(),
         "tailwind":      max_consecutive_warble_days(),
         "migrator":      count_species_found_far_apart(5.0),
-        "skylark":       count_species_found_in(set(CURATED_SPECIES["Farmland & Hedgerow"])),
-        "high_flyer":    count_species_found_in(set(CURATED_SPECIES["Raptors & Others"])),
-        "still_water":   count_species_found_in(set(CURATED_SPECIES["Wetland & Water"])),
+        # Repointed from the old habitat groups to the packs that replaced them
+        "skylark":       count_species_found_in(pack_species("ground_feeders")),
+        "high_flyer":    count_species_found_in(pack_species("hunters")),
+        "still_water":   count_species_found_in(pack_species("water_birds")),
         "brooder":       count_rainy_sessions(),
         "wingman":       get_share_count(),
     }
@@ -479,17 +479,15 @@ async def analyze_session(
         # pass would only reject birds the user already watched a badge
         # appear for, recreating exactly the disappearing-detection problem
         # this restructure removes.
-        # Rarity is a collector-pack feature only. Everything else is simply
-        # found or not - which keeps the tier badge meaningful instead of
-        # appearing on every sighting.
-        is_collector = common_name in COLLECTOR_SPECIES
-        if is_collector:
-            tier, record_count = get_nbn_tier(scientific_name, lat, lng)
-        else:
-            tier, record_count = None, None
+        # Rarity is fixed per species from the curated list. Birds outside
+        # the 100 can still be detected and saved, they just carry no rarity.
+        tier = rarity_of(common_name)
+        record_count = None
+        is_collector = tier is not None
 
-        # A pack bird at a tier you haven't got yet is a genuinely new find.
-        is_duplicate = has_existing_sighting(common_name, tier if is_collector else None)
+        # One card per species now - rarity no longer varies by place, so
+        # there's nothing to re-collect.
+        is_duplicate = has_existing_sighting(common_name)
         feathers = calculate_feathers(tier, is_duplicate)
         photo_url, description = get_wikipedia_info(scientific_name)
 
@@ -506,7 +504,6 @@ async def analyze_session(
             "tier": tier,
             "nbn_record_count": record_count,
             "is_collector": is_collector,
-            "tiers_found": get_tiers_found_for(common_name) if is_collector else None,
             "pack": pack_for_species(common_name),
             "is_duplicate": is_duplicate,
             "feathers": feathers,
@@ -549,12 +546,12 @@ async def analyze_session(
                 session_feathers += ALL_COMPLETE_BONUS
                 bonuses.append({"label": "All 5 challenges done!", "feathers": ALL_COMPLETE_BONUS})
 
-        # Habitat sets - completing one is a real milestone worth paying for
-        for habitat, species in CURATED_SPECIES.items():
-            if count_species_found_in(set(species)) >= len(species):
-                if award_bonus_once(f"habitat:{habitat}"):
+        # Completing a pack is a real milestone worth paying for
+        for key, pack in PACKS.items():
+            if count_species_found_in(pack_species(key)) >= 10:
+                if award_bonus_once(f"pack:{key}"):
                     session_feathers += HABITAT_SET_BONUS
-                    bonuses.append({"label": f"{habitat} complete!", "feathers": HABITAT_SET_BONUS})
+                    bonuses.append({"label": f"{pack['name']} complete!", "feathers": HABITAT_SET_BONUS})
 
     new_total = add_feathers(session_feathers)
 
@@ -680,32 +677,31 @@ async def reset_data(scope: str):
 
 
 def pack_progress():
-    """Per-pack progress: how many of the 15 cards (5 birds x 3 tiers) are held,
-    and which tiers of each bird."""
-    tiers_held = get_tiers_by_species(COLLECTOR_SPECIES)
-    # Newest photo per species, so a found card can show the real bird
+    """Per-pack progress: which of the 10 birds are found, split into the 8
+    common and 2 rare, and whether the pack is complete."""
     photos = {}
     for s in get_all_sightings():
         photos.setdefault(s["common_name"], s.get("image_url"))
-
     packs = []
-    for key, pack in COLLECTOR_PACKS.items():
+    for key, pack in PACKS.items():
         birds = []
-        for name in pack["species"]:
-            got = sorted(tiers_held.get(name, set()), key=TIERS.index)
+        for name in pack["common"] + pack["rare"]:
+            got = name in photos
             birds.append({
                 "common_name": name,
-                "tiers_found": got,
-                "complete": len(got) == 3,
-                "found": bool(got),
+                "rarity": SPECIES_RARITY[name],
+                "found": got,
+                # Names of unfound birds are still sent - a pack is a known
+                # checklist you work through, unlike the old habitat sets
+                # where the unfound ones were kept secret.
                 "photo_url": photos.get(name) if got else None,
             })
-        cards = sum(len(b["tiers_found"]) for b in birds)
+        got = sum(1 for b in birds if b["found"])
         packs.append({
             "key": key, "name": pack["name"], "blurb": pack["blurb"],
             "emoji": pack["emoji"], "birds": birds,
-            "cards_found": cards, "cards_total": len(pack["species"]) * len(TIERS),
-            "complete": cards == len(pack["species"]) * len(TIERS),
+            "cards_found": got, "cards_total": len(birds),
+            "complete": got == len(birds),
         })
     return packs
 
@@ -714,51 +710,6 @@ def pack_progress():
 def list_collector_packs():
     """The three collector packs with progress, for the Collections screen."""
     return {"packs": pack_progress(), "tiers": TIERS}
-
-
-@app.get("/collector-species")
-def list_collector_species():
-    """The 25 birds collectable at all three tiers, with which tiers are
-    already held. Served rather than duplicated in the frontend, so there's
-    one source of truth for the list."""
-    found = {}
-    for s in get_all_sightings():
-        found.setdefault(s["common_name"], set()).add(s["tier"])
-    return {
-        "species": sorted(COLLECTOR_SPECIES),
-        "tiers": TIERS,
-        "progress": {name: sorted(found.get(name, set()), key=TIERS.index)
-                     for name in sorted(COLLECTOR_SPECIES)},
-    }
-
-
-@app.get("/habitats")
-def list_habitats():
-    """The six habitat sets with progress, for the Habitats screen.
-
-    Found birds come back with their photo and name. Unfound ones are sent as
-    a bare count, not names - deliberately, so the client can show how many
-    are left without revealing what they are.
-    """
-    # Newest first from get_all_sightings, so the first photo seen for a
-    # species is its most recent one.
-    photos = {}
-    for s in get_all_sightings():
-        photos.setdefault(s["common_name"], s.get("image_url"))
-
-    sets = []
-    for habitat, species in CURATED_SPECIES.items():
-        got = [{"common_name": name, "photo_url": photos.get(name)}
-               for name in species if name in photos]
-        sets.append({
-            "name": habitat,
-            "total": len(species),
-            "found_count": len(got),
-            "found": got,
-            "remaining": len(species) - len(got),
-            "complete": len(got) >= len(species),
-        })
-    return {"habitats": sets, "set_bonus": HABITAT_SET_BONUS}
 
 
 @app.get("/detection-stats")

@@ -1,69 +1,156 @@
 """
-Warble's curated bird list — 100 real UK species, hand-picked as the
-app's actual "collection goal."
+Warble's curated UK bird list: 10 collector packs of 10 birds each.
 
-IMPORTANT: this is deliberately NOT used to filter what BirdNET can
-detect. Detection stays fully open (geographic + seasonal filtering
-already narrows it to what's genuinely plausible). This list only
-powers the "Century" trophy and the Collection's completion tracker —
-a target to chase, not a restriction on what the app will hear.
+This is the game's main collection mechanic. Packs are grouped by behaviour
+and characteristics rather than habitat, so they cut across where birds live.
 
-Species names use BirdNET's own naming convention (confirmed from
-BirdNET's official labels format, e.g. "Turdus merula_Common
-Blackbird") - formal English names, not casual shorthand. A handful
-may need a small correction once tested against real live detections,
-since the exact label file isn't something this could be checked
-against directly - trivial to fix here if so, it's just one string.
+Each pack has 8 common birds and 2 rare ones. RARITY IS A FIXED PROPERTY OF
+THE SPECIES, based on genuine UK scarcity - not something derived from local
+record density. A Hawfinch is rare whether you're in Kent or Argyll.
 
-Organised by habitat for readability, and because a habitat tag per
-species is likely useful for future trophy work (e.g. High Flyer).
+A few rare birds are deliberately regional - Ring Ouzel needs uplands,
+Razorbill needs coastal cliffs. Those packs are meant to require going
+somewhere, not just listening harder at home.
+
+This list is UK-specific. Other markets would get their own list of the same
+shape, which is why nothing here assumes British species beyond the data.
 """
 
-CURATED_SPECIES = {
-    "Garden & Urban": [
-        "European Robin", "Eurasian Blue Tit", "Great Tit", "Common Blackbird",
-        "House Sparrow", "Eurasian Wren", "Common Starling", "Eurasian Blackcap",
-        "Common Chaffinch", "European Goldfinch", "Eurasian Magpie", "Carrion Crow",
-        "Rock Pigeon", "Common Wood-Pigeon", "Eurasian Collared-Dove",
-        "Western Jackdaw", "Coal Tit", "Long-tailed Tit", "European Greenfinch",
-        "Dunnock", "White Wagtail",
-    ],
-    "Woodland": [
-        "Song Thrush", "Mistle Thrush", "Great Spotted Woodpecker",
-        "European Green Woodpecker", "Eurasian Nuthatch", "Eurasian Treecreeper",
-        "Common Chiffchaff", "Willow Warbler", "Eurasian Jay", "Common Firecrest",
-        "Goldcrest", "Common Redstart", "Eurasian Sparrowhawk", "Common Buzzard",
-        "Tawny Owl", "European Turtle-Dove", "Hawfinch", "Marsh Tit",
-        "Willow Tit", "European Nightjar",
-    ],
-    "Farmland & Hedgerow": [
-        "Yellowhammer", "Common Linnet", "Eurasian Skylark", "Grey Partridge",
-        "Common Pheasant", "Corn Bunting", "European Stonechat",
-        "Common Whitethroat", "Lesser Whitethroat", "Eurasian Tree Sparrow",
-        "Common Kestrel", "Red Kite", "Barn Owl", "Little Owl",
-    ],
-    "Wetland & Water": [
-        "Grey Heron", "Mute Swan", "Canada Goose", "Greylag Goose", "Mallard",
-        "Eurasian Coot", "Common Moorhen", "Common Kingfisher", "Sand Martin",
-        "Barn Swallow", "Common House-Martin", "Reed Bunting",
-        "Eurasian Reed Warbler", "Sedge Warbler", "Little Grebe",
-        "Great Crested Grebe", "Common Sandpiper", "Common Snipe",
-        "Eurasian Curlew", "Grey Wagtail",
-    ],
-    "Coastal": [
-        "Herring Gull", "Black-headed Gull", "Common Gull",
-        "Great Black-backed Gull", "Northern Gannet", "European Shag",
-        "Great Cormorant", "Common Eider", "Eurasian Oystercatcher",
-        "Common Ringed Plover", "Sanderling", "Ruddy Turnstone", "Common Tern",
-        "Arctic Tern", "Razorbill",
-    ],
-    "Raptors & Others": [
-        "Peregrine Falcon", "Common Cuckoo", "Eurasian Hobby", "Osprey",
-        "White-tailed Eagle", "Golden Eagle", "Merlin", "Hen Harrier",
-        "Long-eared Owl", "Short-eared Owl",
-    ],
+PACKS = {
+    "garden_regulars": {
+        "name": "Garden Regulars",
+        "blurb": "The birds you'll meet on almost any doorstep.",
+        "emoji": "\U0001F3E1",
+        "common": [
+            "European Robin", "Common Blackbird", "House Sparrow", "Dunnock",
+            "Common Starling", "Common Wood-Pigeon", "Eurasian Collared-Dove",
+            "Rock Pigeon",
+        ],
+        "rare": ["Eurasian Tree Sparrow", "European Turtle-Dove"],
+    },
+    "tits_and_climbers": {
+        "name": "Tits & Climbers",
+        "blurb": "Tiny acrobats that hang upside down and run up tree trunks.",
+        "emoji": "\U0001F343",
+        "common": [
+            "Eurasian Blue Tit", "Great Tit", "Coal Tit", "Long-tailed Tit",
+            "Eurasian Nuthatch", "Eurasian Treecreeper", "Goldcrest", "Eurasian Wren",
+        ],
+        "rare": ["Marsh Tit", "Willow Tit"],
+    },
+    "seed_eaters": {
+        "name": "Finches & Seed-Eaters",
+        "blurb": "Stout beaks built for cracking seeds open.",
+        "emoji": "\U0001F33B",
+        "common": [
+            "Common Chaffinch", "European Goldfinch", "European Greenfinch",
+            "Common Linnet", "Eurasian Bullfinch", "Eurasian Siskin",
+            "Yellowhammer", "Reed Bunting",
+        ],
+        "rare": ["Hawfinch", "Corn Bunting"],
+    },
+    "small_singers": {
+        "name": "Warblers & Small Singers",
+        "blurb": "Little brown birds with surprisingly big voices.",
+        "emoji": "\U0001F3B5",
+        "common": [
+            "Eurasian Blackcap", "Common Chiffchaff", "Willow Warbler",
+            "Common Whitethroat", "Sedge Warbler", "Eurasian Reed Warbler",
+            "European Stonechat", "Common Redstart",
+        ],
+        "rare": ["Lesser Whitethroat", "Common Firecrest"],
+    },
+    "tricksters": {
+        "name": "Tricksters & Drummers",
+        "blurb": "The cleverest birds around - and the ones that drum on trees.",
+        "emoji": "\u2728",
+        "common": [
+            "Eurasian Magpie", "Eurasian Jay", "Western Jackdaw", "Carrion Crow",
+            "Rook", "Northern Raven", "Great Spotted Woodpecker",
+            "European Green Woodpecker",
+        ],
+        "rare": ["Lesser Spotted Woodpecker", "Common Cuckoo"],
+    },
+    "ground_feeders": {
+        "name": "Thrushes & Ground Feeders",
+        "blurb": "Birds that hop and probe about on the ground.",
+        "emoji": "\U0001F33E",
+        "common": [
+            "Song Thrush", "Mistle Thrush", "Eurasian Skylark", "Common Pheasant",
+            "White Wagtail", "Grey Wagtail", "Meadow Pipit", "Redwing",
+        ],
+        "rare": ["Grey Partridge", "Ring Ouzel"],
+    },
+    "hunters": {
+        "name": "Hunters",
+        "blurb": "Sharp eyes, sharp talons - the hunters of day and night.",
+        "emoji": "\U0001F985",
+        "common": [
+            "Common Buzzard", "Common Kestrel", "Eurasian Sparrowhawk", "Red Kite",
+            "Peregrine Falcon", "Tawny Owl", "Barn Owl", "Little Owl",
+        ],
+        "rare": ["Eurasian Hobby", "Long-eared Owl"],
+    },
+    "water_birds": {
+        "name": "Water Birds",
+        "blurb": "Swimmers, divers and dabblers.",
+        "emoji": "\U0001F986",
+        "common": [
+            "Mallard", "Mute Swan", "Canada Goose", "Greylag Goose",
+            "Eurasian Coot", "Common Moorhen", "Little Grebe", "Great Crested Grebe",
+        ],
+        "rare": ["Common Kingfisher", "Common Eider"],
+    },
+    "waders": {
+        "name": "Waders & Long-legs",
+        "blurb": "Long legs and long bills, built for mud and shallows.",
+        "emoji": "\U0001FAB6",
+        "common": [
+            "Grey Heron", "Eurasian Oystercatcher", "Common Ringed Plover",
+            "Sanderling", "Ruddy Turnstone", "Common Sandpiper", "Common Snipe",
+            "Northern Lapwing",
+        ],
+        "rare": ["Eurasian Curlew", "Eurasian Woodcock"],
+    },
+    "sky_and_sea": {
+        "name": "Sky & Sea",
+        "blurb": "Birds of the open air and the open water.",
+        "emoji": "\U0001F30A",
+        "common": [
+            "Herring Gull", "Black-headed Gull", "Common Gull",
+            "Great Black-backed Gull", "Great Cormorant", "Common Tern",
+            "Barn Swallow", "Common House-Martin",
+        ],
+        "rare": ["Northern Gannet", "Razorbill"],
+    },
 }
 
-# Flattened for actual lookups - the category grouping above is for
-# readability and future habitat-tag use, not needed at query time.
-ALL_CURATED_SPECIES = {name for species_list in CURATED_SPECIES.values() for name in species_list}
+# --- Derived lookups -------------------------------------------------------
+
+ALL_CURATED_SPECIES = {
+    s for p in PACKS.values() for s in (p["common"] + p["rare"])
+}
+
+# Fixed rarity per species. Only two tiers now - a bird is either common or
+# rare, and that never changes with where you are.
+SPECIES_RARITY = {}
+for _p in PACKS.values():
+    for _s in _p["common"]:
+        SPECIES_RARITY[_s] = "Common"
+    for _s in _p["rare"]:
+        SPECIES_RARITY[_s] = "Rare"
+
+PACK_FOR_SPECIES = {
+    s: key for key, p in PACKS.items() for s in (p["common"] + p["rare"])
+}
+
+TIERS = ["Common", "Rare"]
+
+
+def rarity_of(common_name: str):
+    """Fixed rarity for a species, or None if it isn't on Warble's list."""
+    return SPECIES_RARITY.get(common_name)
+
+
+def pack_for_species(common_name: str):
+    return PACK_FOR_SPECIES.get(common_name)

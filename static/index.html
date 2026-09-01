@@ -1233,18 +1233,6 @@ function renderNoBirds() {
   };
 }
 
-// Filled from /collector-species at startup. Empty until it loads, which
-// just means cards render as normal singles for that first moment.
-let COLLECTOR_SPECIES = new Set();
-
-async function loadCollectorSpecies() {
-  try {
-    const res = await fetch('/collector-species');
-    const d = await res.json();
-    COLLECTOR_SPECIES = new Set(d.species || []);
-  } catch (e) { /* cards just render as singles if this fails */ }
-}
-
 let collectionSort = 'az';
 let collectionSortDesc = false;
 let collectionBirds = [];
@@ -1316,12 +1304,11 @@ function collectionCardHtml(bird) {
   const photo = bird.image_url
     ? `<img src="${bird.image_url}">`
     : `<div style="height:70px;background:var(--parch-dk);"></div>`;
-  const isCollector = COLLECTOR_SPECIES.has(bird.common_name);
   return `
     <div class="collection-item" style="--tier-color:${tierColor}"
          data-name="${bird.common_name}" data-key="${bird.key || bird.common_name}">
       ${photo}
-      ${isCollector ? `<div class="ci-tier">${bird.tier}</div>` : ''}
+      ${bird.tier ? `<div class="ci-tier">${bird.tier}</div>` : ''}
       <div class="ci-name">${bird.common_name}</div>
     </div>`;
 }
@@ -1377,14 +1364,11 @@ async function loadCollection() {
     // The backend logs every individual sighting - collapse that down to one
     // entry per species, keeping the most recent (the list arrives
     // newest-first) but remembering when it was FIRST found, for date sorting.
-    // Collector species are keyed by species AND tier, so the same bird heard
-    // at two different tiers gets two cards - that's the point of them.
-    // Everything else is one card per species, as before.
+    // One card per species. Rarity is a fixed property of the bird now, so
+    // there's no longer such a thing as the same bird at a different tier.
     const seen = new Map();
     for (const s of allSightingsRaw) {
-      const key = COLLECTOR_SPECIES.has(s.common_name)
-        ? `${s.common_name}|${s.tier}`
-        : s.common_name;
+      const key = s.common_name;
       if (!seen.has(key)) {
         seen.set(key, { ...s, first_found: s.created_at, key });
       } else {
@@ -2062,7 +2046,6 @@ async function loadAccessoryCache() {
   } catch (e) { /* avatars just show without an accessory if this fails */ }
 }
 loadAccessoryCache();
-loadCollectorSpecies();
 
 function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -2865,53 +2848,6 @@ function trophySvg(trophy) {
 
 let trophyIndex = 0;
 
-let allHabitatsRaw = [], habitatSetBonus = 100;
-
-function renderHabitatDetail(habitatName) {
-  const h = allHabitatsRaw.find(x => x.name === habitatName);
-  if (!h) return;
-  stage.classList.add('top-aligned');
-
-  // A habitat set is a checklist, not a gallery - so it's laid out as rows
-  // rather than reusing My Birds' photo grid, which made the two screens look
-  // interchangeable. Rows also handle the unfound entries far better: a blank
-  // row reads as "still to find", where a blank grid tile just looks broken.
-  const foundRows = h.found.map((b, i) => `
-    <div class="hab-row found">
-      <div class="hab-row-num">${i + 1}</div>
-      ${b.photo_url ? `<img class="hab-row-thumb" src="${b.photo_url}" alt="">`
-                    : `<div class="hab-row-thumb"></div>`}
-      <div class="hab-row-name">${b.common_name}</div>
-      <div class="hab-row-mark found">✓</div>
-    </div>`).join('');
-
-  // Unfound birds stay nameless - the count is visible, the identities aren't.
-  const mysteryRows = Array.from({ length: h.remaining }, (_, i) => `
-    <div class="hab-row mystery">
-      <div class="hab-row-num">${h.found_count + i + 1}</div>
-      <div class="hab-row-thumb"><span class="hab-row-silhouette">🐦</span></div>
-      <div class="hab-row-name">Still to find</div>
-      <div class="hab-row-mark">?</div>
-    </div>`).join('');
-
-  const pct = Math.round((h.found_count / h.total) * 100);
-
-  stage.innerHTML = `
-    <div style="width:100%;margin-bottom:12px;">
-      <button class="back-btn" id="backBtn">← Habitats</button>
-    </div>
-    <div class="collection-title" style="margin-bottom:4px;">${h.name}</div>
-    <div class="collection-count">${h.found_count} of ${h.total} found${h.complete ? ' · Complete!' : ''}</div>
-    <div class="habitat-bar" style="max-width:300px;margin-bottom:14px;">
-      <div class="habitat-bar-fill" style="width:${pct}%"></div>
-    </div>
-    <div class="hab-list">${foundRows}${mysteryRows}</div>
-  `;
-  document.getElementById('backBtn').onclick = renderHabitats;
-}
-
-let allPacksRaw = [], packTiers = [], selectedPack = 0;
-
 async function loadCollectorPacks() {
   const el = document.getElementById('packList');
   if (!el) return;
@@ -2991,51 +2927,11 @@ async function renderHabitats() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Collections</div></div>
-
-    <div class="profile-section-title">Collector packs</div>
+    <div class="collection-count">Ten packs of ten birds to complete</div>
     <div class="pack-selector" id="packSelector"></div>
     <div id="packList" style="width:100%;"></div>
-
-    <div class="profile-section-title">Habitats</div>
-    <div class="reset-note">Six places to explore.</div>
-    <div id="habitatList" style="width:100%;"></div>
   `;
   loadCollectorPacks();
-  const list = document.getElementById('habitatList');
-  try {
-    const res = await fetch('/habitats');
-    const data = await res.json();
-    allHabitatsRaw = data.habitats || [];
-    habitatSetBonus = data.set_bonus;
-    list.innerHTML = allHabitatsRaw.map(h => {
-      const pct = Math.round((h.found_count / h.total) * 100);
-      // Found birds show their name; the rest are silhouettes only, so the
-      // collection's shape is visible without giving away what's in it.
-      const dots = Array.from({ length: h.total }, (_, i) =>
-        i < h.found_count
-          ? `<span class="hab-dot found" title="${h.found[i]}"></span>`
-          : `<span class="hab-dot"></span>`
-      ).join('');
-      return `
-        <div class="habitat-card ${h.complete ? 'complete' : ''}" data-habitat="${h.name}">
-          <div class="habitat-top">
-            <span class="habitat-name">${h.name}</span>
-            <span class="habitat-count">${h.found_count}/${h.total}</span>
-          </div>
-          <div class="habitat-bar"><div class="habitat-bar-fill" style="width:${pct}%"></div></div>
-          <div class="habitat-dots">${dots}</div>
-          ${h.complete
-            ? '<div class="habitat-done">Complete!</div>'
-            : `<div class="habitat-reward">Complete this set for ${data.set_bonus} feathers</div>`}
-          <div class="habitat-tap">Tap to see the birds</div>
-        </div>`;
-    }).join('');
-    list.querySelectorAll('.habitat-card').forEach(el => {
-      el.onclick = () => renderHabitatDetail(el.dataset.habitat);
-    });
-  } catch (e) {
-    list.innerHTML = `<div class="collection-empty">Couldn't load habitats right now.</div>`;
-  }
 }
 
 async function renderTrophies() {
