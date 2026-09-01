@@ -288,6 +288,14 @@
   .detail-desc{font-size:13px;line-height:1.55;color:var(--ink);margin-top:14px;}
 
   /* --- Facts dashboard --- */
+  .tt-block{width:100%;background:#fff;border-radius:14px;padding:12px 14px;margin-top:12px;}
+  .tt-title{font-family:'Outfit';font-weight:900;font-size:10px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+  .tt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .tt-label{font-family:'Outfit';font-weight:700;font-size:11px;color:var(--dusk);width:64px;flex-shrink:0;}
+  .tt-bar{flex:1;height:9px;background:var(--parch-dk);border-radius:5px;overflow:hidden;}
+  .tt-fill{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:5px;}
+  .tt-num{font-family:'Outfit';font-weight:900;font-size:11px;color:var(--dusk);width:24px;text-align:right;flex-shrink:0;}
+  .fact-num-sm{font-size:11px !important;line-height:1.25;}
   .facts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
   .fact-tile{background:var(--parch);border-radius:12px;padding:10px 12px;}
   .fact-icon{font-size:20px;}
@@ -331,7 +339,7 @@
   .detail-tier-row{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;}
   .play-call-inline{margin-top:0 !important;padding:7px 13px;font-size:11px;flex-shrink:0;}
   .detail-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-  .share-bird-btn{background:var(--dusk);color:#fff;border:none;border-radius:20px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;}
+  .share-bird-btn{background:var(--dusk);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit';font-size:11px;font-weight:700;cursor:pointer;line-height:1.2;white-space:nowrap;}
   .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;}
 
   /* --- Profile --- */
@@ -1096,7 +1104,6 @@ function renderCard() {
           <div class="card-name">${bird.common_name}</div>
           ${currentProfile.show_scientific_names !== false ? `<div class="card-sci">${bird.scientific_name}</div>` : ''}
           <div class="card-tags">
-            ${bird.tier ? `<span class="tag tier ${bird.tier === 'Rare' ? 'tier-rare' : ''}">${bird.tier}</span>` : ''}
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
           </div>
           ${packStripHtml(bird)}
@@ -1425,10 +1432,9 @@ function renderBirdDetail(commonName, onBack) {
         <div class="detail-name">${latest.common_name}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
         <div class="card-tags detail-tier-row" style="margin-top:10px;">
-          ${latest.tier ? `<span class="tag tier ${latest.tier === 'Rare' ? 'tier-rare' : ''}">${latest.tier}</span>` : ''}
           <span class="detail-actions">
             ${latest.call_url ? `<button class="play-call-btn play-call-inline" data-call-url="${latest.call_url}">▶ Hear its call</button>` : ''}
-            <button class="share-bird-btn" id="shareBirdBtn" aria-label="Share this bird">⇪</button>
+            <button class="share-bird-btn" id="shareBirdBtn">Share this bird</button>
           </span>
         </div>
         <div class="detail-stats">
@@ -1442,6 +1448,8 @@ function renderBirdDetail(commonName, onBack) {
           </div>
         </div>
         ${locationTags ? `<div class="location-tags">${locationTags}</div>` : ''}
+        ${buildCoreTiles(latest.stats, latest.facts)}
+        ${buildStatBars(latest.stats)}
         ${buildFactsDashboard(latest.facts)}
         ${(!latest.facts && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
@@ -1512,6 +1520,49 @@ const HABITAT_ICONS = {
   'Farmland': '🌾', 'Towns & Cities': '🏘️',
 };
 
+// Mirrors STAT_LABELS in bird_stats.py. Kept in a fixed order so the bars
+// always read the same way down every card.
+const STAT_LABELS = { size: 'Size', speed: 'Speed', population: 'Population',
+                     song: 'Song', brains: 'Brains' };
+
+function buildStatBars(stats) {
+  if (!stats || !stats.ratings) return '';
+  const rows = Object.entries(STAT_LABELS).map(([key, label]) => {
+    const v = stats.ratings[key] ?? 0;
+    return `
+      <div class="tt-row">
+        <span class="tt-label">${label}</span>
+        <span class="tt-bar"><span class="tt-fill" style="width:${v}%"></span></span>
+        <span class="tt-num">${v}</span>
+      </div>`;
+  }).join('');
+  return `
+    <div class="tt-block">
+      <div class="tt-title">Compared to all 100 birds</div>
+      ${rows}
+    </div>`;
+}
+
+// Habitat and diet come from bird_stats, which covers all 100 - unlike the
+// richer facts data, which only exists for the ones researched so far.
+function buildCoreTiles(stats, facts) {
+  if (!stats) return '';
+  const weight = stats.weight_g >= 1000
+    ? `${(stats.weight_g / 1000).toFixed(1)}kg` : `${stats.weight_g}g`;
+  const tiles = [
+    ['⚖️', weight, 'Weight'],
+    ['📏', `${stats.length_cm}cm`, 'Length'],
+    ['🏞️', stats.habitat, 'Where it lives'],
+    ['🍽️', stats.diet, 'What it eats'],
+  ];
+  return `<div class="facts-grid">${tiles.map(([icon, num, label]) => `
+    <div class="fact-tile">
+      <div class="fact-icon">${icon}</div>
+      <div class="fact-num ${String(num).length > 8 ? 'fact-num-sm' : ''}">${num}</div>
+      <div class="fact-label">${label}</div>
+    </div>`).join('')}</div>`;
+}
+
 function buildFactsDashboard(facts) {
   if (!facts) return '';
   const habitatTags = (facts.habitats || [])
@@ -1520,20 +1571,6 @@ function buildFactsDashboard(facts) {
   const statusClass = facts.conservation_status === 'Green' ? 'status-green'
     : facts.conservation_status === 'Amber' ? 'status-amber' : 'status-red';
   return `
-    <div class="facts-grid">
-      <div class="fact-tile">
-        <div class="fact-icon">⚖️</div>
-        <div class="fact-num">${facts.weight_g}g</div>
-        <div class="fact-label">Weight</div>
-        ${facts.weight_comparison ? `<div class="fact-compare">${facts.weight_comparison}</div>` : ''}
-      </div>
-      <div class="fact-tile">
-        <div class="fact-icon">📏</div>
-        <div class="fact-num">${facts.wingspan_cm}cm</div>
-        <div class="fact-label">Wingspan</div>
-        ${facts.size_comparison ? `<div class="fact-compare">${facts.size_comparison}</div>` : ''}
-      </div>
-    </div>
     ${habitatTags ? `<div class="habitat-tags">${habitatTags}</div>` : ''}
     <div class="status-badge ${statusClass}">🛡️ ${facts.conservation_status} status</div>
   `;
