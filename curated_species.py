@@ -18,8 +18,8 @@ shape, which is why nothing here assumes British species beyond the data.
 
 PACKS = {
     "garden_regulars": {
-        "name": "Garden Regulars",
-        "blurb": "The birds you'll meet on almost any doorstep.",
+        "name": "Doorstep Gang",
+        "blurb": "The regulars you'll meet on almost any doorstep.",
         "emoji": "\U0001F3E1",
         "common": [
             "European Robin", "Common Blackbird", "House Sparrow", "Dunnock",
@@ -29,8 +29,8 @@ PACKS = {
         "rare": ["Eurasian Tree Sparrow", "European Turtle-Dove"],
     },
     "tits_and_climbers": {
-        "name": "Tits & Climbers",
-        "blurb": "Tiny acrobats that hang upside down and run up tree trunks.",
+        "name": "Upside-Downers",
+        "blurb": "Tiny acrobats that hang upside down and run up trees.",
         "emoji": "\U0001F343",
         "common": [
             "Eurasian Blue Tit", "Great Tit", "Coal Tit", "Long-tailed Tit",
@@ -39,8 +39,8 @@ PACKS = {
         "rare": ["Marsh Tit", "Willow Tit"],
     },
     "seed_eaters": {
-        "name": "Finches & Seed-Eaters",
-        "blurb": "Stout beaks built for cracking seeds open.",
+        "name": "Seed Crackers",
+        "blurb": "Stubby little bills built for cracking seeds open.",
         "emoji": "\U0001F33B",
         "common": [
             "Common Chaffinch", "European Goldfinch", "European Greenfinch",
@@ -50,8 +50,8 @@ PACKS = {
         "rare": ["Hawfinch", "Corn Bunting"],
     },
     "small_singers": {
-        "name": "Warblers & Small Singers",
-        "blurb": "Little brown birds with surprisingly big voices.",
+        "name": "Little Loudmouths",
+        "blurb": "Small brown birds with astonishingly big voices.",
         "emoji": "\U0001F3B5",
         "common": [
             "Eurasian Blackcap", "Common Chiffchaff", "Willow Warbler",
@@ -61,8 +61,8 @@ PACKS = {
         "rare": ["Lesser Whitethroat", "Common Firecrest"],
     },
     "tricksters": {
-        "name": "Tricksters & Drummers",
-        "blurb": "The cleverest birds around - and the ones that drum on trees.",
+        "name": "Mischief Makers",
+        "blurb": "The cleverest, cheekiest birds - and the ones that drum on trees.",
         "emoji": "\u2728",
         "common": [
             "Eurasian Magpie", "Eurasian Jay", "Western Jackdaw", "Carrion Crow",
@@ -72,8 +72,8 @@ PACKS = {
         "rare": ["Lesser Spotted Woodpecker", "Common Cuckoo"],
     },
     "ground_feeders": {
-        "name": "Thrushes & Ground Feeders",
-        "blurb": "Birds that hop and probe about on the ground.",
+        "name": "Worm Hunters",
+        "blurb": "Hoppers and probers, always working the ground.",
         "emoji": "\U0001F33E",
         "common": [
             "Song Thrush", "Mistle Thrush", "Eurasian Skylark", "Common Pheasant",
@@ -82,8 +82,8 @@ PACKS = {
         "rare": ["Grey Partridge", "Ring Ouzel"],
     },
     "hunters": {
-        "name": "Hunters",
-        "blurb": "Sharp eyes, sharp talons - the hunters of day and night.",
+        "name": "Silent Swoopers",
+        "blurb": "Sharp eyes, hooked bills and wings you'll never hear coming.",
         "emoji": "\U0001F985",
         "common": [
             "Common Buzzard", "Common Kestrel", "Eurasian Sparrowhawk", "Red Kite",
@@ -92,7 +92,7 @@ PACKS = {
         "rare": ["Eurasian Hobby", "Long-eared Owl"],
     },
     "water_birds": {
-        "name": "Water Birds",
+        "name": "Splash Squad",
         "blurb": "Swimmers, divers and dabblers.",
         "emoji": "\U0001F986",
         "common": [
@@ -102,8 +102,8 @@ PACKS = {
         "rare": ["Common Kingfisher", "Common Eider"],
     },
     "waders": {
-        "name": "Waders & Long-legs",
-        "blurb": "Long legs and long bills, built for mud and shallows.",
+        "name": "Mud Stompers",
+        "blurb": "Long legs, long bills, and a lot of standing about in mud.",
         "emoji": "\U0001FAB6",
         "common": [
             "Grey Heron", "Eurasian Oystercatcher", "Common Ringed Plover",
@@ -113,7 +113,7 @@ PACKS = {
         "rare": ["Eurasian Curlew", "Eurasian Woodcock"],
     },
     "sky_and_sea": {
-        "name": "Sky & Sea",
+        "name": "Wind Riders",
         "blurb": "Birds of the open air and the open water.",
         "emoji": "\U0001F30A",
         "common": [
