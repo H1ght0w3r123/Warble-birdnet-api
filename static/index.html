@@ -163,6 +163,8 @@
   .collector-strip{margin-top:12px;padding-top:11px;border-top:1px dashed var(--parch-dk);}
   .collector-label{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
   .collector-pips{display:flex;gap:5px;justify-content:center;}
+  .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--dusk);font-family:'Outfit';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
+  .fan-rare{position:absolute;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
   .collector-pip{
     flex:1; font-family:'Outfit'; font-weight:700; font-size:9.5px; padding:4px 0;
     border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
@@ -1063,16 +1065,14 @@ function sortForReveal(birds) {
 
 // The 25 collector species can be held at all three tiers, so their cards
 // show which ones are in the bag and which are still missing.
-function collectorStripHtml(tiersFound) {
-  const found = tiersFound || [];
-  const pips = ['Common', 'Visitor', 'Rare'].map(t => `
-    <span class="collector-pip ${found.includes(t) ? 'got' : ''}"
-          style="--tier-color:${TIER_COLORS[t]}">${t}</span>`).join('');
-  const complete = found.length === 3;
+// Which pack this bird belongs to. Replaces the old three-tier strip - a
+// bird has one fixed rarity now, so there's no set of tiers to collect.
+function packStripHtml(bird) {
+  if (!bird.pack_name) return '';
   return `
     <div class="collector-strip">
-      <div class="collector-label">${complete ? 'Full set!' : 'Collect all three'}</div>
-      <div class="collector-pips">${pips}</div>
+      <div class="collector-label">Collection</div>
+      <div class="pack-chip">${bird.pack_name}</div>
     </div>`;
 }
 
@@ -1092,7 +1092,7 @@ function renderCard() {
             ${bird.tier ? `<span class="tag tier ${bird.tier === 'Rare' ? 'tier-rare' : ''}">${bird.tier}</span>` : ''}
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
           </div>
-          ${bird.is_collector ? collectorStripHtml(bird.tiers_found) : ''}
+          ${packStripHtml(bird)}
           <div class="feather-row">🪶 +${bird.feathers}</div>
           ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">▶ Hear its call</button>` : ''}
           <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
@@ -2848,7 +2848,7 @@ function trophySvg(trophy) {
 
 let trophyIndex = 0;
 
-let allPacksRaw = [], packTiers = [], selectedPack = 0;
+let allPacksRaw = [], selectedPack = 0;
 
 async function loadCollectorPacks() {
   const el = document.getElementById('packList');
@@ -2857,7 +2857,6 @@ async function loadCollectorPacks() {
     const res = await fetch('/collector-packs');
     const d = await res.json();
     allPacksRaw = d.packs || [];
-    packTiers = d.tiers || [];
     renderPackSelector();
     renderSelectedPack();
   } catch (e) {
@@ -2895,19 +2894,21 @@ function renderSelectedPack() {
     const offset = i - (n - 1) / 2;
     const angle = offset * 8;
     const lift = Math.abs(offset) * 6;
-    const pips = packTiers.map(t => `
-      <span class="fan-pip ${b.tiers_found.includes(t) ? 'got' : ''}"
-            style="--tier-color:${TIER_COLORS[t]}"></span>`).join('');
+    // Each bird has one fixed rarity now, so the card carries a single
+    // rarity marker rather than a pip per tier.
+    const rareMark = b.rarity === 'Rare'
+      ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
+      : '';
     const face = b.photo_url
       ? `<img class="fan-photo" src="${b.photo_url}" alt="">`
       : `<div class="fan-photo empty">${b.found ? '' : '🐦'}</div>`;
     return `
-      <div class="fan-card ${b.complete ? 'complete' : ''} ${b.found ? '' : 'unfound'}"
+      <div class="fan-card ${b.found ? 'complete' : 'unfound'}"
            style="transform:rotate(${angle}deg) translateY(${lift}px); z-index:${10 - Math.abs(offset)}"
            title="${b.common_name}">
         ${face}
-        <div class="fan-name">${b.found ? b.common_name : '???'}</div>
-        <div class="fan-pips">${pips}</div>
+        <div class="fan-name">${b.common_name}</div>
+        ${rareMark}
       </div>`;
   }).join('');
 

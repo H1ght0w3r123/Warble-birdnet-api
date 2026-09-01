@@ -505,6 +505,7 @@ async def analyze_session(
             "nbn_record_count": record_count,
             "is_collector": is_collector,
             "pack": pack_for_species(common_name),
+            "pack_name": PACKS[pack_for_species(common_name)]["name"] if pack_for_species(common_name) else None,
             "is_duplicate": is_duplicate,
             "feathers": feathers,
             "call_url": call_url,
