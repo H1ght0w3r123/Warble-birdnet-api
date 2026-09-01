@@ -330,6 +330,11 @@
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .live-bird-badge:first-child{margin-left:0;}
+  /* Three levels of find, escalating in weight so the difference is obvious
+     at a glance rather than needing the colours to be learned. */
+  .find-collect{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 3px rgba(126,200,164,0.35);}
+  .find-rare{box-shadow:0 4px 14px rgba(255,195,0,0.75), 0 0 0 4px rgba(255,195,0,0.3);}
+  .silhouette-card.find-rare{box-shadow:0 6px 20px rgba(255,195,0,0.7);}
   .rec-location{
     font-family:'Outfit'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);
     text-align:center; margin-top:18px; min-height:17px;
@@ -642,7 +647,24 @@ const featherCountEl = document.getElementById('featherCount');
 // which claims a rarity they don't have.
 function tierColorOf(tier) { return tier ? TIER_COLORS[tier] : 'var(--mist)'; }
 
-const TIER_COLORS = { Common: 'var(--sage)', Visitor: 'var(--visitor)', Rare: 'var(--rare)' };
+// Three levels of "how exciting is this find", used during a session:
+//   no tier  - a bird, but not one of Warble's 100
+//   Common   - a collector bird, so it counts towards a pack
+//   Rare     - one of the 20 rare collector birds
+const SESSION_TIERS = {
+  none:   { color: 'var(--mist)',   cls: 'find-plain'  },
+  common: { color: 'var(--sage)',   cls: 'find-collect' },
+  rare:   { color: 'var(--rare)',   cls: 'find-rare'   },
+};
+function sessionTier(tier) {
+  if (tier === 'Rare') return SESSION_TIERS.rare;
+  if (tier) return SESSION_TIERS.common;
+  return SESSION_TIERS.none;
+}
+
+// Only two rarities exist now - Visitor went when rarity became a fixed
+// property of the species rather than a per-location calculation.
+const TIER_COLORS = { Common: 'var(--sage)', Rare: 'var(--rare)' };
 
 let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
 let sessionResults = [], cardIndex = 0;
@@ -1002,7 +1024,9 @@ const PROFILE_BIRD_SVG = '<svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6
 
 const BADGE_BIRD_SVG = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
 
-const TIER_ORDER = { Rare: 0, Visitor: 1, Common: 2 };
+// Rare first, then collector birds, then anything else - so the best find
+// of the session sits at the front of the badge stack.
+const TIER_ORDER = { Rare: 0, Common: 1 };
 let liveDetectedBirds = [];
 let liveBadgedSpecies = new Set();
 
@@ -1012,10 +1036,8 @@ function renderLiveBirdStack() {
   // Tiered (pack) birds first and rarest-first; untiered birds after them.
   const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 3) - (TIER_ORDER[b.tier] ?? 3));
   el.innerHTML = sorted.map(bird => {
-    // Only pack birds carry a tier. Falling back to --sage would have made an
-    // untiered bird look exactly like a Common one, which is a different claim.
-    const tierColor = bird.tier ? TIER_COLORS[bird.tier] : 'var(--mist)';
-    return `<div class="live-bird-badge" style="--tier-color:${tierColor}">${BADGE_BIRD_SVG}</div>`;
+    const t = sessionTier(bird.tier);
+    return `<div class="live-bird-badge ${t.cls}" style="--tier-color:${t.color}">${BADGE_BIRD_SVG}</div>`;
   }).join('');
 }
 
@@ -1046,9 +1068,9 @@ function renderSessionResults() {
   const locationLine = sessionLocationName ? ` at ${sessionLocationName}` : '';
 
   const silhouettes = sessionResults.map((bird, i) => {
-    const tierColor = tierColorOf(bird.tier);
+    const t = sessionTier(bird.tier);
     const angle = (i % 2 === 0 ? -1 : 1) * (5 + i * 2);
-    return `<div class="silhouette-card" style="--tier-color:${tierColor}; transform:rotate(${angle}deg); animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">🐦</span></div>`;
+    return `<div class="silhouette-card ${t.cls}" style="--tier-color:${t.color}; transform:rotate(${angle}deg); animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">🐦</span></div>`;
   }).join('');
 
   stage.innerHTML = `
@@ -1069,7 +1091,7 @@ function renderSessionResults() {
 // Reveal order builds towards the best find: commonest first, and within a
 // tier the ones already in the collection before genuinely new ones. So the
 // last card of a session is the rarest new bird - the moment worth waiting for.
-const REVEAL_TIER_RANK = { Common: 0, Visitor: 1, Rare: 2 };
+const REVEAL_TIER_RANK = { Common: 1, Rare: 2 };   // untiered birds fall to 0
 function sortForReveal(birds) {
   return [...birds].sort((a, b) => {
     const t = (REVEAL_TIER_RANK[a.tier] ?? 0) - (REVEAL_TIER_RANK[b.tier] ?? 0);
@@ -1580,7 +1602,7 @@ function renderDone() {
   // Untiered birds have no chip - only pack birds carry a tier now.
   sessionResults.forEach(b => { if (b.tier) tierCounts[b.tier] = (tierCounts[b.tier] || 0) + 1; });
   const newCount = sessionResults.filter(b => !b.is_duplicate).length;
-  const tierChips = ['Rare', 'Visitor', 'Common']
+  const tierChips = ['Rare', 'Common']
     .filter(t => tierCounts[t])
     .map(t => `<span class="summary-chip" style="--tier-color:${TIER_COLORS[t] || 'var(--sage)'}">${tierCounts[t]} ${t}</span>`)
     .join('');
