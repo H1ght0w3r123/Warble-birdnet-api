@@ -265,8 +265,8 @@
   .sort-btn{background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit';font-weight:700;font-size:11.5px;cursor:pointer;transition:background .2s ease,color .2s ease;}
   .sort-btn.active{background:#fff;color:var(--dusk);}
   .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-  .ci-tier{font-family:'Outfit';font-weight:900;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;background:var(--tier-color,var(--sage));color:#fff;padding:2px 0;text-align:center;}
-  .collection-item{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--tier-color,var(--sage));}
+  /* One neutral outline for every bird - My Birds treats them all alike. */
+  .collection-item{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--parch-dk);}
   .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;}
   .collection-empty{text-align:center;color:rgba(255,255,255,0.85);font-size:13px;margin-top:40px;width:100%;}
@@ -276,7 +276,7 @@
   .detail-card{
     width:100%; max-width:340px; background:#fff; border-radius:20px;
     overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.14);
-    border:3px solid var(--tier-color, var(--sage));
+    border:3px solid var(--parch-dk);
   }
   .detail-photo{width:100%;height:220px;object-fit:cover;background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .detail-body{padding:18px 20px 22px;}
@@ -1261,7 +1261,6 @@ function renderCollection() {
     <div class="collection-count">Loading...</div>
     <div class="sort-row" id="sortRow">
       <button class="sort-btn" data-sort="az">A–Z</button>
-      <button class="sort-btn" data-sort="rarity">Rarity</button>
       <button class="sort-btn" data-sort="date">Discovered</button>
     </div>
     <div class="collection-grid" id="collectionGrid"></div>
@@ -1282,7 +1281,7 @@ function renderCollection() {
   loadCollection();
 }
 
-const SORT_LABELS = { az: 'A–Z', rarity: 'Rarity', date: 'Discovered' };
+const SORT_LABELS = { az: 'A–Z', date: 'Discovered' };
 
 function updateSortButtons() {
   stage.querySelectorAll('.sort-btn').forEach(b => {
@@ -1294,15 +1293,9 @@ function updateSortButtons() {
   });
 }
 
-// Untiered birds sort after the tiered ones rather than being treated as Rare.
-const SORT_TIER_RANK = { Rare: 0, Visitor: 1, Common: 2 };
 function sortCollection(birds) {
   const out = [...birds];
-  if (collectionSort === 'rarity') {
-    // Rarest first, alphabetical within a tier so it's stable
-    out.sort((a, b) => (SORT_TIER_RANK[a.tier] ?? 3) - (SORT_TIER_RANK[b.tier] ?? 3)
-                    || a.common_name.localeCompare(b.common_name));
-  } else if (collectionSort === 'date') {
+  if (collectionSort === 'date') {
     // First discovered first - first_found is the oldest sighting per species
     out.sort((a, b) => new Date(a.first_found) - new Date(b.first_found));
   } else {
@@ -1313,16 +1306,16 @@ function sortCollection(birds) {
   return collectionSortDesc ? out.reverse() : out;
 }
 
+// My Birds is simply everything found, all treated alike. Rarity belongs to
+// the collector packs, so no tier label and no tier-coloured outline here.
 function collectionCardHtml(bird) {
-  const tierColor = tierColorOf(bird.tier);
   const photo = bird.image_url
     ? `<img src="${bird.image_url}">`
     : `<div style="height:70px;background:var(--parch-dk);"></div>`;
   return `
-    <div class="collection-item" style="--tier-color:${tierColor}"
+    <div class="collection-item"
          data-name="${bird.common_name}" data-key="${bird.key || bird.common_name}">
       ${photo}
-      ${bird.tier ? `<div class="ci-tier">${bird.tier}</div>` : ''}
       <div class="ci-name">${bird.common_name}</div>
     </div>`;
 }
@@ -1417,7 +1410,6 @@ function renderBirdDetail(commonName, onBack) {
 
   const latest = matches[0]; // list arrives newest-first
   const firstFound = matches[matches.length - 1];
-  const tierColor = tierColorOf(latest.tier);
   const firstDate = new Date(firstFound.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   const locationNames = [...new Set(matches.map(m => m.location_name).filter(Boolean))];
   const locationTags = locationNames.map(name => `<span class="location-tag">📍 ${name}</span>`).join('');
@@ -1426,7 +1418,7 @@ function renderBirdDetail(commonName, onBack) {
     <div style="width:100%;margin-bottom:14px;">
       <button class="back-btn" id="backBtn">← Back</button>
     </div>
-    <div class="detail-card" style="--tier-color:${tierColor}">
+    <div class="detail-card">
       ${latest.image_url ? `<img class="detail-photo" src="${latest.image_url}">` : `<div class="detail-photo"></div>`}
       <div class="detail-body">
         <div class="detail-name">${latest.common_name}</div>
