@@ -18,7 +18,7 @@ shape, which is why nothing here assumes British species beyond the data.
 
 PACKS = {
     "garden_regulars": {
-        "name": "Doorstep Gang",
+        "name": "Gardeners",
         "blurb": "The regulars you'll meet on almost any doorstep.",
         "emoji": "\U0001F3E1",
         "common": [
@@ -29,8 +29,8 @@ PACKS = {
         "rare": ["Eurasian Tree Sparrow", "European Turtle-Dove"],
     },
     "tits_and_climbers": {
-        "name": "Upside-Downers",
-        "blurb": "Tiny acrobats that hang upside down and run up trees.",
+        "name": "Acrobats",
+        "blurb": "Tiny daredevils that hang upside down and run up trees.",
         "emoji": "\U0001F343",
         "common": [
             "Eurasian Blue Tit", "Great Tit", "Coal Tit", "Long-tailed Tit",
@@ -39,7 +39,7 @@ PACKS = {
         "rare": ["Marsh Tit", "Willow Tit"],
     },
     "seed_eaters": {
-        "name": "Seed Crackers",
+        "name": "Crackers",
         "blurb": "Stubby little bills built for cracking seeds open.",
         "emoji": "\U0001F33B",
         "common": [
@@ -61,7 +61,7 @@ PACKS = {
         "rare": ["Lesser Whitethroat", "Common Firecrest"],
     },
     "tricksters": {
-        "name": "Mischief Makers",
+        "name": "Mischiefs",
         "blurb": "The cleverest, cheekiest birds - and the ones that drum on trees.",
         "emoji": "\u2728",
         "common": [
@@ -72,7 +72,7 @@ PACKS = {
         "rare": ["Lesser Spotted Woodpecker", "Common Cuckoo"],
     },
     "ground_feeders": {
-        "name": "Worm Hunters",
+        "name": "Little Diggers",
         "blurb": "Hoppers and probers, always working the ground.",
         "emoji": "\U0001F33E",
         "common": [
@@ -82,8 +82,8 @@ PACKS = {
         "rare": ["Grey Partridge", "Ring Ouzel"],
     },
     "hunters": {
-        "name": "Silent Swoopers",
-        "blurb": "Sharp eyes, hooked bills and wings you'll never hear coming.",
+        "name": "Sky Divers",
+        "blurb": "Sharp eyes, hooked bills, and a dive you'll never hear coming.",
         "emoji": "\U0001F985",
         "common": [
             "Common Buzzard", "Common Kestrel", "Eurasian Sparrowhawk", "Red Kite",
@@ -92,8 +92,8 @@ PACKS = {
         "rare": ["Eurasian Hobby", "Long-eared Owl"],
     },
     "water_birds": {
-        "name": "Splash Squad",
-        "blurb": "Swimmers, divers and dabblers.",
+        "name": "Swimmers",
+        "blurb": "Paddlers, divers and dabblers.",
         "emoji": "\U0001F986",
         "common": [
             "Mallard", "Mute Swan", "Canada Goose", "Greylag Goose",
