@@ -117,6 +117,16 @@
   .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:#fff;margin-top:14px;}
 
   /* --- Warbling Tips --- */
+  .season-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 13px;margin-bottom:6px;}
+  .season-row.season-away{background:rgba(255,255,255,0.45);}
+  .season-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--mist);}
+  .season-here .season-dot{background:var(--sage);}
+  .season-leaving .season-dot{background:var(--terra);}
+  .season-arriving .season-dot{background:var(--gold);}
+  .season-name{flex:1;font-family:'Outfit';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
+  .season-away .season-name{color:var(--mist-dk);}
+  .season-label{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--mist-dk);flex-shrink:0;}
+  .season-leaving .season-label{color:var(--terra-dk);}
   .challenge-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;width:100%;}
   .challenge-card.complete{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
   .challenge-card.all-bonus{background:rgba(255,255,255,0.2);}
@@ -164,6 +174,9 @@
   .collector-label{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
   .collector-pips{display:flex;gap:5px;justify-content:center;}
   .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--dusk);font-family:'Outfit';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
+  .fan-card.away{opacity:.75;}
+  .fan-away{position:absolute;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
+  .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Outfit';font-weight:700;font-size:11px;color:var(--dusk);}
   .fan-rare{position:absolute;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
   .collector-pip{
     flex:1; font-family:'Outfit'; font-weight:700; font-size:9.5px; padding:4px 0;
@@ -722,6 +735,13 @@ function renderIdle() {
         <div class="tips-tile-sub">Get better at finding birds</div>
       </div>
     </button>
+    <button class="tips-tile" id="seasonTile" style="margin-top:12px;">
+      <div class="tips-tile-icon">🗓️</div>
+      <div>
+        <div class="tips-tile-title">Here Right Now</div>
+        <div class="tips-tile-sub" id="seasonTileSub">Loading...</div>
+      </div>
+    </button>
     <button class="tips-tile" id="challengeTile" style="margin-top:12px;">
       <div class="tips-tile-icon">🎯</div>
       <div>
@@ -739,10 +759,57 @@ function renderIdle() {
   `;
   document.getElementById('recordBtn').onclick = startRecording;
   document.getElementById('challengeTile').onclick = renderChallenges;
+  document.getElementById('seasonTile').onclick = renderWhatsHere;
+  loadSeasonTileStatus();
   loadChallengeTileStatus();
   document.getElementById('tipsTile').onclick = renderTips;
   document.getElementById('jokeTile').onclick = renderJokeOfDay;
   loadJokeTileStatus();
+}
+
+async function loadSeasonTileStatus() {
+  const el = document.getElementById('seasonTileSub');
+  if (!el) return;
+  try {
+    const res = await fetch('/whats-here');
+    const d = await res.json();
+    el.textContent = d.to_find > 0
+      ? `${d.to_find} still to find${d.leaving_count ? ` · ${d.leaving_count} leaving soon` : ''}`
+      : `${d.here_count} visiting birds are here`;
+  } catch (e) { el.textContent = 'Birds that only visit for part of the year'; }
+}
+
+async function renderWhatsHere() {
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:12px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:4px;">Here Right Now</div>
+    <div class="collection-count">Some birds only visit for part of the year</div>
+    <div id="seasonList" style="width:100%;"></div>
+  `;
+  document.getElementById('backBtn').onclick = () => {
+    stage.classList.remove('top-aligned');
+    renderIdle();
+  };
+  const list = document.getElementById('seasonList');
+  try {
+    const res = await fetch('/whats-here');
+    const d = await res.json();
+    // Here and leaving first - those are the ones you can act on today
+    const rank = { leaving: 0, here: 1, arriving: 2, away: 3 };
+    const birds = (d.birds || []).sort((a, b) =>
+      (rank[a.state] - rank[b.state]) || a.common_name.localeCompare(b.common_name));
+    list.innerHTML = birds.map(b => `
+      <div class="season-row season-${b.state}">
+        <span class="season-dot"></span>
+        <span class="season-name">${b.common_name}</span>
+        <span class="season-label">${b.found ? '✓ ' : ''}${b.label}</span>
+      </div>`).join('');
+  } catch (e) {
+    list.innerHTML = `<div class="collection-empty">Couldn't load right now.</div>`;
+  }
 }
 
 async function loadChallengeTileStatus() {
@@ -1128,6 +1195,8 @@ function renderCard() {
           <div class="card-tags">
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
           </div>
+          ${bird.season && bird.season.state === 'away'
+            ? `<div class="season-surprise">Unusual! ${bird.common_name}s have normally left by now.</div>` : ''}
           ${packStripHtml(bird)}
           <div class="feather-row">🪶 +${bird.feathers}</div>
           ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">▶ Hear its call</button>` : ''}
@@ -2859,6 +2928,7 @@ const TROPHY_EMBLEMS = {
   forager: '<path d="M0 10 q-1 -9 0 -14" stroke="#E4D5AE" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M0 -2 q-9 -2 -9 -9 q9 -1 9 9z" fill="#7EC8A4"/><path d="M0 1 q9 -2 9 -9 q-9 -1 -9 9z" fill="#5FB88F"/>',
   night_owl: '<circle cx="0" cy="0" r="11" fill="#3D2A85"/><path d="M-9 -5 q1 -7 5 -6 M9 -5 q-1 -7 -5 -6" fill="none" stroke="#F5EDD6" stroke-width="2" stroke-linecap="round"/><circle cx="-4" cy="-1" r="4" fill="#F5EDD6"/><circle cx="4" cy="-1" r="4" fill="#F5EDD6"/><circle cx="-4" cy="-1" r="1.8" fill="#1A1128"/><circle cx="4" cy="-1" r="1.8" fill="#1A1128"/><path d="M0 3 l2.5 3 l-2.5 3 l-2.5 -3z" fill="#F2C94C"/>',
   globetrotter: '<circle cx="0" cy="0" r="11" fill="#5B93C4"/><path d="M-11 -2 q6 -4 11 0 q5 4 11 0" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.55"/><path d="M-11 4 q6 -4 11 0 q5 4 11 0" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.55"/><path d="M0 -11 q5 5.5 0 22 q-5 -16.5 0 -22z" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.55"/><path d="M-8 -5 q4 -3 7 0 q-2 4 -7 3z" fill="#7EC8A4"/><path d="M2 2 q5 -2 7 2 q-3 4 -7 1z" fill="#7EC8A4"/><circle cx="0" cy="0" r="11" fill="none" stroke="#F5EDD6" stroke-width="1.6"/>',
+  summer_squad: '<circle cx="0" cy="1" r="6" fill="#F2C94C"/><path d="M0 -11 V-7 M0 9 V13 M-11 1 H-7 M7 1 H11 M-8 -7 l2.8 2.8 M8 -7 l-2.8 2.8 M-8 9 l2.8 -2.8 M8 9 l-2.8 -2.8" stroke="#F2C94C" stroke-width="2.2" stroke-linecap="round"/><path d="M-5 2 q2.5 -2.5 5 0 q2.5 -2.5 5 0" fill="none" stroke="#F5EDD6" stroke-width="1.6" stroke-linecap="round"/>',
   empty_nester: '<path d="M-12 0 q2 10 12 10 q10 0 12 -10 q-4 3 -12 3 q-8 0 -12 -3z" fill="#8B5A2B"/><path d="M-12 0 q4 -5 12 -5 q8 0 12 5" fill="none" stroke="#A9713F" stroke-width="2.4" stroke-linecap="round"/><path d="M-9 -2 q9 -4 18 0" fill="none" stroke="#C89A63" stroke-width="1.6" stroke-linecap="round"/><path d="M-4 -8 q4 -3 8 0" fill="none" stroke="#C4BFDF" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
   preener: '<path d="M0 11 q-2 -11 0 -20" stroke="#E4D5AE" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M0 -9 q8 4 6 12 q-2 7 -6 8 q-4 -1 -6 -8 q-2 -8 6 -12z" fill="#F5EDD6"/><path d="M0 -9 q8 4 6 12 q-2 7 -6 8z" fill="#E4D5AE"/>',
   evergreen: '<path d="M0 -11 l6 8 h-3 l5 7 h-3 l5 7 H-10 l5 -7 h-3 l5 -7 h-3z" fill="#5FB88F"/><rect x="-2" y="11" width="4" height="4" fill="#8B5A2B"/>',
@@ -2962,13 +3032,17 @@ function renderSelectedPack() {
       const face = b.photo_url
         ? `<img class="fan-photo" src="${b.photo_url}" alt="">`
         : `<div class="fan-photo empty">${b.found ? '' : '🐦'}</div>`;
+      // An away bird is marked as such, so an empty slot reads as "not this
+      // month" rather than something the child has failed to find.
+      const away = !b.found && b.season_state === 'away';
       return `
-        <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'}"
+        <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
              style="transform:rotate(${angle}deg) translateY(${lift}px); z-index:${10 - Math.abs(offset)}"
              data-name="${b.found ? b.common_name : ''}">
           ${face}
           <div class="fan-name">${b.common_name}</div>
           ${rareMark}
+          ${away ? `<div class="fan-away">${b.season_label}</div>` : ''}
         </div>`;
     }).join('');
   };

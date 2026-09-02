@@ -126,6 +126,17 @@ TROPHY_DEFINITIONS = {
         ],
         "description": "A bird everyone sees at home can be a special sight somewhere else. You had to travel to learn that.",
     },
+    "summer_squad": {
+        "name": "Summer Squad", "emoji": "\u2600\uFE0F",
+        "verb": "Find every summer visitor in", "unit": "summers",
+        "levels": [1, 2, 3],
+        "citations": [
+            "Every summer bird, all in one summer - you didn't miss one!",
+            "Two summers running. You know when they arrive now.",
+            "Three summers complete. The migrants can't slip past you.",
+        ],
+        "description": "Thirteen birds fly thousands of miles to spend the summer here, and every one of them leaves again. Catching all of them in a single season means being out there at the right time, again and again.",
+    },
     "empty_nester": {
         "name": "Empty Nester", "emoji": "\U0001FAB9",
         "verb": "Go warbling", "unit": "times without hearing a bird",

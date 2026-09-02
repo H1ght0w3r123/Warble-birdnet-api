@@ -709,3 +709,82 @@ _build_ratings()
 def bird_data(common_name: str):
     """Everything known about a bird, or None if it isn't one of the 100."""
     return BIRDS.get(common_name)
+
+
+# --- Seasonality -----------------------------------------------------------
+# Which months each bird is actually in the UK. Only the migrants are listed;
+# everything else is here all year and defaults to all twelve.
+#
+# Chiffchaff and Blackcap are deliberately NOT listed: both increasingly
+# overwinter here, so calling them summer-only would be out of date.
+#
+# Stored as explicit month numbers rather than a start/end range, because
+# Redwing runs October to March and wraps the year end - a range would need
+# special-casing that a list simply doesn't.
+ALL_YEAR = list(range(1, 13))
+
+SEASONAL_MONTHS = {
+    # Summer visitors, here to breed
+    "Barn Swallow":           [4, 5, 6, 7, 8, 9],
+    "Common House-Martin":    [4, 5, 6, 7, 8, 9],
+    "Common Tern":            [4, 5, 6, 7, 8, 9],
+    "Willow Warbler":         [4, 5, 6, 7, 8],
+    "Common Whitethroat":     [4, 5, 6, 7, 8],
+    "Sedge Warbler":          [4, 5, 6, 7, 8],
+    "Common Redstart":        [4, 5, 6, 7, 8],
+    "Ring Ouzel":             [4, 5, 6, 7, 8],
+    "Lesser Whitethroat":     [5, 6, 7, 8],
+    "Eurasian Reed Warbler":  [5, 6, 7, 8],
+    "European Turtle-Dove":   [5, 6, 7, 8],
+    "Eurasian Hobby":         [5, 6, 7, 8, 9],
+    # Cuckoos leave early - adults are often gone by July, long before the
+    # other summer birds
+    "Common Cuckoo":          [4, 5, 6, 7],
+    # Winter visitor
+    "Redwing":                [10, 11, 12, 1, 2, 3],
+}
+
+SUMMER_VISITORS = [n for n, ms in SEASONAL_MONTHS.items() if 6 in ms]
+# Fixed order so the What's Here list doesn't reshuffle between loads
+SEASONAL_ORDER = sorted(SEASONAL_MONTHS)
+
+
+def months_for(common_name: str):
+    return SEASONAL_MONTHS.get(common_name, ALL_YEAR)
+
+
+def is_seasonal(common_name: str) -> bool:
+    return common_name in SEASONAL_MONTHS
+
+
+MONTH_NAMES = ["", "January", "February", "March", "April", "May", "June",
+               "July", "August", "September", "October", "November", "December"]
+
+
+def season_state(common_name: str, month: int):
+    """Where a bird is in its year: here, leaving, arriving or away, with a
+    label a child can read. Residents always come back as 'here' with no
+    label, so nothing is cluttered by birds that never leave."""
+    months = months_for(common_name)
+    seasonal = is_seasonal(common_name)
+    here = month in months
+    nxt = (month % 12) + 1
+    here_next = nxt in months
+
+    if not seasonal:
+        return {"state": "here", "seasonal": False, "label": None}
+    if here and not here_next:
+        return {"state": "leaving", "seasonal": True, "label": "Leaving soon!"}
+    if here:
+        return {"state": "here", "seasonal": True, "label": "Here right now"}
+    if here_next:
+        return {"state": "arriving", "seasonal": True,
+                "label": f"Arriving in {MONTH_NAMES[nxt]}"}
+    # Away - find the next month it returns, so the label is a promise rather
+    # than just a refusal
+    for step in range(2, 13):
+        m = ((month - 1 + step) % 12) + 1
+        if m in months:
+            return {"state": "away", "seasonal": True,
+                    "label": f"Back in {MONTH_NAMES[m]}"}
+    return {"state": "away", "seasonal": True, "label": "Away"}

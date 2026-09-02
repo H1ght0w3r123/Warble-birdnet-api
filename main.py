@@ -168,6 +168,7 @@ async def identify(
 
 from database import (
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
+    count_complete_summers, get_tiers_by_species,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_sightings_of, count_species_found_far_apart,
     get_share_count, increment_share_count, count_all_sessions,
@@ -189,7 +190,8 @@ from database import (
     count_curated_species_found,
     set_total_feathers,
 )
-from birds import bird_data, STAT_LABELS, HABITAT_ICONS
+from birds import (bird_data, STAT_LABELS, HABITAT_ICONS,
+                   season_state, is_seasonal, SUMMER_VISITORS, SEASONAL_ORDER)
 from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, requirement_text
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
@@ -260,6 +262,7 @@ def measure_all_trophies():
         "still_water":   count_species_found_in(pack_species("water_birds")),
         "brooder":       count_rainy_sessions(),
         "wingman":       get_share_count(),
+        "summer_squad":  count_complete_summers(SUMMER_VISITORS),
     }
 
 
@@ -510,6 +513,7 @@ async def analyze_session(
             "is_collector": is_collector,
             "pack": pack_for_species(common_name),
             "pack_name": PACKS[pack_for_species(common_name)]["name"] if pack_for_species(common_name) else None,
+            "season": season_state(common_name, now.month) if is_seasonal(common_name) else None,
             "is_duplicate": is_duplicate,
             "feathers": feathers,
             "call_url": call_url,
@@ -688,10 +692,13 @@ def pack_progress():
         birds = []
         for name in pack["common"] + pack["rare"]:
             got = name in photos
+            st = season_state(name, datetime.datetime.utcnow().month)
             birds.append({
                 "common_name": name,
                 "rarity": SPECIES_RARITY[name],
                 "found": got,
+                "season_state": st["state"],
+                "season_label": st["label"],
                 # Names of unfound birds are still sent - a pack is a known
                 # checklist you work through, unlike the old habitat sets
                 # where the unfound ones were kept secret.
@@ -705,6 +712,30 @@ def pack_progress():
             "complete": got == len(birds),
         })
     return packs
+
+
+@app.get("/whats-here")
+def whats_here():
+    """Seasonal birds and where they are in their year. Drives the Home tile
+    and the 'back in April' labels, so a child knows an empty slot in a pack
+    is the calendar's doing rather than theirs."""
+    month = datetime.datetime.utcnow().month
+    found = {s["common_name"] for s in get_all_sightings()}
+    birds = []
+    for name in SEASONAL_ORDER:
+        st = season_state(name, month)
+        birds.append({
+            "common_name": name, "found": name in found,
+            "state": st["state"], "label": st["label"],
+            "pack": pack_for_species(name),
+        })
+    here = [b for b in birds if b["state"] in ("here", "leaving")]
+    return {
+        "birds": birds,
+        "here_count": len(here),
+        "leaving_count": sum(1 for b in birds if b["state"] == "leaving"),
+        "to_find": sum(1 for b in here if not b["found"]),
+    }
 
 
 @app.get("/collector-packs")

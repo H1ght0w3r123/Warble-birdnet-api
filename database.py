@@ -235,6 +235,25 @@ def has_existing_sighting(common_name: str, tier: str = None) -> bool:
         return q.first() is not None
 
 
+def count_complete_summers(summer_species: list) -> int:
+    """How many separate years every summer visitor was found within its
+    season. Drives the Summer Squad trophy - the only goal in the app you can
+    miss for a whole year, which is what makes it worth chasing."""
+    if SessionLocal is None or not summer_species:
+        return 0
+    with SessionLocal() as session:
+        rows = session.query(Sighting.common_name, Sighting.created_at).filter(
+            Sighting.common_name.in_(summer_species)).all()
+    by_year = {}
+    for name, created in rows:
+        # April to September only - a Swallow heard in October doesn't count
+        # towards that summer
+        if created and 4 <= created.month <= 9:
+            by_year.setdefault(created.year, set()).add(name)
+    target = set(summer_species)
+    return sum(1 for found in by_year.values() if target <= found)
+
+
 def get_tiers_by_species(species: set) -> dict:
     """Which tiers are held for each of a given set of species. Used for pack
     progress, where a bird counts as complete only at all three tiers."""
