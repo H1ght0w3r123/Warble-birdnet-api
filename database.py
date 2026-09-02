@@ -32,7 +32,9 @@ class Sighting(Base):
     common_name = Column(String, nullable=False)
     scientific_name = Column(String, nullable=False)
     confidence = Column(Float, nullable=False)
-    tier = Column(String, nullable=False)
+    # Nullable since the pack restructure: only Warble's 100 carry a rarity.
+    # A bird BirdNET recognises but Warble doesn't collect has no tier at all.
+    tier = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     description = Column(String, nullable=True)
     call_url = Column(String, nullable=True)
@@ -153,6 +155,13 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS last_name VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS show_scientific_names BOOLEAN DEFAULT TRUE"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_photo TEXT"))
+        # Birds outside the 100 have no rarity, so tier must accept NULL.
+        # Without this an existing database still rejects them and the whole
+        # session fails with a 500.
+        try:
+            conn.execute(text("ALTER TABLE sightings ALTER COLUMN tier DROP NOT NULL"))
+        except Exception as e:
+            print(f"Note: could not relax sightings.tier NOT NULL: {e}")
         conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS bird_count INTEGER DEFAULT 0"))
         conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS before_sunrise BOOLEAN DEFAULT FALSE"))
         conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS was_raining BOOLEAN DEFAULT FALSE"))
@@ -303,6 +312,11 @@ def add_feathers(amount: float) -> float:
         return 0
     with SessionLocal() as session:
         stats = session.query(PlayerStats).first()
+        if stats is None:
+            # Shouldn't normally happen, but a reset that half-completed would
+            # otherwise crash every future session with an AttributeError.
+            stats = PlayerStats(total_feathers=0)
+            session.add(stats)
         stats.total_feathers += amount
         session.commit()
         return stats.total_feathers
