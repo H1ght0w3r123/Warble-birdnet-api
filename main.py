@@ -179,7 +179,7 @@ from database import (
     get_location_name, save_location_name,
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location, delete_location, get_detection_stats,
-    set_session_bird_count, count_successful_sessions_today, count_successful_sessions_this_week,
+    set_session_bird_count, count_successful_sessions_this_week,
     count_empty_sessions, award_bonus_once, get_week_stats,
     count_owned_accessories, distinct_seasons_warbled, max_consecutive_warble_days,
     has_species_found_far_apart, count_species_found_in,
@@ -399,21 +399,25 @@ def get_wikipedia_info(scientific_name: str):
 # found their local birds, repeats are what going outside actually produces -
 # the old 1-feather duplicate meant the app stopped paying right when the
 # habit should have been forming.
-SESSION_BONUS = 10        # per successful session, max 2/day
-HABITAT_SET_BONUS = 100
+# No per-session bonus. Turning up used to pay 10 feathers regardless of
+# what was heard, which made the birds themselves feel incidental. The
+# weekly challenges are the reason to come back instead.
+PACK_BONUS = 25
 
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
-    """Only collector-pack birds carry a tier. Everything else pays a flat
-    rate - sitting between Common and Visitor, since an untiered bird has no
-    rarity upside to chase."""
+    """Small numbers on purpose - an eight-year-old can hold "15 feathers for
+    a rare bird" in their head in a way they can't hold 50.
+
+    Only Warble's 100 carry a tier. A bird outside the collection pays a
+    token amount: still worth hearing, but it isn't going in a pack."""
     if tier is None:
-        return 4 if is_duplicate else 12
+        return 1
     values = {
-        ("Common", False): 5, ("Visitor", False): 25, ("Rare", False): 50,
-        ("Common", True): 3, ("Visitor", True): 8, ("Rare", True): 20,
+        ("Common", False): 3, ("Rare", False): 15,
+        ("Common", True): 1, ("Rare", True): 3,
     }
-    return values.get((tier, is_duplicate), 0)
+    return values.get((tier, is_duplicate), 1)
 
 
 @app.post("/analyze-session")
@@ -530,10 +534,6 @@ async def analyze_session(
         # Rewards showing up, not just discovering something new - which is the
         # behaviour that keeps going once the local birds are all found. Capped
         # at 2/day so it can't be farmed by tapping record repeatedly.
-        if count_successful_sessions_today() <= 2:
-            session_feathers += SESSION_BONUS
-            bonuses.append({"label": "Warble bonus", "feathers": SESSION_BONUS})
-
         # Weekly challenges. The old standalone "3 warbles a week" bonus is now
         # just one of these, so there's a single weekly mechanic rather than two
         # competing ones.
@@ -551,8 +551,8 @@ async def analyze_session(
         for key, pack in PACKS.items():
             if count_species_found_in(pack_species(key)) >= 10:
                 if award_bonus_once(f"pack:{key}"):
-                    session_feathers += HABITAT_SET_BONUS
-                    bonuses.append({"label": f"{pack['name']} complete!", "feathers": HABITAT_SET_BONUS})
+                    session_feathers += PACK_BONUS
+                    bonuses.append({"label": f"{pack['name']} complete!", "feathers": PACK_BONUS})
 
     new_total = add_feathers(session_feathers)
 
