@@ -591,8 +591,6 @@
   .trophy-level{display:inline-block;background:var(--gold);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
   .trophy-caption-next{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:5px;}
   .trophy-caption-tap{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
-  .summary-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
-  .summary-chip{background:#fff;border:2px solid var(--tier-color,var(--sage));border-radius:20px;padding:5px 13px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--dusk);}
   .done-feathers{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;}
   .go-again-ask{font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
   /* Dancing avatar on the Done screen. Each limb has its own duration so they
@@ -1803,15 +1801,12 @@ function renderDone() {
     <div class="bonus-row"><span>${b.label}</span><span class="bonus-feathers">+${b.feathers}</span></div>
   `).join('');
 
-  // Summary by tier, not by name - the birds have had their moment on the cards.
+  // Rarity isn't shown here any more - it belongs to the collector packs. The
+  // counts are still worked out, but only so a rare find can pick a message
+  // that reflects it.
   const tierCounts = {};
-  // Untiered birds have no chip - only pack birds carry a tier now.
   sessionResults.forEach(b => { if (b.tier) tierCounts[b.tier] = (tierCounts[b.tier] || 0) + 1; });
   const newCount = sessionResults.filter(b => !b.is_duplicate).length;
-  const tierChips = ['Rare', 'Common']
-    .filter(t => tierCounts[t])
-    .map(t => `<span class="summary-chip" style="--tier-color:${TIER_COLORS[t] || 'var(--sage)'}">${tierCounts[t]} ${t}</span>`)
-    .join('');
   const n = sessionResults.length;
 
   const trophyBanners = newlyEarnedTrophies.map(t => `
@@ -1831,8 +1826,7 @@ function renderDone() {
   stage.innerHTML = `
     <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, currentProfile.avatar_face, currentProfile.avatar_beak, 140, currentProfile.equipped, true)}</div>
     <div class="done-title">${pickDoneMessage(n, newCount, tierCounts)}</div>
-    <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}</div>
-    ${tierChips ? `<div class="summary-chips">${tierChips}</div>` : ''}
+    <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
     ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
     ${trophyBanners}
     <div class="done-feathers tappable" id="doneFeathers">\u{1FAB6} ${total} feathers earned</div>
