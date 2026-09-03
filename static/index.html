@@ -1183,10 +1183,8 @@ function sortForReveal(birds) {
   });
 }
 
-// The 25 collector species can be held at all three tiers, so their cards
-// show which ones are in the bag and which are still missing.
-// Which pack this bird belongs to. Replaces the old three-tier strip - a
-// bird has one fixed rarity now, so there's no set of tiers to collect.
+// Which pack this bird belongs to. A bird has one fixed rarity now, so there
+// is no set of tiers to collect - just the pack it counts towards.
 function packStripHtml(bird) {
   if (!bird.pack_name) return '';
   return `
