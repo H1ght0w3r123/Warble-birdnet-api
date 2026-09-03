@@ -143,7 +143,10 @@
   /* The four shortcuts sit on an arc beneath the mic rather than as four
      full-width stacked tiles, which dominated the screen. Positions are set
      per-button with --x/--y so the arc is defined in one place. */
-  .home-arc{position:relative;width:100%;height:186px;margin-top:10px;}
+  /* Wider and tighter to the mic: radius 122 with 55deg between buttons,
+     so the outer two sit almost level with the call to action. 314px across
+     inside roughly 328px of usable width. */
+  .home-arc{position:relative;width:100%;height:190px;margin-top:-4px;}
   .arc-btn{
     position:absolute; left:50%; top:8px;
     transform:translate(calc(-50% + var(--x)), var(--y));
@@ -745,19 +748,19 @@ function renderIdle() {
     <div class="stage-label">${firstNameOrDefault() ? `Go Warbling, ${firstNameOrDefault()}` : 'Go Warbling'}</div>
     <div class="stage-sub">Tap, then listen for a bird</div>
     <div class="home-arc">
-      <button class="arc-btn" id="tipsTile" style="--x:-101px; --y:47px;">
+      <button class="arc-btn" id="tipsTile" style="--x:-121px; --y:16px;">
         <span class="arc-circle">💡</span>
         <span class="arc-label">Tips</span>
       </button>
-      <button class="arc-btn" id="seasonTile" style="--x:-47px; --y:101px;">
+      <button class="arc-btn" id="seasonTile" style="--x:-56px; --y:108px;">
         <span class="arc-circle">🗓️<span class="arc-badge" id="seasonBadge"></span></span>
         <span class="arc-label">Here Now</span>
       </button>
-      <button class="arc-btn" id="challengeTile" style="--x:47px; --y:101px;">
+      <button class="arc-btn" id="challengeTile" style="--x:56px; --y:108px;">
         <span class="arc-circle">🎯<span class="arc-badge" id="challengeBadge"></span></span>
         <span class="arc-label">Challenges</span>
       </button>
-      <button class="arc-btn" id="jokeTile" style="--x:101px; --y:47px;">
+      <button class="arc-btn" id="jokeTile" style="--x:121px; --y:16px;">
         <span class="arc-circle" id="jokeTileIcon">😄</span>
         <span class="arc-label">Joke</span>
       </button>
