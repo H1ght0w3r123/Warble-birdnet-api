@@ -253,6 +253,14 @@
     50%{box-shadow:0 12px 34px rgba(255,255,255,0.6);}
   }
   .flying-feather{position:fixed;z-index:200;font-size:20px;pointer-events:none;will-change:transform,opacity;}
+  .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:72px;height:72px;will-change:transform,opacity;}
+  .origami{display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35));}
+  /* Wings beat as it flies - each on its own timing so it isn't a rigid
+     cut-out sliding across the screen. */
+  .ori-wing-l{transform-origin:50px 52px;animation:oriFlapL .34s ease-in-out infinite;}
+  .ori-wing-r{transform-origin:50px 52px;animation:oriFlapR .34s ease-in-out infinite;}
+  @keyframes oriFlapL{0%,100%{transform:rotate(0deg) scaleY(1);}50%{transform:rotate(-16deg) scaleY(.72);}}
+  @keyframes oriFlapR{0%,100%{transform:rotate(0deg) scaleY(1);}50%{transform:rotate(16deg) scaleY(.72);}}
   .nav-pop{animation:navPop .5s cubic-bezier(.34,1.56,.64,1);}
   @keyframes navPop{0%,100%{transform:scale(1);}40%{transform:scale(1.28);}}
   .card-nav-row{display:flex;gap:10px;width:100%;max-width:300px;margin-top:22px;animation:statFadeUp 0.4s ease 0.7s both;}
@@ -1285,6 +1293,27 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
 // the collection, so the card should visibly go there. A duplicate spins and
 // shrinks on the spot: the same satisfying dismissal, but no journey, because
 // nothing is being added.
+// Origami bird, folded from flat triangles - deliberately paper-like rather
+// than a realistic bird, with a light and dark face per wing so the folds read.
+const ORIGAMI_SVG = `
+<svg viewBox="0 0 100 100" width="72" height="72" class="origami">
+  <g class="ori-wing-l">
+    <path d="M50 52 L6 30 L48 44 Z" fill="#F5EDD6"/>
+    <path d="M50 52 L48 44 L44 66 Z" fill="#E4D5AE"/>
+  </g>
+  <g class="ori-wing-r">
+    <path d="M50 52 L94 30 L52 44 Z" fill="#F2C94C"/>
+    <path d="M50 52 L52 44 L56 66 Z" fill="#D9A441"/>
+  </g>
+  <path d="M50 52 L44 66 L56 66 Z" fill="#E8845C"/>
+  <path d="M50 52 L56 66 L72 78 Z" fill="#B85A36"/>
+  <path d="M50 52 L40 38 L58 40 Z" fill="#F5EDD6"/>
+  <path d="M58 40 L70 36 L58 46 Z" fill="#E8845C"/>
+</svg>`;
+
+// A new bird folds into an origami bird and flies to My Birds along a curved
+// path. A duplicate just spins and shrinks on the spot - nothing is being
+// added, so nothing should fly anywhere.
 function dismissCard(cardEl, isNew, onDone) {
   if (!cardEl) { onDone(); return; }
   cardEl.classList.remove('collectable');
@@ -1292,31 +1321,69 @@ function dismissCard(cardEl, isNew, onDone) {
   // would override the inline one below. Clear it before animating out.
   cardEl.style.animation = 'none';
 
-  const target = isNew ? document.getElementById('navCollection') : null;
-  let dx = 0, dy = 0;
-  if (target) {
-    const from = cardEl.getBoundingClientRect();
-    const to = target.getBoundingClientRect();
-    dx = (to.left + to.width / 2) - (from.left + from.width / 2);
-    dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+  if (!isNew) {
+    cardEl.style.transition = 'transform .45s cubic-bezier(.55,0,.65,1), opacity .25s ease .23s';
+    cardEl.style.transform = 'scale(.06) rotate(300deg)';
+    cardEl.style.opacity = '0';
+    setTimeout(onDone, 470);
+    return;
   }
 
-  // A full turn on the way out, so the spin reads as deliberate rather than
-  // as the card being knocked askew.
-  const spin = isNew ? 380 : 300;
-  const duration = isNew ? 0.68 : 0.45;
+  const target = document.getElementById('navCollection');
+  const from = cardEl.getBoundingClientRect();
+  const cx = from.left + from.width / 2;
+  const cy = from.top + from.height / 2;
 
-  cardEl.style.transition =
-    `transform ${duration}s cubic-bezier(.55,0,.65,1), opacity .25s ease ${duration - 0.22}s`;
-  cardEl.style.transform =
-    `translate(${dx}px, ${dy}px) scale(.06) rotate(${spin}deg)`;
+  // Step 1: the card folds - squeezed flat about its centre with a slight
+  // turn, which is what a sheet of paper being folded actually looks like.
+  cardEl.style.transformOrigin = 'center center';
+  cardEl.style.transition = 'transform .34s cubic-bezier(.6,0,.4,1), opacity .12s ease .26s';
+  cardEl.style.transform = 'perspective(600px) rotateY(72deg) scale(.55)';
   cardEl.style.opacity = '0';
 
-  if (target) {
-    target.classList.add('nav-pop');
-    setTimeout(() => target.classList.remove('nav-pop'), 600);
-  }
-  setTimeout(onDone, duration * 1000 + 20);
+  setTimeout(() => {
+    // Step 2: the folded card becomes the origami bird, in the same spot
+    const bird = document.createElement('div');
+    bird.className = 'origami-flyer';
+    bird.innerHTML = ORIGAMI_SVG;
+    bird.style.left = `${cx - 36}px`;
+    bird.style.top = `${cy - 36}px`;
+    document.body.appendChild(bird);
+
+    if (!target) { bird.remove(); onDone(); return; }
+    const to = target.getBoundingClientRect();
+    const dx = (to.left + to.width / 2) - cx;
+    const dy = (to.top + to.height / 2) - cy;
+
+    // Step 3: fly along a curve, lifting before it dives, so it swoops rather
+    // than slides. Rotation follows the tangent so the bird points where it's
+    // actually going.
+    const lift = Math.max(120, Math.abs(dy) * 0.45);
+    const ctrlX = dx * 0.5, ctrlY = dy * 0.5 - lift;
+    const DURATION = 900;
+    const start = performance.now();
+
+    (function step(now) {
+      const t = Math.min(1, (now - start) / DURATION);
+      const e = t * t * (3 - 2 * t);                    // ease in and out
+      const x = 2 * (1 - e) * e * ctrlX + e * e * dx;
+      const y = 2 * (1 - e) * e * ctrlY + e * e * dy;
+      // Tangent of the curve, for the heading
+      const tx = 2 * (1 - e) * ctrlX + 2 * e * (dx - ctrlX);
+      const ty = 2 * (1 - e) * ctrlY + 2 * e * (dy - ctrlY);
+      const angle = Math.atan2(ty, tx) * 180 / Math.PI - 90;
+      const scale = 1 - 0.72 * e;
+      bird.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg) scale(${scale})`;
+      bird.style.opacity = t > 0.82 ? String((1 - t) / 0.18) : '1';
+      if (t < 1) requestAnimationFrame(step);
+      else {
+        bird.remove();
+        target.classList.add('nav-pop');
+        setTimeout(() => target.classList.remove('nav-pop'), 600);
+        onDone();
+      }
+    })(start);
+  }, 300);
 }
 
 function renderNameLocation(onDone) {
