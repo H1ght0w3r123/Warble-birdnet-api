@@ -140,14 +140,30 @@
   .challenge-bar-fill{height:100%;background:var(--sage);border-radius:3px;transition:width .5s ease;}
   .challenge-progress{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--mist-dk);margin-top:6px;}
   .challenge-card.all-bonus .challenge-progress{color:rgba(255,255,255,0.85);}
-  .tips-tile{
-    margin-top:26px; width:100%; max-width:280px; background:rgba(255,255,255,0.92);
-    border-radius:16px; padding:14px 18px; display:flex; align-items:center; gap:12px;
-    cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.12); border:none; text-align:left;
+  /* The four shortcuts sit on an arc beneath the mic rather than as four
+     full-width stacked tiles, which dominated the screen. Positions are set
+     per-button with --x/--y so the arc is defined in one place. */
+  .home-arc{position:relative;width:100%;height:186px;margin-top:10px;}
+  .arc-btn{
+    position:absolute; left:50%; top:8px;
+    transform:translate(calc(-50% + var(--x)), var(--y));
+    background:none; border:none; padding:0; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:4px; width:72px;
   }
-  .tips-tile-icon{font-size:26px;flex-shrink:0;}
-  .tips-tile-title{font-family:'Outfit';font-weight:700;font-size:14px;color:var(--dusk);}
-  .tips-tile-sub{font-size:11px;color:var(--mist-dk);margin-top:1px;}
+  .arc-circle{
+    position:relative; width:54px; height:54px; border-radius:50%;
+    background:rgba(255,255,255,0.94); box-shadow:0 4px 12px rgba(0,0,0,0.18);
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+  }
+  .arc-label{font-family:'Outfit';font-weight:700;font-size:10px;color:#fff;text-align:center;line-height:1.15;}
+  .arc-badge{
+    position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; padding:0 4px;
+    border-radius:9px; background:var(--dusk); color:#fff;
+    font-family:'Outfit'; font-weight:900; font-size:9.5px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .arc-badge:empty{display:none;}
+  .arc-badge.urgent{background:var(--terra);}
   .tip-card{width:100%;background:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
   .tip-icon{font-size:22px;flex-shrink:0;}
   .tip-title{font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
@@ -728,34 +744,24 @@ function renderIdle() {
     <button class="mic-btn" id="recordBtn">🎙</button>
     <div class="stage-label">${firstNameOrDefault() ? `Go Warbling, ${firstNameOrDefault()}` : 'Go Warbling'}</div>
     <div class="stage-sub">Tap, then listen for a bird</div>
-    <button class="tips-tile" id="tipsTile">
-      <div class="tips-tile-icon">💡</div>
-      <div>
-        <div class="tips-tile-title">Warbling Tips</div>
-        <div class="tips-tile-sub">Get better at finding birds</div>
-      </div>
-    </button>
-    <button class="tips-tile" id="seasonTile" style="margin-top:12px;">
-      <div class="tips-tile-icon">🗓️</div>
-      <div>
-        <div class="tips-tile-title">Here Right Now</div>
-        <div class="tips-tile-sub" id="seasonTileSub">Loading...</div>
-      </div>
-    </button>
-    <button class="tips-tile" id="challengeTile" style="margin-top:12px;">
-      <div class="tips-tile-icon">🎯</div>
-      <div>
-        <div class="tips-tile-title">Weekly Challenges</div>
-        <div class="tips-tile-sub" id="challengeTileSub">Loading...</div>
-      </div>
-    </button>
-    <button class="tips-tile" id="jokeTile" style="margin-top:12px;">
-      <div class="tips-tile-icon" id="jokeTileIcon">😄</div>
-      <div>
-        <div class="tips-tile-title" id="jokeTileTitle">Joke of the Day</div>
-        <div class="tips-tile-sub" id="jokeTileSub">Loading...</div>
-      </div>
-    </button>
+    <div class="home-arc">
+      <button class="arc-btn" id="tipsTile" style="--x:-101px; --y:47px;">
+        <span class="arc-circle">💡</span>
+        <span class="arc-label">Tips</span>
+      </button>
+      <button class="arc-btn" id="seasonTile" style="--x:-47px; --y:101px;">
+        <span class="arc-circle">🗓️<span class="arc-badge" id="seasonBadge"></span></span>
+        <span class="arc-label">Here Now</span>
+      </button>
+      <button class="arc-btn" id="challengeTile" style="--x:47px; --y:101px;">
+        <span class="arc-circle">🎯<span class="arc-badge" id="challengeBadge"></span></span>
+        <span class="arc-label">Challenges</span>
+      </button>
+      <button class="arc-btn" id="jokeTile" style="--x:101px; --y:47px;">
+        <span class="arc-circle" id="jokeTileIcon">😄</span>
+        <span class="arc-label">Joke</span>
+      </button>
+    </div>
   `;
   document.getElementById('recordBtn').onclick = startRecording;
   document.getElementById('challengeTile').onclick = renderChallenges;
@@ -768,15 +774,15 @@ function renderIdle() {
 }
 
 async function loadSeasonTileStatus() {
-  const el = document.getElementById('seasonTileSub');
+  const el = document.getElementById('seasonBadge');
   if (!el) return;
   try {
     const res = await fetch('/whats-here');
     const d = await res.json();
-    el.textContent = d.to_find > 0
-      ? `${d.to_find} still to find${d.leaving_count ? ` · ${d.leaving_count} leaving soon` : ''}`
-      : `${d.here_count} visiting birds are here`;
-  } catch (e) { el.textContent = 'Birds that only visit for part of the year'; }
+    // Leaving-soon is the urgent number, so it wins the badge when there is one
+    if (d.leaving_count) { el.textContent = d.leaving_count; el.classList.add('urgent'); }
+    else if (d.to_find) { el.textContent = d.to_find; }
+  } catch (e) { /* no badge is fine */ }
 }
 
 async function renderWhatsHere() {
@@ -813,16 +819,14 @@ async function renderWhatsHere() {
 }
 
 async function loadChallengeTileStatus() {
-  const el = document.getElementById('challengeTileSub');
+  const el = document.getElementById('challengeBadge');
   if (!el) return;
   try {
     const res = await fetch('/weekly-challenges');
     const d = await res.json();
     const total = (d.challenges || []).length;
-    el.textContent = d.completed >= total
-      ? 'All done this week!'
-      : `${d.completed} of ${total} done this week`;
-  } catch (e) { el.textContent = 'Five challenges every week'; }
+    if (d.completed < total) el.textContent = `${d.completed}/${total}`;
+  } catch (e) { /* no badge is fine */ }
 }
 
 async function renderChallenges() {
@@ -875,18 +879,8 @@ async function loadJokeTileStatus() {
     const res = await fetch('/joke-of-the-day');
     const data = await res.json();
     const iconEl = document.getElementById('jokeTileIcon');
-    const titleEl = document.getElementById('jokeTileTitle');
-    const subEl = document.getElementById('jokeTileSub');
-    if (!titleEl) return; // already navigated away before this resolved
-    if (data.unlocked) {
-      iconEl.textContent = '😄';
-      titleEl.textContent = 'Joke of the Day';
-      subEl.textContent = "Tap to see today's joke!";
-    } else {
-      iconEl.textContent = '🔒';
-      titleEl.textContent = 'Joke of the Day';
-      subEl.textContent = 'Go warbling first to unlock it!';
-    }
+    if (!iconEl) return; // already navigated away before this resolved
+    iconEl.textContent = data.unlocked ? '😄' : '🔒';
   } catch (e) { /* leave the loading text if this fails */ }
 }
 
