@@ -229,6 +229,7 @@
   .results-sub{font-size:13px;color:rgba(255,255,255,0.85);text-align:center;margin-top:6px;animation:statFadeUp 0.4s ease 0.1s both;}
   .silhouette-row{display:flex;justify-content:center;align-items:flex-end;margin-top:30px;min-height:110px;}
   .silhouette-card{
+    position:relative;
     width:64px; height:94px; border-radius:12px; background:#fff;
     border:3px solid var(--tier-color, var(--sage));
     margin-left:-20px; box-shadow:0 6px 14px rgba(0,0,0,0.18);
@@ -1134,7 +1135,11 @@ function renderSessionResults() {
   const silhouettes = sessionResults.map((bird, i) => {
     const t = sessionTier(bird.tier);
     const angle = (i % 2 === 0 ? -1 : 1) * (5 + i * 2);
-    return `<div class="silhouette-card ${t.cls}" style="--tier-color:${t.color}; transform:rotate(${angle}deg); animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">🐦</span></div>`;
+    // Front-to-back, so the first card - the one that's tappable and reveals
+    // next - sits on TOP of the pack. Without an explicit z-index the DOM
+    // order wins and it ends up buried at the back, which is backwards.
+    const z = sessionResults.length - i;
+    return `<div class="silhouette-card ${t.cls}" style="--tier-color:${t.color}; transform:rotate(${angle}deg); z-index:${z}; animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">🐦</span></div>`;
   }).join('');
 
   stage.innerHTML = `
