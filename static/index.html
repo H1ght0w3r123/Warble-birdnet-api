@@ -253,12 +253,18 @@
     50%{box-shadow:0 12px 34px rgba(255,255,255,0.6);}
   }
   .flying-feather{position:fixed;z-index:200;font-size:20px;pointer-events:none;will-change:transform,opacity;}
+  .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
   .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:96px;height:96px;will-change:transform,opacity;}
   .origami{display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35));}
   /* Wings beat as it flies - each on its own timing so it isn't a rigid
      cut-out sliding across the screen. */
-  .ori-wing-l{transform-origin:50px 52px;animation:oriFlapL .3s ease-in-out infinite;}
-  .ori-wing-r{transform-origin:50px 52px;animation:oriFlapR .3s ease-in-out infinite;}
+  /* transform-box must be pinned to view-box. Left to the engine's default
+     the origin can resolve against each wing's OWN bounding box, which puts
+     the pivot at opposite ends of the two wings - one swings hugely, the
+     other barely moves. That was the single-flapping-wing bug. */
+  .ori-wing-l, .ori-wing-r{transform-box:view-box;transform-origin:50px 52px;}
+  .ori-wing-l{animation:oriFlapL .3s ease-in-out infinite;}
+  .ori-wing-r{animation:oriFlapR .3s ease-in-out infinite;}
   /* A big beat - the wings fold right up and past level, so it reads as
      flapping rather than a gentle wobble. */
   @keyframes oriFlapL{0%{transform:rotate(-34deg) scaleY(.42);}50%{transform:rotate(12deg) scaleY(1.06);}100%{transform:rotate(-34deg) scaleY(.42);}}
@@ -1313,6 +1319,41 @@ const ORIGAMI_SVG = `
   <path d="M58 40 L70 36 L58 46 Z" fill="#E8845C"/>
 </svg>`;
 
+// A scatter of leaves at the moment the card becomes a bird - it covers the
+// swap and makes the transformation feel like it disturbed something.
+// Named distinctly from the recording tree's LEAF_COLORS - two top-level
+// consts of the same name is a SyntaxError that kills the whole script.
+const BURST_LEAF_COLORS = ['#7EC8A4', '#5FB88F', '#F2C94C', '#E8845C', '#3F7C5C'];
+
+function burstLeaves(cx, cy) {
+  for (let i = 0; i < 14; i++) {
+    const leaf = document.createElement('div');
+    leaf.className = 'burst-leaf';
+    const c = BURST_LEAF_COLORS[i % BURST_LEAF_COLORS.length];
+    leaf.innerHTML = `<svg viewBox="0 0 12 12" width="12" height="12">
+      <path d="M6 0 Q11 5 6 12 Q1 5 6 0 Z" fill="${c}"/>
+      <path d="M6 1 V11" stroke="rgba(0,0,0,.18)" stroke-width="0.7"/></svg>`;
+    leaf.style.left = `${cx}px`;
+    leaf.style.top = `${cy}px`;
+    document.body.appendChild(leaf);
+
+    // Thrown outward and upward, then gravity takes them down - so they burst
+    // rather than simply radiating evenly like a firework.
+    const angle = (Math.PI * 2 * i) / 14 + (Math.random() - 0.5) * 0.5;
+    const dist = 55 + Math.random() * 65;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist * 0.65 - 30;
+    const spin = (Math.random() - 0.5) * 720;
+
+    requestAnimationFrame(() => {
+      leaf.style.transition = 'transform .85s cubic-bezier(.15,.6,.3,1), opacity .35s ease .5s';
+      leaf.style.transform = `translate(${dx}px, ${dy + 90}px) rotate(${spin}deg) scale(.7)`;
+      leaf.style.opacity = '0';
+    });
+    setTimeout(() => leaf.remove(), 900);
+  }
+}
+
 // A new bird folds into an origami bird and flies to My Birds along a curved
 // path. A duplicate just spins and shrinks on the spot - nothing is being
 // added, so nothing should fly anywhere.
@@ -1346,6 +1387,7 @@ function dismissCard(cardEl, isNew, onDone) {
 
   setTimeout(() => {
     cardEl.style.opacity = '0';   // hidden while edge-on, so nothing flickers back
+    burstLeaves(cx, cy);          // the fold 'shakes loose' a scatter of leaves
     // Step 2: the folded card becomes the origami bird, in the same spot
     const bird = document.createElement('div');
     bird.className = 'origami-flyer';
