@@ -1212,13 +1212,15 @@ function renderCard() {
   // The card is tappable as soon as it's revealed. One tap drives the whole
   // sequence: feathers fly to the counter, then the card flies to My Birds.
   cardEl.classList.add('collectable');
-  if (hint) hint.textContent = 'Tap to add to your collection';
+  if (hint) hint.textContent = bird.is_duplicate
+    ? 'Tap to carry on'
+    : 'Tap to add to your collection';
   cardEl.onclick = () => {
     cardEl.onclick = null;                   // one tap only, mid-flight taps ignored
     cardEl.classList.remove('collectable');
     if (hint) hint.textContent = '';
     // Feathers are collected once, on the Done screen - not per card.
-    flyCardToCollection(cardEl, advanceReveal);
+    dismissCard(cardEl, !bird.is_duplicate, advanceReveal);
   };
 }
 
@@ -1274,22 +1276,42 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
 }
 
 // --- Animation 2: card shrinks away into the My Birds tab
-function flyCardToCollection(cardEl, onDone) {
-  const target = document.getElementById('navCollection');
-  if (!cardEl || !target) { onDone(); return; }
-  const from = cardEl.getBoundingClientRect();
-  const to = target.getBoundingClientRect();
-  const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
-  const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
-
+// A new bird spins, shrinks and flies into the My Birds tab - it's going into
+// the collection, so the card should visibly go there. A duplicate spins and
+// shrinks on the spot: the same satisfying dismissal, but no journey, because
+// nothing is being added.
+function dismissCard(cardEl, isNew, onDone) {
+  if (!cardEl) { onDone(); return; }
   cardEl.classList.remove('collectable');
-  cardEl.style.transition = 'transform .62s cubic-bezier(.55,0,.65,1), opacity .25s ease .38s';
-  cardEl.style.transform = `translate(${dx}px, ${dy}px) scale(.08) rotate(8deg)`;
+  // cardReveal runs with fill mode 'both', so it holds its end transform and
+  // would override the inline one below. Clear it before animating out.
+  cardEl.style.animation = 'none';
+
+  const target = isNew ? document.getElementById('navCollection') : null;
+  let dx = 0, dy = 0;
+  if (target) {
+    const from = cardEl.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+    dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+  }
+
+  // A full turn on the way out, so the spin reads as deliberate rather than
+  // as the card being knocked askew.
+  const spin = isNew ? 380 : 300;
+  const duration = isNew ? 0.68 : 0.45;
+
+  cardEl.style.transition =
+    `transform ${duration}s cubic-bezier(.55,0,.65,1), opacity .25s ease ${duration - 0.22}s`;
+  cardEl.style.transform =
+    `translate(${dx}px, ${dy}px) scale(.06) rotate(${spin}deg)`;
   cardEl.style.opacity = '0';
 
-  target.classList.add('nav-pop');
-  setTimeout(() => target.classList.remove('nav-pop'), 600);
-  setTimeout(onDone, 640);
+  if (target) {
+    target.classList.add('nav-pop');
+    setTimeout(() => target.classList.remove('nav-pop'), 600);
+  }
+  setTimeout(onDone, duration * 1000 + 20);
 }
 
 function renderNameLocation(onDone) {
