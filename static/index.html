@@ -593,20 +593,20 @@
   .trophy-caption-tap{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
   .done-feathers{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;}
   .go-again-ask{font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
-  /* Dancing avatar on the Done screen. Each limb has its own duration so they
-     drift out of sync rather than moving as one puppet - that's what reads as
-     dancing rather than rocking. transform-origin is in viewBox units, at each
-     limb's real joint. The held item shares the right wing's pivot and timing,
-     so anything carried moves with the wing holding it. */
-  .avatar-dancing .av-wing-l{transform-origin:27px 51px;animation:wingL 0.72s ease-in-out infinite;}
+  /* Dancing avatar on the Done screen: av-torso (body + both wings) adds a
+     small shimmy, and each wing wave pivots at the shoulder joint where it
+     meets the body - same wave shape/timing as a resting flap, just offset
+     so the wings sit up in the air instead of hanging down. Legs and the
+     face (eyes/beak/cheeks/accessories) sit outside av-torso and never
+     move. The held item shares the right wing's pivot and timing, so
+     anything carried waves with the wing holding it. */
+  .avatar-dancing .av-torso{transform-origin:50px 70px;animation:bodyWiggle 0.45s ease-in-out infinite;}
+  .avatar-dancing .av-wing-l{transform-origin:27px 51px;animation:wingL 0.6s ease-in-out infinite;}
   .avatar-dancing .av-wing-r,
-  .avatar-dancing .av-held{transform-origin:73px 51px;animation:wingR 0.94s ease-in-out infinite;}
-  .avatar-dancing .av-leg-l{transform-origin:44px 80px;animation:legL 0.61s ease-in-out infinite;}
-  .avatar-dancing .av-leg-r{transform-origin:56px 80px;animation:legR 0.83s ease-in-out infinite;}
-  @keyframes wingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(16deg);}}
-  @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-16deg);}}
-  @keyframes legL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-11deg);}}
-  @keyframes legR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(11deg);}}
+  .avatar-dancing .av-held{transform-origin:73px 51px;animation:wingR 0.75s ease-in-out infinite;}
+  @keyframes bodyWiggle{0%,100%{transform:translateX(0);}25%{transform:translateX(-0.6px);}75%{transform:translateX(0.6px);}}
+  @keyframes wingL{0%,100%{transform:rotate(141deg);}50%{transform:rotate(157deg);}}
+  @keyframes wingR{0%,100%{transform:rotate(-141deg);}50%{transform:rotate(-157deg);}}
   .done-avatar{margin-bottom:4px;}
   .done-trophy{cursor:pointer;}
   .done-trophy.celebrating{animation:trophyCelebrate .9s cubic-bezier(.34,1.56,.64,1);}
@@ -1358,6 +1358,25 @@ function burstLeaves(cx, cy) {
   }
 }
 
+// Occasional leaf bursts around the dancing avatar on the Done screen - reuses
+// the same burstLeaves used when a card becomes a bird, just on a loose,
+// randomised timer rather than a one-off. Self-cancels once the avatar is no
+// longer on screen (navigating away replaces stage.innerHTML, so this checks
+// rather than relying on a screen-change hook that doesn't exist yet).
+let doneLeafTimer = null;
+
+function scheduleDoneLeafBurst(avatarEl) {
+  if (doneLeafTimer) clearTimeout(doneLeafTimer);
+  if (!avatarEl) return;
+  const delay = 2200 + Math.random() * 2600;
+  doneLeafTimer = setTimeout(() => {
+    if (!document.body.contains(avatarEl)) { doneLeafTimer = null; return; }
+    const rect = avatarEl.getBoundingClientRect();
+    burstLeaves(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    scheduleDoneLeafBurst(avatarEl);
+  }, delay);
+}
+
 // A new bird folds into an origami bird and flies to My Birds along a curved
 // path. A duplicate just spins and shrinks on the spot - nothing is being
 // added, so nothing should fly anywhere.
@@ -1843,6 +1862,8 @@ function renderDone() {
   stage.querySelectorAll('.done-trophy').forEach(el => {
     el.onclick = () => { el.onclick = null; celebrateTrophy(el); };
   });
+
+  scheduleDoneLeafBurst(stage.querySelector('.done-avatar'));
 
   const featherEl = document.getElementById('doneFeathers');
   featherEl.onclick = () => {
@@ -2366,6 +2387,7 @@ function avatarSvg(body, face, beak, size, equipped, dancing) {
     <path d="M57.5 93 L58 99.5" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
     <path d="M57.5 93 L51.5 97" fill="none" stroke="#1A1128" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
     </g>
+    <g class="av-torso">
     <path d="M13 50 C13 29.57 29.57 13 50 13 C70.43 13 87 29.57 87 50 Z" fill="${body}"/>
     <path d="M13 50 C13 70.43 29.57 87 50 87 C70.43 87 87 70.43 87 50 Z" fill="${body}"/>
     <path d="M13 50 C13 70.43 29.57 87 50 87 C70.43 87 87 70.43 87 50 Z" fill="#F5EDD6" opacity="0.38"/>
@@ -2377,6 +2399,8 @@ function avatarSvg(body, face, beak, size, equipped, dancing) {
     <path d="M73 51 C80 54 85 63 88.5 73 C89.5 76 88 78.5 85.5 78 C84 77.7 83 76.5 82.2 74.8 C81.4 77.6 80 79 78 78.4 C76.2 77.9 75.3 76.2 74.8 74 C73.4 76 71.6 76.3 70.4 74.8 C69.2 73.3 69.1 70.6 69.4 67.5 C69.9 60 70.5 54.5 73 51 Z" fill="${body}"/>
     <path d="M73 51 C80 54 85 63 88.5 73 C89.5 76 88 78.5 85.5 78 C84 77.7 83 76.5 82.2 74.8 C81.4 77.6 80 79 78 78.4 C76.2 77.9 75.3 76.2 74.8 74 C73.4 76 71.6 76.3 70.4 74.8 C69.2 73.3 69.1 70.6 69.4 67.5 C69.9 60 70.5 54.5 73 51 Z" fill="#1A1128" opacity="0.28"/>
     </g>
+    </g>
+    <g class="av-face">
     <path d="M22 48 C22 40 25 32 31 29 C35 27 39 29 42.5 26.5 C45.5 24.4 47 22.5 50 22.5 C53 22.5 54.5 24.4 57.5 26.5 C61 29 65 27 69 29 C75 32 78 40 78 48 C78 57 74 64.5 67 69 C61 72.8 55 74 50 74 C45 74 39 72.8 33 69 C26 64.5 22 57 22 48 Z" fill="${face}"/>
     <ellipse cx="33.5" cy="56" rx="7" ry="4.2" fill="#E87EA1" opacity="0.5"/>
     <ellipse cx="66.5" cy="56" rx="7" ry="4.2" fill="#E87EA1" opacity="0.5"/>
@@ -2391,6 +2415,7 @@ function avatarSvg(body, face, beak, size, equipped, dancing) {
     <path d="M42.5 52 L57.5 52 L50 60.5 Z" fill="#1A1128" opacity="0.42"/>
     ${accessoryLayers}
     <g class="av-held">${heldLayer}</g>
+    </g>
   </svg>`;
 }
 
