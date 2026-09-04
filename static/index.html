@@ -1120,10 +1120,18 @@ function renderLiveBirdStack() {
   }).join('');
 }
 
-function renderProcessing() {
+// No "listening back" step any more - identification already happened live
+// during the recording, so stopping just posts a small JSON payload and gets
+// the enrichment back. On a good connection that's imperceptible, and the
+// reveal appears straight away.
+//
+// This is kept only as a safety net for a slow or flaky connection, shown
+// after a short delay rather than immediately, so it never flashes up on a
+// normal session. The wording is honest about what's actually happening.
+function renderSaving() {
   stage.innerHTML = `
-    <div class="stage-label">Listening back...</div>
-    <div class="stage-sub">Working out what you heard</div>
+    <div class="stage-label">Just a moment...</div>
+    <div class="stage-sub">Saving what you found</div>
   `;
 }
 
@@ -2238,7 +2246,9 @@ function stopRecording() {
   stopEqualizer();
   stopLivePreviewLoop();
   mediaRecorder.onstop = async () => {
-    renderProcessing();
+    // Only show anything if the request is actually slow - otherwise the
+    // recording screen stays put and the reveal follows immediately.
+    const slowTimer = setTimeout(renderSaving, 700);
     try {
       // The recording audio is no longer uploaded - identification already
       // happened live during recording. This call only enriches and saves
@@ -2265,6 +2275,11 @@ function stopRecording() {
       renderSessionResults();
     } catch (e) {
       renderError(e.message || 'Something went wrong talking to the server.');
+    } finally {
+      // finally, not the success path - a non-ok response throws above, which
+      // would otherwise leave the timer pending and flash "Saving..." over the
+      // error message a moment later.
+      clearTimeout(slowTimer);
     }
   };
   mediaRecorder.stop();
