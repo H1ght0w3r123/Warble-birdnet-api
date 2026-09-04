@@ -524,35 +524,58 @@
   .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Outfit';font-weight:700;}
   .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Outfit';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
   .habitat-card{cursor:pointer;}
-  /* Pack selector: tabs across the top, one pack shown at a time */
-  /* Swipeable rather than squeezing ten tabs into one screen width - which
-     is what forced the labels to wrap onto four cramped lines. */
-  .pack-selector{display:flex;gap:8px;width:100%;margin-bottom:14px;overflow-x:auto;
-    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding-bottom:4px;}
-  .pack-selector::-webkit-scrollbar{display:none;}
+  /* Collections layout: two vertical columns of 5 compact pack tabs (left and
+     right), flanking the card carousel in the middle. Replaces the old
+     top-of-screen scrolling tab row - with the carousel now doing its own
+     horizontal scrolling, having the pack tabs scroll horizontally too would
+     mean two independent side-to-side swipe zones stacked on each other.
+     No border on the tabs - the background/text color swap on .active is
+     distinct enough on its own, and skipping the border keeps two narrow
+     columns of tabs from looking fussy. */
+  .pack-layout{display:flex;gap:6px;width:100%;align-items:flex-start;}
+  .pack-col{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;width:62px;}
+  .pack-carousel-wrap{flex:1 1 auto;min-width:0;}
   .pack-tab{
-    flex:0 0 auto; width:104px; scroll-snap-align:center;
-    background:rgba(255,255,255,0.15); border:2px solid transparent;
-    border-radius:14px; padding:10px 8px; cursor:pointer;
-    display:flex; flex-direction:column; align-items:center; gap:3px;
+    width:100%; min-height:52px;
+    background:rgba(255,255,255,0.15); border:none;
+    border-radius:12px; padding:6px 3px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
   }
-  .pack-tab.active{background:rgba(255,255,255,0.95); border-color:var(--gold);}
-  .pack-tab-emoji{font-size:19px;line-height:1;}
-  .pack-tab-name{font-family:'Outfit';font-weight:700;font-size:11px;color:rgba(255,255,255,0.9);text-align:center;line-height:1.2;}
+  .pack-tab.active{background:rgba(255,255,255,0.95);}
+  .pack-tab-emoji{font-size:16px;line-height:1;}
+  .pack-tab-name{font-family:'Outfit';font-weight:700;font-size:8px;color:rgba(255,255,255,0.9);text-align:center;line-height:1.15;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
   .pack-tab.active .pack-tab-name{color:var(--dusk);}
-  .pack-tab-count{font-family:'Outfit';font-weight:900;font-size:9px;color:rgba(255,255,255,0.7);}
+  .pack-tab-count{font-family:'Outfit';font-weight:900;font-size:7.5px;color:rgba(255,255,255,0.7);}
   .pack-tab.active .pack-tab-count{color:var(--gold-dk);}
 
   /* No card frame - the fan sits straight on the background, which is what
-     leaves room for the cards to be meaningfully bigger. */
+     leaves room for the cards to be meaningfully bigger. All ten cards are
+     one staggered, overlapping row now rather than two - it scrolls instead
+     of wrapping, which is what makes it a carousel. Padding left/right plus
+     scroll-padding-inline lets the first and last card reach center rather
+     than stopping flush against the edge. */
   .pack-blurb{font-size:12px;color:rgba(255,255,255,0.88);text-align:center;line-height:1.45;margin-bottom:6px;}
-  .fan-row{display:flex;justify-content:center;align-items:flex-start;height:138px;margin:2px 0 6px;}
+  .fan-row{
+    display:flex; align-items:flex-start; height:150px; margin:2px 0 6px;
+    overflow-x:auto; overflow-y:visible; -webkit-overflow-scrolling:touch;
+    touch-action:pan-x; scroll-snap-type:x mandatory; scroll-padding-inline:44%;
+    padding:0 44%;
+  }
+  .fan-row::-webkit-scrollbar{display:none;}
+  /* Flat, overlapping stack rather than a fanned hand - scale is the only
+     per-card variable now, and JS flips it on whichever card is nearest the
+     carousel's center as it scrolls, so the "current" card reads as
+     slightly forward. */
   .fan-card{
     width:72px; height:118px; border-radius:10px; background:var(--parch);
     border:2px solid var(--mist); margin-left:-16px; flex-shrink:0;
     box-shadow:0 6px 16px rgba(0,0,0,0.34); overflow:hidden; position:relative;
-    transform-origin:bottom center; transition:transform .25s ease;
+    transform:scale(var(--scale, 1));
+    transition:transform .25s ease;
+    scroll-snap-align:center;
   }
+  .fan-card.centered{--scale:1.14;}
   .fan-card:first-child{margin-left:0;}
   .fan-card.tappable{cursor:pointer;}
   .fan-card.tappable:active{transform:scale(.96) !important;}
@@ -3171,21 +3194,27 @@ async function loadCollectorPacks() {
 }
 
 function renderPackSelector() {
-  const row = document.getElementById('packSelector');
-  if (!row) return;
-  row.innerHTML = allPacksRaw.map((p, i) => `
+  const left = document.getElementById('packColLeft');
+  const right = document.getElementById('packColRight');
+  if (!left || !right) return;
+  const tabHtml = (p, i) => `
     <button class="pack-tab ${i === selectedPack ? 'active' : ''}" data-i="${i}">
       <span class="pack-tab-emoji">${p.emoji}</span>
       <span class="pack-tab-name">${p.name}</span>
       <span class="pack-tab-count">${p.cards_found}/${p.cards_total}</span>
-    </button>`).join('');
-  row.querySelectorAll('.pack-tab').forEach(b => {
+    </button>`;
+  // First five packs down the left column, the rest down the right - so the
+  // carousel they flank stays centered rather than the tabs all piling up
+  // on one side.
+  left.innerHTML = allPacksRaw.slice(0, 5).map((p, i) => tabHtml(p, i)).join('');
+  right.innerHTML = allPacksRaw.slice(5).map((p, i) => tabHtml(p, i + 5)).join('');
+  [left, right].forEach(col => col.querySelectorAll('.pack-tab').forEach(b => {
     b.onclick = () => {
       selectedPack = +b.dataset.i;
       renderPackSelector();
       renderSelectedPack();
     };
-  });
+  }));
 }
 
 function renderSelectedPack() {
@@ -3193,44 +3222,38 @@ function renderSelectedPack() {
   const p = allPacksRaw[selectedPack];
   if (!el || !p) return;
 
-  // Fanned like a real hand. Angles are computed from the pack size rather
-  // than hard-coded for five, so any pack size fans symmetrically.
-  // Two rows of five rather than one fan of ten - ten cards in a single row
-  // either overflow the screen or shrink to unreadable.
-  const fanRow = (birds, rowOffset) => {
-    const n = birds.length;
-    return birds.map((b, i) => {
-      const offset = i - (n - 1) / 2;
-      const angle = offset * 9;
-      const lift = Math.abs(offset) * 7;
-      const rareMark = b.rarity === 'Rare'
-        ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
-        : '';
-      const face = b.photo_url
-        ? `<img class="fan-photo" src="${b.photo_url}" alt="">`
-        : `<div class="fan-photo empty">${b.found ? '' : '🐦'}</div>`;
-      // An away bird is marked as such, so an empty slot reads as "not this
-      // month" rather than something the child has failed to find.
-      const away = !b.found && b.season_state === 'away';
-      return `
-        <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
-             style="transform:rotate(${angle}deg) translateY(${lift}px); z-index:${10 - Math.abs(offset)}"
-             data-name="${b.found ? b.common_name : ''}">
-          ${face}
-          <div class="fan-name">${b.common_name}</div>
-          ${rareMark}
-          ${away ? `<div class="fan-away">${b.season_label}</div>` : ''}
-        </div>`;
-    }).join('');
-  };
-  const fan = `
-    <div class="fan-row">${fanRow(p.birds.slice(0, 5), 0)}</div>
-    <div class="fan-row">${fanRow(p.birds.slice(5), 1)}</div>`;
+  // A flat, overlapping stack rather than a fanned hand - all ten cards in
+  // one row, staggered by z-index and negative margin only. Middle-of-pack
+  // cards sit slightly on top at rest (the stacking still reads as a deck),
+  // and JS bumps whichever one is nearest the carousel's center as it scrolls.
+  const n = p.birds.length;
+  const mid = (n - 1) / 2;
+  const fan = p.birds.map((b, i) => {
+    const rareMark = b.rarity === 'Rare'
+      ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
+      : '';
+    const face = b.photo_url
+      ? `<img class="fan-photo" src="${b.photo_url}" alt="">`
+      : `<div class="fan-photo empty">${b.found ? '' : '🐦'}</div>`;
+    // An away bird is marked as such, so an empty slot reads as "not this
+    // month" rather than something the child has failed to find.
+    const away = !b.found && b.season_state === 'away';
+    const z = 10 - Math.round(Math.abs(i - mid));
+    return `
+      <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
+           style="z-index:${z}" data-z="${z}"
+           data-name="${b.found ? b.common_name : ''}">
+        ${face}
+        <div class="fan-name">${b.common_name}</div>
+        ${rareMark}
+        ${away ? `<div class="fan-away">${b.season_label}</div>` : ''}
+      </div>`;
+  }).join('');
 
   const pct = Math.round((p.cards_found / p.cards_total) * 100);
   el.innerHTML = `
     <div class="pack-blurb">${p.blurb}</div>
-    ${fan}
+    <div class="fan-row">${fan}</div>
     <div class="habitat-bar" style="max-width:280px;margin:0 auto;">
       <div class="habitat-bar-fill" style="width:${pct}%"></div>
     </div>
@@ -3244,6 +3267,38 @@ function renderSelectedPack() {
   el.querySelectorAll('.fan-card.tappable').forEach(card => {
     card.onclick = () => openBirdFromPack(card.dataset.name);
   });
+
+  // Whichever card sits nearest the carousel's center gets a touch bigger,
+  // so it's clear which one a tap or a snap-scroll would land on. Rebuilt
+  // fresh each time a pack is picked, so no listener cleanup is needed - the
+  // old fan-row (and its listener) is discarded with the rest of el's markup.
+  const fanRow = el.querySelector('.fan-row');
+  if (fanRow) {
+    let raf = null;
+    const update = () => { raf = null; updateCenteredFanCard(fanRow); };
+    fanRow.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(update); });
+    updateCenteredFanCard(fanRow);
+  }
+}
+
+function updateCenteredFanCard(row) {
+  const rowMid = row.getBoundingClientRect().left + row.getBoundingClientRect().width / 2;
+  let closest = null, closestDist = Infinity;
+  row.querySelectorAll('.fan-card').forEach(card => {
+    const r = card.getBoundingClientRect();
+    const dist = Math.abs((r.left + r.width / 2) - rowMid);
+    if (dist < closestDist) { closestDist = dist; closest = card; }
+  });
+  row.querySelectorAll('.fan-card.centered').forEach(card => {
+    if (card !== closest) {
+      card.classList.remove('centered');
+      card.style.zIndex = card.dataset.z;
+    }
+  });
+  if (closest && !closest.classList.contains('centered')) {
+    closest.classList.add('centered');
+    closest.style.zIndex = '30';
+  }
 }
 
 async function openBirdFromPack(commonName) {
@@ -3265,8 +3320,11 @@ async function renderHabitats() {
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Collections</div></div>
     <div class="collection-count">Ten packs of ten birds to complete</div>
-    <div class="pack-selector" id="packSelector"></div>
-    <div id="packList" style="width:100%;"></div>
+    <div class="pack-layout">
+      <div class="pack-col" id="packColLeft"></div>
+      <div class="pack-carousel-wrap" id="packList"></div>
+      <div class="pack-col" id="packColRight"></div>
+    </div>
   `;
   loadCollectorPacks();
 }
