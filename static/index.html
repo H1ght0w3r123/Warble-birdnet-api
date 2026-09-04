@@ -194,9 +194,9 @@
   .collector-pips{display:flex;gap:5px;justify-content:center;}
   .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--dusk);font-family:'Outfit';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
   .fan-card.away{opacity:.75;}
-  .fan-away{position:absolute;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
+  .fan-away{position:absolute;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:10px;text-align:center;padding:4px 2px;}
   .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Outfit';font-weight:700;font-size:11px;color:var(--dusk);}
-  .fan-rare{position:absolute;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
+  .fan-rare{position:absolute;top:6px;right:6px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:9px;padding:3px 6px;border-radius:5px;letter-spacing:.04em;}
   .collector-pip{
     flex:1; font-family:'Outfit'; font-weight:700; font-size:9.5px; padding:4px 0;
     border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
@@ -524,43 +524,40 @@
   .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Outfit';font-weight:700;}
   .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Outfit';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
   .habitat-card{cursor:pointer;}
-  /* Collections layout: two vertical columns of 5 compact pack tabs (left and
-     right), flanking the card carousel in the middle. Replaces the old
-     top-of-screen scrolling tab row - with the carousel now doing its own
-     horizontal scrolling, having the pack tabs scroll horizontally too would
-     mean two independent side-to-side swipe zones stacked on each other.
-     No border on the tabs - the background/text color swap on .active is
-     distinct enough on its own, and skipping the border keeps two narrow
-     columns of tabs from looking fussy. */
-  .pack-layout{display:flex;gap:6px;width:100%;align-items:flex-start;}
-  .pack-col{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;width:62px;}
-  .pack-carousel-wrap{flex:1 1 auto;min-width:0;}
+  /* Collections layout: a single row of pill-button pack tabs across the top
+     (scrolls sideways, doesn't compete for space with the carousel below),
+     with the carousel given the full width beneath it - this is what makes
+     room for the cards to be meaningfully bigger. No border on the tabs -
+     the background/text color swap on .active is distinct enough on its
+     own. */
+  .pack-selector{display:flex;gap:8px;width:100%;margin-bottom:14px;overflow-x:auto;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding-bottom:4px;}
+  .pack-selector::-webkit-scrollbar{display:none;}
   .pack-tab{
-    width:100%; min-height:52px;
+    flex:0 0 auto; scroll-snap-align:center; white-space:nowrap;
     background:rgba(255,255,255,0.15); border:none;
-    border-radius:12px; padding:6px 3px; cursor:pointer;
-    display:flex; flex-direction:column; align-items:center; gap:2px;
+    border-radius:999px; padding:8px 14px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
   }
   .pack-tab.active{background:rgba(255,255,255,0.95);}
-  .pack-tab-emoji{font-size:16px;line-height:1;}
-  .pack-tab-name{font-family:'Outfit';font-weight:700;font-size:8px;color:rgba(255,255,255,0.9);text-align:center;line-height:1.15;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .pack-tab-emoji{font-size:15px;line-height:1;}
+  .pack-tab-name{font-family:'Outfit';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);}
   .pack-tab.active .pack-tab-name{color:var(--dusk);}
-  .pack-tab-count{font-family:'Outfit';font-weight:900;font-size:7.5px;color:rgba(255,255,255,0.7);}
+  .pack-tab-count{font-family:'Outfit';font-weight:900;font-size:10px;color:rgba(255,255,255,0.65);}
   .pack-tab.active .pack-tab-count{color:var(--gold-dk);}
 
   /* No card frame - the fan sits straight on the background, which is what
      leaves room for the cards to be meaningfully bigger. All ten cards are
-     one staggered, overlapping row now rather than two - it scrolls instead
-     of wrapping, which is what makes it a carousel. Padding left/right plus
-     scroll-padding-inline lets the first and last card reach center rather
-     than stopping flush against the edge. */
+     one staggered, overlapping row - it scrolls instead of wrapping, which
+     is what makes it a carousel. Padding left/right plus scroll-padding-
+     inline lets the first and last card reach center rather than stopping
+     flush against the edge. */
   .pack-blurb{font-size:12px;color:rgba(255,255,255,0.88);text-align:center;line-height:1.45;margin-bottom:6px;}
   .fan-row{
-    display:flex; align-items:flex-start; height:150px; margin:2px 0 6px;
+    display:flex; align-items:flex-start; height:250px; margin:2px 0 6px;
     overflow-x:auto; overflow-y:visible; -webkit-overflow-scrolling:touch;
-    touch-action:pan-x; scroll-snap-type:x mandatory; scroll-padding-inline:44%;
-    padding:0 44%;
+    touch-action:pan-x; scroll-snap-type:x mandatory; scroll-padding-inline:32%;
+    padding:0 32%;
   }
   .fan-row::-webkit-scrollbar{display:none;}
   /* Flat, overlapping stack rather than a fanned hand - scale is the only
@@ -568,9 +565,9 @@
      carousel's center as it scrolls, so the "current" card reads as
      slightly forward. */
   .fan-card{
-    width:72px; height:118px; border-radius:10px; background:var(--parch);
-    border:2px solid var(--mist); margin-left:-16px; flex-shrink:0;
-    box-shadow:0 6px 16px rgba(0,0,0,0.34); overflow:hidden; position:relative;
+    width:140px; height:214px; border-radius:14px; background:var(--parch);
+    border:2px solid var(--mist); margin-left:-30px; flex-shrink:0;
+    box-shadow:0 8px 20px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform:scale(var(--scale, 1));
     transition:transform .25s ease;
     scroll-snap-align:center;
@@ -581,9 +578,9 @@
   .fan-card.tappable:active{transform:scale(.96) !important;}
   .fan-card.complete{border-color:var(--gold);}
   .fan-card.unfound{filter:grayscale(1) brightness(.9);}
-  .fan-photo{width:100%;height:74px;object-fit:cover;display:block;}
-  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.3;background:var(--parch-dk);}
-  .fan-name{font-family:'Outfit';font-weight:700;font-size:8px;color:var(--dusk);text-align:center;padding:3px 2px 0;line-height:1.15;height:20px;overflow:hidden;}
+  .fan-photo{width:100%;height:150px;object-fit:cover;display:block;}
+  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:46px;opacity:.3;background:var(--parch-dk);}
+  .fan-name{font-family:'Outfit';font-weight:700;font-size:12px;color:var(--dusk);text-align:center;padding:6px 4px 0;line-height:1.2;height:30px;overflow:hidden;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
@@ -3194,27 +3191,21 @@ async function loadCollectorPacks() {
 }
 
 function renderPackSelector() {
-  const left = document.getElementById('packColLeft');
-  const right = document.getElementById('packColRight');
-  if (!left || !right) return;
-  const tabHtml = (p, i) => `
+  const row = document.getElementById('packSelector');
+  if (!row) return;
+  row.innerHTML = allPacksRaw.map((p, i) => `
     <button class="pack-tab ${i === selectedPack ? 'active' : ''}" data-i="${i}">
       <span class="pack-tab-emoji">${p.emoji}</span>
       <span class="pack-tab-name">${p.name}</span>
       <span class="pack-tab-count">${p.cards_found}/${p.cards_total}</span>
-    </button>`;
-  // First five packs down the left column, the rest down the right - so the
-  // carousel they flank stays centered rather than the tabs all piling up
-  // on one side.
-  left.innerHTML = allPacksRaw.slice(0, 5).map((p, i) => tabHtml(p, i)).join('');
-  right.innerHTML = allPacksRaw.slice(5).map((p, i) => tabHtml(p, i + 5)).join('');
-  [left, right].forEach(col => col.querySelectorAll('.pack-tab').forEach(b => {
+    </button>`).join('');
+  row.querySelectorAll('.pack-tab').forEach(b => {
     b.onclick = () => {
       selectedPack = +b.dataset.i;
       renderPackSelector();
       renderSelectedPack();
     };
-  }));
+  });
 }
 
 function renderSelectedPack() {
@@ -3320,11 +3311,8 @@ async function renderHabitats() {
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Collections</div></div>
     <div class="collection-count">Ten packs of ten birds to complete</div>
-    <div class="pack-layout">
-      <div class="pack-col" id="packColLeft"></div>
-      <div class="pack-carousel-wrap" id="packList"></div>
-      <div class="pack-col" id="packColRight"></div>
-    </div>
+    <div class="pack-selector" id="packSelector"></div>
+    <div id="packList" style="width:100%;"></div>
   `;
   loadCollectorPacks();
 }
