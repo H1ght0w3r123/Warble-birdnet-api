@@ -2140,6 +2140,13 @@ function startEqualizer(stream) {
   eqAnimationId = requestAnimationFrame(draw);
 }
 
+function fireDetectionHaptic() {
+  // Short, kid-friendly buzz for the moment a new bird is found. Silently
+  // does nothing on devices/browsers without vibration support (e.g. iOS
+  // Safari) rather than erroring.
+  if (navigator.vibrate) navigator.vibrate(80);
+}
+
 function fireTreeRustle() {
   if (!treeShards.length) return;
   // Start from an outer facet so the wave visibly travels inward across the
@@ -2233,9 +2240,10 @@ async function checkLiveChunk(blob) {
           confidence: d.confidence,
         });
         renderLiveBirdStack();
-        // Fire the rustle on the same frame the badge appears, so the two
-        // read as one event rather than two unrelated things happening.
+        // Fire the rustle and haptic buzz on the same frame the badge
+        // appears, so all three read as one event rather than separate things.
         fireTreeRustle();
+        fireDetectionHaptic();
       }
     });
   } catch (e) { /* a missed preview chunk doesn't matter, just skip it */ }
