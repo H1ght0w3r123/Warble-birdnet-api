@@ -189,6 +189,7 @@ from database import (
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
     count_curated_species_found,
     set_total_feathers,
+    add_bird_photo, get_bird_photos, delete_bird_photo,
 )
 from birds import (bird_data, STAT_LABELS, HABITAT_ICONS,
                    season_state, is_seasonal, SUMMER_VISITORS, SEASONAL_ORDER)
@@ -655,6 +656,25 @@ async def delete_species_endpoint(common_name: str):
     """Removes one species from the collection - for misidentifications."""
     removed = delete_species(common_name)
     print(f"Deleted species '{common_name}' ({removed} sighting(s))")
+    return {"status": "ok", "removed": removed}
+
+
+@app.post("/species/{common_name}/photos")
+async def add_bird_photo_endpoint(common_name: str, photo: str = Form(...)):
+    """Attaches a self-taken photo to a species. The client has already
+    shrunk/re-encoded it (same pattern as the avatar photo upload)."""
+    photo_id = add_bird_photo(common_name, photo)
+    return {"status": "ok", "id": photo_id}
+
+
+@app.get("/species/{common_name}/photos")
+def get_bird_photos_endpoint(common_name: str):
+    return {"photos": get_bird_photos(common_name)}
+
+
+@app.post("/bird-photos/{photo_id}/delete")
+async def delete_bird_photo_endpoint(photo_id: int):
+    removed = delete_bird_photo(photo_id)
     return {"status": "ok", "removed": removed}
 
 

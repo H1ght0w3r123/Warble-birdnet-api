@@ -129,6 +129,20 @@ class OwnedAccessory(Base):
     purchased_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class BirdPhoto(Base):
+    """A photo a child took themselves, attached to a species rather than
+    to any one sighting - so it stays on the bird's card even if that
+    particular sighting is later removed as a misidentification. Stored the
+    same way avatar_photo is: a JPEG data URL in the database, since it's
+    already been shrunk client-side before it gets here."""
+    __tablename__ = "bird_photos"
+
+    id = Column(Integer, primary_key=True)
+    common_name = Column(String, nullable=False)
+    photo_data = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
 def init_db():
     """Create tables if they don't exist yet, and seed one PlayerStats row."""
     if engine is None:
@@ -894,13 +908,58 @@ def delete_species(common_name: str) -> int:
 
     Deliberately does NOT refund or deduct feathers: they were genuinely
     earned at the time, and clawing them back for a bad detection that wasn't
-    the user's fault would feel like a punishment."""
+    the user's fault would feel like a punishment.
+
+    Does remove any self-taken photos for the species, though - the detail
+    card they'd be shown on is only reachable via a sighting, so once the
+    last sighting is gone the photos would just be an orphaned, invisible
+    row in the database rather than something the child could ever see or
+    retrieve again."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
         n = session.query(Sighting).filter_by(common_name=common_name).delete()
+        session.query(BirdPhoto).filter_by(common_name=common_name).delete()
         session.commit()
         return n
+
+
+def add_bird_photo(common_name: str, photo_data: str) -> int:
+    """Attaches a self-taken photo to a species. Returns the new photo's id."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        photo = BirdPhoto(common_name=common_name, photo_data=photo_data)
+        session.add(photo)
+        session.commit()
+        return photo.id
+
+
+def get_bird_photos(common_name: str):
+    """All self-taken photos for one species, newest first."""
+    if SessionLocal is None:
+        return []
+    with SessionLocal() as session:
+        rows = (session.query(BirdPhoto)
+                .filter_by(common_name=common_name)
+                .order_by(BirdPhoto.created_at.desc()).all())
+        # Detached from the session on return, so pull everything needed
+        # into plain values now rather than leaving lazy-loaded attributes
+        # that would fail once the session closes.
+        return [{"id": p.id, "photo_data": p.photo_data,
+                 "created_at": p.created_at.isoformat() if p.created_at else None}
+                for p in rows]
+
+
+def delete_bird_photo(photo_id: int) -> bool:
+    """Removes one self-taken photo. Returns whether a row was actually
+    deleted, so a bad id can be told apart from a successful delete."""
+    if SessionLocal is None:
+        return False
+    with SessionLocal() as session:
+        n = session.query(BirdPhoto).filter_by(id=photo_id).delete()
+        session.commit()
+        return n > 0
 
 
 def export_everything():
@@ -927,6 +986,11 @@ def export_everything():
                           for l in session.query(Location).all()],
             "accessories": [a.accessory_id for a in session.query(OwnedAccessory).all()],
             "bonuses": [b.key for b in session.query(AwardedBonus).all()],
+            "bird_photos": [
+                {"common_name": p.common_name, "photo_data": p.photo_data,
+                 "created_at": p.created_at.isoformat() if p.created_at else None}
+                for p in session.query(BirdPhoto).all()
+            ],
             "feathers": (session.query(PlayerStats).first().total_feathers
                          if session.query(PlayerStats).first() else 0),
         }
@@ -966,7 +1030,10 @@ def reset_sightings():
     """Every bird, session, trophy and one-off bonus. Trophies and bonuses go
     too because they're earned FROM sightings and sessions - leaving them
     would mean holding a trophy for birds that no longer exist, and would
-    silently block those bonuses from ever paying out again."""
+    silently block those bonuses from ever paying out again. Self-taken
+    photos go too - a photo attached to a species you no longer have any
+    sighting of would be orphaned, since the bird's detail card (where
+    photos are shown) is only reachable once you've found the species."""
     if SessionLocal is None:
         return
     with SessionLocal() as session:
@@ -975,6 +1042,7 @@ def reset_sightings():
         session.query(EarnedTrophy).delete()
         session.query(AwardedBonus).delete()
         session.query(Location).delete()
+        session.query(BirdPhoto).delete()
         session.commit()
 
 

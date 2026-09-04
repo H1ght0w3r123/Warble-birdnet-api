@@ -336,6 +336,25 @@
   .detail-stat-label{font-size:11px;color:var(--mist-dk);}
   .detail-desc{font-size:13px;line-height:1.55;color:var(--ink);margin-top:14px;}
 
+  /* --- Self-taken photos, on the bird detail card --- */
+  /* The hero photo becomes a horizontally-scrolling strip once there's more
+     than one image - the Wikipedia photo (or a blank placeholder) is always
+     slide one, self-taken photos are appended after it. Each slide reuses
+     .detail-photo itself for its sizing/filter, so nothing about the
+     single-photo look changes when there's nothing to scroll to yet. */
+  .detail-photo-wrap{position:relative;}
+  .detail-photo-strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .detail-photo-strip::-webkit-scrollbar{display:none;}
+  .detail-photo-strip .detail-photo{flex-shrink:0;width:100%;scroll-snap-align:start;}
+  .add-photo-btn{
+    position:absolute; bottom:10px; right:10px; z-index:5;
+    width:40px; height:40px; border-radius:50%; cursor:pointer;
+    background:rgba(26,17,40,0.72); color:#fff; font-size:19px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+  .add-photo-btn:active{background:rgba(26,17,40,0.9);}
+
   /* --- Facts dashboard --- */
   .tt-block{width:100%;background:#fff;border-radius:14px;padding:12px 14px;margin-top:12px;}
   .tt-title{font-family:'Outfit';font-weight:900;font-size:10px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
@@ -1690,7 +1709,13 @@ function renderBirdDetail(commonName, onBack) {
       <button class="back-btn" id="backBtn">← Back</button>
     </div>
     <div class="detail-card">
-      ${latest.image_url ? `<img class="detail-photo" src="${latest.image_url}">` : `<div class="detail-photo"></div>`}
+      <div class="detail-photo-wrap">
+        <div class="detail-photo-strip" id="detailPhotoStrip">
+          ${latest.image_url ? `<img class="detail-photo" src="${latest.image_url}">` : `<div class="detail-photo"></div>`}
+        </div>
+        <label class="add-photo-btn" for="birdPhotoInput">+</label>
+        <input type="file" id="birdPhotoInput" accept="image/*" style="display:none">
+      </div>
       <div class="detail-body">
         <div class="detail-name">${latest.common_name}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
@@ -1732,6 +1757,74 @@ function renderBirdDetail(commonName, onBack) {
   const shareBtn = document.getElementById('shareBirdBtn');
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
   document.getElementById('backBtn').onclick = onBack || renderCollection;
+
+  document.getElementById('birdPhotoInput').onchange = (e) => {
+    if (e.target.files && e.target.files[0]) handleBirdPhotoChosen(e.target.files[0], commonName);
+  };
+  loadBirdPhotos(commonName);
+}
+
+// Photos the child took themselves, appended to the hero photo strip after
+// the Wikipedia photo (or blank placeholder) that's always slide one. The
+// strip only actually scrolls once there's something to scroll to - with
+// zero self-taken photos it looks exactly like the single static photo it
+// used to be. Re-fetched fresh each time the detail card opens rather than
+// carried on the sighting objects, since a photo can be added at any point
+// and there's no cache-invalidation path from other screens back into
+// allSightingsRaw.
+async function loadBirdPhotos(commonName) {
+  const strip = document.getElementById('detailPhotoStrip');
+  if (!strip) return;
+  try {
+    const res = await fetch(`/species/${encodeURIComponent(commonName)}/photos`);
+    const data = await res.json();
+    strip.querySelectorAll('.my-photo-slide').forEach(el => el.remove());
+    (data.photos || []).forEach(p => {
+      const img = document.createElement('img');
+      img.className = 'detail-photo my-photo-slide';
+      img.src = p.photo_data;
+      strip.appendChild(img);
+    });
+  } catch (e) { /* strip just shows the Wikipedia photo if this fails */ }
+}
+
+// Kept full-frame (not centre-cropped to a square, unlike the avatar photo)
+// since these are meant to look like an actual photo the child took, not an
+// icon. Longest side capped at 900px and re-encoded as JPEG before upload -
+// a multi-megabyte phone photo would be far too heavy to store as a data URL
+// otherwise, but 900px is generous enough to still look good full-width.
+function handleBirdPhotoChosen(file, commonName) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 900;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      saveBirdPhoto(commonName, canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => alert("Sorry, that image couldn't be read.");
+    img.src = reader.result;
+  };
+  reader.onerror = () => alert("Sorry, that image couldn't be read.");
+  reader.readAsDataURL(file);
+}
+
+async function saveBirdPhoto(commonName, dataUrl) {
+  const formData = new FormData();
+  formData.append('photo', dataUrl);
+  try {
+    await fetch(`/species/${encodeURIComponent(commonName)}/photos`, { method: 'POST', body: formData });
+    await loadBirdPhotos(commonName);
+    // Scroll straight to the photo that was just added, so adding one feels
+    // immediate rather than needing a manual swipe to go find it.
+    const strip = document.getElementById('detailPhotoStrip');
+    if (strip) strip.scrollTo({ left: strip.scrollWidth, behavior: 'smooth' });
+  } catch (e) { alert("Sorry, that photo couldn't be saved right now."); }
 }
 
 let currentlyPlayingAudio = null;
