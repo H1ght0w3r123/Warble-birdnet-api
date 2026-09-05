@@ -578,6 +578,11 @@
   .fan-row{
     display:flex; align-items:flex-end; justify-content:center;
     height:172px; margin:2px 0 6px; overflow:visible;
+    /* Without this, the browser spends the first chunk of the drag deciding
+       whether it's a page-scroll gesture, which is exactly what made thumb
+       tracking feel laggy/unreliable - this hands the whole gesture to our
+       own pointer handlers immediately instead. */
+    touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
   }
   /* Bottom-anchored transform-origin, so tapping a card grows it upward into
      the headroom above the row rather than growing equally in both
@@ -3409,6 +3414,10 @@ function wireFanRowSwipe(fanRow) {
   let activePointerId = null;
   fanRow.addEventListener('pointerdown', (e) => {
     activePointerId = e.pointerId;
+    // Keeps every move/up event routed here for this pointer even if it
+    // temporarily strays off fanRow's own box - which can happen since an
+    // enlarged card is drawn bigger than the row's resting layout height.
+    try { fanRow.setPointerCapture(e.pointerId); } catch (err) { /* unsupported - falls back to normal hit-testing */ }
     selectCard(nearestCard(e.clientX));
   });
   fanRow.addEventListener('pointermove', (e) => {
@@ -3418,6 +3427,7 @@ function wireFanRowSwipe(fanRow) {
   const release = (e) => {
     if (e.pointerId !== activePointerId) return;
     activePointerId = null;
+    try { fanRow.releasePointerCapture(e.pointerId); } catch (err) { /* already released */ }
     const card = nearestCard(e.clientX);
     if (card && card.classList.contains('tappable')) openBirdFromPack(card.dataset.name);
   };
