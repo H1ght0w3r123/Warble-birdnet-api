@@ -630,7 +630,20 @@
   .trophy-level{display:inline-block;background:var(--gold);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
   .trophy-caption-next{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:5px;}
   .trophy-caption-tap{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
-  .done-feathers{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;}
+  /* Feathers-earned and "go again" share one grid cell (both always in the
+     DOM, never display:none) so the cell's height is fixed to whichever is
+     taller - swapping which one is visible is a pure opacity crossfade with
+     no layout height change, which is what keeps everything below/above it
+     from shifting position when the transition happens. */
+  .done-feathers-slot{position:relative; display:grid;}
+  .done-feathers-slot > *{grid-area:1 / 1;}
+  .done-feathers-slot .go-again-content{
+    display:flex; flex-direction:column; align-items:center;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  .done-feathers-slot .go-again-content.visible{opacity:1; pointer-events:auto;}
+  .done-feathers{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;transition:opacity .3s ease;}
+  .done-feathers.collected{opacity:0; pointer-events:none;}
   .go-again-ask{font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
   /* Dancing avatar on the Done screen: av-torso (body + both wings) adds a
      small shimmy, and each wing wave pivots at the shoulder joint where it
@@ -1967,9 +1980,14 @@ function renderDone() {
     <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
     ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
     ${trophyBanners}
-    <div class="done-feathers tappable" id="doneFeathers">\u{1FAB6} ${total} feathers earned</div>
+    <div class="done-feathers-slot">
+      <div class="done-feathers tappable" id="doneFeathers">\u{1FAB6} ${total} feathers earned</div>
+      <div class="go-again-content" id="goAgainWrap">
+        <div class="go-again-ask">Go again?</div>
+        <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">\u{1F399}</button>
+      </div>
+    </div>
     <div class="collect-hint" id="doneHint">Tap your feathers to collect them</div>
-    <div id="goAgainWrap"></div>
   `;
 
   stage.querySelectorAll('.done-trophy').forEach(el => {
@@ -1978,6 +1996,11 @@ function renderDone() {
 
   scheduleDoneLeafBurst(stage.querySelector('.done-avatar'));
 
+  // Bound immediately rather than only after collecting - the button sits
+  // underneath the feathers message from the start (opacity 0, pointer-
+  // events off), so there's nothing to wire up later, just a class to add.
+  document.getElementById('againBtn').onclick = startRecording;
+
   const featherEl = document.getElementById('doneFeathers');
   featherEl.onclick = () => {
     featherEl.onclick = null;
@@ -1985,16 +2008,11 @@ function renderDone() {
     const hint = document.getElementById('doneHint');
     if (hint) hint.textContent = '';
     flyFeathersToCounter(featherEl, total, () => {
-      featherEl.style.opacity = '0.45';
       // Another go is only offered once the feathers have been collected,
       // so it isn't possible to leave the session's reward on the table.
+      featherEl.classList.add('collected');
       const wrap = document.getElementById('goAgainWrap');
-      if (wrap) {
-        wrap.innerHTML = `
-          <div class="go-again-ask">Go again?</div>
-          <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">\u{1F399}</button>`;
-        document.getElementById('againBtn').onclick = startRecording;
-      }
+      if (wrap) wrap.classList.add('visible');
       refreshFeathers();   // reconcile against the server once animations finish
     });
   };
