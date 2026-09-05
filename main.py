@@ -150,7 +150,16 @@ async def identify(
         # Rarity is a fixed property of the species now, straight from the
         # curated list - no NBN lookup, no per-location variation. A Hawfinch
         # is rare wherever you hear it.
-        filtered_detections.append({**d, "tier": rarity_of(d["common_name"])})
+        # is_new mirrors the exact check used when a session is actually
+        # saved (has_existing_sighting with no tier arg) - nothing is written
+        # to the database from this endpoint, so this stays accurate for
+        # every chunk of the same recording: a species only stops being "new"
+        # once an earlier chunk of a DIFFERENT, already-saved session found it.
+        filtered_detections.append({
+            **d,
+            "tier": rarity_of(d["common_name"]),
+            "is_new": not has_existing_sighting(d["common_name"]),
+        })
 
     if len(filtered_detections) < len(detections[:3]):
         rejected = [d["common_name"] for d in detections[:3]

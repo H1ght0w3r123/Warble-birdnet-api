@@ -398,6 +398,36 @@
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .live-bird-badge:first-child{margin-left:0;}
+  /* Six variations: collection (green)/rare (gold)/other (grey) border,
+     each either plain or "new" - new adds a matching glow on top of the
+     base ring rather than replacing it, so it reads as an emphasised
+     version of the same badge. This co-opts the find-collect/find-rare/
+     find-plain tier classes shared with .silhouette-card elsewhere, but
+     resets their glow back to the plain ring first - here, glow means "new
+     find", not "collector tier", which is a different meaning from what
+     those shared classes carry on that other component. */
+  .live-bird-badge.find-collect,
+  .live-bird-badge.find-rare,
+  .live-bird-badge.find-plain{
+    box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5);
+  }
+  .live-bird-badge.find-collect.badge-new{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5), 0 0 14px 3px rgba(126,200,164,0.75);}
+  .live-bird-badge.find-rare.badge-new{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5), 0 0 16px 4px rgba(255,195,0,0.8);}
+  .live-bird-badge.find-plain.badge-new{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5), 0 0 12px 3px rgba(196,191,223,0.7);}
+  /* The jitter lives on an inner wrapper rather than .live-bird-badge itself
+     - that element already has its own one-shot cardReveal entrance
+     animation, and a single element can't cleanly run a one-off entrance
+     and an infinite loop on the same property (transform) at once. Per-badge
+     duration/delay are set inline in JS so a row of badges doesn't move as
+     one synchronised block. */
+  .badge-jitter{display:flex;align-items:center;justify-content:center;animation-name:badgeJitter;animation-timing-function:ease-in-out;animation-iteration-count:infinite;}
+  @keyframes badgeJitter{
+    0%,100%{transform:rotate(0deg) translate(0,0);}
+    20%{transform:rotate(-4deg) translate(-1px,0.6px);}
+    45%{transform:rotate(2deg) translate(0.6px,-1px);}
+    70%{transform:rotate(-2deg) translate(1px,0.6px);}
+    85%{transform:rotate(3deg) translate(-0.6px,-0.6px);}
+  }
   /* Three levels of find, escalating in weight so the difference is obvious
      at a glance rather than needing the colours to be learned. */
   .find-collect{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 3px rgba(126,200,164,0.35);}
@@ -1171,9 +1201,18 @@ function renderLiveBirdStack() {
   if (!el) return;
   // Tiered (pack) birds first and rarest-first; untiered birds after them.
   const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 3) - (TIER_ORDER[b.tier] ?? 3));
-  el.innerHTML = sorted.map(bird => {
+  el.innerHTML = sorted.map((bird, i) => {
     const t = sessionTier(bird.tier);
-    return `<div class="live-bird-badge ${t.cls}" style="--tier-color:${t.color}">${BADGE_BIRD_SVG}</div>`;
+    // Duration and a negative delay (so it starts already mid-cycle rather
+    // than every badge launching from the same pose) both vary by position,
+    // the same trick used for the dancing avatar's wings - it's what makes
+    // a row of badges read as independently jittering rather than one badge
+    // copy-pasted sideways.
+    const dur = (2.1 + (i % 4) * 0.3).toFixed(2);
+    const delay = (-(i % 5) * 0.4).toFixed(2);
+    return `<div class="live-bird-badge ${t.cls} ${bird.is_new ? 'badge-new' : ''}" style="--tier-color:${t.color}">
+      <div class="badge-jitter" style="animation-duration:${dur}s; animation-delay:${delay}s;">${BADGE_BIRD_SVG}</div>
+    </div>`;
   }).join('');
 }
 
@@ -2200,9 +2239,8 @@ let treeShards = [], fallingLeaves = [], activeRustle = null, lastFrameTime = 0;
 let binCeiling = 40;
 // Multiplies the design's per-facet amplitudes (3.4-6.1 deg). At 1.0 the
 // quiver tops out around 2-4 deg even when loud; this brings a normal
-// sound up to roughly the 6-10 deg the old placeholder tree used, which
-// is the level that actually reads on a phone screen.
-const QUIVER_GAIN = 2.4;
+// sound up to a more pronounced level than the old placeholder tree used.
+const QUIVER_GAIN = 3.2;
 
 function startEqualizer(stream) {
   eqAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -2245,7 +2283,7 @@ function startEqualizer(stream) {
     binCeiling += (frameMax - binCeiling) * (frameMax > binCeiling ? 0.25 : 0.015);
     const ceiling = Math.max(binCeiling, 26);
 
-    const breath = 0.9;               // gentle idle motion so it's never fully dead
+    const breath = 1.4;               // idle motion so it's never fully dead
     const r = activeRustle;
     const rAge = r ? t - r.t : 999;
     if (r && rAge > 2.2) activeRustle = null;
@@ -2268,8 +2306,8 @@ function startEqualizer(stream) {
           const fall = Math.max(0.3, 1 - d / 190);
           const dir = (s.px - r.ox) >= 0 ? 1 : -1;
           const env = Math.exp(-tt / 0.2) * Math.sin(Math.PI * 2 * 4.2 * tt);
-          a += 16 * fall * dir * env;
-          const push = 4 * fall * Math.exp(-tt / 0.24) * Math.sin(Math.PI * 2 * 4.2 * tt);
+          a += 24 * fall * dir * env;
+          const push = 7 * fall * Math.exp(-tt / 0.24) * Math.sin(Math.PI * 2 * 4.2 * tt);
           ox = s.nx * push; oy = s.ny * push;
         }
       }
@@ -2318,14 +2356,14 @@ function fireTreeRustle() {
 function spawnFallingLeaves(x, y) {
   const layer = document.getElementById('leaves');
   if (!layer) return;
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 13; i++) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     el.setAttribute('points', '0,-3 4,0 0,3.5 -3.5,0.5');
     el.setAttribute('fill', LEAF_COLORS[i % LEAF_COLORS.length]);
     layer.appendChild(el);
     fallingLeaves.push({
       el, x: x + (Math.random() - 0.5) * 16, y: y + (Math.random() - 0.5) * 12,
-      vx: (Math.random() - 0.5) * 14, vy: -6 - Math.random() * 10,
+      vx: (Math.random() - 0.5) * 22, vy: -10 - Math.random() * 14,
       rot: Math.random() * 360, spin: (Math.random() - 0.5) * 260,
       sway: 1.4 + Math.random() * 2.2, ph: Math.random() * 6.3,
       born: performance.now() / 1000, life: 1.5 + Math.random() * 0.7,
@@ -2395,6 +2433,7 @@ async function checkLiveChunk(blob) {
           common_name: d.common_name,
           scientific_name: d.scientific_name,
           confidence: d.confidence,
+          is_new: d.is_new,
         });
         renderLiveBirdStack();
         // Fire the rustle and haptic buzz on the same frame the badge
