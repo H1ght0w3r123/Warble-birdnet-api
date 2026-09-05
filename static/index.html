@@ -194,9 +194,9 @@
   .collector-pips{display:flex;gap:5px;justify-content:center;}
   .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--dusk);font-family:'Outfit';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
   .fan-card.away{opacity:.75;}
-  .fan-away{position:absolute;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:10px;text-align:center;padding:4px 2px;}
+  .fan-away{position:absolute;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
   .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Outfit';font-weight:700;font-size:11px;color:var(--dusk);}
-  .fan-rare{position:absolute;top:6px;right:6px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:9px;padding:3px 6px;border-radius:5px;letter-spacing:.04em;}
+  .fan-rare{position:absolute;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
   .collector-pip{
     flex:1; font-family:'Outfit'; font-weight:700; font-size:9.5px; padding:4px 0;
     border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
@@ -565,41 +565,41 @@
   .pack-tab-count{font-family:'Outfit';font-weight:900;font-size:10px;color:rgba(255,255,255,0.65);}
   .pack-tab.active .pack-tab-count{color:var(--gold-dk);}
 
-  /* No card frame - the fan sits straight on the background, which is what
-     leaves room for the cards to be meaningfully bigger. All ten cards are
-     one staggered, overlapping row - it scrolls instead of wrapping, which
-     is what makes it a carousel. Padding left/right plus scroll-padding-
-     inline lets the first and last card reach center rather than stopping
-     flush against the edge. */
+  /* No card frame - the fan sits straight on the background. All ten cards
+     sit statically in one overlapping row sized to fit the frame at once -
+     no horizontal scroll at all, which is also what fixes a real clipping
+     bug the scrolling version had: mixing overflow-x:auto with
+     overflow-y:visible doesn't actually keep the y-axis visible - per the
+     CSS spec, setting one axis to something other than visible forces the
+     other to auto too, so an enlarged card poking above the row was
+     silently getting clipped. With neither axis restricted now, that's
+     gone. */
   .pack-blurb{font-size:12px;color:rgba(255,255,255,0.88);text-align:center;line-height:1.45;margin-bottom:6px;}
   .fan-row{
-    display:flex; align-items:flex-start; height:250px; margin:2px 0 6px;
-    overflow-x:auto; overflow-y:visible; -webkit-overflow-scrolling:touch;
-    touch-action:pan-x; scroll-snap-type:x mandatory; scroll-padding-inline:32%;
-    padding:0 32%;
+    display:flex; align-items:flex-end; justify-content:center;
+    height:172px; margin:2px 0 6px; overflow:visible;
   }
-  .fan-row::-webkit-scrollbar{display:none;}
-  /* Flat, overlapping stack rather than a fanned hand - scale is the only
-     per-card variable now, and JS flips it on whichever card is nearest the
-     carousel's center as it scrolls, so the "current" card reads as
-     slightly forward. */
+  /* Bottom-anchored transform-origin, so tapping a card grows it upward into
+     the headroom above the row rather than growing equally in both
+     directions and needing headroom below too (where the progress bar
+     sits). Selection is a tap toggle now, not scroll position - see
+     renderSelectedPack/toggleFanCard - so --scale only ever has two states. */
   .fan-card{
-    width:140px; height:214px; border-radius:14px; background:var(--parch);
-    border:2px solid var(--mist); margin-left:-30px; flex-shrink:0;
-    box-shadow:0 8px 20px rgba(0,0,0,0.34); overflow:hidden; position:relative;
+    width:66px; height:108px; border-radius:9px; background:var(--parch);
+    border:2px solid var(--mist); margin-left:-40px; flex-shrink:0;
+    box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
+    transform-origin:center bottom;
     transform:scale(var(--scale, 1));
-    transition:transform .25s ease;
-    scroll-snap-align:center;
+    transition:transform .25s cubic-bezier(.2,.8,.3,1.15);
+    cursor:pointer;
   }
-  .fan-card.centered{--scale:1.14;}
   .fan-card:first-child{margin-left:0;}
-  .fan-card.tappable{cursor:pointer;}
-  .fan-card.tappable:active{transform:scale(.96) !important;}
+  .fan-card.selected{--scale:1.4;}
   .fan-card.complete{border-color:var(--gold);}
   .fan-card.unfound{filter:grayscale(1) brightness(.9);}
-  .fan-photo{width:100%;height:150px;object-fit:cover;display:block;}
-  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:46px;opacity:.3;background:var(--parch-dk);}
-  .fan-name{font-family:'Outfit';font-weight:700;font-size:12px;color:var(--dusk);text-align:center;padding:6px 4px 0;line-height:1.2;height:30px;overflow:hidden;}
+  .fan-photo{width:100%;height:64px;object-fit:cover;display:block;}
+  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.3;background:var(--parch-dk);}
+  .fan-name{font-family:'Outfit';font-weight:700;font-size:9px;color:var(--dusk);text-align:center;padding:4px 3px 0;line-height:1.15;height:22px;overflow:hidden;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
@@ -3324,12 +3324,11 @@ function renderSelectedPack() {
   const p = allPacksRaw[selectedPack];
   if (!el || !p) return;
 
-  // A flat, overlapping stack rather than a fanned hand - all ten cards in
-  // one row, staggered by z-index and negative margin only. Middle-of-pack
-  // cards sit slightly on top at rest (the stacking still reads as a deck),
-  // and JS bumps whichever one is nearest the carousel's center as it scrolls.
-  const n = p.birds.length;
-  const mid = (n - 1) / 2;
+  // All ten cards sit in the frame at once now, fanned left-to-right with
+  // each one overlapping the previous - so z-index just ascends with
+  // position (last card fully on top at rest) rather than peaking in the
+  // middle, which was only ever there to support scroll-centering that no
+  // longer exists.
   const fan = p.birds.map((b, i) => {
     const rareMark = b.rarity === 'Rare'
       ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
@@ -3340,7 +3339,7 @@ function renderSelectedPack() {
     // An away bird is marked as such, so an empty slot reads as "not this
     // month" rather than something the child has failed to find.
     const away = !b.found && b.season_state === 'away';
-    const z = 10 - Math.round(Math.abs(i - mid));
+    const z = i + 1;
     return `
       <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
            style="z-index:${z}" data-z="${z}"
@@ -3355,7 +3354,7 @@ function renderSelectedPack() {
   const pct = Math.round((p.cards_found / p.cards_total) * 100);
   el.innerHTML = `
     <div class="pack-blurb">${p.blurb}</div>
-    <div class="fan-row">${fan}</div>
+    <div class="fan-row" id="fanRow">${fan}</div>
     <div class="habitat-bar" style="max-width:280px;margin:0 auto;">
       <div class="habitat-bar-fill" style="width:${pct}%"></div>
     </div>
@@ -3364,44 +3363,68 @@ function renderSelectedPack() {
       : `${p.cards_found} of ${p.cards_total} cards found`}</div>
   `;
 
-  // Only found cards open - there's nothing to show for a bird you haven't
-  // heard yet, and a dead tap is worse than an obviously inert card.
-  el.querySelectorAll('.fan-card.tappable').forEach(card => {
-    card.onclick = () => openBirdFromPack(card.dataset.name);
-  });
-
-  // Whichever card sits nearest the carousel's center gets a touch bigger,
-  // so it's clear which one a tap or a snap-scroll would land on. Rebuilt
-  // fresh each time a pack is picked, so no listener cleanup is needed - the
-  // old fan-row (and its listener) is discarded with the rest of el's markup.
-  const fanRow = el.querySelector('.fan-row');
-  if (fanRow) {
-    let raf = null;
-    const update = () => { raf = null; updateCenteredFanCard(fanRow); };
-    fanRow.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(update); });
-    updateCenteredFanCard(fanRow);
-  }
+  const fanRow = document.getElementById('fanRow');
+  if (fanRow) wireFanRowSwipe(fanRow);
 }
 
-function updateCenteredFanCard(row) {
-  const rowMid = row.getBoundingClientRect().left + row.getBoundingClientRect().width / 2;
-  let closest = null, closestDist = Infinity;
-  row.querySelectorAll('.fan-card').forEach(card => {
+// Cards enlarge as a thumb passes over them, rather than needing a tap -
+// dragging across the row swipes the enlargement from card to card, and
+// lifting the thumb over a found bird opens it (a plain tap is just the
+// zero-movement case of the same gesture).
+function wireFanRowSwipe(fanRow) {
+  const cards = Array.from(fanRow.querySelectorAll('.fan-card'));
+
+  // Centers measured once, right after render, before anything has been
+  // enlarged - getBoundingClientRect on an already-scaled card would report
+  // its bigger, on-screen size instead of its resting position, which would
+  // make "nearest card to the thumb" chase whichever card happens to be
+  // enlarged rather than genuinely tracking the thumb.
+  const centers = cards.map(card => {
     const r = card.getBoundingClientRect();
-    const dist = Math.abs((r.left + r.width / 2) - rowMid);
-    if (dist < closestDist) { closestDist = dist; closest = card; }
+    return r.left + r.width / 2;
   });
-  row.querySelectorAll('.fan-card.centered').forEach(card => {
-    if (card !== closest) {
-      card.classList.remove('centered');
-      card.style.zIndex = card.dataset.z;
+
+  const nearestCard = (clientX) => {
+    let best = 0, bestDist = Infinity;
+    centers.forEach((cx, i) => {
+      const d = Math.abs(cx - clientX);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return cards[best];
+  };
+
+  const selectCard = (card) => {
+    cards.forEach(c => {
+      if (c !== card && c.classList.contains('selected')) {
+        c.classList.remove('selected');
+        c.style.zIndex = c.dataset.z;
+      }
+    });
+    if (card && !card.classList.contains('selected')) {
+      card.classList.add('selected');
+      card.style.zIndex = '50';
     }
+  };
+
+  let activePointerId = null;
+  fanRow.addEventListener('pointerdown', (e) => {
+    activePointerId = e.pointerId;
+    selectCard(nearestCard(e.clientX));
   });
-  if (closest && !closest.classList.contains('centered')) {
-    closest.classList.add('centered');
-    closest.style.zIndex = '30';
-  }
+  fanRow.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== activePointerId) return;
+    selectCard(nearestCard(e.clientX));
+  });
+  const release = (e) => {
+    if (e.pointerId !== activePointerId) return;
+    activePointerId = null;
+    const card = nearestCard(e.clientX);
+    if (card && card.classList.contains('tappable')) openBirdFromPack(card.dataset.name);
+  };
+  fanRow.addEventListener('pointerup', release);
+  fanRow.addEventListener('pointercancel', () => { activePointerId = null; });
 }
+
 
 async function openBirdFromPack(commonName) {
   if (!commonName) return;
