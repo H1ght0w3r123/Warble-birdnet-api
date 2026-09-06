@@ -617,14 +617,15 @@
   /* Bottom-anchored transform-origin, so tapping a card grows it upward into
      the headroom above the row rather than growing equally in both
      directions and needing headroom below too (where the progress bar
-     sits). Selection is a tap toggle now, not scroll position - see
-     renderSelectedPack/toggleFanCard - so --scale only ever has two states. */
+     sits). Slightly tighter overlap than the flat version to leave room for
+     the tilt's wider bounding box without pushing the outer cards off the
+     edge of the frame. */
   .fan-card{
     width:66px; height:108px; border-radius:9px; background:var(--parch);
-    border:2px solid var(--mist); margin-left:-40px; flex-shrink:0;
+    border:2px solid var(--mist); margin-left:-42px; flex-shrink:0;
     box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform-origin:center bottom;
-    transform:scale(var(--scale, 1));
+    transform:rotate(var(--tilt, 0deg)) scale(var(--scale, 1));
     transition:transform .25s cubic-bezier(.2,.8,.3,1.15);
     cursor:pointer;
   }
@@ -3372,7 +3373,12 @@ function renderSelectedPack() {
   // each one overlapping the previous - so z-index just ascends with
   // position (last card fully on top at rest) rather than peaking in the
   // middle, which was only ever there to support scroll-centering that no
-  // longer exists.
+  // longer exists. Tilt is deliberately modest (8deg max, at the two
+  // outermost cards) - enough to read as a fanned hand without any card's
+  // rotated bounding box pushing past the edge of the frame.
+  const n = p.birds.length;
+  const maxOffset = (n - 1) / 2;
+  const anglePerCard = maxOffset ? 8 / maxOffset : 0;
   const fan = p.birds.map((b, i) => {
     const rareMark = b.rarity === 'Rare'
       ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
@@ -3384,9 +3390,10 @@ function renderSelectedPack() {
     // month" rather than something the child has failed to find.
     const away = !b.found && b.season_state === 'away';
     const z = i + 1;
+    const tilt = ((i - maxOffset) * anglePerCard).toFixed(2);
     return `
       <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
-           style="z-index:${z}" data-z="${z}"
+           style="z-index:${z}; --tilt:${tilt}deg;" data-z="${z}"
            data-name="${b.found ? b.common_name : ''}">
         ${face}
         <div class="fan-name">${b.common_name}</div>
@@ -3411,10 +3418,12 @@ function renderSelectedPack() {
   if (fanRow) wireFanRowSwipe(fanRow);
 }
 
-// Cards enlarge as a thumb passes over them, rather than needing a tap -
-// dragging across the row swipes the enlargement from card to card, and
-// lifting the thumb over a found bird opens it (a plain tap is just the
-// zero-movement case of the same gesture).
+// Cards enlarge as a thumb passes over them - dragging across the row
+// swipes the enlargement from card to card. Releasing just leaves the last
+// one enlarged/selected though; it takes a second, separate tap on that same
+// already-selected card to actually open it. That's deliberate: the first
+// touch (down, or down-and-drag) is always a preview, so nothing opens by
+// accident just because a drag happened to end on a found bird.
 function wireFanRowSwipe(fanRow) {
   const cards = Array.from(fanRow.querySelectorAll('.fan-card'));
 
@@ -3451,24 +3460,37 @@ function wireFanRowSwipe(fanRow) {
   };
 
   let activePointerId = null;
+  let downCard = null;      // which card the gesture started on
+  let wasSelected = false;  // ...and whether it was already selected then
+  let dragged = false;      // did the pointer actually cross onto another card
+
   fanRow.addEventListener('pointerdown', (e) => {
     activePointerId = e.pointerId;
+    dragged = false;
+    downCard = nearestCard(e.clientX);
+    wasSelected = downCard.classList.contains('selected');
     // Keeps every move/up event routed here for this pointer even if it
     // temporarily strays off fanRow's own box - which can happen since an
     // enlarged card is drawn bigger than the row's resting layout height.
     try { fanRow.setPointerCapture(e.pointerId); } catch (err) { /* unsupported - falls back to normal hit-testing */ }
-    selectCard(nearestCard(e.clientX));
+    selectCard(downCard);
   });
   fanRow.addEventListener('pointermove', (e) => {
     if (e.pointerId !== activePointerId) return;
-    selectCard(nearestCard(e.clientX));
+    const card = nearestCard(e.clientX);
+    if (card !== downCard) dragged = true;
+    selectCard(card);
   });
   const release = (e) => {
     if (e.pointerId !== activePointerId) return;
     activePointerId = null;
     try { fanRow.releasePointerCapture(e.pointerId); } catch (err) { /* already released */ }
     const card = nearestCard(e.clientX);
-    if (card && card.classList.contains('tappable')) openBirdFromPack(card.dataset.name);
+    // Only opens on a genuine tap (no drag) landing back on the SAME card
+    // that was already selected before this gesture began.
+    if (!dragged && card === downCard && wasSelected && card.classList.contains('tappable')) {
+      openBirdFromPack(card.dataset.name);
+    }
   };
   fanRow.addEventListener('pointerup', release);
   fanRow.addEventListener('pointercancel', () => { activePointerId = null; });
