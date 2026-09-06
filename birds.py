@@ -860,6 +860,9 @@ SUMMER_VISITORS = [n for n, ms in SEASONAL_MONTHS.items() if 6 in ms]
 # Fixed order so the What's Here list doesn't reshuffle between loads
 SEASONAL_ORDER = sorted(SEASONAL_MONTHS)
 
+for _name, _bird in BIRDS.items():
+    _bird["is_migratory"] = _name in SEASONAL_MONTHS
+
 
 def months_for(common_name: str):
     return SEASONAL_MONTHS.get(common_name, ALL_YEAR)

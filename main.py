@@ -210,6 +210,7 @@ from curated_species import (
     rarity_of, pack_for_species,
 )
 from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
+from migration_data import get_migration_info
 
 init_db()
 
@@ -765,6 +766,16 @@ def whats_here():
         "leaving_count": sum(1 for b in birds if b["state"] == "leaving"),
         "to_find": sum(1 for b in here if not b["found"]),
     }
+
+
+@app.get("/migration/{common_name}")
+def migration_info(common_name: str):
+    """Where a seasonal species spends the other half of its year, for the
+    Migrator card - reachable from the What's Here list or a button on the
+    bird's own detail card. Returns null for anything non-migratory rather
+    than a 404, since the frontend already knows via bird.is_migratory
+    whether to expect data here."""
+    return {"migration": get_migration_info(common_name)}
 
 
 @app.get("/collector-packs")
