@@ -378,6 +378,19 @@
     box-shadow:0 4px 10px rgba(0,0,0,0.3);
   }
   .add-photo-btn:active{background:rgba(26,17,40,0.9);}
+  /* One dot per photo, bottom-centre of the strip - only populated (see
+     setupPhotoDots) once there's more than one slide, so the ordinary
+     single-photo card never shows a lone, pointless dot. */
+  .detail-photo-dots{
+    position:absolute; bottom:10px; left:0; right:0; z-index:4;
+    display:flex; justify-content:center; gap:6px; pointer-events:none;
+  }
+  .detail-photo-dot{
+    width:7px; height:7px; border-radius:50%;
+    background:rgba(255,255,255,0.5); box-shadow:0 1px 3px rgba(0,0,0,0.35);
+    transition:background .2s ease, transform .2s ease;
+  }
+  .detail-photo-dot.active{background:#fff; transform:scale(1.3);}
 
   /* --- Facts dashboard --- */
   .tt-block{width:100%;background:#fff;border-radius:14px;padding:12px 14px;margin-top:12px;}
@@ -1874,6 +1887,7 @@ function renderBirdDetail(commonName, onBack) {
         <div class="detail-photo-strip" id="detailPhotoStrip">
           ${latest.image_url ? `<img class="detail-photo" src="${latest.image_url}">` : `<div class="detail-photo"></div>`}
         </div>
+        <div class="detail-photo-dots" id="detailPhotoDots"></div>
         <label class="add-photo-btn" for="birdPhotoInput">+</label>
         <input type="file" id="birdPhotoInput" accept="image/*" style="display:none">
       </div>
@@ -1949,7 +1963,31 @@ async function loadBirdPhotos(commonName) {
       img.src = p.photo_data;
       strip.appendChild(img);
     });
+    setupPhotoDots(strip, strip.children.length);
   } catch (e) { /* strip just shows the Wikipedia photo if this fails */ }
+}
+
+// One dot per slide, only shown once there's more than one - a photo can be
+// added while the card's already open, so this runs fresh every time
+// loadBirdPhotos does rather than once at card-open.
+function setupPhotoDots(strip, count) {
+  const dotsEl = document.getElementById('detailPhotoDots');
+  if (!dotsEl) return;
+  if (count <= 1) { dotsEl.innerHTML = ''; return; }
+  dotsEl.innerHTML = Array.from({ length: count }, (_, i) =>
+    `<span class="detail-photo-dot ${i === 0 ? 'active' : ''}"></span>`).join('');
+  const dots = dotsEl.querySelectorAll('.detail-photo-dot');
+  const updateActive = () => {
+    const idx = Math.round(strip.scrollLeft / strip.clientWidth);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  };
+  // The strip element itself persists across repeated loadBirdPhotos calls
+  // within one card-open session (only its children are swapped) - binding
+  // more than once would fire updateActive() multiple times per scroll.
+  if (!strip.dataset.dotsBound) {
+    strip.addEventListener('scroll', () => requestAnimationFrame(updateActive));
+    strip.dataset.dotsBound = '1';
+  }
 }
 
 // Kept full-frame (not centre-cropped to a square, unlike the avatar photo)
