@@ -860,8 +860,15 @@ SUMMER_VISITORS = [n for n, ms in SEASONAL_MONTHS.items() if 6 in ms]
 # Fixed order so the What's Here list doesn't reshuffle between loads
 SEASONAL_ORDER = sorted(SEASONAL_MONTHS)
 
+from curated_species import pack_for_species, pack_color_for_species
+
 for _name, _bird in BIRDS.items():
     _bird["is_migratory"] = _name in SEASONAL_MONTHS
+    # Which of the 10 collector packs this species belongs to, and that
+    # pack's fixed colour - the same small coloured marker every card for
+    # this species shows, wherever it appears in the app.
+    _bird["pack"] = pack_for_species(_name)
+    _bird["pack_color"] = pack_color_for_species(_name)
 
 
 def months_for(common_name: str):

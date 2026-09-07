@@ -338,8 +338,10 @@
   .sort-btn{background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit';font-weight:700;font-size:11.5px;cursor:pointer;transition:background .2s ease,color .2s ease;}
   .sort-btn.active{background:#fff;color:var(--dusk);}
   .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-  /* One neutral outline for every bird - My Birds treats them all alike. */
-  .collection-item{background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--parch-dk);}
+  /* One neutral outline for every bird - My Birds treats them all alike.
+     The pack-colour dot (position:relative anchors it) is the only thing
+     that varies by pack here, not the card itself. */
+  .collection-item{position:relative;background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--parch-dk);}
   .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;}
   .collection-empty{text-align:center;color:rgba(255,255,255,0.85);font-size:13px;margin-top:40px;width:100%;}
@@ -428,6 +430,7 @@
   .rec-column{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;}
   .live-bird-stack{display:flex;justify-content:center;align-items:center;margin-bottom:14px;height:56px;position:relative;z-index:1;}
   .live-bird-badge{
+    position:relative;
     width:46px;height:46px;border-radius:50%;background:#fff;
     border:5px solid var(--tier-color, var(--sage));
     margin-left:-14px; box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5);
@@ -435,6 +438,18 @@
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .live-bird-badge:first-child{margin-left:0;}
+  /* The pack-colour marker - same small dot, same top-left corner, on every
+     card a species shows up on (this badge, My Birds grid cards, and the
+     collection pack's own fan cards) - so "which pack is this bird from" is
+     recognisable at a glance without reading anything. Not a border, since
+     the border here is already doing tier duty (green/gold/grey). Rendered
+     only when the species actually has a pack (the curated 100 all do). */
+  .pack-dot{
+    position:absolute; top:-3px; left:-3px; z-index:6;
+    width:13px; height:13px; border-radius:50%;
+    background:var(--pack-color); border:2px solid #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,0.35);
+  }
   /* Six variations: collection (green)/rare (gold)/other (grey) border,
      each either plain or "new" - new adds a matching glow on top of the
      base ring rather than replacing it, so it reads as an emphasised
@@ -1327,7 +1342,9 @@ function renderLiveBirdStack() {
     // copy-pasted sideways.
     const dur = (2.1 + (i % 4) * 0.3).toFixed(2);
     const delay = (-(i % 5) * 0.4).toFixed(2);
+    const packDot = bird.pack_color ? `<div class="pack-dot" style="--pack-color:${bird.pack_color}"></div>` : '';
     return `<div class="live-bird-badge ${t.cls} ${bird.is_new ? 'badge-new' : ''}" style="--tier-color:${t.color}">
+      ${packDot}
       <div class="badge-jitter" style="animation-duration:${dur}s; animation-delay:${delay}s;">${BADGE_BIRD_SVG}</div>
     </div>`;
   }).join('');
@@ -1776,9 +1793,12 @@ function collectionCardHtml(bird) {
   const photo = bird.image_url
     ? `<img src="${bird.image_url}">`
     : `<div style="height:70px;background:var(--parch-dk);"></div>`;
+  const packColor = bird.bird?.pack_color;
+  const packDot = packColor ? `<div class="pack-dot" style="--pack-color:${packColor}"></div>` : '';
   return `
     <div class="collection-item"
          data-name="${bird.common_name}" data-key="${bird.key || bird.common_name}">
+      ${packDot}
       ${photo}
       <div class="ci-name">${bird.common_name}</div>
     </div>`;
@@ -2579,6 +2599,7 @@ async function checkLiveChunk(blob) {
           scientific_name: d.scientific_name,
           confidence: d.confidence,
           is_new: d.is_new,
+          pack_color: d.pack_color,
         });
         renderLiveBirdStack();
         // Fire the rustle and haptic buzz on the same frame the badge
@@ -3539,6 +3560,7 @@ function renderSelectedPack() {
       <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
            style="z-index:${z}; --tilt:${tilt}deg;" data-z="${z}"
            data-name="${b.found ? b.common_name : ''}">
+        <div class="pack-dot" style="--pack-color:${p.color}"></div>
         ${face}
         <div class="fan-name">${b.common_name}</div>
         ${rareMark}

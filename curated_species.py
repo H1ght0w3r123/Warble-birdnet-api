@@ -14,6 +14,11 @@ somewhere, not just listening harder at home.
 
 This list is UK-specific. Other markets would get their own list of the same
 shape, which is why nothing here assumes British species beyond the data.
+
+Each pack also carries a fixed "color" - its identity everywhere a bird from
+that pack shows up in the app (discovery discs, My Birds cards, the pack's
+own cards), so the same small coloured marker means "this bird belongs to
+this pack" no matter which screen you're looking at.
 """
 
 PACKS = {
@@ -21,6 +26,7 @@ PACKS = {
         "name": "Gardeners",
         "blurb": "The regulars you'll meet on almost any doorstep.",
         "emoji": "\U0001F3E1",
+        "color": "#E8845C",
         "common": [
             "European Robin", "Common Blackbird", "House Sparrow", "Dunnock",
             "Common Starling", "Common Wood-Pigeon", "Eurasian Collared-Dove",
@@ -32,6 +38,7 @@ PACKS = {
         "name": "Acrobats",
         "blurb": "Tiny daredevils that hang upside down and run up trees.",
         "emoji": "\U0001F343",
+        "color": "#7EC8A4",
         "common": [
             "Eurasian Blue Tit", "Great Tit", "Coal Tit", "Long-tailed Tit",
             "Eurasian Nuthatch", "Eurasian Treecreeper", "Goldcrest", "Eurasian Wren",
@@ -42,6 +49,7 @@ PACKS = {
         "name": "Crackers",
         "blurb": "Stubby little bills built for cracking seeds open.",
         "emoji": "\U0001F33B",
+        "color": "#F2C94C",
         "common": [
             "Common Chaffinch", "European Goldfinch", "European Greenfinch",
             "Common Linnet", "Eurasian Bullfinch", "Eurasian Siskin",
@@ -53,6 +61,7 @@ PACKS = {
         "name": "Little Loudmouths",
         "blurb": "Small brown birds with astonishingly big voices.",
         "emoji": "\U0001F3B5",
+        "color": "#E87EA1",
         "common": [
             "Eurasian Blackcap", "Common Chiffchaff", "Willow Warbler",
             "Common Whitethroat", "Sedge Warbler", "Eurasian Reed Warbler",
@@ -64,6 +73,7 @@ PACKS = {
         "name": "Mischiefs",
         "blurb": "The cleverest, cheekiest birds - and the ones that drum on trees.",
         "emoji": "\u2728",
+        "color": "#9B6FC4",
         "common": [
             "Eurasian Magpie", "Eurasian Jay", "Western Jackdaw", "Carrion Crow",
             "Rook", "Northern Raven", "Great Spotted Woodpecker",
@@ -75,6 +85,7 @@ PACKS = {
         "name": "Little Diggers",
         "blurb": "Hoppers and probers, always working the ground.",
         "emoji": "\U0001F33E",
+        "color": "#C68958",
         "common": [
             "Song Thrush", "Mistle Thrush", "Eurasian Skylark", "Common Pheasant",
             "White Wagtail", "Grey Wagtail", "Meadow Pipit", "Redwing",
@@ -85,6 +96,7 @@ PACKS = {
         "name": "Sky Divers",
         "blurb": "Sharp eyes, hooked bills, and a dive you'll never hear coming.",
         "emoji": "\U0001F985",
+        "color": "#3B82C4",
         "common": [
             "Common Buzzard", "Common Kestrel", "Eurasian Sparrowhawk", "Red Kite",
             "Peregrine Falcon", "Tawny Owl", "Barn Owl", "Little Owl",
@@ -95,6 +107,7 @@ PACKS = {
         "name": "Swimmers",
         "blurb": "Paddlers, divers and dabblers.",
         "emoji": "\U0001F986",
+        "color": "#4FB8B0",
         "common": [
             "Mallard", "Mute Swan", "Canada Goose", "Greylag Goose",
             "Eurasian Coot", "Common Moorhen", "Little Grebe", "Great Crested Grebe",
@@ -105,6 +118,7 @@ PACKS = {
         "name": "Mud Stompers",
         "blurb": "Long legs, long bills, and a lot of standing about in mud.",
         "emoji": "\U0001FAB6",
+        "color": "#A88F3D",
         "common": [
             "Grey Heron", "Eurasian Oystercatcher", "Common Ringed Plover",
             "Sanderling", "Ruddy Turnstone", "Common Sandpiper", "Common Snipe",
@@ -116,6 +130,7 @@ PACKS = {
         "name": "Wind Riders",
         "blurb": "Birds of the open air and the open water.",
         "emoji": "\U0001F30A",
+        "color": "#4A5FA0",
         "common": [
             "Herring Gull", "Black-headed Gull", "Common Gull",
             "Great Black-backed Gull", "Great Cormorant", "Common Tern",
@@ -154,3 +169,12 @@ def rarity_of(common_name: str):
 
 def pack_for_species(common_name: str):
     return PACK_FOR_SPECIES.get(common_name)
+
+
+def pack_color_for_species(common_name: str):
+    """The fixed colour of the pack a species belongs to, or None if it
+    isn't on Warble's curated list - used to draw the same small coloured
+    marker on every card that species shows up on, wherever it appears."""
+    key = PACK_FOR_SPECIES.get(common_name)
+    return PACKS[key]["color"] if key else None
+

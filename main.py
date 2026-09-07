@@ -159,6 +159,7 @@ async def identify(
             **d,
             "tier": rarity_of(d["common_name"]),
             "is_new": not has_existing_sighting(d["common_name"]),
+            "pack_color": pack_color_for_species(d["common_name"]),
         })
 
     if len(filtered_detections) < len(detections[:3]):
@@ -207,7 +208,7 @@ from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
 from curated_species import (
     ALL_CURATED_SPECIES, PACKS, SPECIES_RARITY, TIERS,
-    rarity_of, pack_for_species,
+    rarity_of, pack_for_species, pack_color_for_species,
 )
 from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
 from migration_data import get_migration_info
@@ -737,7 +738,7 @@ def pack_progress():
         got = sum(1 for b in birds if b["found"])
         packs.append({
             "key": key, "name": pack["name"], "blurb": pack["blurb"],
-            "emoji": pack["emoji"], "birds": birds,
+            "emoji": pack["emoji"], "color": pack["color"], "birds": birds,
             "cards_found": got, "cards_total": len(birds),
             "complete": got == len(birds),
         })
