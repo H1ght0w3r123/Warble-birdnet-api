@@ -49,12 +49,10 @@
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
   .top-wordmark{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    font-family:'Outfit'; font-weight:900; font-size:16px; color:var(--gold);
-    letter-spacing:-0.01em; pointer-events:none;
+    height:20px; pointer-events:none;
   }
   .home-wordmark{
-    font-family:'Outfit'; font-weight:900; font-size:46px; color:var(--gold);
-    letter-spacing:-0.01em; text-align:center; margin-bottom:22px;
+    height:58px; margin-bottom:22px;
   }
 
   .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;margin-top:16px;}
@@ -790,7 +788,7 @@
 
   <div class="top">
     <div class="feathers">🪶 <span id="featherCount">–</span></div>
-    <div class="top-wordmark" id="topWordmark">Warble</div>
+    <div class="top-wordmark" id="topWordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;"></div>
     <div class="top-actions">
     <button class="top-settings-btn" id="topSettingsBtn" aria-label="Settings">
       <svg viewBox="0 0 24 24"><path d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zm8.3 3.6c0-.5-.05-1-.13-1.47l2.05-1.55-2-3.46-2.4 1a8.4 8.4 0 0 0-2.55-1.48L15 2.2H11l-.27 2.84a8.4 8.4 0 0 0-2.55 1.48l-2.4-1-2 3.46 2.05 1.55a8.7 8.7 0 0 0 0 2.94L3.78 15.02l2 3.46 2.4-1a8.4 8.4 0 0 0 2.55 1.48L11 21.8h4l.27-2.84a8.4 8.4 0 0 0 2.55-1.48l2.4 1 2-3.46-2.05-1.55c.08-.47.13-.97.13-1.47z" fill="#8E87B8"/></svg>
@@ -898,7 +896,7 @@ function animateFeatherCount(newTotal) {
 function renderIdle() {
   setActiveTab('home');
   stage.innerHTML = `
-    <div class="home-wordmark">Warble</div>
+    <div class="home-wordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;margin:0 auto;"></div>
     <button class="mic-btn" id="recordBtn">🎙</button>
     <div class="stage-label">${firstNameOrDefault() ? `Go Warbling, ${firstNameOrDefault()}` : 'Go Warbling'}</div>
     <div class="stage-sub">Tap, then listen for a bird</div>
