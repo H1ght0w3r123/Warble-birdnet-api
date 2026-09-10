@@ -49,10 +49,10 @@
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
   .top-wordmark{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    height:20px; pointer-events:none;
+    height:25px; pointer-events:none;
   }
   .home-wordmark{
-    height:58px; margin-bottom:22px;
+    height:64px; margin-bottom:22px;
   }
 
   .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;margin-top:16px;}
@@ -99,13 +99,13 @@
 
   /* --- Idle / Recording --- */
   .mic-btn{
-    width:120px;height:120px;border-radius:50%;
-    background:var(--terra); color:#fff; font-size:76px;
-    border:none; box-shadow:0 8px 0 var(--terra-dk);
+    width:108px;height:108px;border-radius:50%;
+    background:var(--terra); color:#fff; font-size:68px;
+    border:none; box-shadow:0 7px 0 var(--terra-dk);
     display:flex;align-items:center;justify-content:center;
     cursor:pointer; transition:transform .1s; position:relative; z-index:1;
   }
-  .mic-btn:active{transform:translateY(6px); box-shadow:0 2px 0 var(--terra-dk);}
+  .mic-btn:active{transform:translateY(5px); box-shadow:0 2px 0 var(--terra-dk);}
   /* Matches the 84px 'go again' mic button, not the larger 120px Home mic. */
   .mic-btn.recording{width:84px;height:84px;font-size:26px;box-shadow:0 6px 0 var(--terra-dk);margin-top:16px;}
   .mic-btn.recording:active{transform:translateY(4px); box-shadow:0 2px 0 var(--terra-dk);}
