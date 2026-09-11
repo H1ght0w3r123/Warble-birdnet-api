@@ -45,6 +45,11 @@
   .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
   .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.35);}
+  /* Shared feather icon - height:1em means it always matches whatever
+     font-size its context has, so one image works inline at every size
+     this shows up at (top bar counter, challenge rewards, price tags,
+     the flying particle animation) without per-site sizing. */
+  .feather-icon{height:1em; width:auto; vertical-align:-0.15em; display:inline-block;}
   .feathers.feather-pop{animation:featherPop 0.32s ease;}
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
   .top-wordmark{
@@ -787,7 +792,7 @@
   </svg>
 
   <div class="top">
-    <div class="feathers">🪶 <span id="featherCount">–</span></div>
+    <div class="feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> <span id="featherCount">–</span></div>
     <div class="top-wordmark" id="topWordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;"></div>
     <div class="top-actions">
     <button class="top-settings-btn" id="topSettingsBtn" aria-label="Settings">
@@ -1091,7 +1096,7 @@ async function renderChallenges() {
         <div class="challenge-card ${i.complete ? 'complete' : ''}">
           <div class="challenge-top">
             <span class="challenge-text">${i.complete ? '✓ ' : ''}${i.text}</span>
-            <span class="challenge-feathers">🪶 ${i.feathers}</span>
+            <span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${i.feathers}</span>
           </div>
           <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${pct}%"></div></div>
           <div class="challenge-progress">${i.progress} of ${i.target}</div>
@@ -1100,7 +1105,7 @@ async function renderChallenges() {
       <div class="challenge-card all-bonus ${allDone ? 'complete' : ''}">
         <div class="challenge-top">
           <span class="challenge-text">${allDone ? '✓ ' : ''}Finish all 5</span>
-          <span class="challenge-feathers">🪶 ${d.all_bonus}</span>
+          <span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${d.all_bonus}</span>
         </div>
         <div class="challenge-progress">${d.completed} of ${items.length} challenges done</div>
       </div>`;
@@ -1448,7 +1453,7 @@ function renderCard() {
           ${bird.season && bird.season.state === 'away'
             ? `<div class="season-surprise">Unusual! ${bird.common_name}s have normally left by now.</div>` : ''}
           ${packStripHtml(bird)}
-          <div class="feather-row">🪶 +${bird.feathers}</div>
+          <div class="feather-row"><img class="feather-icon" src="/static/feather.webp" alt=""> +${bird.feathers}</div>
           ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">▶ Hear its call</button>` : ''}
           <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         </div>
@@ -1506,7 +1511,7 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
   for (let i = 0; i < count; i++) {
     const f = document.createElement('div');
     f.className = 'flying-feather';
-    f.textContent = '🪶';
+    f.innerHTML = '<img class="feather-icon" src="/static/feather.webp" alt="">';
     f.style.left = `${from.left + from.width / 2}px`;
     f.style.top = `${from.top + from.height / 2}px`;
     document.body.appendChild(f);
@@ -2188,7 +2193,7 @@ function renderDone() {
     ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
     ${trophyBanners}
     <div class="done-feathers-slot">
-      <div class="done-feathers tappable" id="doneFeathers">\u{1FAB6} ${total} feathers earned</div>
+      <div class="done-feathers tappable" id="doneFeathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${total} feathers earned</div>
       <div class="go-again-content" id="goAgainWrap">
         <div class="go-again-ask">Go again?</div>
         <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">\u{1F399}</button>
@@ -3330,7 +3335,7 @@ function renderCarousel() {
     const isOpen = expandedItemId === a.id;
     const priceHtml = a.owned
       ? `<div class="carousel-item-price owned-label">${isEquipped ? 'Worn' : 'Owned'}</div>`
-      : `<div class="carousel-item-price ${canAfford ? 'affordable' : 'unaffordable'}">🪶 ${a.cost}</div>`;
+      : `<div class="carousel-item-price ${canAfford ? 'affordable' : 'unaffordable'}"><img class="feather-icon" src="/static/feather.webp" alt=""> ${a.cost}</div>`;
 
     // Only unowned items expand - an owned one just toggles on and off, so
     // there's nothing to confirm.
