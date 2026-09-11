@@ -105,15 +105,22 @@
   /* --- Idle / Recording --- */
   .mic-btn{
     width:108px;height:108px;border-radius:50%;
-    background:var(--terra); color:#fff; font-size:68px;
-    border:none; box-shadow:0 7px 0 var(--terra-dk);
+    background:var(--visitor); color:#fff; font-size:68px;
+    border:none; box-shadow:0 7px 0 var(--visitor-dk);
     display:flex;align-items:center;justify-content:center;
     cursor:pointer; transition:transform .1s; position:relative; z-index:1;
   }
-  .mic-btn:active{transform:translateY(5px); box-shadow:0 2px 0 var(--terra-dk);}
+  .mic-btn:active{transform:translateY(5px); box-shadow:0 2px 0 var(--visitor-dk);}
   /* Matches the 84px 'go again' mic button, not the larger 120px Home mic. */
-  .mic-btn.recording{width:84px;height:84px;font-size:26px;box-shadow:0 6px 0 var(--terra-dk);margin-top:16px;}
-  .mic-btn.recording:active{transform:translateY(4px); box-shadow:0 2px 0 var(--terra-dk);}
+  .mic-btn.recording{width:84px;height:84px;font-size:26px;box-shadow:0 6px 0 var(--visitor-dk);margin-top:16px;}
+  .mic-btn.recording:active{transform:translateY(4px); box-shadow:0 2px 0 var(--visitor-dk);}
+  /* height:0.85em means the mic image rides on whatever font-size its
+     button already has (68px resting, 26px mid-recording, 30px go-again) -
+     same trick as the feather icon, so one asset auto-scales across every
+     state and button without per-site overrides. 0.85 rather than 1 because
+     this image fills its own bounding box more tightly than the emoji
+     glyph it replaced did, so 1em would look oversized in comparison. */
+  .mic-icon{height:0.85em; width:auto; display:block;}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:#fff;text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
@@ -324,11 +331,11 @@
   .again-btn.mic-again-btn{
     margin-top:12px;
     width:84px; height:84px; padding:0; border-radius:50%;
-    background:var(--terra); box-shadow:0 6px 0 var(--terra-dk);
+    background:var(--visitor); box-shadow:0 6px 0 var(--visitor-dk);
     font-size:30px; display:flex; align-items:center; justify-content:center;
     transition:transform .1s;
   }
-  .again-btn.mic-again-btn:active{transform:translateY(4px); box-shadow:0 2px 0 var(--terra-dk);}
+  .again-btn.mic-again-btn:active{transform:translateY(4px); box-shadow:0 2px 0 var(--visitor-dk);}
   .error{color:#FFD9D2;font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
 
   /* --- Collection --- */
@@ -902,7 +909,7 @@ function renderIdle() {
   setActiveTab('home');
   stage.innerHTML = `
     <div class="home-wordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;margin:0 auto;"></div>
-    <button class="mic-btn" id="recordBtn">🎙</button>
+    <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic.webp" alt="Record"></button>
     <div class="stage-label">${firstNameOrDefault() ? `Go Warbling, ${firstNameOrDefault()}` : 'Go Warbling'}</div>
     <div class="stage-sub">Tap, then listen for a bird</div>
     <div class="home-arc">
@@ -1722,7 +1729,7 @@ function renderNoBirds() {
     <img class="done-icon" src="/static/empty-nest.webp" alt="Empty nest">
     <div class="done-title">No birds heard this time</div>
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
-    <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">🎙</button>
+    <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic.webp" alt="Go again"></button>
   `;
   document.getElementById('againBtn').onclick = () => {
     // Location naming still has to happen first if it's pending, but once
@@ -2196,7 +2203,7 @@ function renderDone() {
       <div class="done-feathers tappable" id="doneFeathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${total} feathers earned</div>
       <div class="go-again-content" id="goAgainWrap">
         <div class="go-again-ask">Go again?</div>
-        <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">\u{1F399}</button>
+        <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic.webp" alt="Go again"></button>
       </div>
     </div>
     <div class="collect-hint" id="doneHint">Tap your feathers to collect them</div>
