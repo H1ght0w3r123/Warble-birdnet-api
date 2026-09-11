@@ -306,7 +306,7 @@
   }
 
   /* --- Done --- */
-  .done-icon{font-size:44px;}
+  .done-icon{width:120px;display:block;margin:0 auto;}
   .done-title{font-family:'Outfit';font-weight:900;font-size:22px;color:#fff;margin-top:10px;}
   .done-sub{color:rgba(255,255,255,0.85);font-size:14px;margin-top:6px;text-align:center;}
   .again-btn{
@@ -1714,7 +1714,7 @@ function wikipediaUrl(scientificName) {
 
 function renderNoBirds() {
   stage.innerHTML = `
-    <div class="done-icon">🪹</div>
+    <img class="done-icon" src="/static/empty-nest.webp" alt="Empty nest">
     <div class="done-title">No birds heard this time</div>
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
     <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again">🎙</button>
