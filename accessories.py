@@ -1,5 +1,5 @@
 """
-Dress Up catalog - 33 items across 5 categories, real design art
+Dress Up catalog - 46 items across 6 categories, real design art
 (Warble art pass 02). Each accessory overlays the 100x100 avatar
 illustration (see avatarSvg() in the frontend). tile_viewbox is the
 cropped viewBox used to render this item inside a 96px carousel tile,
@@ -9,6 +9,14 @@ Hats carry their tilt baked into a <g transform> wrapper (translate +
 rotate around a 50,26 pivot) rather than a CSS transform, since the
 app has no per-item CSS-transform pipeline for these overlays - this
 is the SVG-native equivalent, same visual result.
+
+Glasses (art pass 03) are real raster art rather than hand-coded paths -
+each is a photo/AI-generated pair of glasses, cut out with an alpha matte
+and referenced via an SVG <image> tag at a fixed x/y/width/height within
+the same 100x100 avatar space, sized to the 56-unit span between the
+avatar's two eyes (at x=39.5 and x=60.5, y=51) and vertically centered on
+the eye line. The monocle is the one exception - asymmetric by design, so
+it's narrower and sits over the right eye only rather than spanning both.
 """
 
 # Price ladder. Costs come from named bands rather than being picked ad hoc,
@@ -189,36 +197,84 @@ ACCESSORIES = {
         "svg": '<path d="M15.4 61 C15.4 58.6 17 57 19.6 57 L26 57 C27.4 57 28 58 28 59.4 L28 73 C28 75 26.6 76 24.4 76 L19.6 76 C17 76 15.4 74.4 15.4 72 Z" fill="#7EC8A4"></path><path d="M24 57.4 C26.6 58 28 59 28 60.6 L28 73 C28 75 26.6 76 24.4 76 C25.4 74 25.6 71.6 25.4 68.6 C25 64.6 24.6 61 24 57.4 Z" fill="#3F7C5C"></path><path d="M84.6 61 C84.6 58.6 83 57 80.4 57 L74 57 C72.6 57 72 58 72 59.4 L72 73 C72 75 73.4 76 75.6 76 L80.4 76 C83 76 84.6 74.4 84.6 72 Z" fill="#7EC8A4"></path><path d="M76 57.4 C73.4 58 72 59 72 60.6 L72 73 C72 75 73.4 76 75.6 76 C74.6 74 74.4 71.6 74.6 68.6 C75 64.6 75.4 61 76 57.4 Z" fill="#3F7C5C"></path><path d="M37.6 61 C39.6 60.4 42.4 60.4 44.4 61 C45.4 69.6 46 78.6 46 87.6 C44 88.2 41.4 88.2 39.4 87.6 C39.4 78.6 38.6 69.6 37.6 61 Z" fill="#3F7C5C"></path><path d="M62.4 61 C60.4 60.4 57.6 60.4 55.6 61 C54.6 69.6 54 78.6 54 87.6 C56 88.2 58.6 88.2 60.6 87.6 C60.6 78.6 61.4 69.6 62.4 61 Z" fill="#3F7C5C"></path><path d="M43 60.6 C44 60.7 44.4 60.8 44.4 61 C45.4 69.6 46 78.6 46 87.6 C45.4 87.8 44.8 88 44.2 88 C44.2 78.6 43.6 69.4 43 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M57 60.6 C56 60.7 55.6 60.8 55.6 61 C54.6 69.6 54 78.6 54 87.6 C54.6 87.8 55.2 88 55.8 88 C55.8 78.6 56.4 69.4 57 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M39 71.6 L46 71.6 L46 76.4 L39 76.4 Z" fill="#F2C94C"></path><path d="M54 71.6 L61 71.6 L61 76.4 L54 76.4 Z" fill="#F2C94C"></path><path d="M41 73 L44 73 L44 75 L41 75 Z" fill="#B8901F"></path><path d="M56 73 L59 73 L59 75 L56 75 Z" fill="#B8901F"></path>',
     },
     "round_specs": {
-        "name": "Round Specs",
+        "name": "Round Wire Specs",
         "emoji": "👓",
         "cost": 10,
         "category": "glasses",
-        "tile_viewbox": "22 40 56 20",
-        "svg": '<path d="M30.4 48 C28 48.4 25.6 49.6 24 51.2 L25.4 53.2 C27 51.8 29 50.8 31 50.6 Z" fill="#1A1128"></path><path d="M69.6 48 C72 48.4 74.4 49.6 76 51.2 L74.6 53.2 C73 51.8 71 50.8 69 50.6 Z" fill="#1A1128"></path><path d="M45.6 47.4 C47.6 46.2 52.4 46.2 54.4 47.4 L54.4 49.8 C52.4 48.6 47.6 48.6 45.6 49.8 Z" fill="#1A1128"></path><circle cx="38" cy="50" r="7.8" fill="#1A1128"></circle><circle cx="62" cy="50" r="7.8" fill="#1A1128"></circle><circle cx="38" cy="50" r="6" fill="#F5EDD6" opacity="0.5"></circle><circle cx="62" cy="50" r="6" fill="#F5EDD6" opacity="0.5"></circle><path d="M34 46.6 C35.4 45 37.6 44.2 39.6 44.4 C37.2 45 35.4 46.2 34.6 47.8 Z" fill="#FFFFFF" opacity="0.75"></path><path d="M58 46.6 C59.4 45 61.6 44.2 63.6 44.4 C61.2 45 59.4 46.2 58.6 47.8 Z" fill="#FFFFFF" opacity="0.75"></path>',
+        "tile_viewbox": "20 36 60 26",
+        "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="22" y="38.8" width="56" height="22.4"/>',
     },
     "explorer_goggles": {
         "name": "Explorer Goggles",
         "emoji": "🥽",
         "cost": 40,
         "category": "glasses",
-        "tile_viewbox": "20 41 60 18",
-        "svg": '<path d="M22 47.6 C28 44.4 72 44.4 78 47.6 C78 50 78 52.4 78 54.8 C72 51.6 28 51.6 22 54.8 C22 52.4 22 50 22 47.6 Z" fill="#3F7C5C"></path><path d="M23 51.6 C29 48.8 71 48.8 77 51.6 C77 53 77 54 77 54.8 C71 51.6 29 51.6 23 54.8 C23 54 23 53 23 51.6 Z" fill="#1A1128" opacity="0.18"></path><path d="M28.6 46 C33.2 44 42 44 46.6 46 C47.6 49.4 47.6 52.6 46.6 56 C42 58 33.2 58 28.6 56 C27.6 52.6 27.6 49.4 28.6 46 Z" fill="#8E87B8"></path><path d="M53.4 46 C58 44 66.8 44 71.4 46 C72.4 49.4 72.4 52.6 71.4 56 C66.8 58 58 58 53.4 56 C52.4 52.6 52.4 49.4 53.4 46 Z" fill="#8E87B8"></path><path d="M30.8 47.4 C34.6 46 40.6 46 44.4 47.4 C45.2 50 45.2 52 44.4 54.6 C40.6 56 34.6 56 30.8 54.6 C30 52 30 50 30.8 47.4 Z" fill="#C4BFDF"></path><path d="M55.6 47.4 C59.4 46 65.4 46 69.2 47.4 C70 50 70 52 69.2 54.6 C65.4 56 59.4 56 55.6 54.6 C54.8 52 54.8 50 55.6 47.4 Z" fill="#C4BFDF"></path><path d="M32.6 48.6 C34.6 47.4 37.4 47 39.6 47.4 C36.8 48 34.6 49.2 33.6 51 Z" fill="#FFFFFF" opacity="0.7"></path><path d="M57.4 48.6 C59.4 47.4 62.2 47 64.4 47.4 C61.6 48 59.4 49.2 58.4 51 Z" fill="#FFFFFF" opacity="0.7"></path><path d="M45.4 46.6 L54.6 46.6 L54.6 54.4 L45.4 54.4 Z" fill="#F2C94C"></path><path d="M47.4 48.6 L52.6 48.6 L52.6 52.4 L47.4 52.4 Z" fill="#B8901F"></path>',
+        "tile_viewbox": "20 38 60 22",
+        "svg": '<image xlink:href="/static/accessories/glasses_explorer_goggles.webp" href="/static/accessories/glasses_explorer_goggles.webp" x="22" y="39.98" width="56" height="20.04"/>',
     },
     "sunglasses": {
-        "name": "Sunglasses",
+        "name": "Aviator Sunglasses",
         "emoji": "🕶️",
         "cost": 20,
         "category": "glasses",
-        "tile_viewbox": "24 40 52 22",
-        "svg": '<path d="M26 44.6 C34 42.4 66 42.4 74 44.6 L74 47.4 C66 45.6 34 45.6 26 47.4 Z" fill="#E8845C"></path><path d="M27 46.8 C33 45.6 42 45.8 46.6 47.4 C46.6 52 44 56.4 39.6 57.8 C34.6 59.2 29.6 56.4 27.8 52 C27.2 50.4 27 48.6 27 46.8 Z" fill="#2D1B69"></path><path d="M73 46.8 C67 45.6 58 45.8 53.4 47.4 C53.4 52 56 56.4 60.4 57.8 C65.4 59.2 70.4 56.4 72.2 52 C72.8 50.4 73 48.6 73 46.8 Z" fill="#2D1B69"></path><path d="M46.6 47.4 C48.6 46.6 51.4 46.6 53.4 47.4 L53.4 49.6 C51.4 48.8 48.6 48.8 46.6 49.6 Z" fill="#E8845C"></path><path d="M31 49.4 C33 48.4 35.6 48.2 37.6 48.6 C34.8 49.4 32.6 50.8 31.6 53 Z" fill="#FFFFFF" opacity="0.35"></path><path d="M57 49.4 C59 48.4 61.6 48.2 63.6 48.6 C60.8 49.4 58.6 50.8 57.6 53 Z" fill="#FFFFFF" opacity="0.35"></path><path d="M26 44.6 C34 42.4 66 42.4 74 44.6 C66 43.8 34 43.8 26 44.6 Z" fill="#FFFFFF" opacity="0.2"></path>',
+        "tile_viewbox": "20 37 60 24",
+        "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="22" y="39.3" width="56" height="21.41"/>',
     },
     "star_glasses": {
         "name": "Star Glasses",
         "emoji": "⭐",
         "cost": 75,
         "category": "glasses",
-        "tile_viewbox": "24 40 52 22",
-        "svg": '<path d="M30.4 48.4 C28 48.8 25.8 49.8 24.2 51.2 L25.6 53.2 C27.2 51.8 29 50.9 31 50.7 Z" fill="#F2C94C"></path><path d="M69.6 48.4 C72 48.8 74.2 49.8 75.8 51.2 L74.4 53.2 C72.8 51.8 71 50.9 69 50.7 Z" fill="#F2C94C"></path><path d="M38 42.4 L41.2 48.4 L47.8 49.2 L43 53.6 L44.2 60.2 L38 57 L31.8 60.2 L33 53.6 L28.2 49.2 L34.8 48.4 Z" fill="#F2C94C"></path><path d="M62 42.4 L65.2 48.4 L71.8 49.2 L67 53.6 L68.2 60.2 L62 57 L55.8 60.2 L57 53.6 L52.2 49.2 L58.8 48.4 Z" fill="#F2C94C"></path><path d="M38 46.4 L39.9 49.9 L43.8 50.4 L40.9 53 L41.6 56.9 L38 55 L34.4 56.9 L35.1 53 L32.2 50.4 L36.1 49.9 Z" fill="#E87EA1" opacity="0.85"></path><path d="M62 46.4 L63.9 49.9 L67.8 50.4 L64.9 53 L65.6 56.9 L62 55 L58.4 56.9 L59.1 53 L56.2 50.4 L60.1 49.9 Z" fill="#E87EA1" opacity="0.85"></path><path d="M46 49.2 C48 48.4 52 48.4 54 49.2 L54 51.4 C52 50.6 48 50.6 46 51.4 Z" fill="#F2C94C"></path>',
+        "tile_viewbox": "20 36 60 26",
+        "svg": '<image xlink:href="/static/accessories/glasses_star_glasses.webp" href="/static/accessories/glasses_star_glasses.webp" x="22" y="38.25" width="56" height="23.5"/>',
+    },
+    "black_browline": {
+        "name": "Browline Glasses",
+        "emoji": "🤓",
+        "cost": 10,
+        "category": "glasses",
+        "tile_viewbox": "20 39 60 20",
+        "svg": '<image xlink:href="/static/accessories/glasses_black_browline.webp" href="/static/accessories/glasses_black_browline.webp" x="22" y="41.14" width="56" height="17.72"/>',
+    },
+    "cat_eye": {
+        "name": "Cat-Eye Glasses",
+        "emoji": "😼",
+        "cost": 20,
+        "category": "glasses",
+        "tile_viewbox": "20 38 60 22",
+        "svg": '<image xlink:href="/static/accessories/glasses_cat_eye.webp" href="/static/accessories/glasses_cat_eye.webp" x="22" y="40.8" width="56" height="18.41"/>',
+    },
+    "heart_glasses": {
+        "name": "Heart Glasses",
+        "emoji": "💗",
+        "cost": 20,
+        "category": "glasses",
+        "tile_viewbox": "20 35 60 28",
+        "svg": '<image xlink:href="/static/accessories/glasses_heart_glasses.webp" href="/static/accessories/glasses_heart_glasses.webp" x="22" y="37.93" width="56" height="24.14"/>',
+    },
+    "movie_3d": {
+        "name": "3D Movie Glasses",
+        "emoji": "🎬",
+        "cost": 10,
+        "category": "glasses",
+        "tile_viewbox": "20 39 60 20",
+        "svg": '<image xlink:href="/static/accessories/glasses_movie_3d.webp" href="/static/accessories/glasses_movie_3d.webp" x="22" y="41.49" width="56" height="17.02"/>',
+    },
+    "monocle": {
+        "name": "Monocle",
+        "emoji": "🧐",
+        "cost": 40,
+        "category": "glasses",
+        "tile_viewbox": "48 38 36 22",
+        "svg": '<image xlink:href="/static/accessories/glasses_monocle.webp" href="/static/accessories/glasses_monocle.webp" x="50" y="41.09" width="32" height="17.82"/>',
+    },
+    "rainbow_holo": {
+        "name": "Rainbow Holo Sunglasses",
+        "emoji": "🌈",
+        "cost": 75,
+        "category": "glasses",
+        "tile_viewbox": "20 38 60 22",
+        "svg": '<image xlink:href="/static/accessories/glasses_rainbow_holo.webp" href="/static/accessories/glasses_rainbow_holo.webp" x="22" y="40.83" width="56" height="18.34"/>',
     },
     "wellies": {
         "name": "Wellies",
