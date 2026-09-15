@@ -210,7 +210,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "glasses",
         "tile_viewbox": "20 36 60 26",
-        "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="22" y="38.8" width="56" height="22.4"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="22" y="39.29" width="56" height="21.42"/>',
     },
     "explorer_goggles": {
         "name": "Explorer Goggles",
@@ -226,7 +226,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "glasses",
         "tile_viewbox": "20 37 60 24",
-        "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="22" y="39.3" width="56" height="21.41"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="22" y="39.73" width="56" height="20.53"/>',
     },
     "star_glasses": {
         "name": "Star Glasses",
@@ -234,7 +234,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "glasses",
         "tile_viewbox": "20 36 60 26",
-        "svg": '<image xlink:href="/static/accessories/glasses_star_glasses.webp" href="/static/accessories/glasses_star_glasses.webp" x="22" y="38.25" width="56" height="23.5"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_star_glasses.webp" href="/static/accessories/glasses_star_glasses.webp" x="22" y="39.15" width="56" height="21.7"/>',
     },
     "black_browline": {
         "name": "Browline Glasses",
@@ -250,7 +250,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "glasses",
         "tile_viewbox": "20 38 60 22",
-        "svg": '<image xlink:href="/static/accessories/glasses_cat_eye.webp" href="/static/accessories/glasses_cat_eye.webp" x="22" y="40.8" width="56" height="18.41"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_cat_eye.webp" href="/static/accessories/glasses_cat_eye.webp" x="22" y="40.77" width="56" height="18.45"/>',
     },
     "heart_glasses": {
         "name": "Heart Glasses",
@@ -258,7 +258,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "glasses",
         "tile_viewbox": "20 35 60 28",
-        "svg": '<image xlink:href="/static/accessories/glasses_heart_glasses.webp" href="/static/accessories/glasses_heart_glasses.webp" x="22" y="37.93" width="56" height="24.14"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_heart_glasses.webp" href="/static/accessories/glasses_heart_glasses.webp" x="22" y="40.12" width="56" height="19.77"/>',
     },
     "movie_3d": {
         "name": "3D Movie Glasses",
@@ -266,7 +266,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "glasses",
         "tile_viewbox": "20 39 60 20",
-        "svg": '<image xlink:href="/static/accessories/glasses_movie_3d.webp" href="/static/accessories/glasses_movie_3d.webp" x="22" y="41.49" width="56" height="17.02"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_movie_3d.webp" href="/static/accessories/glasses_movie_3d.webp" x="22" y="40.95" width="56" height="18.1"/>',
     },
     "monocle": {
         "name": "Monocle",
@@ -274,7 +274,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "glasses",
         "tile_viewbox": "48 38 36 22",
-        "svg": '<image xlink:href="/static/accessories/glasses_monocle.webp" href="/static/accessories/glasses_monocle.webp" x="50" y="41.09" width="32" height="17.82"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_monocle.webp" href="/static/accessories/glasses_monocle.webp" x="50" y="41.13" width="32" height="17.73"/>',
     },
     "rainbow_holo": {
         "name": "Rainbow Holo Sunglasses",
@@ -282,7 +282,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "glasses",
         "tile_viewbox": "20 38 60 22",
-        "svg": '<image xlink:href="/static/accessories/glasses_rainbow_holo.webp" href="/static/accessories/glasses_rainbow_holo.webp" x="22" y="40.83" width="56" height="18.34"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_rainbow_holo.webp" href="/static/accessories/glasses_rainbow_holo.webp" x="22" y="40.8" width="56" height="18.41"/>',
     },
     "wellies": {
         "name": "Wellies",
