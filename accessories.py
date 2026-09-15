@@ -290,7 +290,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "shoes",
         "tile_viewbox": "31 63 38 39",
-        "svg": '<image xlink:href="/static/accessories/shoe_wellies.webp" href="/static/accessories/shoe_wellies.webp" x="33" y="66.3" width="34" height="33.2"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_wellies.webp" href="/static/accessories/shoe_wellies.webp" x="33" y="66.76" width="34" height="33.14"/>',
     },
     "trainers": {
         "name": "Trainers",
@@ -298,7 +298,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "shoes",
         "tile_viewbox": "31 74 38 28",
-        "svg": '<image xlink:href="/static/accessories/shoe_trainers.webp" href="/static/accessories/shoe_trainers.webp" x="33" y="77.2" width="34" height="22.3"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_trainers.webp" href="/static/accessories/shoe_trainers.webp" x="33" y="78.28" width="34" height="21.62"/>',
     },
     "hiking_boots": {
         "name": "Hiking Boots",
@@ -306,7 +306,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "shoes",
         "tile_viewbox": "31 70 38 32",
-        "svg": '<image xlink:href="/static/accessories/shoe_hiking_boots.webp" href="/static/accessories/shoe_hiking_boots.webp" x="33" y="73.46" width="34" height="26.04"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_hiking_boots.webp" href="/static/accessories/shoe_hiking_boots.webp" x="33" y="74.35" width="34" height="25.55"/>',
     },
     "roller_skates": {
         "name": "Roller Skates",
@@ -314,7 +314,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "shoes",
         "tile_viewbox": "31 66 38 36",
-        "svg": '<image xlink:href="/static/accessories/shoe_roller_skates.webp" href="/static/accessories/shoe_roller_skates.webp" x="33" y="68.95" width="34" height="30.55"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_roller_skates.webp" href="/static/accessories/shoe_roller_skates.webp" x="33" y="69.58" width="34" height="30.32"/>',
     },
     "cowboy_boots": {
         "name": "Cowboy Boots",
@@ -322,7 +322,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "shoes",
         "tile_viewbox": "31 58 38 44",
-        "svg": '<image xlink:href="/static/accessories/shoe_cowboy_boots.webp" href="/static/accessories/shoe_cowboy_boots.webp" x="33" y="60.61" width="34" height="38.89"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_cowboy_boots.webp" href="/static/accessories/shoe_cowboy_boots.webp" x="33" y="60.65" width="34" height="39.25"/>',
     },
     "ballet_slippers": {
         "name": "Ballet Slippers",
@@ -330,7 +330,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "shoes",
         "tile_viewbox": "31 68 38 34",
-        "svg": '<image xlink:href="/static/accessories/shoe_ballet_slippers.webp" href="/static/accessories/shoe_ballet_slippers.webp" x="33" y="70.27" width="34" height="29.23"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_ballet_slippers.webp" href="/static/accessories/shoe_ballet_slippers.webp" x="33" y="70.96" width="34" height="28.94"/>',
     },
     "flip_flops": {
         "name": "Flip-Flops",
@@ -338,7 +338,7 @@ ACCESSORIES = {
         "cost": 5,
         "category": "shoes",
         "tile_viewbox": "31 75 38 27",
-        "svg": '<image xlink:href="/static/accessories/shoe_flip_flops.webp" href="/static/accessories/shoe_flip_flops.webp" x="33" y="77.35" width="34" height="22.15"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_flip_flops.webp" href="/static/accessories/shoe_flip_flops.webp" x="33" y="78.43" width="34" height="21.47"/>',
     },
     "football_boots": {
         "name": "Football Boots",
@@ -346,7 +346,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "shoes",
         "tile_viewbox": "31 73 38 29",
-        "svg": '<image xlink:href="/static/accessories/shoe_football_boots.webp" href="/static/accessories/shoe_football_boots.webp" x="33" y="75.26" width="34" height="24.24"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_football_boots.webp" href="/static/accessories/shoe_football_boots.webp" x="33" y="76.23" width="34" height="23.67"/>',
     },
     "snow_boots": {
         "name": "Snow Boots",
@@ -354,7 +354,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "shoes",
         "tile_viewbox": "31 73 38 29",
-        "svg": '<image xlink:href="/static/accessories/shoe_snow_boots.webp" href="/static/accessories/shoe_snow_boots.webp" x="33" y="75.46" width="34" height="24.04"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_snow_boots.webp" href="/static/accessories/shoe_snow_boots.webp" x="33" y="76.36" width="34" height="23.54"/>',
     },
     "ice_skates": {
         "name": "Ice Skates",
@@ -362,7 +362,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "shoes",
         "tile_viewbox": "31 74 38 28",
-        "svg": '<image xlink:href="/static/accessories/shoe_ice_skates.webp" href="/static/accessories/shoe_ice_skates.webp" x="33" y="77.02" width="34" height="22.48"/>',
+        "svg": '<image xlink:href="/static/accessories/shoe_ice_skates.webp" href="/static/accessories/shoe_ice_skates.webp" x="33" y="77.97" width="34" height="21.93"/>',
     },
     "ice_cream": {
         "name": "Ice Cream",
