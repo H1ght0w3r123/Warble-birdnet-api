@@ -96,9 +96,11 @@
 
   /* --- Recording screen keeps its pine silhouette as the one
      screen-specific extra, on top of whatever the global time-of-day
-     background currently is --- */
+     background currently is. Sits just above the bottom nav bar (which is
+     opaque and z-index:20) rather than behind it - at bottom:0 it was
+     completely hidden behind the nav bar's own footprint. --- */
   .pines{
-    position:fixed; bottom:0; left:0; width:100%; height:70px; background:var(--ink); z-index:0;
+    position:fixed; bottom:64px; left:0; width:100%; height:70px; background:var(--ink); z-index:1;
     clip-path:polygon(0 100%,0 60%,5% 10%,10% 60%,15% 60%,20% 5%,25% 60%,30% 60%,35% 15%,40% 60%,45% 60%,50% 0%,55% 60%,60% 60%,65% 15%,70% 60%,75% 60%,80% 5%,85% 60%,90% 60%,95% 10%,100% 60%,100% 100%);
   }
 
