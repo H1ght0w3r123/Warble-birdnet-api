@@ -603,7 +603,8 @@
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
     z-index:2; pointer-events:none;
   }
-  .avatar-frame-wrap .avatar-frame{pointer-events:auto;}
+  .avatar-frame-wrap .avatar-frame{pointer-events:auto; cursor:grab;}
+  .avatar-frame-wrap .avatar-frame:active{cursor:grabbing;}
   /* The swatches arch over the top of the avatar frame, sitting ON its
      edge circle - so the assembly is barely wider than the avatar
      itself, unlike a full wheel or a side-by-side column. */
@@ -3196,76 +3197,158 @@ function renderSwatchRows() {
 
 // Bird species picker: a fixed, non-scrolling white circle (the real
 // avatar, full colour, colour wheel arched over it) sits on top of an
-// independently-scrolling track of silhouettes - one per species,
-// including the current one (kept in the DOM, just hidden, so the track's
-// item spacing never shifts). Selecting a species scrolls the track alone
-// to bring its silhouette behind the circle; the circle itself never
-// moves. Scrolling/swiping the track to bring a different silhouette to
-// rest behind the circle selects it automatically too - moving a bird
-// into the circle IS choosing it, tapping one is just a shortcut to the
-// same thing.
+// independently-scrolling track of silhouettes. Unlike the earlier
+// version, the track is built ONCE per Dress Up visit and never rebuilt -
+// selection only ever toggles a class and swaps which button is hidden
+// behind the circle, so a bird already mid-transition keeps moving
+// continuously as part of the same strip rather than popping between
+// states. That continuity is also what makes the loop and the circle-drag
+// below possible: both just manipulate scrollLeft/classes on stable DOM.
+//
+// Endless loop: the species list is repeated three times back to back.
+// Normal scrolling happens inside the middle copy; once the settled
+// position drifts into the first or third copy, we silently (no
+// animation - scrollLeft assignment is instant) jump scrollLeft by one
+// copy-width to land on the pixel-identical spot in the middle copy, then
+// re-find the centred button there. Since every copy is visually
+// identical this jump is imperceptible - it just gives room to keep
+// scrolling in the same direction forever.
+const SPECIES_LOOP_COPIES = 3;
 let speciesScrollSettleTimer = null;
+let activeSpeciesBtn = null;
 
-function renderDressUpAvatarRow() {
-  const stage = document.getElementById('dressUpAvatarStage');
+function initDressUpAvatarPicker() {
   const track = document.getElementById('speciesTrack');
-  if (!stage || !track) return;
-  const current = currentProfile.avatar_species || 'default';
+  const circle = document.querySelector('#dressUpAvatarStage .avatar-frame');
+  if (!track || track.dataset.built) { renderDressUpPreview(); renderSwatchRows(); return; }
+  track.dataset.built = '1';
+  activeSpeciesBtn = null;
 
-  track.innerHTML = AVATAR_SPECIES.map(sp => `
-    <button class="species-silhouette-btn ${sp.id === current ? 'is-current' : ''}"
-            data-species="${sp.id}" aria-label="Switch to ${sp.name}">
-      <img src="/static/avatar/silhouette_${sp.id}.webp" alt="">
-    </button>`).join('');
+  let html = '';
+  for (let copy = 0; copy < SPECIES_LOOP_COPIES; copy++) {
+    html += AVATAR_SPECIES.map(sp => `
+      <button class="species-silhouette-btn" data-species="${sp.id}" aria-label="Switch to ${sp.name}">
+        <img src="/static/avatar/silhouette_${sp.id}.webp" alt="">
+      </button>`).join('');
+  }
+  track.innerHTML = html;
 
   track.querySelectorAll('.species-silhouette-btn').forEach(btn => {
-    btn.onclick = () => selectSpecies(btn.dataset.species);
+    btn.onclick = () => btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   });
+  track.addEventListener('scroll', onSpeciesTrackScroll, { passive: true });
 
-  if (!track.dataset.scrollBound) {
-    track.addEventListener('scroll', onSpeciesTrackScroll, { passive: true });
-    track.dataset.scrollBound = '1';
+  // Jump straight to the middle copy's instance of the saved species, with
+  // no animation, before anything is visible - the very first render
+  // shouldn't visibly scroll in from the edge.
+  const current = currentProfile.avatar_species || 'default';
+  const startIdx = Math.max(0, AVATAR_SPECIES.findIndex(sp => sp.id === current));
+  const middleCopyButtons = track.querySelectorAll('.species-silhouette-btn');
+  const startBtn = middleCopyButtons[AVATAR_SPECIES.length + startIdx];
+  if (startBtn) {
+    startBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
+    markActiveButton(startBtn, { save: false });
   }
 
-  renderDressUpPreview();
-  renderSwatchRows();
-
-  const activeBtn = track.querySelector('.species-silhouette-btn.is-current');
-  if (activeBtn) activeBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
+  if (circle) setupCircleDragBridge(track, circle);
 }
 
 function onSpeciesTrackScroll() {
   clearTimeout(speciesScrollSettleTimer);
-  // Wait for the scroll (and the browser's own snap-settle) to actually
-  // stop rather than reacting mid-swipe, so the switch happens once the
-  // bird has come to rest behind the circle, not while it's still passing
-  // through.
-  speciesScrollSettleTimer = setTimeout(selectWhicheverSpeciesIsCentred, 130);
+  // Wait for scrolling to actually stop (native snap included) rather than
+  // reacting mid-swipe, so the switch happens once a bird has settled
+  // behind the circle, not while it's still passing through.
+  speciesScrollSettleTimer = setTimeout(onSpeciesTrackSettled, 130);
 }
 
-function selectWhicheverSpeciesIsCentred() {
-  const track = document.getElementById('speciesTrack');
-  if (!track) return;
-  const trackMid = track.getBoundingClientRect().left + track.clientWidth / 2;
-  let closestId = null, closestDist = Infinity;
+function findCentredSpeciesButton(track) {
+  const mid = track.getBoundingClientRect().left + track.clientWidth / 2;
+  let best = null, bestDist = Infinity;
   track.querySelectorAll('.species-silhouette-btn').forEach(btn => {
     const r = btn.getBoundingClientRect();
-    const dist = Math.abs((r.left + r.width / 2) - trackMid);
-    if (dist < closestDist) { closestDist = dist; closestId = btn.dataset.species; }
+    const dist = Math.abs((r.left + r.width / 2) - mid);
+    if (dist < bestDist) { bestDist = dist; best = btn; }
   });
-  if (closestId && closestId !== (currentProfile.avatar_species || 'default')) {
-    selectSpecies(closestId);
+  return best;
+}
+
+function onSpeciesTrackSettled() {
+  const track = document.getElementById('speciesTrack');
+  if (!track) return;
+  const centred = findCentredSpeciesButton(track);
+  if (centred) markActiveButton(centred);
+
+  // Endless-loop rewrap, silent and instant.
+  const copyWidth = track.scrollWidth / SPECIES_LOOP_COPIES;
+  if (track.scrollLeft < copyWidth * 0.5) {
+    track.scrollLeft += copyWidth;
+  } else if (track.scrollLeft > copyWidth * 1.5) {
+    track.scrollLeft -= copyWidth;
+  } else {
+    return;
+  }
+  // We jumped copies - re-anchor the active-button reference to the
+  // physically different (but visually identical) node now behind the
+  // circle. Same species, so this never re-saves to the server.
+  const recentred = findCentredSpeciesButton(track);
+  if (recentred) markActiveButton(recentred, { save: false });
+}
+
+// The single source of truth for "what's selected": which DOM button
+// (not just which species id, since the same species exists in all three
+// loop copies) currently sits hidden behind the circle.
+function markActiveButton(btn, { save = true } = {}) {
+  if (activeSpeciesBtn === btn) return;
+  if (activeSpeciesBtn) activeSpeciesBtn.classList.remove('is-current');
+  activeSpeciesBtn = btn;
+  activeSpeciesBtn.classList.add('is-current');
+
+  const id = btn.dataset.species;
+  if (currentProfile.avatar_species !== id) {
+    currentProfile.avatar_species = id;
+    renderDressUpPreview();
+    updateNavAvatarIcon();
+    if (save) saveSpeciesSelection(id);
   }
 }
 
-async function selectSpecies(speciesId) {
-  if (currentProfile.avatar_species === speciesId) return;
-  currentProfile.avatar_species = speciesId;
-  renderDressUpAvatarRow();
-  updateNavAvatarIcon();
+async function saveSpeciesSelection(speciesId) {
   const formData = new FormData();
   formData.append('avatar_species', speciesId);
   try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
+}
+
+// Lets a drag that starts on the circle itself move the carousel, even
+// though the circle is a separate fixed element sitting on top of the
+// scrolling track rather than part of it.
+function setupCircleDragBridge(track, circle) {
+  if (circle.dataset.dragBound) return;
+  circle.dataset.dragBound = '1';
+  circle.style.touchAction = 'pan-y';
+  let dragging = false, startX = 0, startScrollLeft = 0, moved = false;
+
+  circle.addEventListener('pointerdown', (e) => {
+    dragging = true; moved = false;
+    startX = e.clientX;
+    startScrollLeft = track.scrollLeft;
+    circle.setPointerCapture(e.pointerId);
+  });
+  circle.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 3) moved = true;
+    track.scrollLeft = startScrollLeft - dx;
+  });
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    if (moved) {
+      const centred = findCentredSpeciesButton(track);
+      if (centred) centred.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }
+  };
+  circle.addEventListener('pointerup', endDrag);
+  circle.addEventListener('pointercancel', endDrag);
 }
 
 async function loadProfileLocations() {
@@ -3367,7 +3450,7 @@ async function renderDressUp() {
 
     accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; });
 
-    renderDressUpAvatarRow();
+    initDressUpAvatarPicker();
     renderCategoryRow();
     document.getElementById('resetAccessoriesBtn').onclick = resetAllAccessories;
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
