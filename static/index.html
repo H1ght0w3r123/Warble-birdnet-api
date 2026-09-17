@@ -514,15 +514,28 @@
   .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 
   /* --- Dress Up: bird species picker (coverflow row) --- */
-  /* The selected bird is the real avatar-frame; every other species is a
-     flat silhouette button with no box/border, tucked in against the frame
-     via negative margin so it appears to slide half behind the white
-     circle. One continuous horizontally-scrolling row. */
+  /* The white circle (avatar-frame-wrap, above) is fixed dead-centre of the
+     stage and is NOT part of this scrolling content - it must never
+     visually move. This track is the only thing that scrolls: it holds a
+     silhouette for every species (including the current one, kept in the
+     DOM so the centring math/spacing never shifts, just hidden via
+     visibility so it doesn't double up with the real avatar sitting on
+     top of it), tucked in against the fixed circle via negative margin so
+     each one appears to slide half behind its edge. Selecting a species
+     smooth-scrolls this track alone to bring that silhouette behind the
+     circle - the circle and whatever's equipped on it stay completely
+     static throughout. */
+  .species-track{
+    position:absolute; inset:0; z-index:1; display:flex; align-items:center;
+    overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+    padding:0 50%;
+  }
   .species-silhouette-btn{
-    flex-shrink:0; z-index:1; background:none; border:none; padding:0; margin:0 -26px;
+    flex-shrink:0; background:none; border:none; padding:0; margin:0 -26px;
     cursor:pointer; height:150px; display:flex; align-items:center;
     scroll-snap-align:center; opacity:0.9;
   }
+  .species-silhouette-btn.is-current{visibility:hidden;}
   .species-silhouette-btn img{height:100%; width:auto; display:block; pointer-events:none;}
   .species-silhouette-btn:active{opacity:0.65;}
 
@@ -585,12 +598,12 @@
   .carousel-item-price-badge.unaffordable{color:var(--mist-dk);opacity:0.75;}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-row{
-    display:flex; align-items:center; width:100%; margin-top:40px; margin-bottom:20px;
-    overflow-x:auto; overflow-y:visible; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
-    padding:0 calc(50% - 103px);
+  .dressup-avatar-stage{position:relative; width:100%; height:210px; margin-top:40px; margin-bottom:20px;}
+  .avatar-frame-wrap{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    z-index:2; pointer-events:none;
   }
-  .avatar-frame-wrap{position:relative; justify-self:center; flex-shrink:0; z-index:2; scroll-snap-align:center;}
+  .avatar-frame-wrap .avatar-frame{pointer-events:auto;}
   /* The swatches arch over the top of the avatar frame, sitting ON its
      edge circle - so the assembly is barely wider than the avatar
      itself, unlike a full wheel or a side-by-side column. */
@@ -3181,45 +3194,34 @@ function renderSwatchRows() {
   });
 }
 
-// Bird species picker: a coverflow-style row rather than a boxed carousel.
-// The selected species renders as the real avatar-frame (white circle,
-// full colour, the colour wheel arched over it); every other species
-// renders as a flat, uncoloured silhouette with no box or border, in
-// species-list order on whichever side of the frame it falls. Negative
-// margins pull each silhouette in against the frame so it visually tucks
-// half behind the white circle's edge, and the row scrolls horizontally
-// (snap-centred on the real frame on every render) so birds further down
-// the list slide into view the same way.
+// Bird species picker: a fixed, non-scrolling white circle (the real
+// avatar, full colour, colour wheel arched over it) sits on top of an
+// independently-scrolling track of silhouettes - one per species,
+// including the current one (kept in the DOM, just hidden, so the track's
+// item spacing never shifts). Selecting a species scrolls the track alone
+// to bring its silhouette behind the circle; the circle itself never
+// moves.
 function renderDressUpAvatarRow() {
-  const row = document.getElementById('dressUpAvatarRow');
-  if (!row) return;
+  const stage = document.getElementById('dressUpAvatarStage');
+  const track = document.getElementById('speciesTrack');
+  if (!stage || !track) return;
   const current = currentProfile.avatar_species || 'default';
-  const idx = Math.max(0, AVATAR_SPECIES.findIndex(s => s.id === current));
 
-  const silhouette = sp => `
-    <button class="species-silhouette-btn" data-species="${sp.id}" aria-label="Switch to ${sp.name}">
+  track.innerHTML = AVATAR_SPECIES.map(sp => `
+    <button class="species-silhouette-btn ${sp.id === current ? 'is-current' : ''}"
+            data-species="${sp.id}" aria-label="Switch to ${sp.name}">
       <img src="/static/avatar/silhouette_${sp.id}.webp" alt="">
-    </button>`;
+    </button>`).join('');
 
-  const frameHtml = `
-    <div class="avatar-frame-wrap">
-      <div class="avatar-frame" id="dressUpPreview"></div>
-      <div class="color-wheel" id="colorWheel"></div>
-    </div>`;
-
-  const before = AVATAR_SPECIES.slice(0, idx);
-  const after = AVATAR_SPECIES.slice(idx + 1);
-  row.innerHTML = before.map(silhouette).join('') + frameHtml + after.map(silhouette).join('');
-
-  row.querySelectorAll('.species-silhouette-btn').forEach(btn => {
+  track.querySelectorAll('.species-silhouette-btn').forEach(btn => {
     btn.onclick = () => selectSpecies(btn.dataset.species);
   });
 
   renderDressUpPreview();
   renderSwatchRows();
 
-  const wrap = row.querySelector('.avatar-frame-wrap');
-  if (wrap) wrap.scrollIntoView({ inline: 'center', block: 'nearest' });
+  const activeBtn = track.querySelector('.species-silhouette-btn.is-current');
+  if (activeBtn) activeBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 
 async function selectSpecies(speciesId) {
@@ -3303,7 +3305,13 @@ async function renderDressUp() {
   selectedCategory = null;
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Dress Up</div></div>
-    <div class="dressup-avatar-row" id="dressUpAvatarRow"></div>
+    <div class="dressup-avatar-stage" id="dressUpAvatarStage">
+      <div class="species-track" id="speciesTrack"></div>
+      <div class="avatar-frame-wrap">
+        <div class="avatar-frame" id="dressUpPreview"></div>
+        <div class="color-wheel" id="colorWheel"></div>
+      </div>
+    </div>
     <button class="reset-accessories-btn" id="resetAccessoriesBtn">Reset</button>
     <div class="category-row" id="categoryRow"></div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
