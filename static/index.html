@@ -3220,8 +3220,7 @@ let activeSpeciesBtn = null;
 function initDressUpAvatarPicker() {
   const track = document.getElementById('speciesTrack');
   const circle = document.querySelector('#dressUpAvatarStage .avatar-frame');
-  if (!track || track.dataset.built) { renderDressUpPreview(); renderSwatchRows(); return; }
-  track.dataset.built = '1';
+  if (!track) return;
   activeSpeciesBtn = null;
 
   let html = '';
@@ -3240,17 +3239,25 @@ function initDressUpAvatarPicker() {
 
   // Jump straight to the middle copy's instance of the saved species, with
   // no animation, before anything is visible - the very first render
-  // shouldn't visibly scroll in from the edge.
+  // shouldn't visibly scroll in from the edge. This sets activeSpeciesBtn
+  // directly rather than through markActiveButton, since the species here
+  // already matches currentProfile and markActiveButton's job is reacting
+  // to a *change* - the actual preview/swatches render is done explicitly
+  // below regardless, so it can't be skipped the way it was before.
   const current = currentProfile.avatar_species || 'default';
   const startIdx = Math.max(0, AVATAR_SPECIES.findIndex(sp => sp.id === current));
   const middleCopyButtons = track.querySelectorAll('.species-silhouette-btn');
   const startBtn = middleCopyButtons[AVATAR_SPECIES.length + startIdx];
   if (startBtn) {
     startBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
-    markActiveButton(startBtn, { save: false });
+    activeSpeciesBtn = startBtn;
+    startBtn.classList.add('is-current');
   }
 
   if (circle) setupCircleDragBridge(track, circle);
+
+  renderDressUpPreview();
+  renderSwatchRows();
 }
 
 function onSpeciesTrackScroll() {
