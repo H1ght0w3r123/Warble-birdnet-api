@@ -41,7 +41,7 @@ ACCESSORIES = {
         "emoji": "🎩",
         "cost": 20,
         "category": "hats",
-        "tile_viewbox": "27.20 -0.80 45.60 32.30",
+        "tile_viewbox": "11.95 -33.75 73.07 73.07",
         "svg": '<g transform="rotate(-8 50 26)"><image xlink:href="/static/accessories/hat_top_hat.webp" href="/static/accessories/hat_top_hat.webp" x="23.23" y="-16.89" width="57.00" height="39.39"/></g>',
     },
     "golden_crown": {
@@ -49,7 +49,7 @@ ACCESSORIES = {
         "emoji": "👑",
         "cost": 75,
         "category": "hats",
-        "tile_viewbox": "28.75 6.10 42.50 28.90",
+        "tile_viewbox": "21.43 -25.74 64.71 64.71",
         "svg": '<g transform="rotate(6 50 26)"><image xlink:href="/static/accessories/hat_golden_crown.webp" href="/static/accessories/hat_golden_crown.webp" x="26.23" y="-13.36" width="51.00" height="39.36"/></g>',
     },
     "flower_crown": {
@@ -57,7 +57,7 @@ ACCESSORIES = {
         "emoji": "🌸",
         "cost": 20,
         "category": "hats",
-        "tile_viewbox": "15 0 70 34",
+        "tile_viewbox": "13.26 -28.42 73.90 73.90",
         "svg": '<g transform="rotate(-5 50 26)"><image xlink:href="/static/accessories/hat_flower_crown.webp" href="/static/accessories/hat_flower_crown.webp" x="21.73" y="-7.77" width="60.00" height="32.77"/></g>',
     },
     "deerstalker_hat": {
@@ -65,7 +65,7 @@ ACCESSORIES = {
         "emoji": "🔍",
         "cost": 20,
         "category": "hats",
-        "tile_viewbox": "28 5.58 44 29.92",
+        "tile_viewbox": "16.52 -25.62 66.59 66.59",
         "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_deerstalker_hat.webp" href="/static/accessories/hat_deerstalker_hat.webp" x="25.33" y="-11.00" width="52.80" height="37.50"/></g>',
     },
     "baseball_cap": {
@@ -73,7 +73,7 @@ ACCESSORIES = {
         "emoji": "🧢",
         "cost": 10,
         "category": "hats",
-        "tile_viewbox": "30.45 2.10 39.10 28.90",
+        "tile_viewbox": "15.66 -28.21 65.36 65.36",
         "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="26.23" y="-11.56" width="51.00" height="32.06"/></g>',
     },
     "sun_hat": {
@@ -81,7 +81,7 @@ ACCESSORIES = {
         "emoji": "👒",
         "cost": 20,
         "category": "hats",
-        "tile_viewbox": "22.80 7.60 54.40 28.90",
+        "tile_viewbox": "21.55 -17.67 62.54 62.54",
         "svg": '<g transform="rotate(5 50 26)"><image xlink:href="/static/accessories/hat_sun_hat.webp" href="/static/accessories/hat_sun_hat.webp" x="26.23" y="0.81" width="51.00" height="25.19"/></g>',
     },
     "party_hat": {
@@ -89,7 +89,7 @@ ACCESSORIES = {
         "emoji": "🥳",
         "cost": 10,
         "category": "hats",
-        "tile_viewbox": "36 -3 28 34",
+        "tile_viewbox": "33.79 -14.11 41.98 41.98",
         "svg": '<g transform="rotate(9 50 26)"><image xlink:href="/static/accessories/hat_party_hat.webp" href="/static/accessories/hat_party_hat.webp" x="36.73" y="-9.27" width="30.00" height="31.27"/></g>',
     },
     "wizard_hat": {
@@ -97,7 +97,7 @@ ACCESSORIES = {
         "emoji": "🧙",
         "cost": 75,
         "category": "hats",
-        "tile_viewbox": "30.45 9.10 39.10 28.90",
+        "tile_viewbox": "17.32 -22.04 65.03 65.03",
         "svg": '<g transform="rotate(-7 50 26)"><image xlink:href="/static/accessories/hat_wizard_hat.webp" href="/static/accessories/hat_wizard_hat.webp" x="26.23" y="-7.86" width="51.00" height="36.86"/></g>',
     },
     "pirate_hat": {
@@ -105,7 +105,7 @@ ACCESSORIES = {
         "emoji": "🏴",
         "cost": 40,
         "category": "hats",
-        "tile_viewbox": "26.08 6.72 47.84 31.28",
+        "tile_viewbox": "18.55 -26 71.03 71.03",
         "svg": '<g transform="rotate(8 50 26)"><image xlink:href="/static/accessories/hat_pirate_hat.webp" href="/static/accessories/hat_pirate_hat.webp" x="24.13" y="-10.76" width="55.20" height="39.76"/></g>',
     },
     "explorer_helmet": {
@@ -113,7 +113,7 @@ ACCESSORIES = {
         "emoji": "🪖",
         "cost": 40,
         "category": "hats",
-        "tile_viewbox": "29.60 7.60 40.80 28.90",
+        "tile_viewbox": "18.28 -20.89 63.77 63.77",
         "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_explorer_helmet.webp" href="/static/accessories/hat_explorer_helmet.webp" x="26.23" y="-4.81" width="51.00" height="31.81"/></g>',
     },
     "ski_hat": {
@@ -121,7 +121,7 @@ ACCESSORIES = {
         "emoji": "🎿",
         "cost": 20,
         "category": "hats",
-        "tile_viewbox": "36.40 8.10 27.20 28.90",
+        "tile_viewbox": "21.10 -27.89 66.37 66.37",
         "svg": '<g transform="rotate(7 50 26)"><image xlink:href="/static/accessories/hat_ski_hat.webp" href="/static/accessories/hat_ski_hat.webp" x="26.23" y="-18.14" width="51.00" height="46.14"/></g>',
     },
     "cozy_beanie": {
@@ -129,7 +129,7 @@ ACCESSORIES = {
         "emoji": "🧶",
         "cost": 10,
         "category": "hats",
-        "tile_viewbox": "35.28 4.72 29.44 31.28",
+        "tile_viewbox": "15.90 -29.78 68.66 68.66",
         "svg": '<g transform="rotate(-4 50 26)"><image xlink:href="/static/accessories/hat_cozy_beanie.webp" href="/static/accessories/hat_cozy_beanie.webp" x="24.13" y="-17.76" width="55.20" height="44.76"/></g>',
     },
     "cosy_scarf": {
@@ -137,7 +137,7 @@ ACCESSORIES = {
         "emoji": "🧣",
         "cost": 10,
         "category": "neck",
-        "tile_viewbox": "29 61 42 36",
+        "tile_viewbox": "25.83 43.50 51.81 51.81",
         "svg": '<image xlink:href="/static/accessories/neck_cosy_scarf.webp" href="/static/accessories/neck_cosy_scarf.webp" x="29.78" y="50.2" width="43.91" height="38.42"/>',
     },
     "fancy_bow": {
@@ -145,7 +145,7 @@ ACCESSORIES = {
         "emoji": "🎀",
         "cost": 5,
         "category": "neck",
-        "tile_viewbox": "31 61 38 36",
+        "tile_viewbox": "28.08 45.76 47.31 47.31",
         "svg": '<image xlink:href="/static/accessories/neck_fancy_bow.webp" href="/static/accessories/neck_fancy_bow.webp" x="31.69" y="50.2" width="40.09" height="38.42"/>',
     },
     "bow_tie": {
@@ -153,7 +153,7 @@ ACCESSORIES = {
         "emoji": "🎗️",
         "cost": 5,
         "category": "neck",
-        "tile_viewbox": "24 61 52 32",
+        "tile_viewbox": "18.39 33.56 66.67 66.67",
         "svg": '<image xlink:href="/static/accessories/neck_bow_tie.webp" href="/static/accessories/neck_bow_tie.webp" x="23.48" y="50.2" width="56.5" height="33.39"/>',
     },
     "beaded_necklace": {
@@ -161,7 +161,7 @@ ACCESSORIES = {
         "emoji": "📿",
         "cost": 10,
         "category": "neck",
-        "tile_viewbox": "24 61 52 36",
+        "tile_viewbox": "18.82 36.49 65.84 65.84",
         "svg": '<image xlink:href="/static/accessories/neck_beaded_necklace.webp" href="/static/accessories/neck_beaded_necklace.webp" x="23.84" y="50.2" width="55.8" height="38.42"/>',
     },
     "golden_medal": {
@@ -169,7 +169,7 @@ ACCESSORIES = {
         "emoji": "🏅",
         "cost": 75,
         "category": "neck",
-        "tile_viewbox": "31 61 38 36",
+        "tile_viewbox": "28.71 46.38 46.07 46.07",
         "svg": '<image xlink:href="/static/accessories/neck_golden_medal.webp" href="/static/accessories/neck_golden_medal.webp" x="32.22" y="50.2" width="39.04" height="38.42"/>',
     },
     "pearl_necklace": {
@@ -177,7 +177,7 @@ ACCESSORIES = {
         "emoji": "🤍",
         "cost": 20,
         "category": "neck",
-        "tile_viewbox": "24 61 52 36",
+        "tile_viewbox": "19.07 36.74 65.34 65.34",
         "svg": '<image xlink:href="/static/accessories/neck_pearl_necklace.webp" href="/static/accessories/neck_pearl_necklace.webp" x="24.05" y="50.2" width="55.37" height="38.42"/>',
     },
     "striped_scarf": {
@@ -185,7 +185,7 @@ ACCESSORIES = {
         "emoji": "🧣",
         "cost": 10,
         "category": "neck",
-        "tile_viewbox": "29 61 42 36",
+        "tile_viewbox": "25.40 43.08 52.66 52.66",
         "svg": '<image xlink:href="/static/accessories/neck_striped_scarf.webp" href="/static/accessories/neck_striped_scarf.webp" x="29.42" y="50.2" width="44.63" height="38.42"/>',
     },
     "star_necklace": {
@@ -193,7 +193,7 @@ ACCESSORIES = {
         "emoji": "⭐",
         "cost": 20,
         "category": "neck",
-        "tile_viewbox": "29 61 42 36",
+        "tile_viewbox": "25.96 43.63 51.55 51.55",
         "svg": '<image xlink:href="/static/accessories/neck_star_necklace.webp" href="/static/accessories/neck_star_necklace.webp" x="29.89" y="50.2" width="43.69" height="38.42"/>',
     },
     "flower_lei": {
@@ -201,7 +201,7 @@ ACCESSORIES = {
         "emoji": "🌺",
         "cost": 20,
         "category": "neck",
-        "tile_viewbox": "28 61 44 36",
+        "tile_viewbox": "24.64 42.31 54.20 54.20",
         "svg": '<image xlink:href="/static/accessories/neck_flower_lei.webp" href="/static/accessories/neck_flower_lei.webp" x="28.77" y="50.2" width="45.93" height="38.42"/>',
     },
     "cape": {
@@ -209,7 +209,7 @@ ACCESSORIES = {
         "emoji": "🦸",
         "cost": 40,
         "category": "neck",
-        "tile_viewbox": "24 61 52 25",
+        "tile_viewbox": "18.39 29.68 66.67 66.67",
         "svg": '<image xlink:href="/static/accessories/neck_cape.webp" href="/static/accessories/neck_cape.webp" x="23.48" y="50.2" width="56.5" height="25.63"/>',
     },
     "explorer_backpack": {
@@ -217,7 +217,7 @@ ACCESSORIES = {
         "emoji": "🎒",
         "cost": 40,
         "category": "gear",
-        "tile_viewbox": "13 54 74 38",
+        "tile_viewbox": "9.17 18.90 81.66 81.66",
         "svg": '<g transform="translate(0,-12.8)"><path d="M15.4 61 C15.4 58.6 17 57 19.6 57 L26 57 C27.4 57 28 58 28 59.4 L28 73 C28 75 26.6 76 24.4 76 L19.6 76 C17 76 15.4 74.4 15.4 72 Z" fill="#7EC8A4"></path><path d="M24 57.4 C26.6 58 28 59 28 60.6 L28 73 C28 75 26.6 76 24.4 76 C25.4 74 25.6 71.6 25.4 68.6 C25 64.6 24.6 61 24 57.4 Z" fill="#3F7C5C"></path><path d="M84.6 61 C84.6 58.6 83 57 80.4 57 L74 57 C72.6 57 72 58 72 59.4 L72 73 C72 75 73.4 76 75.6 76 L80.4 76 C83 76 84.6 74.4 84.6 72 Z" fill="#7EC8A4"></path><path d="M76 57.4 C73.4 58 72 59 72 60.6 L72 73 C72 75 73.4 76 75.6 76 C74.6 74 74.4 71.6 74.6 68.6 C75 64.6 75.4 61 76 57.4 Z" fill="#3F7C5C"></path><path d="M37.6 61 C39.6 60.4 42.4 60.4 44.4 61 C45.4 69.6 46 78.6 46 87.6 C44 88.2 41.4 88.2 39.4 87.6 C39.4 78.6 38.6 69.6 37.6 61 Z" fill="#3F7C5C"></path><path d="M62.4 61 C60.4 60.4 57.6 60.4 55.6 61 C54.6 69.6 54 78.6 54 87.6 C56 88.2 58.6 88.2 60.6 87.6 C60.6 78.6 61.4 69.6 62.4 61 Z" fill="#3F7C5C"></path><path d="M43 60.6 C44 60.7 44.4 60.8 44.4 61 C45.4 69.6 46 78.6 46 87.6 C45.4 87.8 44.8 88 44.2 88 C44.2 78.6 43.6 69.4 43 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M57 60.6 C56 60.7 55.6 60.8 55.6 61 C54.6 69.6 54 78.6 54 87.6 C54.6 87.8 55.2 88 55.8 88 C55.8 78.6 56.4 69.4 57 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M39 71.6 L46 71.6 L46 76.4 L39 76.4 Z" fill="#F2C94C"></path><path d="M54 71.6 L61 71.6 L61 76.4 L54 76.4 Z" fill="#F2C94C"></path><path d="M41 73 L44 73 L44 75 L41 75 Z" fill="#B8901F"></path><path d="M56 73 L59 73 L59 75 L56 75 Z" fill="#B8901F"></path></g>',
     },
     "round_specs": {
@@ -225,7 +225,7 @@ ACCESSORIES = {
         "emoji": "👓",
         "cost": 10,
         "category": "glasses",
-        "tile_viewbox": "20 36 60 26",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="20.09" y="23.12" width="63.28" height="24.2"/>',
     },
     "explorer_goggles": {
@@ -233,7 +233,7 @@ ACCESSORIES = {
         "emoji": "🥽",
         "cost": 40,
         "category": "glasses",
-        "tile_viewbox": "20 38 60 22",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_explorer_goggles.webp" href="/static/accessories/glasses_explorer_goggles.webp" x="20.09" y="23.89" width="63.28" height="22.65"/>',
     },
     "sunglasses": {
@@ -241,7 +241,7 @@ ACCESSORIES = {
         "emoji": "🕶️",
         "cost": 20,
         "category": "glasses",
-        "tile_viewbox": "20 37 60 24",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="20.09" y="23.62" width="63.28" height="23.2"/>',
     },
     "star_glasses": {
@@ -249,7 +249,7 @@ ACCESSORIES = {
         "emoji": "⭐",
         "cost": 75,
         "category": "glasses",
-        "tile_viewbox": "20 36 60 26",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_star_glasses.webp" href="/static/accessories/glasses_star_glasses.webp" x="20.09" y="22.96" width="63.28" height="24.52"/>',
     },
     "black_browline": {
@@ -257,7 +257,7 @@ ACCESSORIES = {
         "emoji": "🤓",
         "cost": 10,
         "category": "glasses",
-        "tile_viewbox": "20 39 60 20",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_black_browline.webp" href="/static/accessories/glasses_black_browline.webp" x="20.09" y="25.21" width="63.28" height="20.02"/>',
     },
     "cat_eye": {
@@ -265,7 +265,7 @@ ACCESSORIES = {
         "emoji": "😼",
         "cost": 20,
         "category": "glasses",
-        "tile_viewbox": "20 38 60 22",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_cat_eye.webp" href="/static/accessories/glasses_cat_eye.webp" x="20.09" y="24.79" width="63.28" height="20.85"/>',
     },
     "heart_glasses": {
@@ -273,7 +273,7 @@ ACCESSORIES = {
         "emoji": "💗",
         "cost": 20,
         "category": "glasses",
-        "tile_viewbox": "20 35 60 28",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_heart_glasses.webp" href="/static/accessories/glasses_heart_glasses.webp" x="20.09" y="24.05" width="63.28" height="22.34"/>',
     },
     "movie_3d": {
@@ -281,7 +281,7 @@ ACCESSORIES = {
         "emoji": "🎬",
         "cost": 10,
         "category": "glasses",
-        "tile_viewbox": "20 39 60 20",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_movie_3d.webp" href="/static/accessories/glasses_movie_3d.webp" x="20.09" y="24.99" width="63.28" height="20.45"/>',
     },
     "monocle": {
@@ -289,7 +289,7 @@ ACCESSORIES = {
         "emoji": "🧐",
         "cost": 40,
         "category": "glasses",
-        "tile_viewbox": "48 38 36 22",
+        "tile_viewbox": "48.48 13.88 42.67 42.67",
         "svg": '<image xlink:href="/static/accessories/glasses_monocle.webp" href="/static/accessories/glasses_monocle.webp" x="51.73" y="25.2" width="36.16" height="20.03"/>',
     },
     "rainbow_holo": {
@@ -297,7 +297,7 @@ ACCESSORIES = {
         "emoji": "🌈",
         "cost": 75,
         "category": "glasses",
-        "tile_viewbox": "20 38 60 22",
+        "tile_viewbox": "14.39 -2.12 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_rainbow_holo.webp" href="/static/accessories/glasses_rainbow_holo.webp" x="20.09" y="24.82" width="63.28" height="20.8"/>',
     },
     "wellies": {
@@ -305,7 +305,7 @@ ACCESSORIES = {
         "emoji": "👢",
         "cost": 10,
         "category": "shoes",
-        "tile_viewbox": "31 63 38 39",
+        "tile_viewbox": "29.94 63.27 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_wellies.webp" href="/static/accessories/shoe_wellies.webp" x="33" y="66.76" width="34" height="33.14"/>',
     },
     "trainers": {
@@ -313,7 +313,7 @@ ACCESSORIES = {
         "emoji": "👟",
         "cost": 20,
         "category": "shoes",
-        "tile_viewbox": "31 74 38 28",
+        "tile_viewbox": "29.94 69.03 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_trainers.webp" href="/static/accessories/shoe_trainers.webp" x="33" y="78.28" width="34" height="21.62"/>',
     },
     "hiking_boots": {
@@ -321,7 +321,7 @@ ACCESSORIES = {
         "emoji": "🥾",
         "cost": 40,
         "category": "shoes",
-        "tile_viewbox": "31 70 38 32",
+        "tile_viewbox": "29.94 67.06 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_hiking_boots.webp" href="/static/accessories/shoe_hiking_boots.webp" x="33" y="74.35" width="34" height="25.55"/>',
     },
     "roller_skates": {
@@ -329,7 +329,7 @@ ACCESSORIES = {
         "emoji": "🛼",
         "cost": 75,
         "category": "shoes",
-        "tile_viewbox": "31 66 38 36",
+        "tile_viewbox": "29.94 64.68 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_roller_skates.webp" href="/static/accessories/shoe_roller_skates.webp" x="33" y="69.58" width="34" height="30.32"/>',
     },
     "cowboy_boots": {
@@ -337,7 +337,7 @@ ACCESSORIES = {
         "emoji": "🤠",
         "cost": 20,
         "category": "shoes",
-        "tile_viewbox": "31 58 38 44",
+        "tile_viewbox": "26.84 57.12 46.31 46.31",
         "svg": '<image xlink:href="/static/accessories/shoe_cowboy_boots.webp" href="/static/accessories/shoe_cowboy_boots.webp" x="33" y="60.65" width="34" height="39.25"/>',
     },
     "ballet_slippers": {
@@ -345,7 +345,7 @@ ACCESSORIES = {
         "emoji": "🩰",
         "cost": 10,
         "category": "shoes",
-        "tile_viewbox": "31 68 38 34",
+        "tile_viewbox": "29.94 65.37 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_ballet_slippers.webp" href="/static/accessories/shoe_ballet_slippers.webp" x="33" y="70.96" width="34" height="28.94"/>',
     },
     "flip_flops": {
@@ -353,7 +353,7 @@ ACCESSORIES = {
         "emoji": "🩴",
         "cost": 5,
         "category": "shoes",
-        "tile_viewbox": "31 75 38 27",
+        "tile_viewbox": "29.94 69.10 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_flip_flops.webp" href="/static/accessories/shoe_flip_flops.webp" x="33" y="78.43" width="34" height="21.47"/>',
     },
     "football_boots": {
@@ -361,7 +361,7 @@ ACCESSORIES = {
         "emoji": "⚽",
         "cost": 20,
         "category": "shoes",
-        "tile_viewbox": "31 73 38 29",
+        "tile_viewbox": "29.94 68 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_football_boots.webp" href="/static/accessories/shoe_football_boots.webp" x="33" y="76.23" width="34" height="23.67"/>',
     },
     "snow_boots": {
@@ -369,7 +369,7 @@ ACCESSORIES = {
         "emoji": "❄️",
         "cost": 20,
         "category": "shoes",
-        "tile_viewbox": "31 73 38 29",
+        "tile_viewbox": "29.94 68.07 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_snow_boots.webp" href="/static/accessories/shoe_snow_boots.webp" x="33" y="76.36" width="34" height="23.54"/>',
     },
     "ice_skates": {
@@ -377,7 +377,7 @@ ACCESSORIES = {
         "emoji": "⛸️",
         "cost": 40,
         "category": "shoes",
-        "tile_viewbox": "31 74 38 28",
+        "tile_viewbox": "29.94 68.88 40.12 40.12",
         "svg": '<image xlink:href="/static/accessories/shoe_ice_skates.webp" href="/static/accessories/shoe_ice_skates.webp" x="33" y="77.97" width="34" height="21.93"/>',
     },
     "ice_cream": {
@@ -385,7 +385,7 @@ ACCESSORIES = {
         "emoji": "🍦",
         "cost": 10,
         "category": "held",
-        "tile_viewbox": "64 44 32 44",
+        "tile_viewbox": "58.16 46.61 41.61 41.61",
         "svg": '<g transform="rotate(14 78 63)"><path d="M73.5 65 L86.5 65 L80 83 Z" fill="#D9A441"></path><path d="M73.5 65 L86.5 65 L80 83 Z" fill="#1A1128" opacity="0.12"></path><circle cx="76.3" cy="61.5" r="5.2" fill="#E87EA1"></circle><circle cx="83.7" cy="61.5" r="5.2" fill="#F5EDD6"></circle><circle cx="80" cy="56.5" r="5.4" fill="#7EC8A4"></circle></g>',
     },
     "walkie_talkie": {
@@ -393,7 +393,7 @@ ACCESSORIES = {
         "emoji": "📻",
         "cost": 20,
         "category": "held",
-        "tile_viewbox": "64 44 32 44",
+        "tile_viewbox": "57.85 43.82 43.21 43.21",
         "svg": '<g transform="rotate(14 78 63)"><rect x="72.5" y="58" width="15" height="24" rx="2.5" fill="#2D1B69"></rect><rect x="75.5" y="61" width="9" height="6" rx="1" fill="#7EC8A4"></rect><circle cx="77.5" cy="72" r="1.7" fill="#C4BFDF"></circle><circle cx="82.5" cy="72" r="1.7" fill="#C4BFDF"></circle><circle cx="77.5" cy="77" r="1.7" fill="#C4BFDF"></circle><circle cx="82.5" cy="77" r="1.7" fill="#C4BFDF"></circle><rect x="83" y="48" width="2.6" height="11" rx="1.3" fill="#1A1128"></rect></g>',
     },
     "microphone": {
@@ -401,7 +401,7 @@ ACCESSORIES = {
         "emoji": "🎤",
         "cost": 75,
         "category": "held",
-        "tile_viewbox": "64 44 32 44",
+        "tile_viewbox": "58.80 49.32 39.49 39.49",
         "svg": '<g transform="rotate(14 78 63)"><rect x="78.4" y="65" width="3.2" height="18" rx="1.6" fill="#2B2B2B"></rect><circle cx="80" cy="60.5" r="7.2" fill="#8E87B8"></circle><circle cx="80" cy="60.5" r="4.8" fill="#C4BFDF"></circle><rect x="76" y="81" width="8" height="3.2" rx="1.6" fill="#1A1128"></rect></g>',
     },
     "lollipop": {
@@ -409,7 +409,7 @@ ACCESSORIES = {
         "emoji": "🍭",
         "cost": 5,
         "category": "held",
-        "tile_viewbox": "64 44 32 44",
+        "tile_viewbox": "58.45 47.02 40.98 40.98",
         "svg": '<g transform="rotate(14 78 63)"><rect x="78.8" y="63" width="2.6" height="20" rx="1.3" fill="#F5EDD6"></rect><circle cx="80" cy="59.5" r="8.2" fill="#E87EA1"></circle><circle cx="80" cy="59.5" r="5.4" fill="#F5EDD6"></circle><circle cx="80" cy="59.5" r="2.7" fill="#E87EA1"></circle></g>',
     },
     "drumsticks": {
@@ -417,7 +417,7 @@ ACCESSORIES = {
         "emoji": "🥁",
         "cost": 20,
         "category": "held",
-        "tile_viewbox": "64 44 32 44",
+        "tile_viewbox": "58.41 48.16 40.58 40.58",
         "svg": '<g transform="rotate(14 78 63)"><g transform="rotate(-11 75.5 69)"><rect x="74" y="57" width="3" height="26" rx="1.5" fill="#D9A441"></rect><circle cx="75.5" cy="56" r="2.8" fill="#B8901F"></circle></g><g transform="rotate(11 84.5 69)"><rect x="83" y="57" width="3" height="26" rx="1.5" fill="#D9A441"></rect><circle cx="84.5" cy="56" r="2.8" fill="#B8901F"></circle></g></g>',
     },
     "magnifying_glass": {
@@ -425,7 +425,7 @@ ACCESSORIES = {
         "emoji": "🔍",
         "cost": 20,
         "category": "held",
-        "tile_viewbox": "64 44 32 44",
+        "tile_viewbox": "59.12 48.36 39.37 39.37",
         "svg": '<g transform="rotate(14 78 63)"><circle cx="80" cy="60" r="7.6" fill="#C4BFDF" opacity="0.55"></circle><circle cx="80" cy="60" r="7.6" fill="none" stroke="#8B5A2B" stroke-width="3"></circle><rect x="78.5" y="67" width="3" height="16" rx="1.5" fill="#8B5A2B"></rect></g>',
     },
     "water_bottle": {
@@ -433,7 +433,7 @@ ACCESSORIES = {
         "emoji": "🍶",
         "cost": 5,
         "category": "held",
-        "tile_viewbox": "64 44 32 44",
+        "tile_viewbox": "58.94 47.33 40.06 40.06",
         "svg": '<g transform="rotate(14 78 63)"><rect x="76" y="51" width="8" height="5.5" rx="1.5" fill="#3F7C5C"></rect><rect x="74" y="56" width="12" height="27" rx="3.5" fill="#7EC8A4"></rect><rect x="74" y="64" width="12" height="6.5" fill="#F5EDD6"></rect><rect x="76.4" y="59" width="2.5" height="20" rx="1.2" fill="#FFFFFF" opacity="0.35"></rect></g>',
     },
     "binoculars": {
@@ -441,7 +441,7 @@ ACCESSORIES = {
         "emoji": "🔭",
         "cost": 75,
         "category": "gear",
-        "tile_viewbox": "38 42 32 42",
+        "tile_viewbox": "37.19 31.64 33.63 33.63",
         "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#3D2A85" stroke-width="2.5" stroke-linecap="round"></path><rect x="47.5" y="63" width="17" height="12.5" rx="2.2" fill="#2D1B69"></rect><circle cx="51.5" cy="69.2" r="3.6" fill="#1A1128"></circle><circle cx="60.5" cy="69.2" r="3.6" fill="#1A1128"></circle><circle cx="51.5" cy="69.2" r="2" fill="#5B93C4"></circle><circle cx="60.5" cy="69.2" r="2" fill="#5B93C4"></circle></g>',
     },
     "camera": {
@@ -449,7 +449,7 @@ ACCESSORIES = {
         "emoji": "📷",
         "cost": 75,
         "category": "gear",
-        "tile_viewbox": "38 42 32 42",
+        "tile_viewbox": "36.59 31.55 34.81 34.81",
         "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#2B2B2B" stroke-width="2.5" stroke-linecap="round"></path><rect x="46.5" y="63" width="19" height="13.5" rx="2.5" fill="#2B2B2B"></rect><circle cx="56" cy="69.8" r="4.8" fill="#5B93C4"></circle><circle cx="56" cy="69.8" r="2.5" fill="#1A1128"></circle><rect x="61" y="60.2" width="4.2" height="3.2" rx="1" fill="#2B2B2B"></rect></g>',
     },
     "compass": {
@@ -457,7 +457,7 @@ ACCESSORIES = {
         "emoji": "🧭",
         "cost": 40,
         "category": "gear",
-        "tile_viewbox": "38 42 32 42",
+        "tile_viewbox": "35.89 31.44 36.23 36.23",
         "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#8B5A2B" stroke-width="2.5" stroke-linecap="round"></path><circle cx="56" cy="69.5" r="8.2" fill="#F5EDD6"></circle><circle cx="56" cy="69.5" r="8.2" fill="none" stroke="#8B5A2B" stroke-width="2"></circle><path d="M56 63 L58.6 69.5 L56 76 L53.4 69.5 Z" fill="#C0392B"></path></g>',
     },
     "field_notebook": {
@@ -465,7 +465,7 @@ ACCESSORIES = {
         "emoji": "📓",
         "cost": 10,
         "category": "gear",
-        "tile_viewbox": "38 42 32 42",
+        "tile_viewbox": "34.23 31.19 39.53 39.53",
         "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#8B5A2B" stroke-width="2.5" stroke-linecap="round"></path><rect x="48" y="63" width="16" height="17.5" rx="1.5" fill="#F5EDD6"></rect><rect x="48" y="63" width="16" height="17.5" rx="1.5" fill="none" stroke="#8B5A2B" stroke-width="1.5"></rect><path d="M51 68 L61 68 M51 72 L61 72 M51 76 L61 76" stroke="#8E87B8" stroke-width="1"></path></g>',
     },
     "satchel": {
@@ -473,7 +473,7 @@ ACCESSORIES = {
         "emoji": "👜",
         "cost": 10,
         "category": "gear",
-        "tile_viewbox": "38 42 32 42",
+        "tile_viewbox": "36.30 31.50 35.40 35.40",
         "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#B85A36" stroke-width="2.5" stroke-linecap="round"></path><rect x="46" y="63" width="20" height="14" rx="2.5" fill="#E8845C"></rect><path d="M46 63 L66 63 L66 69 C66 70.2 65 70.6 64 70.6 L48 70.6 C47 70.6 46 70.2 46 69 Z" fill="#B85A36"></path><rect x="53" y="67" width="6" height="4.6" rx="1.2" fill="#F2C94C"></rect></g>',
     },
 }
