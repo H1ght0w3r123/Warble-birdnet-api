@@ -133,8 +133,8 @@ ACCESSORIES = {
         "emoji": "🧶",
         "cost": 10,
         "category": "hats",
-        "tile_viewbox": "15.90 -29.78 68.66 68.66",
-        "svg": '<g transform="rotate(-4 50 26)"><image xlink:href="/static/accessories/hat_cozy_beanie.webp" href="/static/accessories/hat_cozy_beanie.webp" x="24.13" y="-17.76" width="55.20" height="44.76"/></g>',
+        "tile_viewbox": "20.90 -29.78 68.66 68.66",
+        "svg": '<g transform="rotate(-4 50 26)"><image xlink:href="/static/accessories/hat_cozy_beanie.webp" href="/static/accessories/hat_cozy_beanie.webp" x="29.13" y="-17.76" width="55.20" height="44.76"/></g>',
     },
     "cosy_scarf": {
         "name": "Cosy Scarf",
