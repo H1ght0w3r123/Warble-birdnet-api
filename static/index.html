@@ -3215,6 +3215,7 @@ function renderSwatchRows() {
 // scrolling in the same direction forever.
 const SPECIES_LOOP_COPIES = 3;
 let speciesScrollSettleTimer = null;
+let speciesScrollRAF = null;
 let activeSpeciesBtn = null;
 
 function initDressUpAvatarPicker() {
@@ -3250,8 +3251,7 @@ function initDressUpAvatarPicker() {
   const startBtn = middleCopyButtons[AVATAR_SPECIES.length + startIdx];
   if (startBtn) {
     startBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
-    activeSpeciesBtn = startBtn;
-    startBtn.classList.add('is-current');
+    setActiveSilhouette(startBtn);
   }
 
   if (circle) setupCircleDragBridge(track, circle);
@@ -3261,10 +3261,26 @@ function initDressUpAvatarPicker() {
 }
 
 function onSpeciesTrackScroll() {
+  // Two separate concerns, deliberately on different cadences:
+  // - which button is hidden (is-current) needs to track the scroll in
+  //   real time, every frame, so the outgoing bird visibly slides away as
+  //   part of the same continuous motion as everything else, rather than
+  //   staying invisible for the whole swipe and only reappearing once
+  //   things stop moving.
+  // - actually committing the selection (updating the profile, re-
+  //   rendering the coloured avatar, saving to the server) stays
+  //   debounced to settle, so the main avatar doesn't flicker through
+  //   every bird you scroll past and the server isn't hit mid-swipe.
+  if (!speciesScrollRAF) {
+    speciesScrollRAF = requestAnimationFrame(() => {
+      speciesScrollRAF = null;
+      const track = document.getElementById('speciesTrack');
+      if (!track) return;
+      const centred = findCentredSpeciesButton(track);
+      if (centred) setActiveSilhouette(centred);
+    });
+  }
   clearTimeout(speciesScrollSettleTimer);
-  // Wait for scrolling to actually stop (native snap included) rather than
-  // reacting mid-swipe, so the switch happens once a bird has settled
-  // behind the circle, not while it's still passing through.
   speciesScrollSettleTimer = setTimeout(onSpeciesTrackSettled, 130);
 }
 
@@ -3283,7 +3299,10 @@ function onSpeciesTrackSettled() {
   const track = document.getElementById('speciesTrack');
   if (!track) return;
   const centred = findCentredSpeciesButton(track);
-  if (centred) markActiveButton(centred);
+  if (centred) {
+    setActiveSilhouette(centred);          // no-op if the RAF loop above already set it
+    commitSpeciesSelection(centred.dataset.species);
+  }
 
   // Endless-loop rewrap, silent and instant.
   const copyWidth = track.scrollWidth / SPECIES_LOOP_COPIES;
@@ -3296,27 +3315,29 @@ function onSpeciesTrackSettled() {
   }
   // We jumped copies - re-anchor the active-button reference to the
   // physically different (but visually identical) node now behind the
-  // circle. Same species, so this never re-saves to the server.
+  // circle. Same species either way, so this never re-commits.
   const recentred = findCentredSpeciesButton(track);
-  if (recentred) markActiveButton(recentred, { save: false });
+  if (recentred) setActiveSilhouette(recentred);
 }
 
-// The single source of truth for "what's selected": which DOM button
-// (not just which species id, since the same species exists in all three
-// loop copies) currently sits hidden behind the circle.
-function markActiveButton(btn, { save = true } = {}) {
+// Purely visual: which DOM button (not just which species id, since the
+// same species exists in all three loop copies) is hidden behind the
+// circle right now. Safe to call every frame - it never touches the
+// profile or the server.
+function setActiveSilhouette(btn) {
   if (activeSpeciesBtn === btn) return;
   if (activeSpeciesBtn) activeSpeciesBtn.classList.remove('is-current');
   activeSpeciesBtn = btn;
   activeSpeciesBtn.classList.add('is-current');
+}
 
-  const id = btn.dataset.species;
-  if (currentProfile.avatar_species !== id) {
-    currentProfile.avatar_species = id;
-    renderDressUpPreview();
-    updateNavAvatarIcon();
-    if (save) saveSpeciesSelection(id);
-  }
+// The actual selection: only called once scrolling has settled.
+function commitSpeciesSelection(id) {
+  if (currentProfile.avatar_species === id) return;
+  currentProfile.avatar_species = id;
+  renderDressUpPreview();
+  updateNavAvatarIcon();
+  saveSpeciesSelection(id);
 }
 
 async function saveSpeciesSelection(speciesId) {
