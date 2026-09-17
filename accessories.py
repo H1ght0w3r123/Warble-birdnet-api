@@ -73,8 +73,8 @@ ACCESSORIES = {
         "emoji": "🧢",
         "cost": 10,
         "category": "hats",
-        "tile_viewbox": "15.66 -28.21 65.36 65.36",
-        "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="26.23" y="-11.56" width="51.00" height="32.06"/></g>',
+        "tile_viewbox": "15.66 -14.21 65.36 65.36",
+        "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="26.23" y="2.44" width="51.00" height="32.06"/></g>',
     },
     "sun_hat": {
         "name": "Sun Hat",
