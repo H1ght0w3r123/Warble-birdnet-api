@@ -42,7 +42,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "26 -3 48 34",
-        "svg": '<g transform="rotate(-8 50 26)"><image xlink:href="/static/accessories/hat_top_hat.webp" href="/static/accessories/hat_top_hat.webp" x="28.21" y="-1" width="43.57" height="28"/></g>',
+        "svg": '<g transform="rotate(-8 50 26)"><image xlink:href="/static/accessories/hat_top_hat.webp" href="/static/accessories/hat_top_hat.webp" x="25.39" y="-1" width="49.23" height="31.64"/></g>',
     },
     "golden_crown": {
         "name": "Golden Crown",
@@ -50,7 +50,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "hats",
         "tile_viewbox": "25 -3 50 34",
-        "svg": '<g transform="rotate(6 50 26)"><image xlink:href="/static/accessories/hat_golden_crown.webp" href="/static/accessories/hat_golden_crown.webp" x="26.87" y="-1" width="46.26" height="28"/></g>',
+        "svg": '<g transform="rotate(6 50 26)"><image xlink:href="/static/accessories/hat_golden_crown.webp" href="/static/accessories/hat_golden_crown.webp" x="23.86" y="-1" width="52.27" height="31.64"/></g>',
     },
     "flower_crown": {
         "name": "Flower Crown",
@@ -58,7 +58,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "15 -3 70 34",
-        "svg": '<g transform="rotate(-5 50 26)"><image xlink:href="/static/accessories/hat_flower_crown.webp" href="/static/accessories/hat_flower_crown.webp" x="17.41" y="-1" width="65.17" height="28"/></g>',
+        "svg": '<g transform="rotate(-5 50 26)"><image xlink:href="/static/accessories/hat_flower_crown.webp" href="/static/accessories/hat_flower_crown.webp" x="13.18" y="-1" width="73.64" height="31.64"/></g>',
     },
     "deerstalker_hat": {
         "name": "Deerstalker Hat",
@@ -66,7 +66,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "25 -3 50 34",
-        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_deerstalker_hat.webp" href="/static/accessories/hat_deerstalker_hat.webp" x="27.68" y="-1" width="44.64" height="28"/></g>',
+        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_deerstalker_hat.webp" href="/static/accessories/hat_deerstalker_hat.webp" x="24.78" y="-1" width="50.44" height="31.64"/></g>',
     },
     "baseball_cap": {
         "name": "Baseball Cap",
@@ -74,7 +74,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "hats",
         "tile_viewbox": "27 -3 46 34",
-        "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="29.79" y="-1" width="40.42" height="28"/></g>',
+        "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="27.16" y="-1" width="45.67" height="31.64"/></g>',
     },
     "sun_hat": {
         "name": "Sun Hat",
@@ -82,7 +82,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "18 -3 64 34",
-        "svg": '<g transform="rotate(5 50 26)"><image xlink:href="/static/accessories/hat_sun_hat.webp" href="/static/accessories/hat_sun_hat.webp" x="20.5" y="-1" width="59" height="28"/></g>',
+        "svg": '<g transform="rotate(5 50 26)"><image xlink:href="/static/accessories/hat_sun_hat.webp" href="/static/accessories/hat_sun_hat.webp" x="16.66" y="-1" width="66.67" height="31.64"/></g>',
     },
     "party_hat": {
         "name": "Party Hat",
@@ -90,7 +90,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "hats",
         "tile_viewbox": "36 -3 28 34",
-        "svg": '<g transform="rotate(9 50 26)"><image xlink:href="/static/accessories/hat_party_hat.webp" href="/static/accessories/hat_party_hat.webp" x="38.25" y="-1" width="23.5" height="28"/></g>',
+        "svg": '<g transform="rotate(9 50 26)"><image xlink:href="/static/accessories/hat_party_hat.webp" href="/static/accessories/hat_party_hat.webp" x="36.73" y="-1" width="26.55" height="31.64"/></g>',
     },
     "wizard_hat": {
         "name": "Wizard Hat",
@@ -98,7 +98,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "hats",
         "tile_viewbox": "27 -3 46 34",
-        "svg": '<g transform="rotate(-7 50 26)"><image xlink:href="/static/accessories/hat_wizard_hat.webp" href="/static/accessories/hat_wizard_hat.webp" x="29.64" y="-1" width="40.73" height="28"/></g>',
+        "svg": '<g transform="rotate(-7 50 26)"><image xlink:href="/static/accessories/hat_wizard_hat.webp" href="/static/accessories/hat_wizard_hat.webp" x="26.99" y="-1" width="46.02" height="31.64"/></g>',
     },
     "pirate_hat": {
         "name": "Pirate Hat",
@@ -106,7 +106,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "hats",
         "tile_viewbox": "24 -3 52 34",
-        "svg": '<g transform="rotate(8 50 26)"><image xlink:href="/static/accessories/hat_pirate_hat.webp" href="/static/accessories/hat_pirate_hat.webp" x="26.61" y="-1" width="46.78" height="28"/></g>',
+        "svg": '<g transform="rotate(8 50 26)"><image xlink:href="/static/accessories/hat_pirate_hat.webp" href="/static/accessories/hat_pirate_hat.webp" x="23.57" y="-1" width="52.86" height="31.64"/></g>',
     },
     "explorer_helmet": {
         "name": "Explorer Helmet",
@@ -114,7 +114,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "hats",
         "tile_viewbox": "26 -3 48 34",
-        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_explorer_helmet.webp" href="/static/accessories/hat_explorer_helmet.webp" x="27.96" y="-1" width="44.07" height="28"/></g>',
+        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_explorer_helmet.webp" href="/static/accessories/hat_explorer_helmet.webp" x="25.1" y="-1" width="49.8" height="31.64"/></g>',
     },
     "ski_hat": {
         "name": "Ski Hat",
@@ -122,7 +122,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "34 -3 32 34",
-        "svg": '<g transform="rotate(7 50 26)"><image xlink:href="/static/accessories/hat_ski_hat.webp" href="/static/accessories/hat_ski_hat.webp" x="35.83" y="-1" width="28.35" height="28"/></g>',
+        "svg": '<g transform="rotate(7 50 26)"><image xlink:href="/static/accessories/hat_ski_hat.webp" href="/static/accessories/hat_ski_hat.webp" x="33.98" y="-1" width="32.04" height="31.64"/></g>',
     },
     "cozy_beanie": {
         "name": "Cozy Beanie",
@@ -130,7 +130,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "hats",
         "tile_viewbox": "34 -3 32 34",
-        "svg": '<g transform="rotate(-4 50 26)"><image xlink:href="/static/accessories/hat_cozy_beanie.webp" href="/static/accessories/hat_cozy_beanie.webp" x="35.77" y="-1" width="28.47" height="28"/></g>',
+        "svg": '<g transform="rotate(-4 50 26)"><image xlink:href="/static/accessories/hat_cozy_beanie.webp" href="/static/accessories/hat_cozy_beanie.webp" x="33.91" y="-1" width="32.17" height="31.64"/></g>',
     },
     "cosy_scarf": {
         "name": "Cosy Scarf",
@@ -138,7 +138,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "neck",
         "tile_viewbox": "29 61 42 36",
-        "svg": '<image xlink:href="/static/accessories/neck_cosy_scarf.webp" href="/static/accessories/neck_cosy_scarf.webp" x="30.57" y="63" width="38.86" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_cosy_scarf.webp" href="/static/accessories/neck_cosy_scarf.webp" x="29.78" y="50.2" width="43.91" height="38.42"/>',
     },
     "fancy_bow": {
         "name": "Fancy Bow",
@@ -146,7 +146,7 @@ ACCESSORIES = {
         "cost": 5,
         "category": "neck",
         "tile_viewbox": "31 61 38 36",
-        "svg": '<image xlink:href="/static/accessories/neck_fancy_bow.webp" href="/static/accessories/neck_fancy_bow.webp" x="32.26" y="63" width="35.48" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_fancy_bow.webp" href="/static/accessories/neck_fancy_bow.webp" x="31.69" y="50.2" width="40.09" height="38.42"/>',
     },
     "bow_tie": {
         "name": "Bow Tie",
@@ -154,7 +154,7 @@ ACCESSORIES = {
         "cost": 5,
         "category": "neck",
         "tile_viewbox": "24 61 52 32",
-        "svg": '<image xlink:href="/static/accessories/neck_bow_tie.webp" href="/static/accessories/neck_bow_tie.webp" x="25" y="63" width="50" height="29.55"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_bow_tie.webp" href="/static/accessories/neck_bow_tie.webp" x="23.48" y="50.2" width="56.5" height="33.39"/>',
     },
     "beaded_necklace": {
         "name": "Beaded Necklace",
@@ -162,7 +162,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "neck",
         "tile_viewbox": "24 61 52 36",
-        "svg": '<image xlink:href="/static/accessories/neck_beaded_necklace.webp" href="/static/accessories/neck_beaded_necklace.webp" x="25.31" y="63" width="49.38" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_beaded_necklace.webp" href="/static/accessories/neck_beaded_necklace.webp" x="23.84" y="50.2" width="55.8" height="38.42"/>',
     },
     "golden_medal": {
         "name": "Golden Medal",
@@ -170,7 +170,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "neck",
         "tile_viewbox": "31 61 38 36",
-        "svg": '<image xlink:href="/static/accessories/neck_golden_medal.webp" href="/static/accessories/neck_golden_medal.webp" x="32.73" y="63" width="34.55" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_golden_medal.webp" href="/static/accessories/neck_golden_medal.webp" x="32.22" y="50.2" width="39.04" height="38.42"/>',
     },
     "pearl_necklace": {
         "name": "Pearl Necklace",
@@ -178,7 +178,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "neck",
         "tile_viewbox": "24 61 52 36",
-        "svg": '<image xlink:href="/static/accessories/neck_pearl_necklace.webp" href="/static/accessories/neck_pearl_necklace.webp" x="25.5" y="63" width="49" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_pearl_necklace.webp" href="/static/accessories/neck_pearl_necklace.webp" x="24.05" y="50.2" width="55.37" height="38.42"/>',
     },
     "striped_scarf": {
         "name": "Striped Scarf",
@@ -186,7 +186,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "neck",
         "tile_viewbox": "29 61 42 36",
-        "svg": '<image xlink:href="/static/accessories/neck_striped_scarf.webp" href="/static/accessories/neck_striped_scarf.webp" x="30.25" y="63" width="39.5" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_striped_scarf.webp" href="/static/accessories/neck_striped_scarf.webp" x="29.42" y="50.2" width="44.63" height="38.42"/>',
     },
     "star_necklace": {
         "name": "Star Necklace",
@@ -194,7 +194,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "neck",
         "tile_viewbox": "29 61 42 36",
-        "svg": '<image xlink:href="/static/accessories/neck_star_necklace.webp" href="/static/accessories/neck_star_necklace.webp" x="30.67" y="63" width="38.66" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_star_necklace.webp" href="/static/accessories/neck_star_necklace.webp" x="29.89" y="50.2" width="43.69" height="38.42"/>',
     },
     "flower_lei": {
         "name": "Flower Lei",
@@ -202,7 +202,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "neck",
         "tile_viewbox": "28 61 44 36",
-        "svg": '<image xlink:href="/static/accessories/neck_flower_lei.webp" href="/static/accessories/neck_flower_lei.webp" x="29.68" y="63" width="40.65" height="34"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_flower_lei.webp" href="/static/accessories/neck_flower_lei.webp" x="28.77" y="50.2" width="45.93" height="38.42"/>',
     },
     "cape": {
         "name": "Cape",
@@ -210,7 +210,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "neck",
         "tile_viewbox": "24 61 52 25",
-        "svg": '<image xlink:href="/static/accessories/neck_cape.webp" href="/static/accessories/neck_cape.webp" x="25" y="63" width="50" height="22.68"/>',
+        "svg": '<image xlink:href="/static/accessories/neck_cape.webp" href="/static/accessories/neck_cape.webp" x="23.48" y="50.2" width="56.5" height="25.63"/>',
     },
     "explorer_backpack": {
         "name": "Explorer Backpack",
@@ -218,7 +218,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "gear",
         "tile_viewbox": "13 54 74 38",
-        "svg": '<path d="M15.4 61 C15.4 58.6 17 57 19.6 57 L26 57 C27.4 57 28 58 28 59.4 L28 73 C28 75 26.6 76 24.4 76 L19.6 76 C17 76 15.4 74.4 15.4 72 Z" fill="#7EC8A4"></path><path d="M24 57.4 C26.6 58 28 59 28 60.6 L28 73 C28 75 26.6 76 24.4 76 C25.4 74 25.6 71.6 25.4 68.6 C25 64.6 24.6 61 24 57.4 Z" fill="#3F7C5C"></path><path d="M84.6 61 C84.6 58.6 83 57 80.4 57 L74 57 C72.6 57 72 58 72 59.4 L72 73 C72 75 73.4 76 75.6 76 L80.4 76 C83 76 84.6 74.4 84.6 72 Z" fill="#7EC8A4"></path><path d="M76 57.4 C73.4 58 72 59 72 60.6 L72 73 C72 75 73.4 76 75.6 76 C74.6 74 74.4 71.6 74.6 68.6 C75 64.6 75.4 61 76 57.4 Z" fill="#3F7C5C"></path><path d="M37.6 61 C39.6 60.4 42.4 60.4 44.4 61 C45.4 69.6 46 78.6 46 87.6 C44 88.2 41.4 88.2 39.4 87.6 C39.4 78.6 38.6 69.6 37.6 61 Z" fill="#3F7C5C"></path><path d="M62.4 61 C60.4 60.4 57.6 60.4 55.6 61 C54.6 69.6 54 78.6 54 87.6 C56 88.2 58.6 88.2 60.6 87.6 C60.6 78.6 61.4 69.6 62.4 61 Z" fill="#3F7C5C"></path><path d="M43 60.6 C44 60.7 44.4 60.8 44.4 61 C45.4 69.6 46 78.6 46 87.6 C45.4 87.8 44.8 88 44.2 88 C44.2 78.6 43.6 69.4 43 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M57 60.6 C56 60.7 55.6 60.8 55.6 61 C54.6 69.6 54 78.6 54 87.6 C54.6 87.8 55.2 88 55.8 88 C55.8 78.6 56.4 69.4 57 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M39 71.6 L46 71.6 L46 76.4 L39 76.4 Z" fill="#F2C94C"></path><path d="M54 71.6 L61 71.6 L61 76.4 L54 76.4 Z" fill="#F2C94C"></path><path d="M41 73 L44 73 L44 75 L41 75 Z" fill="#B8901F"></path><path d="M56 73 L59 73 L59 75 L56 75 Z" fill="#B8901F"></path>',
+        "svg": '<g transform="translate(0,-12.8)"><path d="M15.4 61 C15.4 58.6 17 57 19.6 57 L26 57 C27.4 57 28 58 28 59.4 L28 73 C28 75 26.6 76 24.4 76 L19.6 76 C17 76 15.4 74.4 15.4 72 Z" fill="#7EC8A4"></path><path d="M24 57.4 C26.6 58 28 59 28 60.6 L28 73 C28 75 26.6 76 24.4 76 C25.4 74 25.6 71.6 25.4 68.6 C25 64.6 24.6 61 24 57.4 Z" fill="#3F7C5C"></path><path d="M84.6 61 C84.6 58.6 83 57 80.4 57 L74 57 C72.6 57 72 58 72 59.4 L72 73 C72 75 73.4 76 75.6 76 L80.4 76 C83 76 84.6 74.4 84.6 72 Z" fill="#7EC8A4"></path><path d="M76 57.4 C73.4 58 72 59 72 60.6 L72 73 C72 75 73.4 76 75.6 76 C74.6 74 74.4 71.6 74.6 68.6 C75 64.6 75.4 61 76 57.4 Z" fill="#3F7C5C"></path><path d="M37.6 61 C39.6 60.4 42.4 60.4 44.4 61 C45.4 69.6 46 78.6 46 87.6 C44 88.2 41.4 88.2 39.4 87.6 C39.4 78.6 38.6 69.6 37.6 61 Z" fill="#3F7C5C"></path><path d="M62.4 61 C60.4 60.4 57.6 60.4 55.6 61 C54.6 69.6 54 78.6 54 87.6 C56 88.2 58.6 88.2 60.6 87.6 C60.6 78.6 61.4 69.6 62.4 61 Z" fill="#3F7C5C"></path><path d="M43 60.6 C44 60.7 44.4 60.8 44.4 61 C45.4 69.6 46 78.6 46 87.6 C45.4 87.8 44.8 88 44.2 88 C44.2 78.6 43.6 69.4 43 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M57 60.6 C56 60.7 55.6 60.8 55.6 61 C54.6 69.6 54 78.6 54 87.6 C54.6 87.8 55.2 88 55.8 88 C55.8 78.6 56.4 69.4 57 60.6 Z" fill="#7EC8A4" opacity="0.5"></path><path d="M39 71.6 L46 71.6 L46 76.4 L39 76.4 Z" fill="#F2C94C"></path><path d="M54 71.6 L61 71.6 L61 76.4 L54 76.4 Z" fill="#F2C94C"></path><path d="M41 73 L44 73 L44 75 L41 75 Z" fill="#B8901F"></path><path d="M56 73 L59 73 L59 75 L56 75 Z" fill="#B8901F"></path></g>',
     },
     "round_specs": {
         "name": "Round Wire Specs",
@@ -226,7 +226,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "glasses",
         "tile_viewbox": "20 36 60 26",
-        "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="22" y="39.29" width="56" height="21.42"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="20.09" y="23.12" width="63.28" height="24.2"/>',
     },
     "explorer_goggles": {
         "name": "Explorer Goggles",
@@ -234,7 +234,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "glasses",
         "tile_viewbox": "20 38 60 22",
-        "svg": '<image xlink:href="/static/accessories/glasses_explorer_goggles.webp" href="/static/accessories/glasses_explorer_goggles.webp" x="22" y="39.98" width="56" height="20.04"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_explorer_goggles.webp" href="/static/accessories/glasses_explorer_goggles.webp" x="20.09" y="23.89" width="63.28" height="22.65"/>',
     },
     "sunglasses": {
         "name": "Aviator Sunglasses",
@@ -242,7 +242,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "glasses",
         "tile_viewbox": "20 37 60 24",
-        "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="22" y="39.73" width="56" height="20.53"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="20.09" y="23.62" width="63.28" height="23.2"/>',
     },
     "star_glasses": {
         "name": "Star Glasses",
@@ -250,7 +250,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "glasses",
         "tile_viewbox": "20 36 60 26",
-        "svg": '<image xlink:href="/static/accessories/glasses_star_glasses.webp" href="/static/accessories/glasses_star_glasses.webp" x="22" y="39.15" width="56" height="21.7"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_star_glasses.webp" href="/static/accessories/glasses_star_glasses.webp" x="20.09" y="22.96" width="63.28" height="24.52"/>',
     },
     "black_browline": {
         "name": "Browline Glasses",
@@ -258,7 +258,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "glasses",
         "tile_viewbox": "20 39 60 20",
-        "svg": '<image xlink:href="/static/accessories/glasses_black_browline.webp" href="/static/accessories/glasses_black_browline.webp" x="22" y="41.14" width="56" height="17.72"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_black_browline.webp" href="/static/accessories/glasses_black_browline.webp" x="20.09" y="25.21" width="63.28" height="20.02"/>',
     },
     "cat_eye": {
         "name": "Cat-Eye Glasses",
@@ -266,7 +266,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "glasses",
         "tile_viewbox": "20 38 60 22",
-        "svg": '<image xlink:href="/static/accessories/glasses_cat_eye.webp" href="/static/accessories/glasses_cat_eye.webp" x="22" y="40.77" width="56" height="18.45"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_cat_eye.webp" href="/static/accessories/glasses_cat_eye.webp" x="20.09" y="24.79" width="63.28" height="20.85"/>',
     },
     "heart_glasses": {
         "name": "Heart Glasses",
@@ -274,7 +274,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "glasses",
         "tile_viewbox": "20 35 60 28",
-        "svg": '<image xlink:href="/static/accessories/glasses_heart_glasses.webp" href="/static/accessories/glasses_heart_glasses.webp" x="22" y="40.12" width="56" height="19.77"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_heart_glasses.webp" href="/static/accessories/glasses_heart_glasses.webp" x="20.09" y="24.05" width="63.28" height="22.34"/>',
     },
     "movie_3d": {
         "name": "3D Movie Glasses",
@@ -282,7 +282,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "glasses",
         "tile_viewbox": "20 39 60 20",
-        "svg": '<image xlink:href="/static/accessories/glasses_movie_3d.webp" href="/static/accessories/glasses_movie_3d.webp" x="22" y="40.95" width="56" height="18.1"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_movie_3d.webp" href="/static/accessories/glasses_movie_3d.webp" x="20.09" y="24.99" width="63.28" height="20.45"/>',
     },
     "monocle": {
         "name": "Monocle",
@@ -290,7 +290,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "glasses",
         "tile_viewbox": "48 38 36 22",
-        "svg": '<image xlink:href="/static/accessories/glasses_monocle.webp" href="/static/accessories/glasses_monocle.webp" x="50" y="41.13" width="32" height="17.73"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_monocle.webp" href="/static/accessories/glasses_monocle.webp" x="51.73" y="25.2" width="36.16" height="20.03"/>',
     },
     "rainbow_holo": {
         "name": "Rainbow Holo Sunglasses",
@@ -298,7 +298,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "glasses",
         "tile_viewbox": "20 38 60 22",
-        "svg": '<image xlink:href="/static/accessories/glasses_rainbow_holo.webp" href="/static/accessories/glasses_rainbow_holo.webp" x="22" y="40.8" width="56" height="18.41"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_rainbow_holo.webp" href="/static/accessories/glasses_rainbow_holo.webp" x="20.09" y="24.82" width="63.28" height="20.8"/>',
     },
     "wellies": {
         "name": "Wellies",
@@ -386,7 +386,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "held",
         "tile_viewbox": "64 44 32 44",
-        "svg": '<g transform="rotate(14 80 66)"><path d="M73.5 65 L86.5 65 L80 83 Z" fill="#D9A441"></path><path d="M73.5 65 L86.5 65 L80 83 Z" fill="#1A1128" opacity="0.12"></path><circle cx="76.3" cy="61.5" r="5.2" fill="#E87EA1"></circle><circle cx="83.7" cy="61.5" r="5.2" fill="#F5EDD6"></circle><circle cx="80" cy="56.5" r="5.4" fill="#7EC8A4"></circle></g>',
+        "svg": '<g transform="rotate(14 78 63)"><path d="M73.5 65 L86.5 65 L80 83 Z" fill="#D9A441"></path><path d="M73.5 65 L86.5 65 L80 83 Z" fill="#1A1128" opacity="0.12"></path><circle cx="76.3" cy="61.5" r="5.2" fill="#E87EA1"></circle><circle cx="83.7" cy="61.5" r="5.2" fill="#F5EDD6"></circle><circle cx="80" cy="56.5" r="5.4" fill="#7EC8A4"></circle></g>',
     },
     "walkie_talkie": {
         "name": "Walkie Talkie",
@@ -394,7 +394,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "held",
         "tile_viewbox": "64 44 32 44",
-        "svg": '<g transform="rotate(14 80 66)"><rect x="72.5" y="58" width="15" height="24" rx="2.5" fill="#2D1B69"></rect><rect x="75.5" y="61" width="9" height="6" rx="1" fill="#7EC8A4"></rect><circle cx="77.5" cy="72" r="1.7" fill="#C4BFDF"></circle><circle cx="82.5" cy="72" r="1.7" fill="#C4BFDF"></circle><circle cx="77.5" cy="77" r="1.7" fill="#C4BFDF"></circle><circle cx="82.5" cy="77" r="1.7" fill="#C4BFDF"></circle><rect x="83" y="48" width="2.6" height="11" rx="1.3" fill="#1A1128"></rect></g>',
+        "svg": '<g transform="rotate(14 78 63)"><rect x="72.5" y="58" width="15" height="24" rx="2.5" fill="#2D1B69"></rect><rect x="75.5" y="61" width="9" height="6" rx="1" fill="#7EC8A4"></rect><circle cx="77.5" cy="72" r="1.7" fill="#C4BFDF"></circle><circle cx="82.5" cy="72" r="1.7" fill="#C4BFDF"></circle><circle cx="77.5" cy="77" r="1.7" fill="#C4BFDF"></circle><circle cx="82.5" cy="77" r="1.7" fill="#C4BFDF"></circle><rect x="83" y="48" width="2.6" height="11" rx="1.3" fill="#1A1128"></rect></g>',
     },
     "microphone": {
         "name": "Microphone",
@@ -402,7 +402,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "held",
         "tile_viewbox": "64 44 32 44",
-        "svg": '<g transform="rotate(14 80 66)"><rect x="78.4" y="65" width="3.2" height="18" rx="1.6" fill="#2B2B2B"></rect><circle cx="80" cy="60.5" r="7.2" fill="#8E87B8"></circle><circle cx="80" cy="60.5" r="4.8" fill="#C4BFDF"></circle><rect x="76" y="81" width="8" height="3.2" rx="1.6" fill="#1A1128"></rect></g>',
+        "svg": '<g transform="rotate(14 78 63)"><rect x="78.4" y="65" width="3.2" height="18" rx="1.6" fill="#2B2B2B"></rect><circle cx="80" cy="60.5" r="7.2" fill="#8E87B8"></circle><circle cx="80" cy="60.5" r="4.8" fill="#C4BFDF"></circle><rect x="76" y="81" width="8" height="3.2" rx="1.6" fill="#1A1128"></rect></g>',
     },
     "lollipop": {
         "name": "Lollipop",
@@ -410,7 +410,7 @@ ACCESSORIES = {
         "cost": 5,
         "category": "held",
         "tile_viewbox": "64 44 32 44",
-        "svg": '<g transform="rotate(14 80 66)"><rect x="78.8" y="63" width="2.6" height="20" rx="1.3" fill="#F5EDD6"></rect><circle cx="80" cy="59.5" r="8.2" fill="#E87EA1"></circle><circle cx="80" cy="59.5" r="5.4" fill="#F5EDD6"></circle><circle cx="80" cy="59.5" r="2.7" fill="#E87EA1"></circle></g>',
+        "svg": '<g transform="rotate(14 78 63)"><rect x="78.8" y="63" width="2.6" height="20" rx="1.3" fill="#F5EDD6"></rect><circle cx="80" cy="59.5" r="8.2" fill="#E87EA1"></circle><circle cx="80" cy="59.5" r="5.4" fill="#F5EDD6"></circle><circle cx="80" cy="59.5" r="2.7" fill="#E87EA1"></circle></g>',
     },
     "drumsticks": {
         "name": "Drumsticks",
@@ -418,7 +418,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "held",
         "tile_viewbox": "64 44 32 44",
-        "svg": '<g transform="rotate(14 80 66)"><g transform="rotate(-11 75.5 69)"><rect x="74" y="57" width="3" height="26" rx="1.5" fill="#D9A441"></rect><circle cx="75.5" cy="56" r="2.8" fill="#B8901F"></circle></g><g transform="rotate(11 84.5 69)"><rect x="83" y="57" width="3" height="26" rx="1.5" fill="#D9A441"></rect><circle cx="84.5" cy="56" r="2.8" fill="#B8901F"></circle></g></g>',
+        "svg": '<g transform="rotate(14 78 63)"><g transform="rotate(-11 75.5 69)"><rect x="74" y="57" width="3" height="26" rx="1.5" fill="#D9A441"></rect><circle cx="75.5" cy="56" r="2.8" fill="#B8901F"></circle></g><g transform="rotate(11 84.5 69)"><rect x="83" y="57" width="3" height="26" rx="1.5" fill="#D9A441"></rect><circle cx="84.5" cy="56" r="2.8" fill="#B8901F"></circle></g></g>',
     },
     "magnifying_glass": {
         "name": "Magnifying Glass",
@@ -426,7 +426,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "held",
         "tile_viewbox": "64 44 32 44",
-        "svg": '<g transform="rotate(14 80 66)"><circle cx="80" cy="60" r="7.6" fill="#C4BFDF" opacity="0.55"></circle><circle cx="80" cy="60" r="7.6" fill="none" stroke="#8B5A2B" stroke-width="3"></circle><rect x="78.5" y="67" width="3" height="16" rx="1.5" fill="#8B5A2B"></rect></g>',
+        "svg": '<g transform="rotate(14 78 63)"><circle cx="80" cy="60" r="7.6" fill="#C4BFDF" opacity="0.55"></circle><circle cx="80" cy="60" r="7.6" fill="none" stroke="#8B5A2B" stroke-width="3"></circle><rect x="78.5" y="67" width="3" height="16" rx="1.5" fill="#8B5A2B"></rect></g>',
     },
     "water_bottle": {
         "name": "Water Bottle",
@@ -434,7 +434,7 @@ ACCESSORIES = {
         "cost": 5,
         "category": "held",
         "tile_viewbox": "64 44 32 44",
-        "svg": '<g transform="rotate(14 80 66)"><rect x="76" y="51" width="8" height="5.5" rx="1.5" fill="#3F7C5C"></rect><rect x="74" y="56" width="12" height="27" rx="3.5" fill="#7EC8A4"></rect><rect x="74" y="64" width="12" height="6.5" fill="#F5EDD6"></rect><rect x="76.4" y="59" width="2.5" height="20" rx="1.2" fill="#FFFFFF" opacity="0.35"></rect></g>',
+        "svg": '<g transform="rotate(14 78 63)"><rect x="76" y="51" width="8" height="5.5" rx="1.5" fill="#3F7C5C"></rect><rect x="74" y="56" width="12" height="27" rx="3.5" fill="#7EC8A4"></rect><rect x="74" y="64" width="12" height="6.5" fill="#F5EDD6"></rect><rect x="76.4" y="59" width="2.5" height="20" rx="1.2" fill="#FFFFFF" opacity="0.35"></rect></g>',
     },
     "binoculars": {
         "name": "Binoculars",
@@ -442,7 +442,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "gear",
         "tile_viewbox": "38 42 32 42",
-        "svg": '<path d="M42 47 L56 65 L66 47" fill="none" stroke="#3D2A85" stroke-width="2.5" stroke-linecap="round"></path><rect x="47.5" y="63" width="17" height="12.5" rx="2.2" fill="#2D1B69"></rect><circle cx="51.5" cy="69.2" r="3.6" fill="#1A1128"></circle><circle cx="60.5" cy="69.2" r="3.6" fill="#1A1128"></circle><circle cx="51.5" cy="69.2" r="2" fill="#5B93C4"></circle><circle cx="60.5" cy="69.2" r="2" fill="#5B93C4"></circle>',
+        "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#3D2A85" stroke-width="2.5" stroke-linecap="round"></path><rect x="47.5" y="63" width="17" height="12.5" rx="2.2" fill="#2D1B69"></rect><circle cx="51.5" cy="69.2" r="3.6" fill="#1A1128"></circle><circle cx="60.5" cy="69.2" r="3.6" fill="#1A1128"></circle><circle cx="51.5" cy="69.2" r="2" fill="#5B93C4"></circle><circle cx="60.5" cy="69.2" r="2" fill="#5B93C4"></circle></g>',
     },
     "camera": {
         "name": "Camera",
@@ -450,7 +450,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "gear",
         "tile_viewbox": "38 42 32 42",
-        "svg": '<path d="M42 47 L56 65 L66 47" fill="none" stroke="#2B2B2B" stroke-width="2.5" stroke-linecap="round"></path><rect x="46.5" y="63" width="19" height="13.5" rx="2.5" fill="#2B2B2B"></rect><circle cx="56" cy="69.8" r="4.8" fill="#5B93C4"></circle><circle cx="56" cy="69.8" r="2.5" fill="#1A1128"></circle><rect x="61" y="60.2" width="4.2" height="3.2" rx="1" fill="#2B2B2B"></rect>',
+        "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#2B2B2B" stroke-width="2.5" stroke-linecap="round"></path><rect x="46.5" y="63" width="19" height="13.5" rx="2.5" fill="#2B2B2B"></rect><circle cx="56" cy="69.8" r="4.8" fill="#5B93C4"></circle><circle cx="56" cy="69.8" r="2.5" fill="#1A1128"></circle><rect x="61" y="60.2" width="4.2" height="3.2" rx="1" fill="#2B2B2B"></rect></g>',
     },
     "compass": {
         "name": "Compass",
@@ -458,7 +458,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "gear",
         "tile_viewbox": "38 42 32 42",
-        "svg": '<path d="M42 47 L56 65 L66 47" fill="none" stroke="#8B5A2B" stroke-width="2.5" stroke-linecap="round"></path><circle cx="56" cy="69.5" r="8.2" fill="#F5EDD6"></circle><circle cx="56" cy="69.5" r="8.2" fill="none" stroke="#8B5A2B" stroke-width="2"></circle><path d="M56 63 L58.6 69.5 L56 76 L53.4 69.5 Z" fill="#C0392B"></path>',
+        "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#8B5A2B" stroke-width="2.5" stroke-linecap="round"></path><circle cx="56" cy="69.5" r="8.2" fill="#F5EDD6"></circle><circle cx="56" cy="69.5" r="8.2" fill="none" stroke="#8B5A2B" stroke-width="2"></circle><path d="M56 63 L58.6 69.5 L56 76 L53.4 69.5 Z" fill="#C0392B"></path></g>',
     },
     "field_notebook": {
         "name": "Field Notebook",
@@ -466,7 +466,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "gear",
         "tile_viewbox": "38 42 32 42",
-        "svg": '<path d="M42 47 L56 65 L66 47" fill="none" stroke="#8B5A2B" stroke-width="2.5" stroke-linecap="round"></path><rect x="48" y="63" width="16" height="17.5" rx="1.5" fill="#F5EDD6"></rect><rect x="48" y="63" width="16" height="17.5" rx="1.5" fill="none" stroke="#8B5A2B" stroke-width="1.5"></rect><path d="M51 68 L61 68 M51 72 L61 72 M51 76 L61 76" stroke="#8E87B8" stroke-width="1"></path>',
+        "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#8B5A2B" stroke-width="2.5" stroke-linecap="round"></path><rect x="48" y="63" width="16" height="17.5" rx="1.5" fill="#F5EDD6"></rect><rect x="48" y="63" width="16" height="17.5" rx="1.5" fill="none" stroke="#8B5A2B" stroke-width="1.5"></rect><path d="M51 68 L61 68 M51 72 L61 72 M51 76 L61 76" stroke="#8E87B8" stroke-width="1"></path></g>',
     },
     "satchel": {
         "name": "Satchel",
@@ -474,7 +474,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "gear",
         "tile_viewbox": "38 42 32 42",
-        "svg": '<path d="M42 47 L56 65 L66 47" fill="none" stroke="#B85A36" stroke-width="2.5" stroke-linecap="round"></path><rect x="46" y="63" width="20" height="14" rx="2.5" fill="#E8845C"></rect><path d="M46 63 L66 63 L66 69 C66 70.2 65 70.6 64 70.6 L48 70.6 C47 70.6 46 70.2 46 69 Z" fill="#B85A36"></path><rect x="53" y="67" width="6" height="4.6" rx="1.2" fill="#F2C94C"></rect>',
+        "svg": '<g transform="translate(0,-12.8)"><path d="M42 47 L56 65 L66 47" fill="none" stroke="#B85A36" stroke-width="2.5" stroke-linecap="round"></path><rect x="46" y="63" width="20" height="14" rx="2.5" fill="#E8845C"></rect><path d="M46 63 L66 63 L66 69 C66 70.2 65 70.6 64 70.6 L48 70.6 C47 70.6 46 70.2 46 69 Z" fill="#B85A36"></path><rect x="53" y="67" width="6" height="4.6" rx="1.2" fill="#F2C94C"></rect></g>',
     },
 }
 
