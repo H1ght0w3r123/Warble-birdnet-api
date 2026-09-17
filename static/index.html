@@ -535,10 +535,17 @@
   .carousel-item{
     flex:0 0 auto; width:78px; background:#fff; border-radius:12px; padding:8px 5px;
     display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
-    border:2px solid transparent; scroll-snap-align:start;
+    border:2px solid transparent; scroll-snap-align:start; position:relative;
   }
   .carousel-item{transition:transform .25s cubic-bezier(.34,1.4,.64,1), box-shadow .25s ease, width .25s ease;}
-  .carousel-item.equipped{border-color:var(--gold);}
+  /* Ownership/selection read entirely from the frame: a thin green border
+     means owned, a thicker darker-green one means currently worn. Unowned
+     items get a neutral border and a greyed-out icon instead of a text
+     label, so the frame carries the status without spending any vertical
+     space on it. */
+  .carousel-item.owned{border-color:var(--sage);}
+  .carousel-item.equipped{border-color:var(--sage-dk); border-width:3px; padding:7px 4px;}
+  .carousel-item.unowned{background:#EDEBF5; border-color:var(--mist);}
   /* Tapping an unowned item lifts it out of the row and makes room for Buy */
   .carousel-item.expanded{
     width:96px; transform:translateY(-10px) scale(1.06); z-index:5;
@@ -553,10 +560,16 @@
   .carousel-item .item-icon-wrap{width:60px;height:60px;line-height:1;}
   .carousel-item.expanded .item-icon-wrap{width:76px;height:76px;}
   .carousel-item.unowned .item-icon-wrap{opacity:0.5;filter:grayscale(0.4);}
-  .carousel-item-price{font-family:'Outfit';font-weight:700;font-size:9.8px;margin-top:0;}
-  .carousel-item-price.affordable{color:var(--gold-dk);}
-  .carousel-item-price.unaffordable{color:var(--mist-dk);opacity:0.6;}
-  .carousel-item-price.owned-label{color:var(--sage-dk);}
+  /* Corner badge for unowned items only - owned items show no price at all */
+  .carousel-item-price-badge{
+    position:absolute; top:4px; right:4px; display:flex; align-items:center; gap:2px;
+    background:#fff; border-radius:8px; padding:2px 5px 2px 4px;
+    font-family:'Outfit'; font-weight:700; font-size:8.6px; line-height:1.2;
+    box-shadow:0 1px 4px rgba(0,0,0,0.25);
+  }
+  .carousel-item-price-badge .feather-icon{width:9px;height:9px;}
+  .carousel-item-price-badge.affordable{color:var(--gold-dk);}
+  .carousel-item-price-badge.unaffordable{color:var(--mist-dk);opacity:0.75;}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
   .dressup-avatar-row{display:flex;justify-content:center;width:100%;margin-top:60px;margin-bottom:20px;}
@@ -3294,9 +3307,13 @@ function renderCarousel() {
     const isEquipped = currentProfile.equipped && currentProfile.equipped[a.category] === a.id;
     const canAfford = currentFeatherTotal >= a.cost;
     const isOpen = expandedItemId === a.id;
-    const priceHtml = a.owned
-      ? `<div class="carousel-item-price owned-label">${isEquipped ? 'Worn' : 'Owned'}</div>`
-      : `<div class="carousel-item-price ${canAfford ? 'affordable' : 'unaffordable'}"><img class="feather-icon" src="/static/feather.webp" alt=""> ${a.cost}</div>`;
+    // Ownership/selection now read entirely from the frame colour (see
+    // .carousel-item.owned / .equipped below), so owned items carry no
+    // price badge at all - only unowned ones, tucked in a corner instead
+    // of taking a full text row.
+    const priceBadge = a.owned
+      ? ''
+      : `<div class="carousel-item-price-badge ${canAfford ? 'affordable' : 'unaffordable'}"><img class="feather-icon" src="/static/feather.webp" alt=""> ${a.cost}</div>`;
 
     // Only unowned items expand - an owned one just toggles on and off, so
     // there's nothing to confirm.
@@ -3307,11 +3324,11 @@ function renderCarousel() {
       : '';
 
     return `
-      <div class="carousel-item ${a.owned ? '' : 'unowned'} ${isEquipped ? 'equipped' : ''} ${isOpen ? 'expanded' : ''}"
+      <div class="carousel-item ${a.owned ? 'owned' : 'unowned'} ${isEquipped ? 'equipped' : ''} ${isOpen ? 'expanded' : ''}"
            data-id="${a.id}" data-owned="${a.owned}" data-category="${a.category}"
            data-cost="${a.cost}" data-name="${a.name}">
         <div class="item-icon-wrap"><svg viewBox="${a.tile_viewbox}" width="100%" height="100%">${a.svg}</svg></div>
-        ${priceHtml}
+        ${priceBadge}
         ${action}
       </div>
     `;
