@@ -73,8 +73,12 @@ ACCESSORIES = {
         "emoji": "🧢",
         "cost": 10,
         "category": "hats",
-        "tile_viewbox": "15.66 -14.21 65.36 65.36",
-        "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="26.23" y="2.44" width="51.00" height="32.06"/></g>',
+        "tile_viewbox": "12.46 -14.21 65.36 65.36",
+        # clipPath trims the side-panel tips that would otherwise hang below
+        # the bill as a disconnected dark sliver, since the head is narrower
+        # there than the cap art - they'd be hidden by the head's curve on
+        # a real 3D head, so they're not something a front view should show.
+        "svg": '<g transform="rotate(-9 50 26)"><defs><clipPath id="cap-underside-clip" clipPathUnits="objectBoundingBox"><polygon points="0,0 1,0 1,0.80 0.86,1 0.14,1 0,0.80"/></clipPath></defs><image clip-path="url(#cap-underside-clip)" xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="23.03" y="2.44" width="51.00" height="32.06"/></g>',
     },
     "sun_hat": {
         "name": "Sun Hat",
