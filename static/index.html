@@ -531,7 +531,7 @@
     padding:0 50%;
   }
   .species-silhouette-btn{
-    flex-shrink:0; background:none; border:none; padding:0; margin:0 -26px;
+    flex-shrink:0; background:none; border:none; padding:0; margin:0 4px;
     cursor:pointer; height:150px; display:flex; align-items:center;
     scroll-snap-align:center; opacity:0.9;
   }
@@ -3200,7 +3200,12 @@ function renderSwatchRows() {
 // including the current one (kept in the DOM, just hidden, so the track's
 // item spacing never shifts). Selecting a species scrolls the track alone
 // to bring its silhouette behind the circle; the circle itself never
-// moves.
+// moves. Scrolling/swiping the track to bring a different silhouette to
+// rest behind the circle selects it automatically too - moving a bird
+// into the circle IS choosing it, tapping one is just a shortcut to the
+// same thing.
+let speciesScrollSettleTimer = null;
+
 function renderDressUpAvatarRow() {
   const stage = document.getElementById('dressUpAvatarStage');
   const track = document.getElementById('speciesTrack');
@@ -3217,11 +3222,40 @@ function renderDressUpAvatarRow() {
     btn.onclick = () => selectSpecies(btn.dataset.species);
   });
 
+  if (!track.dataset.scrollBound) {
+    track.addEventListener('scroll', onSpeciesTrackScroll, { passive: true });
+    track.dataset.scrollBound = '1';
+  }
+
   renderDressUpPreview();
   renderSwatchRows();
 
   const activeBtn = track.querySelector('.species-silhouette-btn.is-current');
   if (activeBtn) activeBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+
+function onSpeciesTrackScroll() {
+  clearTimeout(speciesScrollSettleTimer);
+  // Wait for the scroll (and the browser's own snap-settle) to actually
+  // stop rather than reacting mid-swipe, so the switch happens once the
+  // bird has come to rest behind the circle, not while it's still passing
+  // through.
+  speciesScrollSettleTimer = setTimeout(selectWhicheverSpeciesIsCentred, 130);
+}
+
+function selectWhicheverSpeciesIsCentred() {
+  const track = document.getElementById('speciesTrack');
+  if (!track) return;
+  const trackMid = track.getBoundingClientRect().left + track.clientWidth / 2;
+  let closestId = null, closestDist = Infinity;
+  track.querySelectorAll('.species-silhouette-btn').forEach(btn => {
+    const r = btn.getBoundingClientRect();
+    const dist = Math.abs((r.left + r.width / 2) - trackMid);
+    if (dist < closestDist) { closestDist = dist; closestId = btn.dataset.species; }
+  });
+  if (closestId && closestId !== (currentProfile.avatar_species || 'default')) {
+    selectSpecies(closestId);
+  }
 }
 
 async function selectSpecies(speciesId) {
