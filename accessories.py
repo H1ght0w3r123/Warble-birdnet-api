@@ -42,7 +42,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "26 -3 48 34",
-        "svg": '<g transform="rotate(-8 50 26)"><image xlink:href="/static/accessories/hat_top_hat.webp" href="/static/accessories/hat_top_hat.webp" x="25.39" y="-1" width="49.23" height="31.64"/></g>',
+        "svg": '<g transform="rotate(-8 50 26)"><image xlink:href="/static/accessories/hat_top_hat.webp" href="/static/accessories/hat_top_hat.webp" x="21.73" y="-1" width="60" height="41.46"/></g>',
     },
     "golden_crown": {
         "name": "Golden Crown",
@@ -50,7 +50,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "hats",
         "tile_viewbox": "25 -3 50 34",
-        "svg": '<g transform="rotate(6 50 26)"><image xlink:href="/static/accessories/hat_golden_crown.webp" href="/static/accessories/hat_golden_crown.webp" x="23.86" y="-1" width="52.27" height="31.64"/></g>',
+        "svg": '<g transform="rotate(6 50 26)"><image xlink:href="/static/accessories/hat_golden_crown.webp" href="/static/accessories/hat_golden_crown.webp" x="21.73" y="-1" width="60" height="46.31"/></g>',
     },
     "flower_crown": {
         "name": "Flower Crown",
@@ -58,7 +58,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "15 -3 70 34",
-        "svg": '<g transform="rotate(-5 50 26)"><image xlink:href="/static/accessories/hat_flower_crown.webp" href="/static/accessories/hat_flower_crown.webp" x="13.18" y="-1" width="73.64" height="31.64"/></g>',
+        "svg": '<g transform="rotate(-5 50 26)"><image xlink:href="/static/accessories/hat_flower_crown.webp" href="/static/accessories/hat_flower_crown.webp" x="21.73" y="-1" width="60" height="32.77"/></g>',
     },
     "deerstalker_hat": {
         "name": "Deerstalker Hat",
@@ -66,7 +66,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "25 -3 50 34",
-        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_deerstalker_hat.webp" href="/static/accessories/hat_deerstalker_hat.webp" x="24.78" y="-1" width="50.44" height="31.64"/></g>',
+        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_deerstalker_hat.webp" href="/static/accessories/hat_deerstalker_hat.webp" x="21.73" y="-1" width="60" height="42.61"/></g>',
     },
     "baseball_cap": {
         "name": "Baseball Cap",
@@ -74,7 +74,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "hats",
         "tile_viewbox": "27 -3 46 34",
-        "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="27.16" y="-1" width="45.67" height="31.64"/></g>',
+        "svg": '<g transform="rotate(-9 50 26)"><image xlink:href="/static/accessories/hat_baseball_cap.webp" href="/static/accessories/hat_baseball_cap.webp" x="21.73" y="-1" width="60" height="37.72"/></g>',
     },
     "sun_hat": {
         "name": "Sun Hat",
@@ -82,7 +82,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "18 -3 64 34",
-        "svg": '<g transform="rotate(5 50 26)"><image xlink:href="/static/accessories/hat_sun_hat.webp" href="/static/accessories/hat_sun_hat.webp" x="16.66" y="-1" width="66.67" height="31.64"/></g>',
+        "svg": '<g transform="rotate(5 50 26)"><image xlink:href="/static/accessories/hat_sun_hat.webp" href="/static/accessories/hat_sun_hat.webp" x="21.73" y="-1" width="60" height="29.63"/></g>',
     },
     "party_hat": {
         "name": "Party Hat",
@@ -90,7 +90,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "hats",
         "tile_viewbox": "36 -3 28 34",
-        "svg": '<g transform="rotate(9 50 26)"><image xlink:href="/static/accessories/hat_party_hat.webp" href="/static/accessories/hat_party_hat.webp" x="36.73" y="-1" width="26.55" height="31.64"/></g>',
+        "svg": '<g transform="rotate(9 50 26)"><image xlink:href="/static/accessories/hat_party_hat.webp" href="/static/accessories/hat_party_hat.webp" x="21.73" y="-1" width="60" height="62.53"/></g>',
     },
     "wizard_hat": {
         "name": "Wizard Hat",
@@ -98,7 +98,7 @@ ACCESSORIES = {
         "cost": 75,
         "category": "hats",
         "tile_viewbox": "27 -3 46 34",
-        "svg": '<g transform="rotate(-7 50 26)"><image xlink:href="/static/accessories/hat_wizard_hat.webp" href="/static/accessories/hat_wizard_hat.webp" x="26.99" y="-1" width="46.02" height="31.64"/></g>',
+        "svg": '<g transform="rotate(-7 50 26)"><image xlink:href="/static/accessories/hat_wizard_hat.webp" href="/static/accessories/hat_wizard_hat.webp" x="21.73" y="-1" width="60" height="43.36"/></g>',
     },
     "pirate_hat": {
         "name": "Pirate Hat",
@@ -106,7 +106,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "hats",
         "tile_viewbox": "24 -3 52 34",
-        "svg": '<g transform="rotate(8 50 26)"><image xlink:href="/static/accessories/hat_pirate_hat.webp" href="/static/accessories/hat_pirate_hat.webp" x="23.57" y="-1" width="52.86" height="31.64"/></g>',
+        "svg": '<g transform="rotate(8 50 26)"><image xlink:href="/static/accessories/hat_pirate_hat.webp" href="/static/accessories/hat_pirate_hat.webp" x="21.73" y="-1" width="60" height="43.22"/></g>',
     },
     "explorer_helmet": {
         "name": "Explorer Helmet",
@@ -114,7 +114,7 @@ ACCESSORIES = {
         "cost": 40,
         "category": "hats",
         "tile_viewbox": "26 -3 48 34",
-        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_explorer_helmet.webp" href="/static/accessories/hat_explorer_helmet.webp" x="25.1" y="-1" width="49.8" height="31.64"/></g>',
+        "svg": '<g transform="rotate(-6 50 26)"><image xlink:href="/static/accessories/hat_explorer_helmet.webp" href="/static/accessories/hat_explorer_helmet.webp" x="21.73" y="-1" width="60" height="37.42"/></g>',
     },
     "ski_hat": {
         "name": "Ski Hat",
@@ -122,7 +122,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "hats",
         "tile_viewbox": "34 -3 32 34",
-        "svg": '<g transform="rotate(7 50 26)"><image xlink:href="/static/accessories/hat_ski_hat.webp" href="/static/accessories/hat_ski_hat.webp" x="33.98" y="-1" width="32.04" height="31.64"/></g>',
+        "svg": '<g transform="rotate(7 50 26)"><image xlink:href="/static/accessories/hat_ski_hat.webp" href="/static/accessories/hat_ski_hat.webp" x="21.73" y="-1" width="60" height="54.28"/></g>',
     },
     "cozy_beanie": {
         "name": "Cozy Beanie",
@@ -130,7 +130,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "hats",
         "tile_viewbox": "34 -3 32 34",
-        "svg": '<g transform="rotate(-4 50 26)"><image xlink:href="/static/accessories/hat_cozy_beanie.webp" href="/static/accessories/hat_cozy_beanie.webp" x="33.91" y="-1" width="32.17" height="31.64"/></g>',
+        "svg": '<g transform="rotate(-4 50 26)"><image xlink:href="/static/accessories/hat_cozy_beanie.webp" href="/static/accessories/hat_cozy_beanie.webp" x="21.73" y="-1" width="60" height="48.65"/></g>',
     },
     "cosy_scarf": {
         "name": "Cosy Scarf",
