@@ -229,15 +229,15 @@ ACCESSORIES = {
         "emoji": "👓",
         "cost": 10,
         "category": "glasses",
-        "tile_viewbox": "12.64 -2.12 74.67 74.67",
-        "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="18.34" y="23.12" width="63.28" height="24.2"/>',
+        "tile_viewbox": "12.64 -0.62 74.67 74.67",
+        "svg": '<image xlink:href="/static/accessories/glasses_round_wire_specs.webp" href="/static/accessories/glasses_round_wire_specs.webp" x="18.34" y="24.62" width="63.28" height="24.2"/>',
     },
     "explorer_goggles": {
         "name": "Explorer Goggles",
         "emoji": "🥽",
         "cost": 40,
         "category": "glasses",
-        "tile_viewbox": "12.64 -2.12 74.67 74.67",
+        "tile_viewbox": "12.64 -0.62 74.67 74.67",
         "svg": '<image xlink:href="/static/accessories/glasses_explorer_goggles.webp" href="/static/accessories/glasses_explorer_goggles.webp" x="18.34" y="23.89" width="63.28" height="22.65"/>',
     },
     "sunglasses": {
@@ -246,7 +246,7 @@ ACCESSORIES = {
         "cost": 20,
         "category": "glasses",
         "tile_viewbox": "12.64 -2.12 74.67 74.67",
-        "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="18.34" y="23.62" width="63.28" height="23.2"/>',
+        "svg": '<image xlink:href="/static/accessories/glasses_aviator_sunglasses.webp" href="/static/accessories/glasses_aviator_sunglasses.webp" x="18.34" y="25.12" width="63.28" height="23.2"/>',
     },
     "star_glasses": {
         "name": "Star Glasses",
