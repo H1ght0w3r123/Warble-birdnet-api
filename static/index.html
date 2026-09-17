@@ -3320,16 +3320,34 @@ function onSpeciesTrackSettled() {
     setActiveSilhouette(centred);          // no-op if the RAF loop above already set it
     commitSpeciesSelection(centred.dataset.species);
   }
+  rewrapToMiddleCopy(track, centred);
+}
 
-  // Endless-loop rewrap, silent and instant.
-  const copyWidth = track.scrollWidth / SPECIES_LOOP_COPIES;
-  if (track.scrollLeft < copyWidth * 0.5) {
-    track.scrollLeft += copyWidth;
-  } else if (track.scrollLeft > copyWidth * 1.5) {
-    track.scrollLeft -= copyWidth;
-  } else {
-    return;
-  }
+// Endless-loop rewrap. Deliberately NOT scrollWidth/SPECIES_LOOP_COPIES:
+// the track has large left/right padding (so the first/last species can
+// still scroll to centre), which is outside all three copies but still
+// counted in scrollWidth - dividing that total by 3 overstates a single
+// copy's actual width, so the jump landed short, off by exactly the
+// padding's share of the error. That's what was causing the mismatch:
+// the "same" bird one copy over wasn't actually behind the circle after
+// the jump, silhouettes stopped lining up with the species that ended up
+// selected, and skipped/repeated ones could appear to flash by.
+// Measuring the exact offset between the centred button and its literal
+// counterpart n items over sidesteps the padding entirely - it's a
+// precise, self-correcting distance with no assumptions baked in.
+function rewrapToMiddleCopy(track, centred) {
+  if (!centred) return;
+  const buttons = track.querySelectorAll('.species-silhouette-btn');
+  const idx = Array.prototype.indexOf.call(buttons, centred);
+  const n = AVATAR_SPECIES.length;
+  const copyIndex = Math.floor(idx / n);       // 0, 1, or 2 of the 3 copies
+  const middleCopyIndex = Math.floor(SPECIES_LOOP_COPIES / 2); // 1
+  if (copyIndex === middleCopyIndex) return;   // already in the safe middle copy
+
+  const counterpart = buttons[idx + (middleCopyIndex - copyIndex) * n];
+  if (!counterpart) return;
+  track.scrollLeft += counterpart.getBoundingClientRect().left - centred.getBoundingClientRect().left;
+
   // We jumped copies - re-anchor the active-button reference to the
   // physically different (but visually identical) node now behind the
   // circle. Same species either way, so this never re-commits.
