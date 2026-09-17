@@ -90,7 +90,7 @@ ACCESSORIES = {
         "cost": 10,
         "category": "hats",
         "tile_viewbox": "36 -3 28 34",
-        "svg": '<g transform="rotate(9 50 26)"><image xlink:href="/static/accessories/hat_party_hat.webp" href="/static/accessories/hat_party_hat.webp" x="21.73" y="-40.53" width="60" height="62.53"/></g>',
+        "svg": '<g transform="rotate(9 50 26)"><image xlink:href="/static/accessories/hat_party_hat.webp" href="/static/accessories/hat_party_hat.webp" x="36.73" y="-9.27" width="30" height="31.27"/></g>',
     },
     "wizard_hat": {
         "name": "Wizard Hat",
