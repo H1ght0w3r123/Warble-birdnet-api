@@ -2762,10 +2762,12 @@ const SPECIES_LAYOUT = {
   owl:      { bodyW: 62.99, bodyX: 18.50, wingW: 18.68, legW: 12.11 },
   penguin:  { bodyW: 59.33, bodyX: 20.34, wingW: 18.21, legW: 12.09 },
   // wingX pulls the wing's inner (body-side) edge in from the default 69,
-  // for species whose wings otherwise sit visibly detached from the torso
-  // rather than tucked against it - most species don't need this, so it's
-  // only set where a render check actually showed a gap.
-  parrot:   { bodyW: 62.65, bodyX: 18.68, wingW: 16.58, legW: 11.99, wingX: 65 },
+  // and wingY drops it down from the default 57.5, for species whose
+  // wings otherwise sit visibly detached (or leave a seam right at the
+  // shoulder) instead of tucking against the torso - most species don't
+  // need either, so they're only set where a render check actually
+  // showed a problem.
+  parrot:   { bodyW: 62.65, bodyX: 18.68, wingW: 16.58, legW: 11.99, wingX: 67, wingY: 59 },
   duckling: { bodyW: 59.54, bodyX: 20.23, wingW: 21.12, legW: 12.10 },
   bluebird: { bodyW: 56.85, bodyX: 21.57, wingW: 19.48, legW: 12.09, wingX: 57 },
 };
@@ -2820,6 +2822,7 @@ function avatarSvg(body, size, equipped, dancing, species) {
   const legW = L ? L.legW : 12;
   const wingRX = L && L.wingX ? L.wingX : 69;  // right wing's inner (body-side) edge
   const wingLX = 100 - wingRX;                 // mirrored left counterpart
+  const wingY = L && L.wingY ? L.wingY : 57.5;
 
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;" class="${dancing ? 'avatar-dancing' : ''}">
     <g class="av-leg-l">
@@ -2831,10 +2834,10 @@ function avatarSvg(body, size, equipped, dancing, species) {
     <g class="av-torso">
     <image xlink:href="${bodyImg}" href="${bodyImg}" x="${bodyX}" y="8" width="${bodyW}" height="83.8"/>
     <g class="av-wing-l">
-    <image xlink:href="${wingImg}" href="${wingImg}" x="${wingLX}" y="57.5" width="${wingW}" height="29.5" transform="scale(-1,1) translate(-${2 * wingLX},0)"/>
+    <image xlink:href="${wingImg}" href="${wingImg}" x="${wingLX}" y="${wingY}" width="${wingW}" height="29.5" transform="scale(-1,1) translate(-${2 * wingLX},0)"/>
     </g>
     <g class="av-wing-r">
-    <image xlink:href="${wingImg}" href="${wingImg}" x="${wingRX}" y="57.5" width="${wingW}" height="29.5"/>
+    <image xlink:href="${wingImg}" href="${wingImg}" x="${wingRX}" y="${wingY}" width="${wingW}" height="29.5"/>
     </g>
     </g>
     <g class="av-face">
