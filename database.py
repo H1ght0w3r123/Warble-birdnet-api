@@ -113,6 +113,7 @@ class Profile(Base):
     avatar_body = Column(String, default="#C4BFDF")
     avatar_face = Column(String, default="#E8845C")
     avatar_beak = Column(String, default="#8E87B8")
+    avatar_species = Column(String, default="default")  # 'default' or one of the bird-selector species
     equipped_hats = Column(String, nullable=True)
     equipped_neck = Column(String, nullable=True)
     equipped_gear = Column(String, nullable=True)
@@ -192,6 +193,7 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_held VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_glasses VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_shoes VARCHAR"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_species VARCHAR DEFAULT 'default'"))
 
     with SessionLocal() as session:
         existing = session.query(PlayerStats).first()
@@ -756,6 +758,7 @@ def get_profile():
     default = {
         "first_name": "Explorer", "last_name": None,
         "avatar_body": "#C4BFDF", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
+        "avatar_species": "default",
         "avatar_photo": None, "show_scientific_names": True,
         "equipped": {"hats": None, "neck": None, "gear": None, "held": None, "glasses": None, "shoes": None},
     }
@@ -778,6 +781,7 @@ def get_profile():
             "avatar_body": p.avatar_body or "#C4BFDF",
             "avatar_face": p.avatar_face or "#E8845C",
             "avatar_beak": p.avatar_beak or "#8E87B8",
+            "avatar_species": p.avatar_species or "default",
             "avatar_photo": p.avatar_photo,
             "show_scientific_names": True if p.show_scientific_names is None else p.show_scientific_names,
             "equipped": {
@@ -793,6 +797,7 @@ def get_profile():
 
 def update_profile(first_name: str = None, last_name: str = None,
                    avatar_body: str = None, avatar_face: str = None, avatar_beak: str = None,
+                   avatar_species: str = None,
                    show_scientific_names: bool = None, avatar_photo: str = None):
     """avatar_photo accepts the string "none" to clear a photo, since an empty
     form field is indistinguishable from "not provided"."""
@@ -813,6 +818,8 @@ def update_profile(first_name: str = None, last_name: str = None,
             p.avatar_face = avatar_face
         if avatar_beak is not None:
             p.avatar_beak = avatar_beak
+        if avatar_species is not None:
+            p.avatar_species = avatar_species
         if show_scientific_names is not None:
             p.show_scientific_names = show_scientific_names
         if avatar_photo is not None:

@@ -821,12 +821,14 @@ async def update_profile_endpoint(
     avatar_body: str = Form(None),
     avatar_face: str = Form(None),
     avatar_beak: str = Form(None),
+    avatar_species: str = Form(None),
     show_scientific_names: bool = Form(None),
     avatar_photo: str = Form(None),
 ):
     update_profile(
         first_name=first_name, last_name=last_name,
         avatar_body=avatar_body, avatar_face=avatar_face, avatar_beak=avatar_beak,
+        avatar_species=avatar_species,
         show_scientific_names=show_scientific_names, avatar_photo=avatar_photo,
     )
     return {"status": "ok"}

@@ -513,6 +513,26 @@
   .avatar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;width:100%;}
   .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 
+  /* --- Dress Up: bird species selector --- */
+  /* Sits centred between the avatar preview and the accessory browser -
+     picking a bird is a bigger decision than an accessory, so it gets its
+     own row rather than being folded into the category tabs. */
+  .species-panel{width:100%;margin-top:10px;}
+  .species-row{
+    width:100%; overflow-x:auto; overflow-y:visible; display:flex; gap:8px;
+    padding:4px 4px 2px; justify-content:flex-start; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .species-tile{
+    flex:0 0 auto; width:62px; background:#fff; border-radius:14px; padding:5px 4px 4px;
+    display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
+    border:2px solid transparent; scroll-snap-align:start;
+  }
+  .species-tile.selected{border-color:var(--sage-dk); border-width:3px; padding:4px 3px 3px;}
+  .species-tile-icon{width:46px; height:46px;}
+  .species-tile-icon img{width:100%; height:100%; object-fit:contain; display:block;}
+  .species-tile-name{font-family:'Outfit'; font-weight:700; font-size:8.6px; color:var(--dusk); text-align:center; line-height:1.1;}
+
   /* --- Dress Up: categories + carousel --- */
   .reset-accessories-btn{
     background:rgba(255,255,255,0.18); color:#fff; border:none; border-radius:20px;
@@ -2198,7 +2218,7 @@ function renderDone() {
   `).join('');
 
   stage.innerHTML = `
-    <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, 140, currentProfile.equipped, true)}</div>
+    <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, 140, currentProfile.equipped, true, currentProfile.avatar_species)}</div>
     <div class="done-title">${pickDoneMessage(n, newCount, tierCounts)}</div>
     <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
     ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
@@ -2719,9 +2739,33 @@ function setActiveTab(tabName) {
 const AVATAR_SWATCHES = ['#C4BFDF', '#8E87B8', '#2D1B69', '#7EC8A4', '#E8845C', '#F2C94C', '#E87EA1', '#1A1128', '#F5EDD6', '#3F7C5C'];
 const ACCESSORY_LAYER_ORDER = ['shoes', 'gear', 'neck', 'held', 'glasses', 'hats'];
 
+// Every non-default species has its own native art proportions, so a body/
+// wing/leg box sized for the original bird would stretch or squash it.
+// These widths are pre-measured per species (height/x/y of each part stay
+// the same as the original bird - only width, and body's x to keep it
+// centred, are adjusted) so nothing distorts. 'default' needs no entry: it
+// falls through to the original fixed box below.
+const SPECIES_LAYOUT = {
+  cardinal: { bodyW: 60.75, bodyX: 19.62, wingW: 18.57, legW: 12.21 },
+  owl:      { bodyW: 62.99, bodyX: 18.50, wingW: 18.68, legW: 12.11 },
+  penguin:  { bodyW: 59.33, bodyX: 20.34, wingW: 18.21, legW: 12.09 },
+  parrot:   { bodyW: 62.65, bodyX: 18.68, wingW: 16.58, legW: 11.99 },
+  duckling: { bodyW: 59.54, bodyX: 20.23, wingW: 21.12, legW: 12.10 },
+  bluebird: { bodyW: 56.85, bodyX: 21.57, wingW: 19.48, legW: 12.09 },
+};
+const AVATAR_SPECIES = [
+  { id: 'default',  name: 'Classic' },
+  { id: 'cardinal', name: 'Cardinal' },
+  { id: 'owl',      name: 'Owl' },
+  { id: 'penguin',  name: 'Penguin' },
+  { id: 'parrot',   name: 'Parrot' },
+  { id: 'duckling', name: 'Duckling' },
+  { id: 'bluebird', name: 'Bluebird' },
+];
+
 let accessorySvgCache = {};
 
-function avatarSvg(body, size, equipped, dancing) {
+function avatarSvg(body, size, equipped, dancing, species) {
   equipped = equipped || {};
   // Held items ride with the right wing, so they're pulled out of the normal
   // layer stack and animated alongside it. Everything else layers as usual.
@@ -2741,25 +2785,38 @@ function avatarSvg(body, size, equipped, dancing) {
   // assets, mirrored for the opposite side via a scale(-1,1) transform on
   // the inner <image> - the .av-wing-l/.av-leg-l wrapper still gets its
   // own transform-origin from the dancing CSS untouched by that mirror.
+  //
+  // Species (added in the bird-selector pass): 'default' is the original
+  // plain bird and keeps the old unprefixed filenames untouched
+  // (body_<hex>.webp). Every other species has its own asset triplet -
+  // body_<species>_<hex>.webp / wing_<species>_<hex>.webp / leg_<species>.webp
+  // - built the same way (luminance-preserving overlay blend per swatch),
+  // so the same colour wheel works for all of them; legs aren't recoloured
+  // for any species, default included.
   const hex = (body || '#C4BFDF').replace('#', '').toUpperCase();
-  const bodyImg = `/static/avatar/body_${hex}.webp`;
-  const wingImg = `/static/avatar/wing_${hex}.webp`;
-  const legImg = `/static/avatar/leg.webp`;
+  const sp = (species && species !== 'default') ? species : null;
+  const bodyImg = sp ? `/static/avatar/body_${sp}_${hex}.webp` : `/static/avatar/body_${hex}.webp`;
+  const wingImg = sp ? `/static/avatar/wing_${sp}_${hex}.webp` : `/static/avatar/wing_${hex}.webp`;
+  const legImg = sp ? `/static/avatar/leg_${sp}.webp` : `/static/avatar/leg.webp`;
+  const L = sp ? SPECIES_LAYOUT[sp] : null;
+  const bodyW = L ? L.bodyW : 60, bodyX = L ? L.bodyX : 20;
+  const wingW = L ? L.wingW : 18;
+  const legW = L ? L.legW : 12;
 
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;" class="${dancing ? 'avatar-dancing' : ''}">
     <g class="av-leg-l">
-    <image xlink:href="${legImg}" href="${legImg}" x="36" y="84" width="12" height="12.9" transform="scale(-1,1) translate(-84,0)"/>
+    <image xlink:href="${legImg}" href="${legImg}" x="36" y="84" width="${legW}" height="12.9" transform="scale(-1,1) translate(-84,0)"/>
     </g>
     <g class="av-leg-r">
-    <image xlink:href="${legImg}" href="${legImg}" x="52" y="84" width="12" height="12.9"/>
+    <image xlink:href="${legImg}" href="${legImg}" x="52" y="84" width="${legW}" height="12.9"/>
     </g>
     <g class="av-torso">
-    <image xlink:href="${bodyImg}" href="${bodyImg}" x="20" y="8" width="60" height="83.8"/>
+    <image xlink:href="${bodyImg}" href="${bodyImg}" x="${bodyX}" y="8" width="${bodyW}" height="83.8"/>
     <g class="av-wing-l">
-    <image xlink:href="${wingImg}" href="${wingImg}" x="31" y="57.5" width="18" height="29.5" transform="scale(-1,1) translate(-62,0)"/>
+    <image xlink:href="${wingImg}" href="${wingImg}" x="31" y="57.5" width="${wingW}" height="29.5" transform="scale(-1,1) translate(-62,0)"/>
     </g>
     <g class="av-wing-r">
-    <image xlink:href="${wingImg}" href="${wingImg}" x="69" y="57.5" width="18" height="29.5"/>
+    <image xlink:href="${wingImg}" href="${wingImg}" x="69" y="57.5" width="${wingW}" height="29.5"/>
     </g>
     </g>
     <g class="av-face">
@@ -3017,7 +3074,7 @@ function renderPhotoPreview() {
   if (!el) return;
   el.innerHTML = currentProfile.avatar_photo
     ? `<img src="${currentProfile.avatar_photo}" alt="Your photo">`
-    : avatarSvg(currentProfile.avatar_body, 96, currentProfile.equipped);
+    : avatarSvg(currentProfile.avatar_body, 96, currentProfile.equipped, false, currentProfile.avatar_species);
 }
 
 // Photos are shrunk to 240px square and re-encoded as JPEG before upload.
@@ -3066,7 +3123,7 @@ function firstNameOrDefault() {
 // top-bar profile button reflects a chosen photo.
 function updateNavAvatarIcon() {
   const iconEl = document.getElementById('navDressUpIcon');
-  if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, 27, currentProfile.equipped);
+  if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, 27, currentProfile.equipped, false, currentProfile.avatar_species);
   updateTopProfileIcon();
 }
 
@@ -3083,6 +3140,7 @@ function updateTopProfileIcon() {
 async function saveAvatarColors() {
   renderDressUpPreview();
   renderSwatchRows();
+  renderSpeciesRow();
   updateNavAvatarIcon();
   const formData = new FormData();
   formData.append('avatar_body', currentProfile.avatar_body);
@@ -3125,6 +3183,41 @@ function renderSwatchRows() {
     };
     wheel.appendChild(btn);
   });
+}
+
+// Bird species picker. Thumbnails show each bird in whatever body colour is
+// currently selected (same palette, via the same recolor assets the avatar
+// itself uses) rather than a fixed "natural" colour, so the row stays
+// consistent with the swatch the person just picked.
+function renderSpeciesRow() {
+  const row = document.getElementById('speciesRow');
+  if (!row) return;
+  const hex = (currentProfile.avatar_body || '#C4BFDF').replace('#', '').toUpperCase();
+  const current = currentProfile.avatar_species || 'default';
+  row.innerHTML = AVATAR_SPECIES.map(sp => {
+    const iconSrc = sp.id === 'default'
+      ? `/static/avatar/body_${hex}.webp`
+      : `/static/avatar/body_${sp.id}_${hex}.webp`;
+    return `
+      <div class="species-tile ${current === sp.id ? 'selected' : ''}" data-species="${sp.id}">
+        <div class="species-tile-icon"><img src="${iconSrc}" alt="${sp.name}"></div>
+        <div class="species-tile-name">${sp.name}</div>
+      </div>`;
+  }).join('');
+  row.querySelectorAll('.species-tile').forEach(el => {
+    el.onclick = () => selectSpecies(el.dataset.species);
+  });
+}
+
+async function selectSpecies(speciesId) {
+  if (currentProfile.avatar_species === speciesId) return;
+  currentProfile.avatar_species = speciesId;
+  renderDressUpPreview();
+  renderSpeciesRow();
+  updateNavAvatarIcon();
+  const formData = new FormData();
+  formData.append('avatar_species', speciesId);
+  try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
 }
 
 async function loadProfileLocations() {
@@ -3205,6 +3298,7 @@ async function renderDressUp() {
         </div>
       </div>
     </div>
+    <div class="species-panel"><div class="species-row" id="speciesRow"></div></div>
     <button class="reset-accessories-btn" id="resetAccessoriesBtn">Reset</button>
     <div class="category-row" id="categoryRow"></div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
@@ -3228,6 +3322,7 @@ async function renderDressUp() {
 
     renderDressUpPreview();
     renderSwatchRows();
+    renderSpeciesRow();
     renderCategoryRow();
     document.getElementById('resetAccessoriesBtn').onclick = resetAllAccessories;
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
@@ -3260,7 +3355,7 @@ function renderDressUpPreview() {
   // Always the avatar here, regardless of any profile photo - this is the
   // bird being dressed, so the accessories have something to sit on.
   const el = document.getElementById('dressUpPreview');
-  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 190, currentProfile.equipped);
+  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 190, currentProfile.equipped, false, currentProfile.avatar_species);
 }
 
 function renderCategoryRow() {
