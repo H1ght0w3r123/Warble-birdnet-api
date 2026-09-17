@@ -2733,7 +2733,7 @@ function avatarSvg(body, size, equipped, dancing) {
   const wingImg = `/static/avatar/wing_${hex}.webp`;
   const legImg = `/static/avatar/leg.webp`;
 
-  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" class="${dancing ? 'avatar-dancing' : ''}">
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;" class="${dancing ? 'avatar-dancing' : ''}">
     <g class="av-leg-l">
     <image xlink:href="${legImg}" href="${legImg}" x="36" y="84" width="12" height="12.9" transform="scale(-1,1) translate(-84,0)"/>
     </g>
