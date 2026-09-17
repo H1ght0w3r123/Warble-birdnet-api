@@ -533,7 +533,8 @@
   .species-silhouette-btn{
     flex-shrink:0; background:none; border:none; padding:0; margin:0 4px;
     cursor:pointer; height:150px; display:flex; align-items:center;
-    scroll-snap-align:center; opacity:0.9;
+    scroll-snap-align:center; opacity:0.9; transform:scale(0.9); transform-origin:center center;
+    will-change:transform;
   }
   .species-silhouette-btn.is-current{visibility:hidden;}
   .species-silhouette-btn img{height:100%; width:auto; display:block; pointer-events:none;}
@@ -3252,6 +3253,7 @@ function initDressUpAvatarPicker() {
   if (startBtn) {
     startBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
     setActiveSilhouette(startBtn);
+    updateSpeciesTrackVisuals(track);
   }
 
   if (circle) setupCircleDragBridge(track, circle);
@@ -3285,11 +3287,26 @@ function onSpeciesTrackScroll() {
 }
 
 function findCentredSpeciesButton(track) {
+  return updateSpeciesTrackVisuals(track);
+}
+
+// Scales every silhouette by how close it is to the fixed circle - 90% at
+// rest, growing smoothly to 100% (matching the selected bird's own size)
+// as it approaches centre, shrinking back to 90% as it moves away. Runs
+// on the same per-frame cadence as the hidden/visible handoff, and
+// returns whichever button is currently closest to centre so callers
+// don't need a second pass over the DOM.
+const SPECIES_SCALE_REST = 0.9;
+const SPECIES_SCALE_DISTANCE = 85; // px of travel over which the scale fully settles
+
+function updateSpeciesTrackVisuals(track) {
   const mid = track.getBoundingClientRect().left + track.clientWidth / 2;
   let best = null, bestDist = Infinity;
   track.querySelectorAll('.species-silhouette-btn').forEach(btn => {
     const r = btn.getBoundingClientRect();
     const dist = Math.abs((r.left + r.width / 2) - mid);
+    const t = Math.min(1, dist / SPECIES_SCALE_DISTANCE);
+    btn.style.transform = `scale(${1 - (1 - SPECIES_SCALE_REST) * t})`;
     if (dist < bestDist) { bestDist = dist; best = btn; }
   });
   return best;
