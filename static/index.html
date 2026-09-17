@@ -550,9 +550,9 @@
     font-size:10px; cursor:pointer; box-shadow:0 2px 0 var(--terra-dk);
   }
   .item-buy-btn.cant-afford{background:var(--mist-dk); box-shadow:0 2px 0 var(--dusk-mid); font-size:8.5px;}
-  .carousel-item .item-icon-wrap{width:44px;height:44px;line-height:1;}
+  .carousel-item .item-icon-wrap{width:60px;height:60px;line-height:1;}
+  .carousel-item.expanded .item-icon-wrap{width:76px;height:76px;}
   .carousel-item.unowned .item-icon-wrap{opacity:0.5;filter:grayscale(0.4);}
-  .carousel-item-name{font-family:'Outfit';font-weight:700;font-size:9.8px;color:var(--dusk);text-align:center;line-height:1.1;}
   .carousel-item-price{font-family:'Outfit';font-weight:700;font-size:9.8px;margin-top:0;}
   .carousel-item-price.affordable{color:var(--gold-dk);}
   .carousel-item-price.unaffordable{color:var(--mist-dk);opacity:0.6;}
@@ -3311,7 +3311,6 @@ function renderCarousel() {
            data-id="${a.id}" data-owned="${a.owned}" data-category="${a.category}"
            data-cost="${a.cost}" data-name="${a.name}">
         <div class="item-icon-wrap"><svg viewBox="${a.tile_viewbox}" width="100%" height="100%">${a.svg}</svg></div>
-        <div class="carousel-item-name">${a.name}</div>
         ${priceHtml}
         ${action}
       </div>
