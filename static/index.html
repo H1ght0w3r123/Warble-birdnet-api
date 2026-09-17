@@ -513,25 +513,18 @@
   .avatar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;width:100%;}
   .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 
-  /* --- Dress Up: bird species selector --- */
-  /* Sits centred between the avatar preview and the accessory browser -
-     picking a bird is a bigger decision than an accessory, so it gets its
-     own row rather than being folded into the category tabs. */
-  .species-panel{width:100%;margin-top:10px;}
-  .species-row{
-    width:100%; overflow-x:auto; overflow-y:visible; display:flex; gap:8px;
-    padding:4px 4px 2px; justify-content:flex-start; scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;
+  /* --- Dress Up: bird species picker (coverflow row) --- */
+  /* The selected bird is the real avatar-frame; every other species is a
+     flat silhouette button with no box/border, tucked in against the frame
+     via negative margin so it appears to slide half behind the white
+     circle. One continuous horizontally-scrolling row. */
+  .species-silhouette-btn{
+    flex-shrink:0; z-index:1; background:none; border:none; padding:0; margin:0 -26px;
+    cursor:pointer; height:150px; display:flex; align-items:center;
+    scroll-snap-align:center; opacity:0.9;
   }
-  .species-tile{
-    flex:0 0 auto; width:62px; background:#fff; border-radius:14px; padding:5px 4px 4px;
-    display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
-    border:2px solid transparent; scroll-snap-align:start;
-  }
-  .species-tile.selected{border-color:var(--sage-dk); border-width:3px; padding:4px 3px 3px;}
-  .species-tile-icon{width:46px; height:46px;}
-  .species-tile-icon img{width:100%; height:100%; object-fit:contain; display:block;}
-  .species-tile-name{font-family:'Outfit'; font-weight:700; font-size:8.6px; color:var(--dusk); text-align:center; line-height:1.1;}
+  .species-silhouette-btn img{height:100%; width:auto; display:block; pointer-events:none;}
+  .species-silhouette-btn:active{opacity:0.65;}
 
   /* --- Dress Up: categories + carousel --- */
   .reset-accessories-btn{
@@ -592,8 +585,12 @@
   .carousel-item-price-badge.unaffordable{color:var(--mist-dk);opacity:0.75;}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-row{display:flex;justify-content:center;width:100%;margin-top:60px;margin-bottom:20px;}
-  .avatar-frame-wrap{position:relative;justify-self:center;}
+  .dressup-avatar-row{
+    display:flex; align-items:center; width:100%; margin-top:40px; margin-bottom:20px;
+    overflow-x:auto; overflow-y:visible; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+    padding:0 calc(50% - 103px);
+  }
+  .avatar-frame-wrap{position:relative; justify-self:center; flex-shrink:0; z-index:2; scroll-snap-align:center;}
   /* The swatches arch over the top of the avatar frame, sitting ON its
      edge circle - so the assembly is barely wider than the avatar
      itself, unlike a full wheel or a side-by-side column. */
@@ -3140,7 +3137,6 @@ function updateTopProfileIcon() {
 async function saveAvatarColors() {
   renderDressUpPreview();
   renderSwatchRows();
-  renderSpeciesRow();
   updateNavAvatarIcon();
   const formData = new FormData();
   formData.append('avatar_body', currentProfile.avatar_body);
@@ -3185,35 +3181,51 @@ function renderSwatchRows() {
   });
 }
 
-// Bird species picker. Thumbnails show each bird in whatever body colour is
-// currently selected (same palette, via the same recolor assets the avatar
-// itself uses) rather than a fixed "natural" colour, so the row stays
-// consistent with the swatch the person just picked.
-function renderSpeciesRow() {
-  const row = document.getElementById('speciesRow');
+// Bird species picker: a coverflow-style row rather than a boxed carousel.
+// The selected species renders as the real avatar-frame (white circle,
+// full colour, the colour wheel arched over it); every other species
+// renders as a flat, uncoloured silhouette with no box or border, in
+// species-list order on whichever side of the frame it falls. Negative
+// margins pull each silhouette in against the frame so it visually tucks
+// half behind the white circle's edge, and the row scrolls horizontally
+// (snap-centred on the real frame on every render) so birds further down
+// the list slide into view the same way.
+function renderDressUpAvatarRow() {
+  const row = document.getElementById('dressUpAvatarRow');
   if (!row) return;
-  const hex = (currentProfile.avatar_body || '#C4BFDF').replace('#', '').toUpperCase();
   const current = currentProfile.avatar_species || 'default';
-  row.innerHTML = AVATAR_SPECIES.map(sp => {
-    const iconSrc = sp.id === 'default'
-      ? `/static/avatar/body_${hex}.webp`
-      : `/static/avatar/body_${sp.id}_${hex}.webp`;
-    return `
-      <div class="species-tile ${current === sp.id ? 'selected' : ''}" data-species="${sp.id}">
-        <div class="species-tile-icon"><img src="${iconSrc}" alt="${sp.name}"></div>
-        <div class="species-tile-name">${sp.name}</div>
-      </div>`;
-  }).join('');
-  row.querySelectorAll('.species-tile').forEach(el => {
-    el.onclick = () => selectSpecies(el.dataset.species);
+  const idx = Math.max(0, AVATAR_SPECIES.findIndex(s => s.id === current));
+
+  const silhouette = sp => `
+    <button class="species-silhouette-btn" data-species="${sp.id}" aria-label="Switch to ${sp.name}">
+      <img src="/static/avatar/silhouette_${sp.id}.webp" alt="">
+    </button>`;
+
+  const frameHtml = `
+    <div class="avatar-frame-wrap">
+      <div class="avatar-frame" id="dressUpPreview"></div>
+      <div class="color-wheel" id="colorWheel"></div>
+    </div>`;
+
+  const before = AVATAR_SPECIES.slice(0, idx);
+  const after = AVATAR_SPECIES.slice(idx + 1);
+  row.innerHTML = before.map(silhouette).join('') + frameHtml + after.map(silhouette).join('');
+
+  row.querySelectorAll('.species-silhouette-btn').forEach(btn => {
+    btn.onclick = () => selectSpecies(btn.dataset.species);
   });
+
+  renderDressUpPreview();
+  renderSwatchRows();
+
+  const wrap = row.querySelector('.avatar-frame-wrap');
+  if (wrap) wrap.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 
 async function selectSpecies(speciesId) {
   if (currentProfile.avatar_species === speciesId) return;
   currentProfile.avatar_species = speciesId;
-  renderDressUpPreview();
-  renderSpeciesRow();
+  renderDressUpAvatarRow();
   updateNavAvatarIcon();
   const formData = new FormData();
   formData.append('avatar_species', speciesId);
@@ -3291,14 +3303,7 @@ async function renderDressUp() {
   selectedCategory = null;
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title">Dress Up</div></div>
-    <div class="dressup-avatar-row">
-      <div class="avatar-frame-wrap">
-        <div class="avatar-frame" id="dressUpPreview"></div>
-        <div class="color-wheel" id="colorWheel">
-        </div>
-      </div>
-    </div>
-    <div class="species-panel"><div class="species-row" id="speciesRow"></div></div>
+    <div class="dressup-avatar-row" id="dressUpAvatarRow"></div>
     <button class="reset-accessories-btn" id="resetAccessoriesBtn">Reset</button>
     <div class="category-row" id="categoryRow"></div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
@@ -3320,9 +3325,7 @@ async function renderDressUp() {
 
     accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; });
 
-    renderDressUpPreview();
-    renderSwatchRows();
-    renderSpeciesRow();
+    renderDressUpAvatarRow();
     renderCategoryRow();
     document.getElementById('resetAccessoriesBtn').onclick = resetAllAccessories;
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
