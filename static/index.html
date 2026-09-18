@@ -579,8 +579,16 @@
      here would get wiped out on the next re-render. As a background it's
      always behind whatever avatar SVG content gets injected, so any
      accessory that extends past the circle (wings, tall hats) naturally
-     paints on top of the ring rather than being hidden under it. */
-  .avatar-frame{background:url('/static/avatar-ring-v1.webp') center/100% 100% no-repeat, #fff;border-radius:50%;padding:8px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
+     paints on top of the ring rather than being hidden under it.
+     Padding is 16px, not an arbitrary value: avatar-ring-v1.webp's own
+     band is ~14.5% of its diameter (measured directly off the saved
+     asset), and background-size:100% 100% scales that band with
+     whatever the frame's rendered diameter turns out to be. Solving
+     padding = diameter*0.0726 (its half-band fraction) for the avatar's
+     fixed 190px content size gives ~16.1px - that's what makes the ring's
+     band exactly fill the white margin instead of either leaving white
+     showing past the ring or overlapping into the bird artwork. */
+  .avatar-frame{background:url('/static/avatar-ring-v1.webp') center/100% 100% no-repeat, #fff;border-radius:50%;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
   .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:18px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
   .carousel-panel{width:100%;max-width:100%;overflow-x:hidden;overflow-y:visible;}
   .carousel-item{
@@ -623,7 +631,11 @@
   .carousel-item-price-badge.unaffordable{color:var(--mist-dk);opacity:0.75;}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  .dressup-avatar-stage{position:relative; width:100%; height:210px; margin-top:40px; margin-bottom:20px;}
+  /* Height bumped from 210 to 226 to match .avatar-frame's new 222px
+     diameter (was 206px before the ring's padding fix) - kept a small
+     buffer rather than the exact figure so the frame's drop-shadow has
+     room too. */
+  .dressup-avatar-stage{position:relative; width:100%; height:226px; margin-top:40px; margin-bottom:20px;}
   .avatar-frame-wrap{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
     z-index:2; pointer-events:none;
