@@ -116,7 +116,7 @@ class Profile(Base):
     avatar_species = Column(String, default="default")  # 'default' or one of the bird-selector species
     equipped_hats = Column(String, nullable=True)
     equipped_neck = Column(String, nullable=True)
-    equipped_gear = Column(String, nullable=True)
+    equipped_gear = Column(String, nullable=True)  # unused - 'gear' category retired, column kept rather than dropped
     equipped_held = Column(String, nullable=True)
     equipped_glasses = Column(String, nullable=True)
     equipped_shoes = Column(String, nullable=True)
@@ -760,7 +760,7 @@ def get_profile():
         "avatar_body": "#C4BFDF", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
         "avatar_species": "default",
         "avatar_photo": None, "show_scientific_names": True,
-        "equipped": {"hats": None, "neck": None, "gear": None, "held": None, "glasses": None, "shoes": None},
+        "equipped": {"hats": None, "neck": None, "held": None, "glasses": None, "shoes": None},
     }
     if SessionLocal is None:
         return default
@@ -787,7 +787,6 @@ def get_profile():
             "equipped": {
                 "hats": p.equipped_hats,
                 "neck": p.equipped_neck,
-                "gear": p.equipped_gear,
                 "held": p.equipped_held,
                 "glasses": p.equipped_glasses,
                 "shoes": p.equipped_shoes,
@@ -1016,7 +1015,7 @@ def reset_dress_up():
         session.query(OwnedAccessory).delete()
         p = session.query(Profile).first()
         if p:
-            for slot in ("hats", "neck", "gear", "held", "glasses", "shoes"):
+            for slot in ("hats", "neck", "held", "glasses", "shoes"):
                 setattr(p, f"equipped_{slot}", None)
         session.commit()
 
@@ -1172,10 +1171,10 @@ def purchase_accessory(accessory_id: str, cost: float, category: str = None) -> 
 
 def set_equipped_item(category: str, accessory_id):
     """Sets (or clears, if accessory_id is None) the worn item for one
-    of the 6 slots: hats, glasses, neck, gear, held, shoes."""
+    of the 5 slots: hats, glasses, neck, held, shoes."""
     if SessionLocal is None:
         return
-    if category not in ("hats", "neck", "gear", "held", "glasses", "shoes"):
+    if category not in ("hats", "neck", "held", "glasses", "shoes"):
         return
     with SessionLocal() as session:
         p = session.query(Profile).first()
