@@ -2758,18 +2758,25 @@ const ACCESSORY_LAYER_ORDER = ['shoes', 'neck', 'held', 'glasses', 'hats'];
 // centred, are adjusted) so nothing distorts. 'default' needs no entry: it
 // falls through to the original fixed box below.
 const SPECIES_LAYOUT = {
-  cardinal: { bodyW: 60.75, bodyX: 19.62, wingW: 18.57, legW: 12.21 },
-  owl:      { bodyW: 62.99, bodyX: 18.50, wingW: 18.68, legW: 12.11 },
-  penguin:  { bodyW: 59.33, bodyX: 20.34, wingW: 18.21, legW: 12.09 },
-  // wingX pulls the wing's inner (body-side) edge in from the default 69,
-  // and wingY drops it down from the default 57.5, for species whose
-  // wings otherwise sit visibly detached (or leave a seam right at the
-  // shoulder) instead of tucking against the torso - most species don't
-  // need either, so they're only set where a render check actually
-  // showed a problem.
-  parrot:   { bodyW: 62.65, bodyX: 18.68, wingW: 16.58, legW: 11.99, wingX: 67, wingY: 59 },
-  duckling: { bodyW: 59.54, bodyX: 20.23, wingW: 21.12, legW: 12.10 },
-  bluebird: { bodyW: 56.85, bodyX: 21.57, wingW: 19.48, legW: 12.09, wingX: 57 },
+  // wingX/wingY: replicates the exact attachment relationship measured on
+  // the original bird (wing's inner edge inset 10.3 units from the body's
+  // widest silhouette point within the wing's height band), computed per
+  // species from their own body art rather than reused as one flat
+  // constant. cardinal/owl/penguin/duckling need nothing beyond that - a
+  // close zoom against the original bird's own attachment (which has the
+  // same small amount of separation) confirmed they already match it.
+  // parrot and bluebird still needed an extra pull-in beyond the formula:
+  // their wing art itself has less coverage near the inner corner than
+  // the other species' wings, so the same relative position leaves a
+  // real gap the other four don't have - confirmed by comparing all six
+  // against the original at identical zoom, not just the two that
+  // seemed likely.
+  cardinal: { bodyW: 60.75, bodyX: 19.62, wingW: 18.57, legW: 12.21, wingX: 69.60 },
+  owl:      { bodyW: 62.99, bodyX: 18.50, wingW: 18.68, legW: 12.11, wingX: 69.30 },
+  penguin:  { bodyW: 59.33, bodyX: 20.34, wingW: 18.21, legW: 12.09, wingX: 67.70 },
+  parrot:   { bodyW: 62.65, bodyX: 18.68, wingW: 16.58, legW: 11.99, wingX: 63,    wingY: 60 },
+  duckling: { bodyW: 59.54, bodyX: 20.23, wingW: 21.12, legW: 12.10, wingX: 67.50 },
+  bluebird: { bodyW: 56.85, bodyX: 21.57, wingW: 19.48, legW: 12.09, wingX: 58,    wingY: 60 },
 };
 const AVATAR_SPECIES = [
   { id: 'default',  name: 'Classic' },
