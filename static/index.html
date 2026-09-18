@@ -582,6 +582,12 @@
      circle/bird art's outer edge directly, like a picture frame laid on
      top of a photo rather than tucked behind it. */
   .avatar-frame{background:#fff;border-radius:50%;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;position:relative;z-index:1;}
+  /* SVGs are inline by default, which leaves ~4px of phantom baseline
+     whitespace below them (the classic inline-replaced-element gap) - that
+     was making avatar-frame render 230x234 instead of a true 230x230
+     circle, so it didn't quite match avatar-ring-frame's perfect circle.
+     display:block on the injected avatar SVG removes that gap. */
+  .avatar-frame svg{display:block;}
   /* The ring: sized so its OUTER edge exactly matches avatar-frame's own
      outer edge (230px, from content:210 + padding:10*2) - the ring's
      exterior lines up with the white circle's exterior, rather than
