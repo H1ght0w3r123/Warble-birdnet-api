@@ -864,7 +864,7 @@
       <span>My Birds</span>
     </button>
     <button class="nav-tab home-tab" id="navHome" data-tab="home">
-      <img src="/static/nav-birdhouse.webp" alt="Home" class="nav-icon-svg" style="object-fit:contain;">
+      <img src="/static/nav-birdhouse-v2.webp" alt="Home" class="nav-icon-svg" style="object-fit:contain;">
       <span>Home</span>
     </button>
     <button class="nav-tab" id="navTrophies" data-tab="trophies">
@@ -951,7 +951,7 @@ function renderIdle() {
   setActiveTab('home');
   stage.innerHTML = `
     <div class="home-wordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;margin:0 auto;"></div>
-    <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic.webp" alt="Record"></button>
+    <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic-v2.webp" alt="Record"></button>
     <div class="stage-label">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
     <div class="stage-sub">Hear some birds? Then tap the mic!</div>
     <div class="home-arc">
@@ -1771,7 +1771,7 @@ function renderNoBirds() {
     <img class="done-icon" src="/static/empty-nest.webp" alt="Empty nest">
     <div class="done-title">No birds heard this time</div>
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
-    <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic.webp" alt="Go again"></button>
+    <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt="Go again"></button>
   `;
   document.getElementById('againBtn').onclick = () => {
     // Location naming still has to happen first if it's pending, but once
@@ -2245,7 +2245,7 @@ function renderDone() {
       <div class="done-feathers tappable" id="doneFeathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${total} feathers earned</div>
       <div class="go-again-content" id="goAgainWrap">
         <div class="go-again-ask">Go again?</div>
-        <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic.webp" alt="Go again"></button>
+        <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt="Go again"></button>
       </div>
     </div>
     <div class="collect-hint" id="doneHint">Tap your feathers to collect them</div>
