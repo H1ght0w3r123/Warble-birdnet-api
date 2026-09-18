@@ -107,22 +107,21 @@
   /* --- Idle / Recording --- */
   .mic-btn{
     width:108px;height:108px;border-radius:50%;
-    background:var(--visitor); color:#fff; font-size:68px;
-    border:none; box-shadow:0 7px 0 var(--visitor-dk);
+    background:transparent; color:#fff; font-size:68px;
+    border:none; box-shadow:none;
     display:flex;align-items:center;justify-content:center;
     cursor:pointer; transition:transform .1s; position:relative; z-index:1;
   }
-  .mic-btn:active{transform:translateY(5px); box-shadow:0 2px 0 var(--visitor-dk);}
+  .mic-btn:active{transform:translateY(4px);}
   /* Matches the 84px 'go again' mic button, not the larger 120px Home mic. */
-  .mic-btn.recording{width:84px;height:84px;font-size:26px;box-shadow:0 6px 0 var(--visitor-dk);margin-top:16px;}
+  .mic-btn.recording{width:84px;height:84px;font-size:26px;background:var(--visitor);border-radius:50%;box-shadow:0 6px 0 var(--visitor-dk);margin-top:16px;}
   .mic-btn.recording:active{transform:translateY(4px); box-shadow:0 2px 0 var(--visitor-dk);}
-  /* height:0.85em means the mic image rides on whatever font-size its
-     button already has (68px resting, 26px mid-recording, 30px go-again) -
-     same trick as the feather icon, so one asset auto-scales across every
-     state and button without per-site overrides. 0.85 rather than 1 because
-     this image fills its own bounding box more tightly than the emoji
-     glyph it replaced did, so 1em would look oversized in comparison. */
-  .mic-icon{height:1.15em; width:auto; display:block;}
+  /* The new mic asset is a complete circular badge (its own wood-ring
+     border and 3D bevel baked into the artwork) rather than a small glyph
+     that rides on a coloured button - so the button itself goes background:
+     none/no box-shadow, and the image fills the button's full box instead
+     of being sized off font-size like the old icon-on-button approach. */
+  .mic-icon{width:100%; height:100%; object-fit:contain; display:block;}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
   .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:#fff;text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
@@ -329,15 +328,17 @@
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--dusk-mid); cursor:pointer;
   }
   /* The "go again" variant: a round mic button that starts a new recording
-     straight away, rather than a text button that returns to Home first. */
+     straight away, rather than a text button that returns to Home first.
+     Same transparent/no-shadow treatment as .mic-btn above - the badge
+     artwork carries its own circular border and bevel. */
   .again-btn.mic-again-btn{
     margin-top:12px;
     width:84px; height:84px; padding:0; border-radius:50%;
-    background:var(--visitor); box-shadow:0 6px 0 var(--visitor-dk);
+    background:transparent; box-shadow:none;
     font-size:30px; display:flex; align-items:center; justify-content:center;
     transition:transform .1s;
   }
-  .again-btn.mic-again-btn:active{transform:translateY(4px); box-shadow:0 2px 0 var(--visitor-dk);}
+  .again-btn.mic-again-btn:active{transform:translateY(4px);}
   .error{color:#FFD9D2;font-size:13px;margin-top:14px;text-align:center;max-width:320px;}
 
   /* --- Collection --- */
