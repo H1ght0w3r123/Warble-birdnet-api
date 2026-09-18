@@ -573,21 +573,26 @@
   .category-tile .cat-icon{font-size:26px;line-height:1;}
   .category-tile .cat-icon svg{width:26px !important;height:26px !important;}
   .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
-  /* The wood-ring outline sits as a background layer (not a child element)
-     because renderDressUpPreview() replaces this element's innerHTML
-     wholesale every time the avatar/accessories update - a child node
-     here would get wiped out on the next re-render. As a background it's
-     always behind whatever avatar SVG content gets injected, so any
-     accessory that extends past the circle (wings, tall hats) naturally
-     paints on top of the ring rather than being hidden under it.
-     Padding is derived, not arbitrary: avatar-ring-v1.webp's own band is
-     ~14.5% of its diameter (measured off the saved asset), and
-     background-size:100% 100% scales that band with whatever the frame
-     renders at. Content is 210px (bumped up from 190 for a slightly
-     bigger preview); padding = diameter*0.0726 solved for that content
-     size is ~17.9px, rounded to 18 - that's what makes the ring's band
-     exactly fill the white margin instead of overlapping the art. */
-  .avatar-frame{background:url('/static/avatar-ring-v1.webp') center/100% 100% no-repeat, #fff;border-radius:50%;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;}
+  /* Plain white circle again - the wood ring is a separate, larger layer
+     (.avatar-ring-frame) that sits behind this and extends outward past
+     its edge, like a picture frame added around the outside, rather than
+     being squeezed into this padding. 10px keeps a normal white margin
+     around the bird; that's independent of the ring now. */
+  .avatar-frame{background:#fff;border-radius:50%;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;position:relative;z-index:1;}
+  /* The ring: sized so its INNER edge lands exactly on avatar-frame's
+     OUTER edge (230px, from content:210 + padding:10*2), so it reads as
+     a border framing the white circle from outside rather than
+     overlapping it. avatar-ring-v1.webp's band is ~14.5% of its own
+     diameter (measured off the asset) - solving outer = 230/0.8548 gives
+     ~269px, a ~19.5px band extending past the white circle's edge.
+     z-index below avatar-frame (1) so the white circle's own disc covers
+     the ring's inner portion cleanly. */
+  .avatar-ring-frame{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:269px; height:269px; border-radius:50%;
+    background:url('/static/avatar-ring-v1.webp') center/100% 100% no-repeat;
+    z-index:0; pointer-events:none;
+  }
   .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:18px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
   .carousel-panel{width:100%;max-width:100%;overflow-x:hidden;overflow-y:visible;}
   .carousel-item{
@@ -3233,8 +3238,8 @@ function renderSwatchRows() {
   swatches.forEach((hex, i) => {
     const t = n === 1 ? 0.5 : i / (n - 1);
     const angle = archStart + (archEnd - archStart) * t;
-    const x = 50 + 59 * Math.cos(angle); // % of frame box; 59% (vs the frame's own 50% edge) leaves a real gap
-    const y = 50 + 59 * Math.sin(angle);
+    const x = 50 + 66 * Math.cos(angle); // % of frame box; 66% clears the wood ring frame (which now extends outward past the white circle's own edge), not just the white circle itself
+    const y = 50 + 66 * Math.sin(angle);
     const btn = document.createElement('button');
     btn.className = 'color-swatch';
     btn.style.background = hex;
@@ -3541,6 +3546,7 @@ async function renderDressUp() {
     <div class="dressup-avatar-stage" id="dressUpAvatarStage">
       <div class="species-track" id="speciesTrack"></div>
       <div class="avatar-frame-wrap">
+        <div class="avatar-ring-frame"></div>
         <div class="avatar-frame" id="dressUpPreview"></div>
         <div class="color-wheel" id="colorWheel"></div>
       </div>
