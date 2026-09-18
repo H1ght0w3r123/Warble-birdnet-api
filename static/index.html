@@ -872,19 +872,19 @@
     </button>
     <button class="nav-tab" id="navCollection" data-tab="collection">
       <span class="nav-icon-wrap"><svg viewBox="0 0 24 24" class="nav-icon-svg"><rect x="2.4" y="5.4" width="12.6" height="16.2" rx="1.8" fill="#7EC8A4"/><rect x="7.6" y="3" width="14" height="18.6" rx="2" fill="currentColor"/><circle cx="15.2" cy="13.6" r="2" fill="#fff"/><path d="M17.2 13.6 L19.6 14.3 L17.2 15 Z" fill="#fff"/><path d="M10.6 18.6 Q10.6 14.6 14.4 14.6 Q17 14.6 17 16.8 Q17 18.6 14.4 18.6 Z" fill="#fff"/></svg></span>
-      <span>My Birds</span>
+      <span>My Flock</span>
     </button>
     <button class="nav-tab home-tab" id="navHome" data-tab="home">
       <img src="/static/nav-birdhouse-v2.webp" alt="Home" class="nav-icon-svg" style="object-fit:contain;">
       <span>Home</span>
     </button>
     <button class="nav-tab" id="navTrophies" data-tab="trophies">
-      <span class="nav-icon-wrap"><img src="/static/nav-trophy-v1.webp" alt="Trophies" class="nav-icon-svg" style="object-fit:contain;"></span>
-      <span>Trophies</span>
+      <span class="nav-icon-wrap"><img src="/static/nav-trophy-v1.webp" alt="Awards" class="nav-icon-svg" style="object-fit:contain;"></span>
+      <span>Awards</span>
     </button>
     <button class="nav-tab" id="navDressUp" data-tab="dressup">
       <span class="nav-icon-wrap"><span id="navDressUpIcon"></span></span>
-      <span>Dress Up</span>
+      <span>OutFlitters</span>
     </button>
   </div>
 
@@ -1800,7 +1800,7 @@ function renderCollection() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header">
-      <div class="collection-title">My Birds</div>
+      <div class="collection-title"><img src="/static/title-my-flock-v1.webp" alt="My Flock" style="height:30px;width:auto;display:block;"></div>
     </div>
     <div class="collection-count">Loading...</div>
     <div class="sort-row" id="sortRow">
@@ -3517,7 +3517,7 @@ async function renderDressUp() {
   stage.classList.add('top-aligned');
   selectedCategory = null;
   stage.innerHTML = `
-    <div class="collection-header"><div class="collection-title">Dress Up</div></div>
+    <div class="collection-header"><div class="collection-title"><img src="/static/title-outflitters-v1.webp" alt="OutFlitters" style="height:30px;width:auto;display:block;"></div></div>
     <div class="dressup-avatar-stage" id="dressUpAvatarStage">
       <div class="species-track" id="speciesTrack"></div>
       <div class="avatar-frame-wrap">
@@ -3991,7 +3991,7 @@ async function renderTrophies() {
   setActiveTab('trophies');
   stage.classList.remove('top-aligned');
   stage.innerHTML = `
-    <div class="collection-header"><div class="collection-title">Trophies</div></div>
+    <div class="collection-header"><div class="collection-title"><img src="/static/title-awards-v1.webp" alt="Awards" style="height:30px;width:auto;display:block;"></div></div>
     <div class="collection-count" id="trophyCount">Loading...</div>
     <div class="trophy-carousel" id="trophyCarousel"></div>
     <div class="trophy-caption" id="trophyCaption"></div>
