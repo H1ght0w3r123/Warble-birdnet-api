@@ -87,11 +87,16 @@
   .nav-tab.home-tab{
     flex:0 0 69px;
     width:69px; height:69px; border-radius:50%;
-    background:var(--terra); margin-top:-25px; gap:0;
-    box-shadow:0 4px 0 var(--terra-dk), 0 6px 14px rgba(0,0,0,0.25);
+    background:transparent; margin-top:-25px; gap:0;
+    box-shadow:none;
     justify-content:center;
   }
-  .nav-tab.home-tab .nav-icon-svg{width:62.9px; height:62.9px; color:#fff;}
+  /* The new birdhouse badge is a complete circular illustration (its own
+     wood-ring border and bevel baked in), same treatment as the mic badge:
+     no coloured background or drop-shadow on the tab itself, image fills
+     the tab's own box via object-fit rather than riding at a smaller size
+     inside a flat terracotta circle. */
+  .nav-tab.home-tab .nav-icon-svg{width:100%; height:100%; color:#fff;}
   .nav-tab.home-tab span:last-child{display:none;}
 
   /* --- Recording screen keeps its pine silhouette as the one
