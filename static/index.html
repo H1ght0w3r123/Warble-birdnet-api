@@ -781,21 +781,50 @@
      the tilt's wider bounding box without pushing the outer cards off the
      edge of the frame. */
   .fan-card{
-    width:66px; height:108px; border-radius:9px; background:var(--parch);
-    border:2px solid var(--mist); margin-left:-42px; flex-shrink:0;
+    width:66px; height:108px; border-radius:9px;
+    background:url('/static/card-frame-v1.webp') center/100% 100% no-repeat;
+    margin-left:-42px; flex-shrink:0;
     box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform-origin:center bottom;
     transform:rotate(var(--tilt, 0deg)) scale(var(--scale, 1));
     transition:transform .25s cubic-bezier(.2,.8,.3,1.15);
     cursor:pointer;
+    /* Photo window sits inside the painted wood frame's border - measured
+       off the frame artwork itself (card-frame-v1.webp), not guessed. */
+    padding:4px 5px 0;
   }
   .fan-card:first-child{margin-left:0;}
   .fan-card.selected{--scale:1.4;}
-  .fan-card.complete{border-color:var(--gold);}
+  /* Border-color no longer works once the frame is a background image, so
+     "pack complete" gets a gold ring laid on top of the wood frame instead
+     of replacing its color. */
+  .fan-card.complete{box-shadow:0 6px 14px rgba(0,0,0,0.34), 0 0 0 2px var(--gold);}
   .fan-card.unfound{filter:grayscale(1) brightness(.9);}
-  .fan-photo{width:100%;height:64px;object-fit:cover;display:block;}
-  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.3;background:var(--parch-dk);}
-  .fan-name{font-family:'Outfit';font-weight:700;font-size:9px;color:var(--dusk);text-align:center;padding:4px 3px 0;line-height:1.15;height:22px;overflow:hidden;}
+  /* Two flat leaf silhouettes, playing-card style (top-left / bottom-right),
+     coloured live via mask + background-color so every one of the 10 packs
+     recolours the same two image files rather than needing 10 painted
+     variants. Positions/sizes are percentages of the card box, matched to
+     where the corner leaf holes actually sit in card-frame-v1.webp. */
+  .fan-leaf{
+    position:absolute; z-index:1;
+    background-color:var(--pack-color);
+    -webkit-mask-size:100% 100%; mask-size:100% 100%;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+  }
+  .fan-leaf.tl{
+    left:5.1%; top:2.8%; width:11.8%; height:11.4%;
+    -webkit-mask-image:url('/static/fan-leaf-tl-mask-v1.webp');
+    mask-image:url('/static/fan-leaf-tl-mask-v1.webp');
+  }
+  .fan-leaf.br{
+    right:4.5%; bottom:2.5%; width:12.6%; height:12%;
+    -webkit-mask-image:url('/static/fan-leaf-br-mask-v1.webp');
+    mask-image:url('/static/fan-leaf-br-mask-v1.webp');
+  }
+  .fan-photo{width:100%;height:82px;object-fit:cover;display:block;border-radius:3px;}
+  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.3;background:var(--parch-dk);border-radius:3px;}
+  .fan-name{font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;padding:2px 2px 0;line-height:1.1;height:18px;overflow:hidden;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
@@ -4035,7 +4064,8 @@ function renderSelectedPack() {
       <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
            style="z-index:${z}; --tilt:${tilt}deg;" data-z="${z}"
            data-name="${b.found ? b.common_name : ''}">
-        <div class="pack-dot" style="--pack-color:${p.color}"></div>
+        <div class="fan-leaf tl" style="--pack-color:${p.color}"></div>
+        <div class="fan-leaf br" style="--pack-color:${p.color}"></div>
         ${face}
         <div class="fan-name">${b.common_name}</div>
         ${rareMark}
