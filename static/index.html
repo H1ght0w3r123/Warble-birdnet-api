@@ -1294,14 +1294,11 @@ function renderTips() {
   };
 }
 
-function renderRecording() {
-  liveDetectedBirds = [];
-  liveBadgedSpecies = new Set();
-  stage.innerHTML = `
-    <div class="pines"></div>
-    <div class="rec-column">
-      <div class="live-bird-stack" id="liveBirdStack"></div>
-      <svg id="recTree" viewBox="0 0 380 452" class="rec-tree" style="overflow:visible">
+// Shared by the recording screen and the settings > Animation Preview debug
+// screen, so the two never drift out of sync - the SVG markup (asset refs,
+// pivots, layer order) only needs to be correct in one place.
+function treeSvgMarkup() {
+  return `<svg id="recTree" viewBox="0 0 380 452" class="rec-tree" style="overflow:visible">
       <!-- v2 redesign: properly-registered 380x452 canvas, every layer at native
            (0,0,380,452) with zero per-layer scaling/positioning needed - see
            design-brief-recording-tree-v2.md for why this format matters (the
@@ -1315,7 +1312,17 @@ function renderRecording() {
       <image data-cluster="" data-name="upper-right" data-bin="26" data-amp="4.6" data-pivot="236,162" href="/static/tree-cluster3-v2.webp" x="0" y="0" width="380" height="452"></image>
       <image data-cluster="" data-name="top" data-bin="16" data-amp="5.2" data-pivot="190,100" href="/static/tree-cluster1-v2.webp" x="0" y="0" width="380" height="452"></image>
       <g id="leaves"></g>
-      </svg>
+      </svg>`;
+}
+
+function renderRecording() {
+  liveDetectedBirds = [];
+  liveBadgedSpecies = new Set();
+  stage.innerHTML = `
+    <div class="pines"></div>
+    <div class="rec-column">
+      <div class="live-bird-stack" id="liveBirdStack"></div>
+      ${treeSvgMarkup()}
       <div class="rec-location" id="recLocation"></div>
       <button class="mic-btn recording" id="stopBtn">■</button>
       <div class="timer" id="timer">0:00</div>
@@ -2591,6 +2598,87 @@ function stopEqualizer() {
   eqAnalyser = null;
 }
 
+// --- Demo quiver, for the settings > Animation Preview debug screen ---
+// Drives the exact same per-cluster rotate/rustle/leaf-fall logic as the
+// real recording-screen equalizer above, but feeds it a synthetic wandering
+// "volume" per cluster instead of real mic data - so this never needs
+// microphone permission just to look at the animation. Kept as a separate
+// function rather than sharing draw() with startEqualizer(), since that one
+// is wired tightly to a real AudioContext/analyser and forcing a fake-data
+// path through it risked the real recording animation for a debug feature.
+let demoAnimId = null;
+function startDemoQuiver() {
+  stopDemoQuiver();
+  treeShards = Array.from(document.querySelectorAll('[data-cluster]')).map((el, i) => {
+    const p = el.getAttribute('data-pivot').split(',').map(Number);
+    const nx = p[0] - TREE_CX, ny = p[1] - TREE_CY;
+    const len = Math.hypot(nx, ny) || 1;
+    return {
+      el, px: p[0], py: p[1], nx: nx / len, ny: ny / len,
+      bin: +el.getAttribute('data-bin'), amp: +el.getAttribute('data-amp'),
+      phase: i * 0.73, lvl: 0, demoTarget: Math.random(),
+    };
+  });
+  fallingLeaves = [];
+  activeRustle = null;
+  lastFrameTime = 0;
+
+  function draw(now) {
+    const t = now / 1000;
+    const dt = Math.min(0.05, (now - (lastFrameTime || now)) / 1000);
+    lastFrameTime = now;
+    const breath = 1.4;
+    const r = activeRustle;
+    const rAge = r ? t - r.t : 999;
+    if (r && rAge > 2.2) activeRustle = null;
+
+    for (const s of treeShards) {
+      // Synthetic level: a slow random walk toward a wandering target,
+      // standing in for a real frequency bin's rise-and-fall.
+      if (Math.random() < 0.02) s.demoTarget = Math.random();
+      s.lvl += (s.demoTarget - s.lvl) * (s.demoTarget > s.lvl ? 0.1 : 0.04);
+      let a = breath * Math.sin(t * 1.63 + s.phase) + s.lvl * s.amp * QUIVER_GAIN;
+      let ox = 0, oy = 0;
+
+      if (r) {
+        const d = Math.hypot(s.px - r.ox, s.py - r.oy);
+        const tt = rAge - d / 456;
+        if (tt > 0 && tt < 1.2) {
+          const fall = Math.max(0.3, 1 - d / 361);
+          const dir = (s.px - r.ox) >= 0 ? 1 : -1;
+          const env = Math.exp(-tt / 0.2) * Math.sin(Math.PI * 2 * 4.2 * tt);
+          a += 24 * fall * dir * env;
+          const push = 13 * fall * Math.exp(-tt / 0.24) * Math.sin(Math.PI * 2 * 4.2 * tt);
+          ox = s.nx * push; oy = s.ny * push;
+        }
+      }
+
+      s.el.setAttribute('transform',
+        `rotate(${a.toFixed(2)},${s.px},${s.py}) translate(${ox.toFixed(2)},${oy.toFixed(2)}) ` +
+        `translate(${s.px},${s.py}) scale(1.02) translate(${-s.px},${-s.py})`);
+    }
+
+    for (let i = fallingLeaves.length - 1; i >= 0; i--) {
+      const l = fallingLeaves[i];
+      const age = t - l.born;
+      if (age > l.life) { l.el.remove(); fallingLeaves.splice(i, 1); continue; }
+      l.vy += 34 * dt;
+      l.x += (l.vx + Math.sin(t * l.sway * 3 + l.ph) * 9) * dt;
+      l.y += l.vy * dt;
+      l.rot += l.spin * dt;
+      l.el.setAttribute('transform', `translate(${l.x.toFixed(1)},${l.y.toFixed(1)}) rotate(${l.rot.toFixed(0)})`);
+      l.el.setAttribute('opacity', String(Math.max(0, 1 - Math.pow(age / l.life, 3))));
+    }
+
+    demoAnimId = requestAnimationFrame(draw);
+  }
+  demoAnimId = requestAnimationFrame(draw);
+}
+function stopDemoQuiver() {
+  if (demoAnimId) cancelAnimationFrame(demoAnimId);
+  demoAnimId = null;
+}
+
 // --- Live preview loop: repeatedly checks short clips against the
 // same filtered /identify endpoint used elsewhere, so a live flash
 // and the final result are answering the same question, not two
@@ -2937,6 +3025,10 @@ async function renderSettings() {
     </div>
     <div class="reset-note" id="featherSetNote">For testing — sets your balance to any number.</div>
 
+    <div class="profile-section-title">Developer</div>
+    <div class="reset-note">Preview the tree and bird-reveal animations without recording or finding a real bird.</div>
+    <button class="again-btn" id="openAnimPreviewBtn">Animation preview</button>
+
     <div class="profile-section-title">Backup</div>
     <div class="reset-note">Save a copy of everything before you reset.</div>
     <button class="reset-btn" id="exportBtn">Download my data</button>
@@ -2952,6 +3044,7 @@ async function renderSettings() {
     stage.classList.remove('top-aligned');
     renderIdle();
   };
+  document.getElementById('openAnimPreviewBtn').onclick = renderAnimationPreview;
 
   // Settings can be opened before the profile has been fetched this session,
   // so make sure the toggle reflects what's actually saved.
@@ -3041,6 +3134,95 @@ async function renderSettings() {
       }
     };
   });
+}
+
+// Debug screen, reachable from Settings > Developer > Animation preview.
+// Lets the tree and bird-reveal animations be checked without needing to
+// actually record something or wait to find a real bird. Nothing here
+// touches real data - the "bird" is a hardcoded placeholder card, and the
+// tree's quiver is driven by synthetic random levels (see startDemoQuiver)
+// rather than the microphone.
+function renderAnimationPreview() {
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:12px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:4px;">Animation Preview</div>
+    <div class="collection-count" style="margin-bottom:14px;">Debug only - nothing here is saved</div>
+
+    <div class="profile-section-title">Recording tree</div>
+    <div style="display:flex; justify-content:center; margin:8px 0 14px; position:relative; height:200px;">
+      ${treeSvgMarkup()}
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:22px;">
+      <button class="again-btn" id="demoQuiverToggleBtn">Start quiver</button>
+      <button class="again-btn" id="demoRustleBtn">Trigger rustle</button>
+    </div>
+
+    <div class="profile-section-title">Bird reveal</div>
+    <div class="collection-count" style="margin-bottom:10px;">Tap a button - the card below animates the same way a real reveal does.</div>
+    <div style="display:flex; justify-content:center; margin:8px 0 14px;">
+      <div class="card" id="previewCard" style="--tier-color:#E8845C;">
+        <div class="card-photo"></div>
+        <div class="card-body">
+          <div class="card-name">Preview Bird</div>
+          <div class="card-tags"><span class="tag new" id="previewTag">New!</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+      <button class="again-btn" id="demoNewBirdBtn">New bird (flies to My Flock)</button>
+      <button class="again-btn" id="demoDupBirdBtn">Duplicate (shrinks away)</button>
+    </div>
+  `;
+
+  document.getElementById('backBtn').onclick = () => {
+    stopDemoQuiver();
+    renderSettings();
+  };
+
+  let quiverOn = false;
+  const quiverBtn = document.getElementById('demoQuiverToggleBtn');
+  quiverBtn.onclick = () => {
+    quiverOn = !quiverOn;
+    if (quiverOn) { startDemoQuiver(); quiverBtn.textContent = 'Stop quiver'; }
+    else { stopDemoQuiver(); quiverBtn.textContent = 'Start quiver'; }
+  };
+  document.getElementById('demoRustleBtn').onclick = () => {
+    // The rustle wave only has something to animate if the quiver loop is
+    // already running (that's what steps treeShards forward frame to
+    // frame) - start it automatically rather than leaving the button
+    // looking broken if tapped first.
+    if (!quiverOn) { quiverOn = true; startDemoQuiver(); quiverBtn.textContent = 'Stop quiver'; }
+    fireTreeRustle();
+  };
+
+  // Rebuilds the placeholder card fresh each time, since dismissCard()
+  // mutates and eventually removes the element it's given.
+  function freshPreviewCard(isNew) {
+    const old = document.getElementById('previewCard');
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'previewCard';
+    card.style.setProperty('--tier-color', '#E8845C');
+    card.innerHTML = `
+      <div class="card-photo"></div>
+      <div class="card-body">
+        <div class="card-name">Preview Bird</div>
+        <div class="card-tags"><span class="tag ${isNew ? 'new' : 'dup'}">${isNew ? 'New!' : 'Already found'}</span></div>
+      </div>`;
+    old.replaceWith(card);
+    return card;
+  }
+  document.getElementById('demoNewBirdBtn').onclick = () => {
+    const card = freshPreviewCard(true);
+    dismissCard(card, true, () => freshPreviewCard(true));
+  };
+  document.getElementById('demoDupBirdBtn').onclick = () => {
+    const card = freshPreviewCard(false);
+    dismissCard(card, false, () => freshPreviewCard(false));
+  };
 }
 
 function renderMicCheck() {
