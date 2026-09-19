@@ -457,7 +457,10 @@
   /* New viewBox is 200x210 (was 160x190) after the hand-painted layered
      redesign replaced the old 59-facet procedural canopy - width/height
      updated to match its aspect ratio. */
-  .rec-tree{width:194px;height:204px;position:relative;z-index:1;display:block;margin:0 auto;}
+  /* v2 redesign: viewBox now 380x452 (was 200x210), properly-registered
+     layered assets - width/height updated to the same aspect ratio,
+     keeping a similar on-screen footprint to before. */
+  .rec-tree{width:190px;height:226px;position:relative;z-index:1;display:block;margin:0 auto;}
 
   /* --- Live bird detection badges: persist and stack for the whole recording --- */
   /* Fixed-height void so the tree and everything below it don't shift
@@ -1298,15 +1301,19 @@ function renderRecording() {
     <div class="pines"></div>
     <div class="rec-column">
       <div class="live-bird-stack" id="liveBirdStack"></div>
-      <svg id="recTree" viewBox="0 0 200 210" class="rec-tree" style="overflow:visible">
-      <ellipse cx="100" cy="207" rx="42" ry="6" fill="#1A1128" opacity="0.22"></ellipse>
-      <image href="/static/tree-trunk-v1.webp" x="62" y="167" width="76" height="35"></image>
-      <image data-cluster="" data-name="upper-left" data-bin="6" data-amp="4.6" data-pivot="36.9,125.5" href="/static/tree-cluster2-v1.webp" x="6" y="26" width="106" height="102"></image>
-      <image data-cluster="" data-name="upper-right" data-bin="26" data-amp="4.6" data-pivot="153.8,100.8" href="/static/tree-cluster3-v1.webp" x="100" y="28" width="100" height="89"></image>
-      <image data-cluster="" data-name="top" data-bin="16" data-amp="5.2" data-pivot="115.0,90.2" href="/static/tree-cluster1-v1.webp" x="34" y="0" width="132" height="112"></image>
-      <image data-cluster="" data-name="lower-left" data-bin="3" data-amp="5.0" data-pivot="57.4,150.1" href="/static/tree-cluster4-v1.webp" x="2" y="70" width="104" height="100"></image>
-      <image data-cluster="" data-name="lower-right" data-bin="29" data-amp="5.0" data-pivot="151.1,148.0" href="/static/tree-cluster6-v1.webp" x="100" y="74" width="98" height="91"></image>
-      <image data-cluster="" data-name="lower-center" data-bin="20" data-amp="4.8" data-pivot="90.8,149.1" href="/static/tree-cluster5-v1.webp" x="48" y="72" width="106" height="97"></image>
+      <svg id="recTree" viewBox="0 0 380 452" class="rec-tree" style="overflow:visible">
+      <!-- v2 redesign: properly-registered 380x452 canvas, every layer at native
+           (0,0,380,452) with zero per-layer scaling/positioning needed - see
+           design-brief-recording-tree-v2.md for why this format matters (the
+           first two asset deliveries couldn't be reliably positioned at all). -->
+      <ellipse cx="196" cy="432" rx="78" ry="11" fill="#1A1128" opacity="0.22"></ellipse>
+      <image href="/static/tree-trunk-v2.webp" x="0" y="0" width="380" height="452"></image>
+      <image data-cluster="" data-name="lower-left" data-bin="3" data-amp="5.0" data-pivot="112,218" href="/static/tree-cluster4-v2.webp" x="0" y="0" width="380" height="452"></image>
+      <image data-cluster="" data-name="lower-right" data-bin="29" data-amp="5.0" data-pivot="268,218" href="/static/tree-cluster6-v2.webp" x="0" y="0" width="380" height="452"></image>
+      <image data-cluster="" data-name="center" data-bin="20" data-amp="4.8" data-pivot="190,177" href="/static/tree-cluster5-v2.webp" x="0" y="0" width="380" height="452"></image>
+      <image data-cluster="" data-name="upper-left" data-bin="6" data-amp="4.6" data-pivot="120,154" href="/static/tree-cluster2-v2.webp" x="0" y="0" width="380" height="452"></image>
+      <image data-cluster="" data-name="upper-right" data-bin="26" data-amp="4.6" data-pivot="236,162" href="/static/tree-cluster3-v2.webp" x="0" y="0" width="380" height="452"></image>
+      <image data-cluster="" data-name="top" data-bin="16" data-amp="5.2" data-pivot="190,100" href="/static/tree-cluster1-v2.webp" x="0" y="0" width="380" height="452"></image>
       <g id="leaves"></g>
       </svg>
       <div class="rec-location" id="recLocation"></div>
@@ -2413,12 +2420,13 @@ let eqAudioContext = null, eqAnalyser = null, eqAnimationId = null;
 
 // Centre of the 200x210 viewBox (was 80,72 for the old 160x190 canopy) -
 // used to derive each cluster's outward push direction during a rustle.
-const TREE_CX = 100, TREE_CY = 105;
+// v2 redesign: centre of the 380x452 viewBox (was 100,105 for 200x210).
+const TREE_CX = 190, TREE_CY = 226;
 // Individual leaf sprites (painted, matching the canopy's redesigned style)
 // swapped in for spawnFallingLeaves() - replaces the old flat LEAF_COLORS
 // polygon-fill approach now that the canopy itself is illustrated rather
 // than flat-shaded facets.
-const LEAF_SPRITES = ['/static/tree-leaf1-v1.webp', '/static/tree-leaf2-v1.webp', '/static/tree-leaf3-v1.webp', '/static/tree-leaf4-v1.webp'];
+const LEAF_SPRITES = ['/static/tree-leaf1-v2.webp', '/static/tree-leaf2-v2.webp', '/static/tree-leaf3-v2.webp', '/static/tree-leaf4-v2.webp'];
 let treeShards = [], fallingLeaves = [], activeRustle = null, lastFrameTime = 0;
 // Tracks how loud things have been recently, so the quiver scales to the
 // actual environment. Without this the design's numbers - tuned in a demo
@@ -2490,18 +2498,21 @@ function startEqualizer(stream) {
       let a = breath * Math.sin(t * 1.63 + s.phase) + s.lvl * s.amp * QUIVER_GAIN;
       let ox = 0, oy = 0;
 
-      // LEVEL 2 - rustle: a wave leaving the landing point at 240px/s. Each
+      // LEVEL 2 - rustle: a wave leaving the landing point at 456px/s. Each
       // facet fires as the wave reaches it, so the tree moves in sequence and
       // has a visible direction - which is what distinguishes it from quiver.
+      // Speed/falloff/push scaled ~1.9x for the 380x452 viewBox (was 240,
+      // 190, 7 for the old 200x210 one) to keep the same relative timing and
+      // reach across the now-bigger canopy.
       if (r) {
         const d = Math.hypot(s.px - r.ox, s.py - r.oy);
-        const tt = rAge - d / 240;
+        const tt = rAge - d / 456;
         if (tt > 0 && tt < 1.2) {
-          const fall = Math.max(0.3, 1 - d / 190);
+          const fall = Math.max(0.3, 1 - d / 361);
           const dir = (s.px - r.ox) >= 0 ? 1 : -1;
           const env = Math.exp(-tt / 0.2) * Math.sin(Math.PI * 2 * 4.2 * tt);
           a += 24 * fall * dir * env;
-          const push = 7 * fall * Math.exp(-tt / 0.24) * Math.sin(Math.PI * 2 * 4.2 * tt);
+          const push = 13 * fall * Math.exp(-tt / 0.24) * Math.sin(Math.PI * 2 * 4.2 * tt);
           ox = s.nx * push; oy = s.ny * push;
         }
       }
@@ -2557,7 +2568,9 @@ function spawnFallingLeaves(x, y) {
     // own centre, same convention the old polygon (centred at 0,0) used.
     const el = document.createElementNS('http://www.w3.org/2000/svg', 'image');
     el.setAttribute('href', LEAF_SPRITES[i % LEAF_SPRITES.length]);
-    const size = 7 + Math.random() * 3;
+    // Scaled up for the 380x452 viewBox (was 7-10 for the old 200x210 one) -
+    // keeps leaf particles the same relative size against the bigger canopy.
+    const size = 13 + Math.random() * 6;
     el.setAttribute('x', -size / 2); el.setAttribute('y', -size / 2);
     el.setAttribute('width', size); el.setAttribute('height', size);
     layer.appendChild(el);
