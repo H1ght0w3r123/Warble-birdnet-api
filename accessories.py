@@ -494,9 +494,13 @@ ACCESSORIES = {
 # separate parallel list matched by index - fragile, and easy to silently
 # mismatch when reordering or adding a category, which this change does both of.
 CATEGORIES = [
-    {"id": "hats", "name": "Hats", "icon_svg": '<path d="M8.6 4.4 L15.4 4.4 L16.4 13.6 L7.6 13.6 Z" fill="#2D1B69"></path><path d="M7.6 10.6 L16.4 10.6 L16.4 13.6 L7.6 13.6 Z" fill="#E8845C"></path><path d="M3.6 14.4 C7 13 17 13 20.4 14.4 C20.4 16.4 17 17.6 12 17.6 C7 17.6 3.6 16.4 3.6 14.4 Z" fill="#2D1B69"></path>'},
-    {"id": "glasses", "name": "Glasses", "icon_svg": '<circle cx="7.4" cy="12.4" r="4.6" fill="#1A1128"></circle><circle cx="16.6" cy="12.4" r="4.6" fill="#1A1128"></circle><circle cx="7.4" cy="12.4" r="2.9" fill="#F5EDD6"></circle><circle cx="16.6" cy="12.4" r="2.9" fill="#F5EDD6"></circle><path d="M10.6 10.6 C11.4 10.1 12.6 10.1 13.4 10.6 L13.4 12 C12.6 11.5 11.4 11.5 10.6 12 Z" fill="#1A1128"></path><path d="M2.8 11 C2 11.2 1.4 11.8 1 12.4 L2 13.4 C2.4 12.9 2.8 12.6 3.4 12.5 Z" fill="#1A1128"></path><path d="M21.2 11 C22 11.2 22.6 11.8 23 12.4 L22 13.4 C21.6 12.9 21.2 12.6 20.6 12.5 Z" fill="#1A1128"></path>'},
-    {"id": "neck", "name": "Neck", "icon_svg": '<path d="M3.6 7 C6 8 9 9.8 10.8 12 C9 14.2 6 16 3.6 17 C4.4 13.6 4.4 10.4 3.6 7 Z" fill="#E87EA1"></path><path d="M20.4 7 C18 8 15 9.8 13.2 12 C15 14.2 18 16 20.4 17 C19.6 13.6 19.6 10.4 20.4 7 Z" fill="#E87EA1"></path><path d="M10.2 9.4 C11.4 9 12.6 9 13.8 9.4 C14.2 10.8 14.2 13.2 13.8 14.6 C12.6 15 11.4 15 10.2 14.6 C9.8 13.2 9.8 10.8 10.2 9.4 Z" fill="#B85A36"></path>'},
-    {"id": "held", "name": "Held", "icon_svg": '<path d="M5 13 C5 10 7 8 10 8 L14 8 C17 8 19 10 19 13 L19 15 C19 17.6 17 19 14 19 L10 19 C7 19 5 17.6 5 15 Z" fill="#8E87B8"></path><circle cx="12" cy="13.4" r="3.2" fill="#F5EDD6"></circle><path d="M9 8 L9 5.4 C9 4.4 9.8 3.8 10.8 3.8 L13.2 3.8 C14.2 3.8 15 4.4 15 5.4 L15 8 Z" fill="#3D2A85"></path>'},
-    {"id": "shoes", "name": "Shoes", "icon_svg": '<path d="M6 5.6 C8.4 5 11 5.2 12.6 6 C13.4 8.4 14.4 10.4 15.4 12 C16 13 15 14 12.6 14.2 C9.4 14.6 6.6 14.4 5.4 13.8 C4.6 13.4 4.4 11.6 4.8 9.6 C5.2 7.8 5.4 6.6 6 5.6 Z" fill="#7EC8A4"></path><path d="M5.6 5.2 C8 4.6 11 4.8 12.8 5.6 L13.2 8 C11 7.2 8 7 5.8 7.6 Z" fill="#F2C94C"></path><path d="M4.2 12 C6.6 11.4 13 11.8 15.6 12.4 C16.2 13.6 15.2 14.6 12.6 14.8 C9.4 15.2 6.6 15 5.4 14.4 C4.6 14 4.2 13 4.2 12 Z" fill="#3F7C5C"></path><path d="M17.6 14 C19 14 20 14.6 20 15.6 C20 16.8 19 17.4 17.6 17.4 C16.2 17.4 15.2 16.8 15.2 15.6 C15.2 14.6 16.2 14 17.6 14 Z" fill="#8E87B8"></path>'},
+    # icon_img is a silhouette generated from that category's first item
+    # (cheapest, alphabetical tiebreak - same ordering the carousel itself
+    # uses), rather than a hand-drawn icon, so the selector always shows
+    # something that's actually in the category.
+    {"id": "hats", "name": "Hats", "icon_img": "/static/cat-icon-hats-v1.webp"},
+    {"id": "glasses", "name": "Glasses", "icon_img": "/static/cat-icon-glasses-v1.webp"},
+    {"id": "neck", "name": "Neck", "icon_img": "/static/cat-icon-neck-v1.webp"},
+    {"id": "held", "name": "Held", "icon_img": "/static/cat-icon-held-v1.webp"},
+    {"id": "shoes", "name": "Shoes", "icon_img": "/static/cat-icon-shoes-v1.webp"},
 ]
