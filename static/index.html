@@ -823,7 +823,12 @@
     mask-image:url('/static/fan-leaf-br-mask-v1.webp');
   }
   .fan-photo{width:100%;height:82px;object-fit:cover;display:block;border-radius:3px;background:var(--parch-dk);}
-  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.3;background:var(--parch-dk);border-radius:3px;}
+  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);border-radius:3px;}
+  /* opacity lives on the emoji itself, not .fan-photo.empty - that div's own
+     background must stay fully opaque now that the card behind it
+     (card-frame-v1.webp) has a genuinely transparent photo window, unlike
+     the old solid-colour card it used to sit on. */
+  .fan-photo-emoji{opacity:.3;}
   .fan-name{font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;padding:2px 2px 0;line-height:1.1;height:18px;overflow:hidden;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
@@ -4054,7 +4059,7 @@ function renderSelectedPack() {
       : '';
     const face = b.photo_url
       ? `<img class="fan-photo" src="${b.photo_url}" alt="">`
-      : `<div class="fan-photo empty">${b.found ? '' : '🐦'}</div>`;
+      : `<div class="fan-photo empty">${b.found ? '' : '<span class="fan-photo-emoji">🐦</span>'}</div>`;
     // An away bird is marked as such, so an empty slot reads as "not this
     // month" rather than something the child has failed to find.
     const away = !b.found && b.season_state === 'away';
