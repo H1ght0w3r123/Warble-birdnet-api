@@ -782,7 +782,7 @@
      edge of the frame. */
   .fan-card{
     width:66px; height:108px; border-radius:9px;
-    background:url('/static/card-frame-v1.webp') center/100% 100% no-repeat;
+    background:url('/static/card-frame-v2.webp') center/100% 100% no-repeat;
     margin-left:-42px; flex-shrink:0;
     box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform-origin:center bottom;
@@ -790,7 +790,7 @@
     transition:transform .25s cubic-bezier(.2,.8,.3,1.15);
     cursor:pointer;
     /* Photo window sits inside the painted wood frame's border - measured
-       off the frame artwork itself (card-frame-v1.webp), not guessed. */
+       off the frame artwork itself (card-frame-v2.webp), not guessed. */
     padding:5px 4px 4px;
   }
   .fan-card:first-child{margin-left:0;}
@@ -804,7 +804,7 @@
      coloured live via mask + background-color so every one of the 10 packs
      recolours the same two image files rather than needing 10 painted
      variants. Positions/sizes are percentages of the card box, matched to
-     where the corner leaf holes actually sit in card-frame-v1.webp. */
+     where the corner leaf holes actually sit in card-frame-v2.webp. */
   .fan-leaf{
     position:absolute; z-index:1;
     background-color:var(--pack-color);
@@ -826,7 +826,7 @@
   .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);border-radius:3px;}
   /* opacity lives on the emoji itself, not .fan-photo.empty - that div's own
      background must stay fully opaque now that the card behind it
-     (card-frame-v1.webp) has a genuinely transparent photo window, unlike
+     (card-frame-v2.webp) has a genuinely transparent photo window, unlike
      the old solid-colour card it used to sit on. */
   .fan-photo-emoji{opacity:.3;}
   .fan-name{font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;height:39px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;}
