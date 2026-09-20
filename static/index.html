@@ -252,9 +252,9 @@
      transparent bits. An "away" bird is always also unfound, so fold the
      dimming into that filter instead of using opacity. */
   .fan-card.unfound.away{filter:grayscale(1) brightness(.75);}
-  .fan-away{position:absolute;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
+  .fan-away{position:absolute;z-index:3;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
   .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Outfit';font-weight:700;font-size:11px;color:var(--dusk);}
-  .fan-rare{position:absolute;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
+  .fan-rare{position:absolute;z-index:3;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
   .collector-pip{
     flex:1; font-family:'Outfit'; font-weight:700; font-size:9.5px; padding:4px 0;
     border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
@@ -786,21 +786,20 @@
      edge of the frame. */
   .fan-card{
     width:66px; height:108px; border-radius:9px;
-    background:url('/static/card-frame-v3.webp') center/100% 100% no-repeat;
     margin-left:-42px; flex-shrink:0;
     box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform-origin:center bottom;
     transform:rotate(var(--tilt, 0deg)) scale(var(--scale, 1));
     transition:transform .25s cubic-bezier(.2,.8,.3,1.15);
     cursor:pointer;
-    /* Photo window sits inside the painted wood frame's border - measured
-       off the frame artwork itself (card-frame-v3.webp), not guessed. The
-       extra margin here (vs. a pixel-exact measurement) is deliberate: the
-       window's corners are rounded in the artwork, so a plain rectangular
-       photo sized to the exact window bounds pokes past that curve at the
-       corners - shrinking the box in a bit is cheaper than getting the
-       border-radius to match the art's curve exactly. */
-    padding:6px 5px 5px;
+  }
+  /* The frame art is a layer ON TOP of the photo, not the card's background,
+     so the photo can be bigger than the window and tuck its edges behind the
+     painted wood instead of overlapping it. The window itself is a real
+     transparent hole in card-frame-v4.webp, so the photo shows through it. */
+  .fan-card::after{
+    content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:url('/static/card-frame-v4.webp') center/100% 100% no-repeat;
   }
   .fan-card:first-child{margin-left:0;}
   .fan-card.selected{--scale:1.4;}
@@ -813,7 +812,7 @@
      coloured live via mask + background-color so every one of the 10 packs
      recolours the same two image files rather than needing 10 painted
      variants. Positions/sizes are percentages of the card box, matched to
-     where the corner leaf holes actually sit in card-frame-v3.webp (which
+     where the corner leaf holes actually sit in card-frame-v4.webp (which
      has those corners erased to transparent, dilated a bit past the leaf
      shape itself to also catch its old white outline).
      The white outline is a genuinely dilated copy of the same silhouette
@@ -824,7 +823,7 @@
      where the frame's erased hole showed through underneath. Because the
      outline is dilated in the same way the frame's hole was, it actually
      covers that hole edge to edge. */
-  .fan-leaf{position:absolute; z-index:1;}
+  .fan-leaf{position:absolute; z-index:3;}
   .fan-leaf, .fan-leaf::before{
     -webkit-mask-size:100% 100%; mask-size:100% 100%;
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
@@ -854,14 +853,23 @@
     -webkit-mask-image:url('/static/fan-leaf-br-mask-v1.webp');
     mask-image:url('/static/fan-leaf-br-mask-v1.webp');
   }
-  .fan-photo{width:100%;height:58px;object-fit:cover;display:block;background:var(--parch-dk);}
+  /* Sits BEHIND the frame layer (z-index 1 vs the frame's 2) and is 5px
+     bigger than the window in both directions, centred on it, so its edges
+     disappear under the painted wood rather than butting up against it.
+     Window measured off card-frame-v4.webp: 4.18px from left, 5.18px from
+     top, 57.64 x 60.24px on this 66x108 card. */
+  .fan-photo{
+    position:absolute; z-index:1;
+    left:1.68px; top:2.68px; width:62.64px; height:65.24px;
+    object-fit:cover; display:block; background:var(--parch-dk);
+  }
   .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);}
   /* opacity lives on the emoji itself, not .fan-photo.empty - that div's own
-     background must stay fully opaque now that the card behind it
-     (card-frame-v3.webp) has a genuinely transparent photo window, unlike
-     the old solid-colour card it used to sit on. */
+     background must stay fully opaque, since the window above it is a real
+     hole in the frame art rather than painted-in card colour. */
   .fan-photo-emoji{opacity:.3;}
-  .fan-name{font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;height:39px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;}
+  /* Nameplate area of the frame art, measured the same way as the window. */
+  .fan-name{position:absolute;z-index:3;left:2.86px;top:66.59px;width:60.06px;height:37.41px;font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
