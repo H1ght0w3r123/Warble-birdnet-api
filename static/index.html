@@ -782,7 +782,7 @@
      edge of the frame. */
   .fan-card{
     width:66px; height:108px; border-radius:9px;
-    background:url('/static/card-frame-v2.webp') center/100% 100% no-repeat;
+    background:url('/static/card-frame-v3.webp') center/100% 100% no-repeat;
     margin-left:-42px; flex-shrink:0;
     box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform-origin:center bottom;
@@ -790,8 +790,13 @@
     transition:transform .25s cubic-bezier(.2,.8,.3,1.15);
     cursor:pointer;
     /* Photo window sits inside the painted wood frame's border - measured
-       off the frame artwork itself (card-frame-v2.webp), not guessed. */
-    padding:5px 4px 4px;
+       off the frame artwork itself (card-frame-v3.webp), not guessed. The
+       extra margin here (vs. a pixel-exact measurement) is deliberate: the
+       window's corners are rounded in the artwork, so a plain rectangular
+       photo sized to the exact window bounds pokes past that curve at the
+       corners - shrinking the box in a bit is cheaper than getting the
+       border-radius to match the art's curve exactly. */
+    padding:6px 5px 5px;
   }
   .fan-card:first-child{margin-left:0;}
   .fan-card.selected{--scale:1.4;}
@@ -804,10 +809,23 @@
      coloured live via mask + background-color so every one of the 10 packs
      recolours the same two image files rather than needing 10 painted
      variants. Positions/sizes are percentages of the card box, matched to
-     where the corner leaf holes actually sit in card-frame-v2.webp. */
+     where the corner leaf holes actually sit in card-frame-v3.webp.
+     The white outline (matching the source art's leaf stickers) is a second,
+     slightly larger copy of the same mask sitting behind the coloured one:
+     .fan-leaf itself is the white layer, and ::before - inset within it -
+     is the pack-coloured fill, so the white only shows as a thin ring where
+     it peeks out from under the smaller fill shape. */
   .fan-leaf{
     position:absolute; z-index:1;
+    background-color:#fff;
+    -webkit-mask-size:100% 100%; mask-size:100% 100%;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+  }
+  .fan-leaf::before{
+    content:''; position:absolute; inset:10%;
     background-color:var(--pack-color);
+    -webkit-mask-image:inherit; mask-image:inherit;
     -webkit-mask-size:100% 100%; mask-size:100% 100%;
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
     -webkit-mask-position:center; mask-position:center;
@@ -822,11 +840,11 @@
     -webkit-mask-image:url('/static/fan-leaf-br-mask-v1.webp');
     mask-image:url('/static/fan-leaf-br-mask-v1.webp');
   }
-  .fan-photo{width:100%;height:60px;object-fit:cover;display:block;border-radius:3px;background:var(--parch-dk);}
-  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);border-radius:3px;}
+  .fan-photo{width:100%;height:58px;object-fit:cover;display:block;border-radius:6px;background:var(--parch-dk);}
+  .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);border-radius:6px;}
   /* opacity lives on the emoji itself, not .fan-photo.empty - that div's own
      background must stay fully opaque now that the card behind it
-     (card-frame-v2.webp) has a genuinely transparent photo window, unlike
+     (card-frame-v3.webp) has a genuinely transparent photo window, unlike
      the old solid-colour card it used to sit on. */
   .fan-photo-emoji{opacity:.3;}
   .fan-name{font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;height:39px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;}
