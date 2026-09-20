@@ -791,7 +791,7 @@
     cursor:pointer;
     /* Photo window sits inside the painted wood frame's border - measured
        off the frame artwork itself (card-frame-v1.webp), not guessed. */
-    padding:4px 5px 0;
+    padding:5px 4px 4px;
   }
   .fan-card:first-child{margin-left:0;}
   .fan-card.selected{--scale:1.4;}
@@ -813,23 +813,23 @@
     -webkit-mask-position:center; mask-position:center;
   }
   .fan-leaf.tl{
-    left:5.1%; top:2.8%; width:11.8%; height:11.4%;
+    left:3%; top:1.7%; width:12.8%; height:10.4%;
     -webkit-mask-image:url('/static/fan-leaf-tl-mask-v1.webp');
     mask-image:url('/static/fan-leaf-tl-mask-v1.webp');
   }
   .fan-leaf.br{
-    right:4.5%; bottom:2.5%; width:12.6%; height:12%;
+    right:2.2%; bottom:1.9%; width:13%; height:10.8%;
     -webkit-mask-image:url('/static/fan-leaf-br-mask-v1.webp');
     mask-image:url('/static/fan-leaf-br-mask-v1.webp');
   }
-  .fan-photo{width:100%;height:82px;object-fit:cover;display:block;border-radius:3px;background:var(--parch-dk);}
+  .fan-photo{width:100%;height:60px;object-fit:cover;display:block;border-radius:3px;background:var(--parch-dk);}
   .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);border-radius:3px;}
   /* opacity lives on the emoji itself, not .fan-photo.empty - that div's own
      background must stay fully opaque now that the card behind it
      (card-frame-v1.webp) has a genuinely transparent photo window, unlike
      the old solid-colour card it used to sit on. */
   .fan-photo-emoji{opacity:.3;}
-  .fan-name{font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;padding:2px 2px 0;line-height:1.1;height:18px;overflow:hidden;}
+  .fan-name{font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;height:39px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
