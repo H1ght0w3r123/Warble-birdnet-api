@@ -23,7 +23,7 @@ this pack" no matter which screen you're looking at.
 
 PACKS = {
     "garden_regulars": {
-        "name": "Gardeners",
+        "name": "Locals",
         "blurb": "The regulars you'll meet on almost any doorstep.",
         "emoji": "\U0001F3E1",
         "color": "#E8845C",
@@ -46,7 +46,7 @@ PACKS = {
         "rare": ["Marsh Tit", "Willow Tit"],
     },
     "seed_eaters": {
-        "name": "Crackers",
+        "name": "Nutcrackers",
         "blurb": "Stubby little bills built for cracking seeds open.",
         "emoji": "\U0001F33B",
         "color": "#F2C94C",
@@ -82,7 +82,7 @@ PACKS = {
         "rare": ["Lesser Spotted Woodpecker", "Common Cuckoo"],
     },
     "ground_feeders": {
-        "name": "Little Diggers",
+        "name": "Diggers",
         "blurb": "Hoppers and probers, always working the ground.",
         "emoji": "\U0001F33E",
         "color": "#C68958",
@@ -104,7 +104,7 @@ PACKS = {
         "rare": ["Eurasian Hobby", "Long-eared Owl"],
     },
     "water_birds": {
-        "name": "Swimmers",
+        "name": "Waterwings",
         "blurb": "Paddlers, divers and dabblers.",
         "emoji": "\U0001F986",
         "color": "#4FB8B0",
@@ -115,7 +115,7 @@ PACKS = {
         "rare": ["Common Kingfisher", "Common Eider"],
     },
     "waders": {
-        "name": "Mud Stompers",
+        "name": "Mucky Puddles",
         "blurb": "Long legs, long bills, and a lot of standing about in mud.",
         "emoji": "\U0001FAB6",
         "color": "#A88F3D",
@@ -127,7 +127,7 @@ PACKS = {
         "rare": ["Eurasian Curlew", "Eurasian Woodcock"],
     },
     "sky_and_sea": {
-        "name": "Wind Riders",
+        "name": "Wind Surfers",
         "blurb": "Birds of the open air and the open water.",
         "emoji": "\U0001F30A",
         "color": "#4A5FA0",

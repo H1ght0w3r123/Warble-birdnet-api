@@ -36,7 +36,7 @@ STAT_LABELS = {
 }
 
 BIRDS = {
-    # --- Gardeners
+    # --- Locals
     'European Robin': {
         "length_cm": 14, "weight_g": 19,
         "speed_kmh": 30, "uk_pop": 13000000, "song": 9, "brains": 5,
@@ -208,7 +208,7 @@ BIRDS = {
         "habitat": 'Wet scrubby woods', "diet": 'Insects & seeds',
     },
 
-    # --- Crackers
+    # --- Nutcrackers
     'Common Chaffinch': {
         "length_cm": 14.5, "weight_g": 24,
         "speed_kmh": 35, "uk_pop": 12000000, "song": 7, "brains": 5,
@@ -452,7 +452,7 @@ BIRDS = {
         "weight_comparison": 'About as heavy as a small apple.',
     },
 
-    # --- Little Diggers
+    # --- Diggers
     'Song Thrush': {
         "length_cm": 23, "weight_g": 83,
         "speed_kmh": 40, "uk_pop": 2400000, "song": 10, "brains": 6,
@@ -596,7 +596,7 @@ BIRDS = {
         "habitat": 'Conifer woods', "diet": 'Voles & mice',
     },
 
-    # --- Swimmers
+    # --- Waterwings
     'Mallard': {
         "length_cm": 58, "weight_g": 1100,
         "speed_kmh": 60, "uk_pop": 1000000, "song": 3, "brains": 6,
@@ -656,7 +656,7 @@ BIRDS = {
         "habitat": 'Rocky coasts', "diet": 'Mussels & crabs',
     },
 
-    # --- Mud Stompers
+    # --- Mucky Puddles
     'Grey Heron': {
         "length_cm": 95, "weight_g": 1600,
         "speed_kmh": 45, "uk_pop": 40000, "song": 2, "brains": 7,
@@ -720,7 +720,7 @@ BIRDS = {
         "habitat": 'Damp woodland', "diet": 'Worms in soil',
     },
 
-    # --- Wind Riders
+    # --- Wind Surfers
     'Herring Gull': {
         "length_cm": 60, "weight_g": 900,
         "speed_kmh": 50, "uk_pop": 140000, "song": 3, "brains": 8,
