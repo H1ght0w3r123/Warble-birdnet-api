@@ -803,10 +803,6 @@
   }
   .fan-card:first-child{margin-left:0;}
   .fan-card.selected{--scale:1.4;}
-  /* Border-color no longer works once the frame is a background image, so
-     "pack complete" gets a gold ring laid on top of the wood frame instead
-     of replacing its color. */
-  .fan-card.complete{box-shadow:0 6px 14px rgba(0,0,0,0.34), 0 0 0 2px var(--gold);}
   .fan-card.unfound{filter:grayscale(1) brightness(.9);}
   /* Two flat leaf silhouettes, playing-card style (top-left / bottom-right),
      coloured live via mask + background-color so every one of the 10 packs
@@ -4117,7 +4113,7 @@ function renderSelectedPack() {
     const z = i + 1;
     const tilt = ((i - maxOffset) * anglePerCard).toFixed(2);
     return `
-      <div class="fan-card ${b.found ? 'complete tappable' : 'unfound'} ${away ? 'away' : ''}"
+      <div class="fan-card ${b.found ? 'tappable' : 'unfound'} ${away ? 'away' : ''}"
            style="z-index:${z}; --tilt:${tilt}deg;" data-z="${z}"
            data-name="${b.found ? b.common_name : ''}">
         <div class="fan-leaf tl" style="--pack-color:${p.color}"></div>
