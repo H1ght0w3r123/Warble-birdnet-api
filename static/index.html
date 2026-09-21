@@ -252,7 +252,9 @@
      transparent bits. An "away" bird is always also unfound, so fold the
      dimming into that filter instead of using opacity. */
   .fan-card.unfound.away{filter:grayscale(1) brightness(.75);}
-  .fan-away{position:absolute;z-index:3;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Poppins';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
+  /* Inset to the frame art's cream nameplate rather than the card box, so it
+     sits on the panel instead of running out over the painted wood border. */
+  .fan-away{position:absolute;z-index:3;left:2.86px;width:60.06px;bottom:4px;box-sizing:border-box;border-radius:0 0 3px 3px;background:var(--dusk);color:#fff;font-family:'Poppins';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
   .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);}
   .fan-rare{position:absolute;z-index:3;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Poppins';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
   .collector-pip{
@@ -785,7 +787,12 @@
      the tilt's wider bounding box without pushing the outer cards off the
      edge of the frame. */
   .fan-card{
-    width:66px; height:108px; border-radius:9px;
+    /* The frame art draws its own rounded corners (a ~4.5px radius at this
+       size) and is transparent outside them, so this clip only exists to
+       keep the full-width "back in May" ribbon inside the card's silhouette.
+       It has to stay at or under the art's own radius - at 9px it was
+       cropping the corners off the artwork. */
+    width:66px; height:108px; border-radius:4px;
     margin-left:-42px; flex-shrink:0;
     box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform-origin:center bottom;
