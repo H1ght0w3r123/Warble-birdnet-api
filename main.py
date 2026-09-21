@@ -210,6 +210,7 @@ from curated_species import (
     ALL_CURATED_SPECIES, PACKS, SPECIES_RARITY, TIERS,
     rarity_of, pack_for_species, pack_color_for_species,
 )
+from unfound_hints import UNFOUND_HINTS
 from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
 from migration_data import get_migration_info
 
@@ -749,6 +750,9 @@ def pack_progress():
                 "found_count": seen.get("count", 0),
                 "first_found": seen.get("first_found"),
                 "first_location": seen.get("first_location"),
+                # Only the unfound birds carry a hint - sending all 100 on
+                # every load would be ~18KB of text nothing reads.
+                "hint": None if got else UNFOUND_HINTS.get(name),
             })
         got = sum(1 for b in birds if b["found"])
         packs.append({
