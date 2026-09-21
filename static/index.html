@@ -748,21 +748,68 @@
      room for the cards to be meaningfully bigger. No border on the tabs -
      the background/text color swap on .active is distinct enough on its
      own. */
-  .pack-selector{display:flex;gap:8px;width:100%;margin-bottom:14px;overflow-x:auto;
-    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;padding-bottom:4px;}
-  .pack-selector::-webkit-scrollbar{display:none;}
-  .pack-tab{
-    flex:0 0 auto; scroll-snap-align:center; white-space:nowrap;
-    background:rgba(255,255,255,0.15); border:none;
-    border-radius:999px; padding:8px 14px; cursor:pointer;
-    display:flex; align-items:center; gap:6px;
+  /* One centred pack selector: arrows step through the 10 packs, the middle
+     is tappable to open the full grid. Deliberately the only horizontal
+     control on the screen that isn't the cards themselves - packs are
+     tapped, cards are swiped, so the two never compete. */
+  .pack-nav{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;}
+  .pack-arrow{
+    flex:0 0 auto;width:40px;height:40px;border:none;border-radius:50%;
+    background:rgba(255,255,255,0.16);color:#fff;font-family:'Poppins';
+    font-weight:700;font-size:20px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease, transform .12s ease;
   }
-  .pack-tab.active{background:rgba(255,255,255,0.95);}
-  .pack-tab-emoji{font-size:15px;line-height:1;}
-  .pack-tab-name{font-family:'Poppins';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);}
-  .pack-tab.active .pack-tab-name{color:var(--dusk);}
-  .pack-tab-count{font-family:'Poppins';font-weight:900;font-size:10px;color:rgba(255,255,255,0.65);}
-  .pack-tab.active .pack-tab-count{color:var(--gold-dk);}
+  .pack-arrow:active{background:rgba(255,255,255,0.3);transform:scale(.92);}
+  .pack-current{
+    flex:1 1 auto;max-width:210px;min-height:44px;border:none;background:none;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+    padding:2px 4px;
+  }
+  .pack-current-emoji{font-size:19px;line-height:1;}
+  .pack-current-name{
+    font-family:'Poppins';font-weight:900;font-size:16px;letter-spacing:.04em;
+    color:#fff;text-transform:uppercase;white-space:nowrap;
+  }
+  .pack-tally{
+    text-align:center;font-family:'Poppins';font-weight:700;font-size:12.5px;
+    color:rgba(255,255,255,0.8);margin-top:1px;
+  }
+  /* Named -pip, not -dot: .pack-dot is already the little coloured marker
+     that sits on a bird card, and it's absolutely positioned. */
+  .pack-pips{display:flex;justify-content:center;gap:5px;margin-top:8px;}
+  .pack-pip{
+    width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.32);
+    transition:background .18s ease, transform .18s ease;
+  }
+  .pack-pip.on{background:#fff;transform:scale(1.35);}
+
+  /* Tap the pack name for all ten at once, rather than arrowing round. */
+  .all-packs{
+    position:fixed;inset:0;z-index:500;display:flex;align-items:center;
+    justify-content:center;padding:20px;background:rgba(45,27,105,0.55);
+    backdrop-filter:blur(3px);
+  }
+  .all-packs-sheet{
+    width:100%;max-width:340px;background:rgba(255,255,255,0.97);
+    border-radius:20px;padding:14px;box-shadow:0 14px 34px rgba(45,27,105,0.3);
+  }
+  .all-packs-title{
+    font-family:'Poppins';font-weight:900;font-size:14px;color:var(--dusk);
+    text-align:center;margin-bottom:10px;
+  }
+  .all-packs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .all-pack{
+    display:flex;align-items:center;gap:7px;padding:9px 8px;border:none;
+    border-radius:13px;background:var(--parch);cursor:pointer;text-align:left;
+    min-height:46px;
+  }
+  .all-pack.on{background:var(--goldbg,#FBF0D8);outline:2px solid var(--gold);}
+  .all-pack-emoji{font-size:17px;line-height:1;flex:0 0 auto;}
+  .all-pack-text{display:flex;flex-direction:column;min-width:0;}
+  .all-pack-name{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);line-height:1.2;}
+  .all-pack-count{font-family:'Poppins';font-weight:900;font-size:10px;color:var(--mist-dk);}
+  .all-pack.done .all-pack-count{color:var(--gold-dk);}
 
   /* No card frame - the fan sits straight on the background. All ten cards
      sit statically in one overlapping row sized to fit the frame at once -
@@ -773,22 +820,39 @@
      other to auto too, so an enlarged card poking above the row was
      silently getting clipped. With neither axis restricted now, that's
      gone. */
-  .pack-blurb{font-size:12px;color:rgba(255,255,255,0.88);text-align:center;line-height:1.45;margin-bottom:6px;}
-  .fan-row{
-    display:flex; align-items:flex-end; justify-content:center;
-    height:162px; margin:2px 0 6px; overflow:visible;
-    /* Without this, the browser spends the first chunk of the drag deciding
-       whether it's a page-scroll gesture, which is exactly what made thumb
-       tracking feel laggy/unreliable - this hands the whole gesture to our
-       own pointer handlers immediately instead. */
-    touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  .pack-blurb{font-size:12.5px;color:rgba(255,255,255,0.88);text-align:center;line-height:1.45;margin:15px auto 4px;max-width:320px;padding:0 10px;}
+  /* Cover-flow carousel: the centred card is the hero, its neighbours peek
+     out either side so it reads as swipeable without any instructions.
+     Cards keep their natural 66 x 101.5 box and are scaled by transform, so
+     everything inside them stays exactly where it was measured. */
+  .card-carousel{
+    position:relative;width:100%;height:242px;margin:6px 0 2px;
+    overflow:hidden;
+    touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   }
-  /* Bottom-anchored transform-origin, so tapping a card grows it upward into
-     the headroom above the row rather than growing equally in both
-     directions and needing headroom below too (where the progress bar
-     sits). Slightly tighter overlap than the flat version to leave room for
-     the tilt's wider bounding box without pushing the outer cards off the
-     edge of the frame. */
+  .card-carousel .fan-card{
+    position:absolute;left:50%;top:50%;margin:0;
+    transform-origin:center center;
+    will-change:transform;
+  }
+  /* Without this the browser starts its own native image-drag as soon as a
+     swipe begins on a bird photo, which cancels the pointer stream and the
+     card never moves. */
+  .card-carousel img{-webkit-user-drag:none;user-drag:none;}
+  .card-carousel .fan-photo,
+  .card-carousel .fan-name,
+  .card-carousel .fan-leaf{pointer-events:none;}
+  .card-carousel.settling .fan-card{
+    transition:transform .34s cubic-bezier(.22,.9,.3,1.05), opacity .34s ease;
+  }
+  .card-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:2px;min-height:14px;}
+  .card-dot{
+    width:7px;height:7px;border-radius:50%;
+    border:1.5px solid rgba(255,255,255,0.75);background:transparent;
+    transition:transform .18s ease, background .18s ease;
+  }
+  .card-dot.found{background:#fff;}
+  .card-dot.now{transform:scale(1.55);border-color:#fff;}
   .fan-card{
     /* The frame art draws its own rounded corners (a ~4.5px radius at this
        size) and is transparent outside them, so this clip only exists to
@@ -796,11 +860,8 @@
        It has to stay at or under the art's own radius - at 9px it was
        cropping the corners off the artwork. */
     width:66px; height:101.5px; border-radius:5px;
-    margin-left:-42px; flex-shrink:0;
     box-shadow:0 6px 14px rgba(0,0,0,0.34); overflow:hidden; position:relative;
     transform-origin:center bottom;
-    transform:rotate(var(--tilt, 0deg)) scale(var(--scale, 1));
-    transition:transform .25s cubic-bezier(.2,.8,.3,1.15);
     cursor:pointer;
   }
   /* The frame art is a layer ON TOP of the photo, not the card's background,
@@ -811,8 +872,6 @@
     content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
     background:url('/static/card-frame-v6.webp') center/100% 100% no-repeat;
   }
-  .fan-card:first-child{margin-left:0;}
-  .fan-card.selected{--scale:1.4;}
   .fan-card.unfound{filter:grayscale(1) brightness(.9);}
   /* Two leaf marks, playing-card style (top-left / bottom-right), coloured
      live via mask + background-color so all 10 packs recolour the same two
@@ -4056,7 +4115,7 @@ function trophySvg(trophy) {
 
 let trophyIndex = 0;
 
-let allPacksRaw = [], selectedPack = 0;
+let allPacksRaw = [], selectedPack = 0, selectedCard = 0;
 
 async function loadCollectorPacks() {
   const el = document.getElementById('packList');
@@ -4075,37 +4134,83 @@ async function loadCollectorPacks() {
 function renderPackSelector() {
   const row = document.getElementById('packSelector');
   if (!row) return;
-  row.innerHTML = allPacksRaw.map((p, i) => `
-    <button class="pack-tab ${i === selectedPack ? 'active' : ''}" data-i="${i}">
-      <span class="pack-tab-emoji">${p.emoji}</span>
-      <span class="pack-tab-name">${p.name}</span>
-      <span class="pack-tab-count">${p.cards_found}/${p.cards_total}</span>
-    </button>`).join('');
-  row.querySelectorAll('.pack-tab').forEach(b => {
-    b.onclick = () => {
-      selectedPack = +b.dataset.i;
-      renderPackSelector();
-      renderSelectedPack();
-    };
+  const p = allPacksRaw[selectedPack];
+  if (!p) return;
+  row.innerHTML = `
+    <div class="pack-nav">
+      <button class="pack-arrow" id="packPrev" aria-label="Previous pack">&lsaquo;</button>
+      <button class="pack-current" id="packCurrent">
+        <span class="pack-current-emoji">${p.emoji}</span>
+        <span class="pack-current-name">${p.name}</span>
+      </button>
+      <button class="pack-arrow" id="packNext" aria-label="Next pack">&rsaquo;</button>
+    </div>
+    <div class="pack-tally">${p.cards_found} / ${p.cards_total}</div>
+    <div class="pack-pips">${allPacksRaw.map((_, i) =>
+      `<span class="pack-pip ${i === selectedPack ? 'on' : ''}"></span>`).join('')}</div>`;
+  document.getElementById('packPrev').onclick = () => stepPack(-1);
+  document.getElementById('packNext').onclick = () => stepPack(1);
+  document.getElementById('packCurrent').onclick = openAllPacks;
+}
+
+// Packs wrap round, so arrowing never dead-ends on the first or last one.
+function stepPack(dir) {
+  const n = allPacksRaw.length;
+  if (!n) return;
+  goToPack((selectedPack + dir + n) % n, dir);
+}
+
+function goToPack(i, dir) {
+  if (i === selectedPack) return;
+  const from = selectedPack;
+  selectedPack = i;
+  selectedCard = 0;
+  renderPackSelector();
+  renderSelectedPack();
+  if (reducedMotion()) return;
+  // Short slide in the direction of travel, so which way you moved is
+  // obvious even though the cards themselves also move horizontally.
+  const way = dir || (i > from ? 1 : -1);
+  const el = document.getElementById('packList');
+  if (el) el.animate(
+    [{ transform: `translateX(${way * 26}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }],
+    { duration: 220, easing: 'cubic-bezier(.25,.8,.35,1)' });
+}
+
+function openAllPacks() {
+  if (document.querySelector('.all-packs')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'all-packs';
+  wrap.innerHTML = `
+    <div class="all-packs-sheet">
+      <div class="all-packs-title">All ten packs</div>
+      <div class="all-packs-grid">
+        ${allPacksRaw.map((p, i) => `
+          <button class="all-pack ${i === selectedPack ? 'on' : ''} ${p.complete ? 'done' : ''}" data-i="${i}">
+            <span class="all-pack-emoji">${p.emoji}</span>
+            <span class="all-pack-text">
+              <span class="all-pack-name">${p.name}</span>
+              <span class="all-pack-count">${p.cards_found}/${p.cards_total}</span>
+            </span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+  const close = () => wrap.remove();
+  wrap.onclick = (e) => { if (e.target === wrap) close(); };
+  wrap.querySelectorAll('.all-pack').forEach(btn => {
+    btn.onclick = () => { const i = +btn.dataset.i; close(); goToPack(i, i > selectedPack ? 1 : -1); };
   });
+  document.body.appendChild(wrap);
+  if (!reducedMotion()) wrap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140 });
 }
 
 function renderSelectedPack() {
   const el = document.getElementById('packList');
   const p = allPacksRaw[selectedPack];
   if (!el || !p) return;
+  if (selectedCard >= p.birds.length) selectedCard = 0;
 
-  // All ten cards sit in the frame at once now, fanned left-to-right with
-  // each one overlapping the previous - so z-index just ascends with
-  // position (last card fully on top at rest) rather than peaking in the
-  // middle, which was only ever there to support scroll-centering that no
-  // longer exists. Tilt is deliberately modest (8deg max, at the two
-  // outermost cards) - enough to read as a fanned hand without any card's
-  // rotated bounding box pushing past the edge of the frame.
-  const n = p.birds.length;
-  const maxOffset = (n - 1) / 2;
-  const anglePerCard = maxOffset ? 8 / maxOffset : 0;
-  const fan = p.birds.map((b, i) => {
+  const cards = p.birds.map((b, i) => {
     const rareMark = b.rarity === 'Rare'
       ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
       : '';
@@ -4115,12 +4220,9 @@ function renderSelectedPack() {
     // An away bird is marked as such, so an empty slot reads as "not this
     // month" rather than something the child has failed to find.
     const away = !b.found && b.season_state === 'away';
-    const z = i + 1;
-    const tilt = ((i - maxOffset) * anglePerCard).toFixed(2);
     return `
       <div class="fan-card ${b.found ? 'tappable' : 'unfound'} ${away ? 'away' : ''}"
-           style="z-index:${z}; --tilt:${tilt}deg;" data-z="${z}"
-           data-name="${b.found ? b.common_name : ''}">
+           data-i="${i}" data-name="${b.found ? b.common_name : ''}">
         <div class="fan-leaf tl" style="--pack-color:${p.color}"></div>
         <div class="fan-leaf br" style="--pack-color:${p.color}"></div>
         ${face}
@@ -4130,21 +4232,125 @@ function renderSelectedPack() {
       </div>`;
   }).join('');
 
-  const pct = Math.round((p.cards_found / p.cards_total) * 100);
   el.innerHTML = `
     <div class="pack-blurb">${p.blurb}</div>
-    <div class="fan-row" id="fanRow">${fan}</div>
-    <div class="habitat-bar" style="max-width:280px;margin:0 auto;">
-      <div class="habitat-bar-fill" style="width:${pct}%"></div>
-    </div>
-    <div class="pack-status">${p.complete
-      ? 'Pack complete!'
-      : `${p.cards_found} of ${p.cards_total} cards found`}</div>
+    <div class="card-carousel" id="cardCarousel">${cards}</div>
+    <div class="card-dots" id="cardDots"></div>
     <div class="fan-caption" id="fanCaption"></div>
   `;
 
-  const fanRow = document.getElementById('fanRow');
-  if (fanRow) wireFanRowSwipe(fanRow, p.birds);
+  const carousel = document.getElementById('cardCarousel');
+  if (carousel) wireCardCarousel(carousel, p.birds);
+}
+
+// One dot per card in the pack: filled once found, and the one you're
+// looking at sits slightly larger. Replaces the old "x of 10 cards found"
+// line, which said the same thing as the tally by the pack name.
+function renderCardDots(birds) {
+  const el = document.getElementById('cardDots');
+  if (!el) return;
+  el.innerHTML = birds.map((b, i) =>
+    `<span class="card-dot ${b.found ? 'found' : ''} ${i === selectedCard ? 'now' : ''}"></span>`).join('');
+}
+
+// Cover-flow: cards sit at fixed steps either side of the middle, scaled
+// down and tucked behind as they go. `drift` is how far a finger has dragged
+// in card-widths, so the whole row follows the thumb before snapping.
+const CARD_STEP = 35;      // how far the next card sits out from the middle
+const CARD_HERO = 2.2;     // scale of the card in the middle
+
+function layoutCarousel(cards, drift = 0) {
+  cards.forEach((card, i) => {
+    const off = i - selectedCard - drift;
+    const away = Math.abs(off);
+    // The first card either side steps out by a full stride; the ones behind
+    // it barely move, so they stay tucked behind rather than fanning out and
+    // showing a row of competing names.
+    const x = Math.sign(off) *
+      (CARD_STEP * Math.min(away, 1) + CARD_STEP * 0.32 * Math.max(away - 1, 0));
+    const scale = Math.max(0.45, CARD_HERO - Math.min(away, 3) * 0.7);
+    card.style.transform =
+      `translate(-50%,-50%) translateX(${x.toFixed(2)}px) scale(${scale.toFixed(3)})`;
+    card.style.opacity = away > 1.75 ? '0' : '1';
+    card.style.zIndex = String(100 - Math.round(away * 10));
+  });
+}
+
+function wireCardCarousel(carousel, birds) {
+  const cards = Array.from(carousel.querySelectorAll('.fan-card'));
+  if (!cards.length) return;
+  const caption = () => {
+    const el = document.getElementById('fanCaption');
+    if (el) el.textContent = fanCaptionFor(birds[selectedCard]);
+  };
+  const settle = () => {
+    carousel.classList.add('settling');
+    layoutCarousel(cards);
+    renderCardDots(birds);
+    caption();
+  };
+  layoutCarousel(cards);
+  renderCardDots(birds);
+  caption();
+
+  let pid = null, startX = 0, startY = 0, drift = 0, dragging = false, moved = false;
+
+  carousel.addEventListener('dragstart', (e) => e.preventDefault());
+  carousel.addEventListener('pointerdown', (e) => {
+    pid = e.pointerId; startX = e.clientX; startY = e.clientY;
+    drift = 0; dragging = false; moved = false;
+    carousel.classList.remove('settling');
+    try { carousel.setPointerCapture(pid); } catch (err) { /* unsupported */ }
+  });
+
+  carousel.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== pid) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    // Let a clearly vertical drag scroll the page instead of turning cards.
+    if (!dragging && Math.abs(dx) < 6 && Math.abs(dx) <= Math.abs(dy)) return;
+    dragging = true;
+    if (Math.abs(dx) > 4) moved = true;
+    drift = -dx / (CARD_STEP * 1.6);
+    // Resist dragging past either end so the row feels bounded.
+    const limit = 0.45;
+    if (selectedCard + drift < -limit) drift = -limit - selectedCard;
+    if (selectedCard + drift > cards.length - 1 + limit) drift = cards.length - 1 + limit - selectedCard;
+    layoutCarousel(cards, drift);
+  });
+
+  const release = (e) => {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    try { carousel.releasePointerCapture(e.pointerId); } catch (err) { /* already */ }
+    if (moved) {
+      // One card per swipe, however far the finger travelled.
+      const stepBy = drift > 0.28 ? 1 : drift < -0.28 ? -1 : 0;
+      selectedCard = Math.min(cards.length - 1, Math.max(0, selectedCard + stepBy));
+      settle();
+      return;
+    }
+    // A tap: the middle card opens, the ones either side come to the middle.
+    // Found by coordinate rather than e.target, because capturing the pointer
+    // retargets every event to the carousel itself.
+    const at = document.elementFromPoint(e.clientX, e.clientY);
+    const hit = at && at.closest ? at.closest('.fan-card') : null;
+    const i = hit ? +hit.dataset.i : -1;
+    if (i === selectedCard) {
+      settle();
+      if (hit.classList.contains('tappable')) openBirdFromPack(hit.dataset.name, hit);
+      return;
+    }
+    // Only a sliver of each neighbour is showing, which is far too small a
+    // target for a small child - so a tap anywhere to one side of the middle
+    // card steps that way, whether or not it landed on the card itself.
+    const mid = carousel.getBoundingClientRect();
+    const step = i >= 0 ? (i > selectedCard ? 1 : -1)
+                        : (e.clientX < mid.left + mid.width / 2 ? -1 : 1);
+    selectedCard = Math.min(cards.length - 1, Math.max(0, selectedCard + step));
+    settle();
+  };
+  carousel.addEventListener('pointerup', release);
+  carousel.addEventListener('pointercancel', () => { pid = null; settle(); });
 }
 
 // "Found 3 times! First found on 4 May 2026 in Grandma's garden."
@@ -4167,110 +4373,7 @@ function fanCaptionFor(b) {
   return text;
 }
 
-// Cards enlarge as a thumb passes over them - dragging across the row
-// swipes the enlargement from card to card. Releasing just leaves the last
-// one enlarged/selected though; it takes a second, separate tap on that same
-// already-selected card to actually open it. That's deliberate: the first
-// touch (down, or down-and-drag) is always a preview, so nothing opens by
-// accident just because a drag happened to end on a found bird.
-function wireFanRowSwipe(fanRow, birds = []) {
-  const cards = Array.from(fanRow.querySelectorAll('.fan-card'));
-
-  // Caption is driven by index rather than data attributes on the cards, so a
-  // child-typed location name never has to survive a trip through innerHTML.
-  const caption = document.getElementById('fanCaption');
-  const showCaptionFor = (card) => {
-    if (!caption) return;
-    const i = card ? cards.indexOf(card) : -1;
-    caption.textContent = i === -1 ? '' : fanCaptionFor(birds[i]);
-  };
-
-  // Centers measured once, right after render, before anything has been
-  // enlarged - getBoundingClientRect on an already-scaled card would report
-  // its bigger, on-screen size instead of its resting position, which would
-  // make "nearest card to the thumb" chase whichever card happens to be
-  // enlarged rather than genuinely tracking the thumb.
-  const centers = cards.map(card => {
-    const r = card.getBoundingClientRect();
-    return r.left + r.width / 2;
-  });
-
-  const nearestCard = (clientX) => {
-    let best = 0, bestDist = Infinity;
-    centers.forEach((cx, i) => {
-      const d = Math.abs(cx - clientX);
-      if (d < bestDist) { bestDist = d; best = i; }
-    });
-    return cards[best];
-  };
-
-  const selectCard = (card) => {
-    cards.forEach(c => {
-      if (c !== card && c.classList.contains('selected')) {
-        c.classList.remove('selected');
-        c.style.zIndex = c.dataset.z;
-      }
-    });
-    if (card && !card.classList.contains('selected')) {
-      card.classList.add('selected');
-      card.style.zIndex = '50';
-    }
-    showCaptionFor(card);
-  };
-
-  let activePointerId = null;
-  let downCard = null;      // which card the gesture started on
-  let wasSelected = false;  // ...and whether it was already selected then
-  let dragged = false;      // did the pointer actually cross onto another card
-
-  // Hover is a desktop extra on top of the touch flow above: it captions the
-  // card actually under the cursor (hit-testing respects the overlap, unlike
-  // nearest-centre, which would name a card hidden behind its neighbour).
-  // Mid-drag it stays out of the way and lets the selection drive the text.
-  fanRow.addEventListener('mouseover', (e) => {
-    if (activePointerId !== null) return;
-    const card = e.target.closest && e.target.closest('.fan-card');
-    if (card) showCaptionFor(card);
-  });
-  fanRow.addEventListener('mouseleave', () => {
-    if (activePointerId !== null) return;
-    showCaptionFor(cards.find(c => c.classList.contains('selected')) || null);
-  });
-
-  fanRow.addEventListener('pointerdown', (e) => {
-    activePointerId = e.pointerId;
-    dragged = false;
-    downCard = nearestCard(e.clientX);
-    wasSelected = downCard.classList.contains('selected');
-    // Keeps every move/up event routed here for this pointer even if it
-    // temporarily strays off fanRow's own box - which can happen since an
-    // enlarged card is drawn bigger than the row's resting layout height.
-    try { fanRow.setPointerCapture(e.pointerId); } catch (err) { /* unsupported - falls back to normal hit-testing */ }
-    selectCard(downCard);
-  });
-  fanRow.addEventListener('pointermove', (e) => {
-    if (e.pointerId !== activePointerId) return;
-    const card = nearestCard(e.clientX);
-    if (card !== downCard) dragged = true;
-    selectCard(card);
-  });
-  const release = (e) => {
-    if (e.pointerId !== activePointerId) return;
-    activePointerId = null;
-    try { fanRow.releasePointerCapture(e.pointerId); } catch (err) { /* already released */ }
-    const card = nearestCard(e.clientX);
-    // Only opens on a genuine tap (no drag) landing back on the SAME card
-    // that was already selected before this gesture began.
-    if (!dragged && card === downCard && wasSelected && card.classList.contains('tappable')) {
-      openBirdFromPack(card.dataset.name, card);
-    }
-  };
-  fanRow.addEventListener('pointerup', release);
-  fanRow.addEventListener('pointercancel', () => { activePointerId = null; });
-}
-
-
-// Tapping a card lifts it clear of the fan and spins it; the bird's details
+// Tapping a card lifts it clear of the carousel and spins it; the bird's details
 // are on the other side. The spin is done in two halves that hand over at
 // 90deg, where the card is edge-on and so has no visible width at all - which
 // is what lets the little pack card be swapped for the full detail card
@@ -4302,17 +4405,18 @@ function makeFlipper(cardEl) {
   host.style.cssText = `position:fixed;left:${cx - w / 2}px;top:${cy - h / 2}px;` +
     `width:${w}px;height:${h}px;z-index:400;pointer-events:none;`;
   const face = cardEl.cloneNode(true);
-  face.classList.remove('selected');
-  face.style.cssText += ';margin:0;transform:none;transition:none;width:100%;height:100%;';
+    face.style.cssText += ';margin:0;transform:none;transition:none;width:100%;height:100%;';
   host.appendChild(face);
   document.body.appendChild(host);
   const c = flipCentre();
-  const tilt = parseFloat(getComputedStyle(cardEl).getPropertyValue('--tilt')) || 0;
+  // Read the scale off the rendered box rather than assuming it - in the
+  // carousel a card's size comes from its transform, not its layout.
+  const scale = w ? r.width / w : 1;
   return {
     host,
-    // resting in the fan, at whatever angle and size it was sitting at
-    rest: `perspective(900px) translate(0px,0px) rotate(${tilt}deg) ` +
-          `scale(${cardEl.classList.contains('selected') ? 1.4 : 1}) rotateY(0deg)`,
+    // resting in the carousel, at whatever size it was sitting at
+    rest: `perspective(900px) translate(0px,0px) rotate(0deg) ` +
+          `scale(${scale.toFixed(3)}) rotateY(0deg)`,
     // lifted, straightened and turned edge-on
     lifted: `perspective(900px) translate(${c.x - cx}px,${c.y - cy}px) rotate(0deg) ` +
             `scale(${FLIP_LIFT}) rotateY(90deg)`,
@@ -4320,7 +4424,6 @@ function makeFlipper(cardEl) {
 }
 
 const play = (el, frames, opts) => el.animate(frames, { fill: 'forwards', ...opts }).finished;
-
 async function openBirdFromPack(commonName, cardEl) {
   if (!commonName) return;
   // Collections can be opened without ever visiting My Birds, in which case
