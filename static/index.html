@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Warble</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --dusk:#2D1B69; --dusk-mid:#3D2A85;
@@ -23,7 +23,7 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html{overflow-x:hidden;}
   body{
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Poppins',sans-serif;
     color:#fff;
     min-height:100vh;
     overflow-x:hidden;
@@ -45,7 +45,7 @@
   .top-settings-btn img{width:100%;height:100%;object-fit:contain;display:block;}
   .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
-  .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.35);}
+  .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Poppins';font-weight:900;font-size:17px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.35);}
   /* Shared feather icon - height:1em means it always matches whatever
      font-size its context has, so one image works inline at every size
      this shows up at (top bar counter, challenge rewards, price tags,
@@ -77,7 +77,7 @@
   .nav-tab{
     display:flex; flex-direction:column; align-items:center; gap:1px;
     background:none; border:none; cursor:pointer; padding:2px 6px;
-    color:var(--mist-dk); font-family:'Outfit'; font-size:10.8px; font-weight:700;
+    color:var(--mist-dk); font-family:'Poppins'; font-size:10.8px; font-weight:700;
     flex:1 1 0; min-width:0;
   }
   /* "The Hoot-tique" is longer than any other label and wraps to two
@@ -142,9 +142,9 @@
      of being sized off font-size like the old icon-on-button approach. */
   .mic-icon{width:100%; height:100%; object-fit:contain; display:block;}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
-  .stage-label{margin-top:22px;font-family:'Outfit';font-weight:700;font-size:16px;color:#fff;text-align:center;}
+  .stage-label{margin-top:22px;font-family:'Poppins';font-weight:700;font-size:16px;color:#fff;text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
-  .timer{font-family:'Outfit';font-weight:700;font-size:22px;color:#fff;margin-top:14px;}
+  .timer{font-family:'Poppins';font-weight:700;font-size:22px;color:#fff;margin-top:14px;}
 
   /* --- Warbling Tips --- */
   .season-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 13px;margin-bottom:6px;}
@@ -153,9 +153,9 @@
   .season-here .season-dot{background:var(--sage);}
   .season-leaving .season-dot{background:var(--terra);}
   .season-arriving .season-dot{background:var(--gold);}
-  .season-name{flex:1;font-family:'Outfit';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
+  .season-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
   .season-away .season-name{color:var(--mist-dk);}
-  .season-label{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--mist-dk);flex-shrink:0;}
+  .season-label{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--mist-dk);flex-shrink:0;}
   .season-leaving .season-label{color:var(--terra-dk);}
   .season-row.tappable{cursor:pointer;}
   .season-row.tappable:active{opacity:0.8;}
@@ -167,17 +167,17 @@
      overlay sharing the image's own pixel dimensions (560x780) - so the
      overlay's coordinates line up with the image with no separate
      projection math on this end, just CSS stacking. */
-  .migration-title{font-family:'Outfit';font-weight:900;font-size:22px;color:#fff;text-align:center;}
+  .migration-title{font-family:'Poppins';font-weight:900;font-size:22px;color:#fff;text-align:center;}
   .migration-subtitle{font-size:12.5px;color:rgba(255,255,255,0.82);text-align:center;margin-top:2px;margin-bottom:14px;}
   .migration-map-panel{width:100%;max-width:280px;margin:0 auto;position:relative;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,0.25);}
   .migration-map-img{display:block;width:100%;}
   .migration-map-overlay{position:absolute;inset:0;width:100%;height:100%;}
   .migration-credit{font-size:9.5px;color:rgba(255,255,255,0.55);text-align:center;margin-top:6px;}
   .migration-credit a{color:rgba(255,255,255,0.7);}
-  .migration-destination{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);text-align:center;margin-top:14px;}
+  .migration-destination{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);text-align:center;margin-top:14px;}
   .migration-fact{font-size:13px;line-height:1.55;color:rgba(255,255,255,0.92);text-align:center;margin-top:8px;padding:0 8px;}
   .migrator-btn{
-    font-family:'Outfit'; font-weight:700; font-size:12px; color:var(--dusk);
+    font-family:'Poppins'; font-weight:700; font-size:12px; color:var(--dusk);
     background:var(--parch-dk); border:none; border-radius:999px;
     padding:7px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
   }
@@ -186,13 +186,13 @@
   .challenge-card.all-bonus{background:rgba(255,255,255,0.2);}
   .challenge-card.all-bonus.complete{background:var(--goldbg,#FBF0D8);}
   .challenge-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
-  .challenge-text{font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);}
+  .challenge-text{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);}
   .challenge-card.all-bonus .challenge-text{color:#fff;}
   .challenge-card.all-bonus.complete .challenge-text{color:var(--dusk);}
-  .challenge-feathers{font-family:'Outfit';font-weight:900;font-size:12px;color:var(--gold-dk);flex-shrink:0;}
+  .challenge-feathers{font-family:'Poppins';font-weight:900;font-size:12px;color:var(--gold-dk);flex-shrink:0;}
   .challenge-bar{height:6px;background:var(--parch-dk);border-radius:3px;overflow:hidden;margin-top:8px;}
   .challenge-bar-fill{height:100%;background:var(--sage);border-radius:3px;transition:width .5s ease;}
-  .challenge-progress{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--mist-dk);margin-top:6px;}
+  .challenge-progress{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--mist-dk);margin-top:6px;}
   .challenge-card.all-bonus .challenge-progress{color:rgba(255,255,255,0.85);}
   /* The four shortcuts sit on an arc beneath the mic rather than as four
      full-width stacked tiles, which dominated the screen. Positions are set
@@ -212,18 +212,18 @@
     background:rgba(255,255,255,0.94); box-shadow:0 4px 12px rgba(0,0,0,0.18);
     display:flex; align-items:center; justify-content:center; font-size:24px;
   }
-  .arc-label{font-family:'Outfit';font-weight:700;font-size:10px;color:#fff;text-align:center;line-height:1.15;}
+  .arc-label{font-family:'Poppins';font-weight:700;font-size:10px;color:#fff;text-align:center;line-height:1.15;}
   .arc-badge{
     position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; padding:0 4px;
     border-radius:9px; background:var(--dusk); color:#fff;
-    font-family:'Outfit'; font-weight:900; font-size:9.5px;
+    font-family:'Poppins'; font-weight:900; font-size:9.5px;
     display:flex; align-items:center; justify-content:center;
   }
   .arc-badge:empty{display:none;}
   .arc-badge.urgent{background:var(--terra);}
   .tip-card{width:100%;background:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
   .tip-icon{font-size:22px;flex-shrink:0;}
-  .tip-title{font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
+  .tip-title{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
   .tip-text{font-size:12.5px;line-height:1.5;color:var(--ink);}
   .reveal-mark{
     margin-top:14px; background:var(--terra); color:#fff; border:none; border-radius:50%;
@@ -233,7 +233,7 @@
 
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
-  .progress{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;animation:statFadeUp 0.35s ease both;}
+  .progress{font-family:'Poppins';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;animation:statFadeUp 0.35s ease both;}
   .card{
     width:100%; max-width:300px; background:#fff; border-radius:20px;
     overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.18);
@@ -244,19 +244,19 @@
   /* A Rare find gets a violet halo as well as the border, so it announces
      itself before the tier label is even read. */
   .collector-strip{margin-top:12px;padding-top:11px;border-top:1px dashed var(--parch-dk);}
-  .collector-label{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .collector-label{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
   .collector-pips{display:flex;gap:5px;justify-content:center;}
-  .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--dusk);font-family:'Outfit';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
+  .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--dusk);font-family:'Poppins';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
   /* Same bleed-through mistake as the emoji fix below: opacity on the whole
      .fan-card lets the page behind it show through the frame's own
      transparent bits. An "away" bird is always also unfound, so fold the
      dimming into that filter instead of using opacity. */
   .fan-card.unfound.away{filter:grayscale(1) brightness(.75);}
-  .fan-away{position:absolute;z-index:3;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
-  .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Outfit';font-weight:700;font-size:11px;color:var(--dusk);}
-  .fan-rare{position:absolute;z-index:3;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Outfit';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
+  .fan-away{position:absolute;z-index:3;left:0;right:0;bottom:0;background:var(--dusk);color:#fff;font-family:'Poppins';font-weight:700;font-size:6.5px;text-align:center;padding:2px 1px;}
+  .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);}
+  .fan-rare{position:absolute;z-index:3;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Poppins';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
   .collector-pip{
-    flex:1; font-family:'Outfit'; font-weight:700; font-size:9.5px; padding:4px 0;
+    flex:1; font-family:'Poppins'; font-weight:700; font-size:9.5px; padding:4px 0;
     border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
     opacity:.4; text-align:center;
   }
@@ -272,18 +272,18 @@
   }
   .card-photo{width:100%;height:200px;object-fit:cover;background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .card-body{padding:16px 18px 20px;}
-  .card-name{font-family:'Outfit';font-weight:900;font-size:22px;color:var(--dusk);}
+  .card-name{font-family:'Poppins';font-weight:900;font-size:22px;color:var(--dusk);}
   .card-sci{font-size:12px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
   .card-tags{display:flex;gap:8px;margin-top:10px;animation:statFadeUp 0.4s ease 0.45s both;}
-  .tag{font-family:'Outfit';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
+  .tag{font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
   .tag.tier{background:var(--tier-color, var(--sage)); color:#fff;}
   .tag.new{background:var(--gold); color:var(--ink);}
   .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
-  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:15px;color:var(--gold-dk);animation:statFadeUp 0.4s ease 0.6s both;}
+  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:15px;color:var(--gold-dk);animation:statFadeUp 0.4s ease 0.6s both;}
   @keyframes statFadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
   /* --- Session Results: the fanned, unrevealed hand of cards --- */
-  .results-title{font-family:'Outfit';font-weight:900;font-size:24px;color:#fff;text-align:center;animation:statFadeUp 0.4s ease both;}
+  .results-title{font-family:'Poppins';font-weight:900;font-size:24px;color:#fff;text-align:center;animation:statFadeUp 0.4s ease both;}
   .results-sub{font-size:13px;color:rgba(255,255,255,0.85);text-align:center;margin-top:6px;animation:statFadeUp 0.4s ease 0.1s both;}
   .silhouette-row{display:flex;justify-content:center;align-items:flex-end;margin-top:30px;min-height:110px;}
   .silhouette-card{
@@ -295,16 +295,16 @@
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   .silhouette-card:first-child{margin-left:0;}
-  .reveal-hint{font-family:'Outfit';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);margin-top:22px;text-align:center;animation:statFadeUp 0.4s ease 0.3s both;}
+  .reveal-hint{font-family:'Poppins';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);margin-top:22px;text-align:center;animation:statFadeUp 0.4s ease 0.3s both;}
   .silhouette-card.tappable{cursor:pointer;animation:cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1) both, revealPulse 1.6s ease-in-out 0.8s infinite;}
   @keyframes revealPulse{0%,100%{box-shadow:0 6px 14px rgba(0,0,0,0.18);}50%{box-shadow:0 6px 22px rgba(255,255,255,0.55);}}
   .reveal-btn{
     margin-top:30px; width:100%; max-width:280px; padding:15px 0;
-    background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
     animation:statFadeUp 0.4s ease 0.3s both;
   }
-  .collect-hint{font-family:'Outfit';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);text-align:center;margin-top:16px;min-height:16px;animation:statFadeUp .4s ease both;}
+  .collect-hint{font-family:'Poppins';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);text-align:center;margin-top:16px;min-height:16px;animation:statFadeUp .4s ease both;}
   .card.collectable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;}
   @keyframes collectGlow{
     0%,100%{box-shadow:0 12px 30px rgba(45,27,105,0.18);}
@@ -332,22 +332,22 @@
   .card-nav-row{display:flex;gap:10px;width:100%;max-width:300px;margin-top:22px;animation:statFadeUp 0.4s ease 0.7s both;}
   .next-btn{
     flex:1; padding:15px 0;
-    background:var(--terra); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
   }
   .prev-btn{
     flex:0 0 auto; padding:15px 20px;
-    background:rgba(255,255,255,0.18); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    background:rgba(255,255,255,0.18); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; cursor:pointer;
   }
 
   /* --- Done --- */
   .done-icon{width:120px;display:block;margin:0 auto;}
-  .done-title{font-family:'Outfit';font-weight:900;font-size:22px;color:#fff;margin-top:10px;}
+  .done-title{font-family:'Poppins';font-weight:900;font-size:22px;color:#fff;margin-top:10px;}
   .done-sub{color:rgba(255,255,255,0.85);font-size:14px;margin-top:6px;text-align:center;}
   .again-btn{
     margin-top:24px; padding:15px 34px;
-    background:var(--dusk); color:#fff; font-family:'Outfit'; font-weight:700; font-size:15px;
+    background:var(--dusk); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--dusk-mid); cursor:pointer;
   }
   /* The "go again" variant: a round mic button that starts a new recording
@@ -367,11 +367,11 @@
   /* --- Collection --- */
   .stage.top-aligned{justify-content:flex-start;}
   .collection-header{width:100%;display:flex;justify-content:center;align-items:center;margin-bottom:4px;}
-  .collection-title{font-family:'Outfit';font-weight:900;font-size:20px;color:#fff;}
-  .back-btn{background:none;border:none;font-family:'Outfit';font-weight:700;color:#fff;cursor:pointer;font-size:14px;padding:0;}
+  .collection-title{font-family:'Poppins';font-weight:900;font-size:20px;color:#fff;}
+  .back-btn{background:none;border:none;font-family:'Poppins';font-weight:700;color:#fff;cursor:pointer;font-size:14px;padding:0;}
   .collection-count{font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:14px;}
   .sort-row{display:flex;gap:6px;justify-content:center;width:100%;margin-bottom:12px;}
-  .sort-btn{background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit';font-weight:700;font-size:11.5px;cursor:pointer;transition:background .2s ease,color .2s ease;}
+  .sort-btn{background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);border:none;border-radius:20px;padding:7px 14px;font-family:'Poppins';font-weight:700;font-size:11.5px;cursor:pointer;transition:background .2s ease,color .2s ease;}
   .sort-btn.active{background:#fff;color:var(--dusk);}
   .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   /* One neutral outline for every bird - My Birds treats them all alike.
@@ -391,10 +391,10 @@
   }
   .detail-photo{width:100%;height:220px;object-fit:cover;background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .detail-body{padding:18px 20px 22px;}
-  .detail-name{font-family:'Outfit';font-weight:900;font-size:24px;color:var(--dusk);}
+  .detail-name{font-family:'Poppins';font-weight:900;font-size:24px;color:var(--dusk);}
   .detail-sci{font-size:13px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
   .detail-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--parch-dk);}
-  .detail-stat-num{font-family:'Outfit';font-weight:900;font-size:18px;color:var(--dusk);}
+  .detail-stat-num{font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);}
   .detail-stat-label{font-size:11px;color:var(--mist-dk);}
   .detail-desc{font-size:13px;line-height:1.55;color:var(--ink);margin-top:14px;}
 
@@ -432,26 +432,26 @@
 
   /* --- Facts dashboard --- */
   .tt-block{width:100%;background:#fff;border-radius:14px;padding:12px 14px;margin-top:12px;}
-  .tt-title{font-family:'Outfit';font-weight:900;font-size:10px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+  .tt-title{font-family:'Poppins';font-weight:900;font-size:10px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
   .tt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .tt-label{font-family:'Outfit';font-weight:700;font-size:11px;color:var(--dusk);width:64px;flex-shrink:0;}
+  .tt-label{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);width:64px;flex-shrink:0;}
   .tt-bar{flex:1;height:9px;background:var(--parch-dk);border-radius:5px;overflow:hidden;}
   .tt-fill{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:5px;}
-  .tt-num{font-family:'Outfit';font-weight:900;font-size:11px;color:var(--dusk);width:24px;text-align:right;flex-shrink:0;}
+  .tt-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--dusk);width:24px;text-align:right;flex-shrink:0;}
   .fact-num-sm{font-size:11px !important;line-height:1.25;}
   .facts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
   .fact-tile{background:var(--parch);border-radius:12px;padding:10px 12px;}
   .fact-icon{font-size:20px;}
-  .fact-num{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--dusk);margin-top:2px;}
+  .fact-num{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--dusk);margin-top:2px;}
   .fact-label{font-size:10px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
   .fact-compare{font-size:11px;color:var(--ink);margin-top:4px;line-height:1.3;}
   .habitat-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-  .habitat-tag{display:flex;align-items:center;gap:4px;background:var(--sage);color:#fff;font-family:'Outfit';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
-  .status-badge{display:inline-flex;align-items:center;gap:5px;font-family:'Outfit';font-weight:700;font-size:11px;padding:4px 10px;border-radius:12px;margin-top:10px;}
+  .habitat-tag{display:flex;align-items:center;gap:4px;background:var(--sage);color:#fff;font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
+  .status-badge{display:inline-flex;align-items:center;gap:5px;font-family:'Poppins';font-weight:700;font-size:11px;padding:4px 10px;border-radius:12px;margin-top:10px;}
   .status-badge.status-green{background:#DFF3E6;color:var(--sage-dk);}
   .status-badge.status-amber{background:#FDEBD3;color:var(--terra-dk);}
   .status-badge.status-red{background:#FBDCDC;color:#A83232;}
-  .learn-more{display:inline-block;margin-top:14px;font-family:'Outfit';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
+  .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
 
   /* --- Recording tree: pulses, and its canopy clusters rustle with real audio --- */
@@ -528,7 +528,7 @@
   .find-rare{box-shadow:0 4px 14px rgba(255,195,0,0.75), 0 0 0 4px rgba(255,195,0,0.3);}
   .silhouette-card.find-rare{box-shadow:0 6px 20px rgba(255,195,0,0.7);}
   .rec-location{
-    font-family:'Outfit'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);
+    font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);
     text-align:center; margin-top:18px; min-height:17px;
   }
 
@@ -536,8 +536,8 @@
   .detail-tier-row{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;}
   .play-call-inline{margin-top:0 !important;padding:7px 13px;font-size:11px;flex-shrink:0;}
   .detail-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-  .share-bird-btn{background:var(--dusk);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-family:'Outfit';font-size:11px;font-weight:700;cursor:pointer;line-height:1.2;white-space:nowrap;}
-  .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;}
+  .share-bird-btn{background:var(--dusk);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-family:'Poppins';font-size:11px;font-weight:700;cursor:pointer;line-height:1.2;white-space:nowrap;}
+  .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;}
 
   /* --- Profile --- */
   .avatar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;width:100%;}
@@ -573,14 +573,14 @@
   /* --- Dress Up: categories + carousel --- */
   .reset-accessories-btn{
     background:rgba(255,255,255,0.18); color:#fff; border:none; border-radius:20px;
-    padding:7px 20px; font-family:'Outfit'; font-weight:700; font-size:11px;
+    padding:7px 20px; font-family:'Poppins'; font-weight:700; font-size:11px;
     cursor:pointer; margin:4px auto 0; display:block;
   }
   .category-row{display:flex;gap:5px;justify-content:center;width:100%;margin-top:14px;}
   .category-tile{
     background:#fff; border:2px solid transparent; border-radius:14px; padding:9px 3px;
     display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
-    font-family:'Outfit'; font-size:9px; font-weight:700; color:var(--dusk);
+    font-family:'Poppins'; font-size:9px; font-weight:700; color:var(--dusk);
     flex:1; max-width:48px;
   }
   .category-tile .cat-icon{font-size:26px;line-height:1;}
@@ -635,7 +635,7 @@
   }
   .item-buy-btn{
     margin-top:5px; width:100%; background:var(--terra); color:#fff; border:none;
-    border-radius:10px; padding:5px 4px; font-family:'Outfit'; font-weight:900;
+    border-radius:10px; padding:5px 4px; font-family:'Poppins'; font-weight:900;
     font-size:10px; cursor:pointer; box-shadow:0 2px 0 var(--terra-dk);
   }
   .item-buy-btn.cant-afford{background:var(--mist-dk); box-shadow:0 2px 0 var(--dusk-mid); font-size:8.5px;}
@@ -646,7 +646,7 @@
   .carousel-item-price-badge{
     position:absolute; top:4px; right:4px; display:flex; align-items:center; gap:2px;
     background:#fff; border-radius:8px; padding:2px 5px 2px 4px;
-    font-family:'Outfit'; font-weight:700; font-size:8.6px; line-height:1.2;
+    font-family:'Poppins'; font-weight:700; font-size:8.6px; line-height:1.2;
     box-shadow:0 1px 4px rgba(0,0,0,0.25);
   }
   .carousel-item-price-badge .feather-icon{width:9px;height:9px;}
@@ -685,39 +685,39 @@
   .profile-photo-preview{width:104px;height:104px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,0.22);}
   .profile-photo-preview img{width:100%;height:100%;object-fit:cover;}
   .profile-photo-actions{display:flex;gap:8px;}
-  .photo-btn{background:var(--dusk);color:#fff;font-family:'Outfit';font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:20px;cursor:pointer;}
+  .photo-btn{background:var(--dusk);color:#fff;font-family:'Poppins';font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:20px;cursor:pointer;}
   .photo-btn-clear{background:rgba(255,255,255,0.2);}
   .nav-avatar-photo{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
-  .remove-bird-btn{display:block;width:100%;margin-top:16px;background:none;border:none;font-family:'Outfit';font-weight:700;font-size:11.5px;color:var(--mist-dk);cursor:pointer;text-decoration:underline;}
+  .remove-bird-btn{display:block;width:100%;margin-top:16px;background:none;border:none;font-family:'Poppins';font-weight:700;font-size:11.5px;color:var(--mist-dk);cursor:pointer;text-decoration:underline;}
   .danger-title{color:#FFD9D2;}
   .feather-set-row{display:flex;gap:8px;width:100%;align-items:stretch;margin-bottom:6px;}
   .feather-set-btn{margin:0;padding:12px 22px;flex-shrink:0;}
   .reset-note{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:10px;width:100%;}
-  .reset-btn{width:100%;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-family:'Outfit';font-weight:700;font-size:13px;cursor:pointer;text-align:left;}
+  .reset-btn{width:100%;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;text-align:left;}
   .reset-btn.danger{background:rgba(192,57,43,0.55);}
   .reset-btn:disabled{opacity:.6;}
-  .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:11px 14px;width:100%;font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);cursor:pointer;}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:11px 14px;width:100%;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);cursor:pointer;}
   .toggle-row input{width:20px;height:20px;accent-color:var(--terra);cursor:pointer;}
   .location-row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
   .location-map-link{color:var(--dusk);text-decoration:none;}
   .location-map-link:hover{text-decoration:underline;}
   .location-delete-btn{background:none;border:none;color:var(--mist-dk);font-size:15px;font-weight:700;cursor:pointer;padding:2px 6px;line-height:1;}
   .stat-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:6px;width:100%;}
-  .stat-label{font-family:'Outfit';font-weight:700;font-size:12px;color:var(--mist-dk);}
-  .stat-value{font-family:'Outfit';font-weight:700;font-size:13px;color:var(--dusk);text-align:right;}
+  .stat-label{font-family:'Poppins';font-weight:700;font-size:12px;color:var(--mist-dk);}
+  .stat-value{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);text-align:right;}
   .stat-empty{font-size:12px;color:rgba(255,255,255,0.85);text-align:center;padding:10px 0;}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
-  .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Outfit';}
-  .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Outfit';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
-  .profile-section-title{font-family:'Outfit';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-top:24px;margin-bottom:4px;width:100%;text-align:left;}
+  .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Poppins';}
+  .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
+  .profile-section-title{font-family:'Poppins';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-top:24px;margin-bottom:4px;width:100%;text-align:left;}
   .location-input{
     margin-top:18px;width:100%;max-width:280px;padding:13px 16px;border-radius:12px;border:none;
-    font-family:'Space Grotesk';font-size:15px;text-align:center;
+    font-family:'Poppins';font-size:15px;text-align:center;
   }
   .feather-input{flex:1;margin:0;max-width:none;}
-  .skip-btn{background:none;border:none;color:rgba(255,255,255,0.85);font-family:'Outfit';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
+  .skip-btn{background:none;border:none;color:rgba(255,255,255,0.85);font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
   .location-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-  .location-tag{display:flex;align-items:center;gap:4px;background:var(--rose);color:#fff;font-family:'Outfit';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
+  .location-tag{display:flex;align-items:center;gap:4px;background:var(--rose);color:#fff;font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
 
   /* --- Trophies --- */
   /* Trophy carousel: slides are absolutely positioned and depth is faked with
@@ -727,15 +727,15 @@
   .habitat-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;width:100%;}
   .habitat-card.complete{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
   .habitat-top{display:flex;justify-content:space-between;align-items:baseline;}
-  .habitat-name{font-family:'Outfit';font-weight:900;font-size:14px;color:var(--dusk);}
-  .habitat-count{font-family:'Outfit';font-weight:700;font-size:12px;color:var(--mist-dk);}
+  .habitat-name{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--dusk);}
+  .habitat-count{font-family:'Poppins';font-weight:700;font-size:12px;color:var(--mist-dk);}
   .habitat-bar{height:6px;background:var(--parch-dk);border-radius:3px;overflow:hidden;margin-top:7px;}
   .habitat-bar-fill{height:100%;background:var(--sage);border-radius:3px;transition:width .5s ease;}
   .habitat-dots{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
   .hab-dot{width:11px;height:11px;border-radius:50%;background:var(--mist);opacity:.45;}
   .hab-dot.found{background:var(--sage);opacity:1;}
-  .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Outfit';font-weight:700;}
-  .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Outfit';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
+  .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Poppins';font-weight:700;}
+  .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Poppins';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
   .habitat-card{cursor:pointer;}
   /* Collections layout: a single row of pill-button pack tabs across the top
      (scrolls sideways, doesn't compete for space with the carousel below),
@@ -754,9 +754,9 @@
   }
   .pack-tab.active{background:rgba(255,255,255,0.95);}
   .pack-tab-emoji{font-size:15px;line-height:1;}
-  .pack-tab-name{font-family:'Outfit';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);}
+  .pack-tab-name{font-family:'Poppins';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);}
   .pack-tab.active .pack-tab-name{color:var(--dusk);}
-  .pack-tab-count{font-family:'Outfit';font-weight:900;font-size:10px;color:rgba(255,255,255,0.65);}
+  .pack-tab-count{font-family:'Poppins';font-weight:900;font-size:10px;color:rgba(255,255,255,0.65);}
   .pack-tab.active .pack-tab-count{color:var(--gold-dk);}
 
   /* No card frame - the fan sits straight on the background. All ten cards
@@ -865,32 +865,32 @@
      hole in the frame art rather than painted-in card colour. */
   .fan-photo-emoji{opacity:.3;}
   /* Nameplate area of the frame art, measured the same way as the window. */
-  .fan-name{position:absolute;z-index:3;left:2.86px;top:66.59px;width:60.06px;height:37.41px;font-family:'Outfit';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box;}
+  .fan-name{position:absolute;z-index:3;left:2.86px;top:66.59px;width:60.06px;height:37.41px;font-family:'Poppins';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
-  .pack-status{text-align:center;font-family:'Outfit';font-weight:700;font-size:11.5px;color:rgba(255,255,255,0.85);margin-top:8px;}
+  .pack-status{text-align:center;font-family:'Poppins';font-weight:700;font-size:11.5px;color:rgba(255,255,255,0.85);margin-top:8px;}
   /* Hover/selection caption, sitting below the progress bar where there's
      room for a four-line hint. It's the last thing on the screen, so it can
      size to its text - nothing below it to push around, which is why there's
      no reserved height here. */
   .fan-caption{
-    text-align:center;font-family:'Outfit';font-weight:700;font-size:11px;
+    text-align:center;font-family:'Poppins';font-weight:700;font-size:11px;
     color:rgba(255,255,255,0.92);line-height:1.4;
     margin:10px auto 0;max-width:300px;padding:0 10px;
     transition:opacity .15s ease;
   }
   .fan-caption:empty{opacity:0;}
-  .habitat-tap{font-family:'Outfit';font-weight:700;font-size:9.5px;color:var(--mist-dk);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
+  .habitat-tap{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--mist-dk);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
   .hab-list{width:100%;display:flex;flex-direction:column;gap:6px;}
   .hab-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:7px 12px 7px 8px;}
   .hab-row.mystery{background:rgba(255,255,255,0.42);}
-  .hab-row-num{font-family:'Outfit';font-weight:900;font-size:11px;color:var(--mist-dk);width:18px;text-align:center;flex-shrink:0;}
+  .hab-row-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--mist-dk);width:18px;text-align:center;flex-shrink:0;}
   .hab-row-thumb{width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--parch-dk);display:flex;align-items:center;justify-content:center;}
   .hab-row-silhouette{font-size:19px;filter:grayscale(1) brightness(.4);opacity:.45;}
-  .hab-row-name{flex:1;font-family:'Outfit';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
+  .hab-row-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
   .hab-row.mystery .hab-row-name{color:var(--mist-dk);font-weight:400;font-style:italic;}
-  .hab-row-mark{font-family:'Outfit';font-weight:900;font-size:14px;color:var(--mist-dk);flex-shrink:0;}
+  .hab-row-mark{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--mist-dk);flex-shrink:0;}
   .hab-row-mark.found{color:var(--sage-dk);}
   .trophy-carousel{position:relative;width:100%;height:210px;margin-top:8px;overflow:hidden;touch-action:pan-y;}
   .trophy-slide{
@@ -902,11 +902,11 @@
   .trophy-slide.front .trophy-svg{filter:drop-shadow(0 12px 20px rgba(0,0,0,0.38));}
   .trophy-slide.front.locked .trophy-svg{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 10px 16px rgba(0,0,0,0.34));}
   .trophy-caption{width:100%;max-width:300px;text-align:center;margin-top:6px;min-height:64px;}
-  .trophy-caption-name{font-family:'Outfit';font-weight:900;font-size:19px;color:#fff;}
+  .trophy-caption-name{font-family:'Poppins';font-weight:900;font-size:19px;color:#fff;}
   .trophy-caption-req{font-size:12.5px;color:rgba(255,255,255,0.88);margin-top:4px;line-height:1.4;}
   .trophy-level{display:inline-block;background:var(--gold);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
   .trophy-caption-next{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:5px;}
-  .trophy-caption-tap{font-family:'Outfit';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .trophy-caption-tap{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
   /* Feathers-earned and "go again" share one grid cell (both always in the
      DOM, never display:none) so the cell's height is fixed to whichever is
      taller - swapping which one is visible is a pure opacity crossfade with
@@ -919,9 +919,9 @@
     opacity:0; pointer-events:none; transition:opacity .3s ease;
   }
   .done-feathers-slot .go-again-content.visible{opacity:1; pointer-events:auto;}
-  .done-feathers{font-family:'Outfit';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;transition:opacity .3s ease;}
+  .done-feathers{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;transition:opacity .3s ease;}
   .done-feathers.collected{opacity:0; pointer-events:none;}
-  .go-again-ask{font-family:'Outfit';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
+  .go-again-ask{font-family:'Poppins';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
   /* Dancing avatar on the Done screen: av-torso (body + both wings) adds a
      small shimmy, and each wing wave pivots at the shoulder joint where it
      meets the body - same wave shape/timing as a resting flap, just offset
@@ -946,21 +946,21 @@
     75%{transform:scale(1.28) rotate(-4deg);}
     100%{transform:scale(1.12) rotate(0);}
   }
-  .trophy-banner-tap{font-family:'Outfit';font-weight:700;font-size:10px;color:var(--gold-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
+  .trophy-banner-tap{font-family:'Poppins';font-weight:700;font-size:10px;color:var(--gold-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
   .done-feathers.tappable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;border-radius:20px;padding:6px 18px;}
   .spark{position:fixed;z-index:200;pointer-events:none;font-size:18px;will-change:transform,opacity;}
   .bonus-list{width:100%;max-width:300px;margin-top:12px;}
-  .bonus-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.18);border-radius:10px;padding:8px 13px;margin-bottom:6px;font-family:'Outfit';font-weight:700;font-size:12.5px;color:#fff;}
+  .bonus-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.18);border-radius:10px;padding:8px 13px;margin-bottom:6px;font-family:'Poppins';font-weight:700;font-size:12.5px;color:#fff;}
   .bonus-feathers{color:var(--gold);}
   .trophy-banner{
     width:100%;background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:16px;
     padding:14px;margin-top:16px;text-align:center;
   }
-  .trophy-banner-title{font-family:'Outfit';font-weight:900;font-size:13px;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.04em;}
+  .trophy-banner-title{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.04em;}
   .trophy-banner-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px;}
   .trophy-banner-emoji{font-size:24px;}
   .trophy-banner-text{text-align:left;}
-  .trophy-banner-name{font-family:'Outfit';font-weight:700;font-size:14px;color:var(--dusk);}
+  .trophy-banner-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--dusk);}
   .trophy-banner-citation{font-size:11px;color:var(--mist-dk);}
 </style>
 </head>
@@ -4013,7 +4013,7 @@ const TROPHY_EMBLEMS = {
   still_water: '<path d="M-11 -2 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#5FB88F" stroke-width="2.4" stroke-linecap="round"/><path d="M-11 4 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#7EC8A4" stroke-width="2.4" stroke-linecap="round"/><path d="M-11 10 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#C4BFDF" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/><circle cx="0" cy="-8" r="2.6" fill="#F5EDD6"/>',
   brooder: '<path d="M-10 -1 a6 6 0 0 1 4 -6 a7 7 0 0 1 13 2 a5 5 0 0 1 -1 10 H-6 a5 5 0 0 1 -4 -6z" fill="#F5EDD6"/><path d="M-6 7 l-2 6 M0 7 l-2 7 M6 7 l-2 6" stroke="#5B93C4" stroke-width="2" stroke-linecap="round"/>',
   wingman: '<path d="M-11 2 q4 -5 8 -2 l3 2" fill="none" stroke="#F5EDD6" stroke-width="2.4" stroke-linecap="round"/><path d="M11 2 q-4 -5 -8 -2 l-3 2" fill="none" stroke="#F2C94C" stroke-width="2.4" stroke-linecap="round"/><circle cx="-5" cy="-6" r="3.2" fill="#F5EDD6"/><circle cx="5" cy="-6" r="3.2" fill="#F2C94C"/><path d="M-4 6 q4 3 8 0" fill="none" stroke="#F5EDD6" stroke-width="2" stroke-linecap="round"/>',
-  century: '<circle cx="0" cy="0" r="11" fill="none" stroke="#F5EDD6" stroke-width="2"/><text x="0" y="4.5" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="900" font-size="12" fill="#F5EDD6">100</text>',
+  century: '<circle cx="0" cy="0" r="11" fill="none" stroke="#F5EDD6" stroke-width="2"/><text x="0" y="4.5" text-anchor="middle" font-family="Poppins,sans-serif" font-weight="900" font-size="12" fill="#F5EDD6">100</text>',
 };
 
 // Little stars on the plinth showing how many of the three levels are held -
