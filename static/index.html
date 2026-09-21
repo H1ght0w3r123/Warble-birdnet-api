@@ -874,16 +874,14 @@
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
   .pack-status{text-align:center;font-family:'Outfit';font-weight:700;font-size:11.5px;color:rgba(255,255,255,0.85);margin-top:8px;}
-  /* Hover/selection caption under the fan. Height is reserved for the
-     longest unfound hint (4 lines at this size, measured - not guessed) so
-     the progress bar below never moves as you scan across the cards, and
-     text is top-anchored so the first line always starts in the same place.
-     There's a lot of empty space under the bar anyway, so the reserve costs
-     nothing visually. */
+  /* Hover/selection caption, sitting below the progress bar where there's
+     room for a four-line hint. It's the last thing on the screen, so it can
+     size to its text - nothing below it to push around, which is why there's
+     no reserved height here. */
   .fan-caption{
-    text-align:center;font-family:'Outfit';font-weight:700;font-size:10.5px;
-    color:rgba(255,255,255,0.92);line-height:1.3;min-height:55px;
-    margin:2px auto 4px;max-width:280px;padding:0 8px;
+    text-align:center;font-family:'Outfit';font-weight:700;font-size:11px;
+    color:rgba(255,255,255,0.92);line-height:1.4;
+    margin:10px auto 0;max-width:300px;padding:0 10px;
     transition:opacity .15s ease;
   }
   .fan-caption:empty{opacity:0;}
@@ -4135,13 +4133,13 @@ function renderSelectedPack() {
   el.innerHTML = `
     <div class="pack-blurb">${p.blurb}</div>
     <div class="fan-row" id="fanRow">${fan}</div>
-    <div class="fan-caption" id="fanCaption"></div>
     <div class="habitat-bar" style="max-width:280px;margin:0 auto;">
       <div class="habitat-bar-fill" style="width:${pct}%"></div>
     </div>
     <div class="pack-status">${p.complete
       ? 'Pack complete!'
       : `${p.cards_found} of ${p.cards_total} cards found`}</div>
+    <div class="fan-caption" id="fanCaption"></div>
   `;
 
   const fanRow = document.getElementById('fanRow');
