@@ -4257,7 +4257,7 @@ function wireFanRowSwipe(fanRow, birds = []) {
     // Only opens on a genuine tap (no drag) landing back on the SAME card
     // that was already selected before this gesture began.
     if (!dragged && card === downCard && wasSelected && card.classList.contains('tappable')) {
-      openBirdFromPack(card.dataset.name);
+      openBirdFromPack(card.dataset.name, card);
     }
   };
   fanRow.addEventListener('pointerup', release);
@@ -4265,7 +4265,58 @@ function wireFanRowSwipe(fanRow, birds = []) {
 }
 
 
-async function openBirdFromPack(commonName) {
+// Tapping a card lifts it clear of the fan and spins it; the bird's details
+// are on the other side. The spin is done in two halves that hand over at
+// 90deg, where the card is edge-on and so has no visible width at all - which
+// is what lets the little pack card be swapped for the full detail card
+// without anyone seeing it happen. Both halves turn the same way, so it reads
+// as one continuous movement.
+const FLIP_MS = 210;
+const FLIP_LIFT = 2.2;          // how much bigger the card gets as it comes up
+let packFlipName = null;        // which bird we spun in from, for the way back
+
+const reducedMotion = () =>
+  !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+// Where a lifted card hovers: middle of the space above the tab bar.
+function flipCentre() {
+  const nav = document.querySelector('.bottom-nav');
+  const floor = nav ? nav.getBoundingClientRect().top : window.innerHeight;
+  return { x: window.innerWidth / 2, y: floor / 2 };
+}
+
+// A fixed-position stand-in for a fan card, so the spin isn't boxed in by the
+// fan row's own stacking and overlap. Sized from the card's untransformed box
+// and centred on where it actually sits, since getBoundingClientRect() on a
+// tilted, enlarged card reports the bigger rotated box rather than the card.
+function makeFlipper(cardEl) {
+  const r = cardEl.getBoundingClientRect();
+  const w = cardEl.offsetWidth, h = cardEl.offsetHeight;
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const host = document.createElement('div');
+  host.style.cssText = `position:fixed;left:${cx - w / 2}px;top:${cy - h / 2}px;` +
+    `width:${w}px;height:${h}px;z-index:400;pointer-events:none;`;
+  const face = cardEl.cloneNode(true);
+  face.classList.remove('selected');
+  face.style.cssText += ';margin:0;transform:none;transition:none;width:100%;height:100%;';
+  host.appendChild(face);
+  document.body.appendChild(host);
+  const c = flipCentre();
+  const tilt = parseFloat(getComputedStyle(cardEl).getPropertyValue('--tilt')) || 0;
+  return {
+    host,
+    // resting in the fan, at whatever angle and size it was sitting at
+    rest: `perspective(900px) translate(0px,0px) rotate(${tilt}deg) ` +
+          `scale(${cardEl.classList.contains('selected') ? 1.4 : 1}) rotateY(0deg)`,
+    // lifted, straightened and turned edge-on
+    lifted: `perspective(900px) translate(${c.x - cx}px,${c.y - cy}px) rotate(0deg) ` +
+            `scale(${FLIP_LIFT}) rotateY(90deg)`,
+  };
+}
+
+const play = (el, frames, opts) => el.animate(frames, { fill: 'forwards', ...opts }).finished;
+
+async function openBirdFromPack(commonName, cardEl) {
   if (!commonName) return;
   // Collections can be opened without ever visiting My Birds, in which case
   // the sightings cache is empty and the detail view would silently bail.
@@ -4275,7 +4326,65 @@ async function openBirdFromPack(commonName) {
       allSightingsRaw = (await res.json()).sightings || [];
     } catch (e) { return; }
   }
-  renderBirdDetail(commonName, renderHabitats);
+
+  packFlipName = commonName;
+  const showDetail = () => {
+    renderBirdDetail(commonName, renderHabitats);
+    // Re-point Back at the reverse spin. Only this route spins - reaching a
+    // bird from My Flock never came off the pack, so it keeps its plain Back.
+    const back = document.getElementById('backBtn');
+    if (back) back.onclick = () => closeBirdToPack();
+  };
+
+  if (!cardEl || reducedMotion()) { showDetail(); return; }
+
+  // First half: the card lifts out of the fan, straightens up and turns
+  // edge-on.
+  const f = makeFlipper(cardEl);
+  cardEl.style.visibility = 'hidden';
+  await play(f.host, [{ transform: f.rest }, { transform: f.lifted }],
+             { duration: FLIP_MS, easing: 'cubic-bezier(.4,0,.7,.35)' });
+  f.host.remove();
+
+  showDetail();
+
+  // Second half: the detail card carries on turning from edge-on to face us.
+  const detail = document.querySelector('.detail-card');
+  if (detail) {
+    play(detail, [
+      { transform: 'perspective(900px) rotateY(-90deg) scale(.94)', opacity: .5 },
+      { transform: 'perspective(900px) rotateY(0deg) scale(1)', opacity: 1 },
+    ], { duration: FLIP_MS + 50, easing: 'cubic-bezier(.25,.7,.4,1)' });
+  } else {
+    cardEl.style.visibility = '';   // detail bailed - put the card back
+  }
+}
+
+// The way back: the detail card turns edge-on, then the pack card finishes
+// the turn and settles into the fan it came from.
+async function closeBirdToPack() {
+  const name = packFlipName;
+  const detail = document.querySelector('.detail-card');
+
+  if (reducedMotion() || !detail) { await renderHabitats(); return; }
+
+  await play(detail, [
+    { transform: 'perspective(900px) rotateY(0deg) scale(1)', opacity: 1 },
+    { transform: 'perspective(900px) rotateY(-90deg) scale(.94)', opacity: .5 },
+  ], { duration: FLIP_MS, easing: 'cubic-bezier(.4,0,.7,.35)' });
+
+  await renderHabitats();   // awaits the fan, so the card is there to land on
+
+  const card = Array.from(document.querySelectorAll('.fan-card'))
+    .find(c => c.dataset.name === name);
+  if (!card) return;
+
+  const f = makeFlipper(card);
+  card.style.visibility = 'hidden';
+  await play(f.host, [{ transform: f.lifted }, { transform: f.rest }],
+             { duration: FLIP_MS, easing: 'cubic-bezier(.25,.7,.4,1)' });
+  f.host.remove();
+  card.style.visibility = '';
 }
 
 async function renderHabitats() {
@@ -4287,7 +4396,9 @@ async function renderHabitats() {
     <div class="pack-selector" id="packSelector"></div>
     <div id="packList" style="width:100%;"></div>
   `;
-  loadCollectorPacks();
+  // Awaited so callers can rely on the fan actually being on screen - the
+  // spin back from a bird's details needs its card to exist to land on.
+  await loadCollectorPacks();
 }
 
 async function renderTrophies() {
