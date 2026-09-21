@@ -716,14 +716,23 @@ def pack_progress():
     """Per-pack progress: which of the 10 birds are found, split into the 8
     common and 2 rare, and whether the pack is complete."""
     photos = {}
+    # get_all_sightings() comes back newest first, so the last row seen for a
+    # species is its oldest one - the find that counts as "first found".
+    history = {}
     for s in get_all_sightings():
-        photos.setdefault(s["common_name"], s.get("image_url"))
+        name = s["common_name"]
+        photos.setdefault(name, s.get("image_url"))
+        entry = history.setdefault(name, {"count": 0})
+        entry["count"] += 1
+        entry["first_found"] = s["created_at"]
+        entry["first_location"] = s.get("location_name")
     packs = []
     for key, pack in PACKS.items():
         birds = []
         for name in pack["common"] + pack["rare"]:
             got = name in photos
             st = season_state(name, datetime.datetime.utcnow().month)
+            seen = history.get(name, {})
             birds.append({
                 "common_name": name,
                 "rarity": SPECIES_RARITY[name],
@@ -734,6 +743,12 @@ def pack_progress():
                 # checklist you work through, unlike the old habitat sets
                 # where the unfound ones were kept secret.
                 "photo_url": photos.get(name) if got else None,
+                # Drives the hover caption under the fan. first_location is
+                # None whenever the child skipped naming that spot, or the
+                # recording had no coordinates at all.
+                "found_count": seen.get("count", 0),
+                "first_found": seen.get("first_found"),
+                "first_location": seen.get("first_location"),
             })
         got = sum(1 for b in birds if b["found"])
         packs.append({
