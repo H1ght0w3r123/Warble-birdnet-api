@@ -30,6 +30,11 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
 - `accessories.py` — 40 Dress Up items on a five-band price ladder.
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
 
+`tools/build_pack_art.py` rebuilds the ten packs' icon/badge/wordmark webps
+from a folder of delivered PNGs. Read its docstring before re-exporting pack
+art — the source files arrive with their own filenames baked into the picture,
+and the reason the obvious ways of removing that fail is written down there.
+
 ## Rules that are easy to break
 
 **Rarity is a fixed property of the species**, not a per-location calculation.
