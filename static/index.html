@@ -26,7 +26,14 @@
     font-family:'Poppins',sans-serif;
     color:#fff;
     min-height:100vh;
+    /* clip, not hidden: overflow-x:hidden makes body a scroll container, and
+       a sticky element inside a scroll container that is not the one actually
+       scrolling never sticks. clip contains the same overflow without
+       creating that container. The hidden line stays underneath it for
+       browsers that do not know clip - they lose the sticky bar, not the
+       layout. */
     overflow-x:hidden;
+    overflow-x:clip;
     display:flex; flex-direction:column; align-items:center;
     padding:20px 16px 90px;
     transition:background 1.2s ease;
@@ -375,18 +382,187 @@
   .collection-title{font-family:'Poppins';font-weight:900;font-size:20px;color:#fff;}
   .back-btn{background:none;border:none;font-family:'Poppins';font-weight:700;color:#fff;cursor:pointer;font-size:14px;padding:0;}
   .collection-count{font-size:12px;color:rgba(255,255,255,0.85);margin-bottom:14px;}
-  .sort-row{display:flex;gap:6px;justify-content:center;width:100%;margin-bottom:12px;}
-  .sort-btn{background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.85);border:none;border-radius:20px;padding:7px 14px;font-family:'Poppins';font-weight:700;font-size:11.5px;cursor:pointer;transition:background .2s ease,color .2s ease;}
-  .sort-btn.active{background:#fff;color:var(--dusk);}
+
+  /* --- My Flock controls ---------------------------------------------
+     The big title and the species/detection line scroll away; everything
+     you actually operate stays stuck to the top, so a long collection is
+     mostly bird photos rather than chrome. The page itself is the scroller
+     (body scrolls, there is no inner pane), so position:sticky is enough. */
+  .flock-stats{font-size:12.5px;color:rgba(255,255,255,0.85);text-align:center;margin-bottom:12px;}
+  .flock-stats b{font-weight:700;color:#fff;}
+  .flock-bar{
+    position:sticky; top:0; z-index:40; width:100%;
+    padding:8px 0 10px; margin-bottom:10px;
+    background:var(--flock-veil, rgba(45,27,105,0.82));
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  /* Pulled out to the full page width so the blur covers the gutter too,
+     then padded back in, rather than a 16px strip of unblurred card
+     showing down each side. */
+  .flock-bar::before{
+    content:''; position:absolute; top:0; bottom:0; left:-16px; right:-16px;
+    background:inherit; backdrop-filter:inherit; -webkit-backdrop-filter:inherit;
+    z-index:-1;
+  }
+  /* Collapsed, these two join the control row so the whole bar is one line. */
+  .flock-compact-title, .flock-searchbtn{display:none;}
+  .flock-bar.stuck .flock-compact-title{display:block;}
+  .flock-bar.stuck .flock-searchbtn{display:flex;}
+  .flock-compact-title{
+    flex:0 1 auto; min-width:0; text-align:left; background:none; border:none;
+    padding:0 2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    font-family:'Poppins'; font-weight:900; font-size:13px; color:#fff; cursor:pointer;
+  }
+  .flock-searchbtn{
+    flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.18); align-items:center; justify-content:center; padding:0;
+  }
+  .flock-searchbtn.on{background:#fff;}
+  .flock-searchbtn svg{width:15px;height:15px;}
+  .flock-searchbtn.on svg{stroke:var(--dusk);}
+  /* The seg control and the field itself fold away when stuck, which is the
+     point of the collapse - what is left is a title, a way back to search and
+     the two controls. Tapping search unfolds the field again. */
+  .flock-bar.stuck .flock-seg{display:none;}
+  .flock-bar.stuck .flock-search{display:none;}
+  .flock-bar.stuck.searching .flock-search{display:flex;margin-top:8px;order:2;}
+  .flock-bar.stuck .flock-ctls{order:1;}
+  .flock-bar.stuck{display:flex;flex-direction:column;}
+  /* Stuck, the spacer would push the density button off on a narrow phone. */
+  .flock-bar.stuck .flock-spacer{display:none;}
+  .flock-bar.stuck .flock-ctls{gap:5px;}
+  .flock-search{
+    display:flex; align-items:center; gap:7px; width:100%;
+    background:rgba(255,255,255,0.14); border-radius:22px; padding:0 12px; height:38px;
+  }
+  .flock-bar.stuck .flock-search.tucked{display:none;}
+  .flock-search svg{width:15px;height:15px;flex:0 0 auto;opacity:.8;}
+  .flock-search input{
+    flex:1 1 auto; min-width:0; background:none; border:none; outline:none;
+    font-family:'Poppins'; font-weight:600; font-size:13.5px; color:#fff;
+  }
+  .flock-search input::placeholder{color:rgba(255,255,255,0.6);font-weight:500;}
+  .flock-clear{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.25); color:#fff; font-size:14px; line-height:1;
+    display:none; align-items:center; justify-content:center;
+  }
+  .flock-search.has-text .flock-clear{display:flex;}
+  .flock-ctls{display:flex; align-items:center; gap:6px; width:100%; margin-top:8px;}
+  .flock-bar.stuck .flock-ctls{margin-top:0;}
+  .flock-ctl{
+    background:rgba(255,255,255,0.18); color:#fff; border:none; border-radius:18px;
+    padding:0 12px; height:32px; font-family:'Poppins'; font-weight:700; font-size:11.5px;
+    cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;
+    max-width:100%; overflow:hidden;
+  }
+  .flock-ctl.on{background:#fff;color:var(--dusk);}
+  .flock-ctl-label{overflow:hidden;text-overflow:ellipsis;}
+  .flock-spacer{flex:1 1 auto;}
+  .flock-density{
+    flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.18); color:#fff;
+    display:flex; align-items:center; justify-content:center; gap:2px;
+  }
+  .flock-density i{display:block;background:#fff;border-radius:1px;}
+  /* Segmented Birds | History - one species per card, or every detection */
+  .flock-seg{
+    display:flex; width:100%; background:rgba(255,255,255,0.14);
+    border-radius:20px; padding:3px; margin-bottom:8px;
+  }
+  .flock-seg button{
+    flex:1 1 0; background:none; border:none; border-radius:17px; cursor:pointer;
+    padding:7px 0; font-family:'Poppins'; font-weight:700; font-size:12.5px;
+    color:rgba(255,255,255,0.8); transition:background .18s ease, color .18s ease;
+  }
+  .flock-seg button.on{background:#fff;color:var(--dusk);}
+
+  /* --- Sort / filter sheet -------------------------------------------- */
+  .sheet-wrap{
+    position:fixed; inset:0; z-index:500; display:flex; align-items:flex-end;
+    justify-content:center; background:rgba(45,27,105,0.55);
+    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+  }
+  .sheet{
+    width:100%; max-width:420px; max-height:82vh; overflow-y:auto;
+    background:#fff; border-radius:22px 22px 0 0; padding:16px 16px 22px;
+    box-shadow:0 -10px 34px rgba(45,27,105,0.3);
+    animation:sheetUp .26s cubic-bezier(.22,.9,.3,1.03);
+  }
+  @keyframes sheetUp{from{transform:translateY(24px);opacity:0;}to{transform:none;opacity:1;}}
+  .sheet-grip{width:38px;height:4px;border-radius:2px;background:var(--mist);margin:0 auto 12px;}
+  .sheet-title{font-family:'Poppins';font-weight:900;font-size:15px;color:var(--dusk);margin-bottom:10px;}
+  .sheet-group{font-family:'Poppins';font-weight:900;font-size:11px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--mist-dk);margin:14px 0 7px;}
+  .sheet-opt{
+    display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+    background:var(--parch); border:none; border-radius:13px; padding:11px 12px;
+    font-family:'Poppins'; font-weight:700; font-size:13px; color:var(--dusk);
+    cursor:pointer; margin-bottom:6px; min-height:44px;
+  }
+  .sheet-opt.on{background:var(--goldbg,#FBF0D8);outline:2px solid var(--gold);}
+  .sheet-opt .tick{margin-left:auto;color:var(--gold-dk);font-weight:900;}
+  .sheet-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .sheet-chip{
+    background:var(--parch); border:none; border-radius:15px; padding:8px 12px; min-height:34px;
+    font-family:'Poppins'; font-weight:700; font-size:12px; color:var(--dusk); cursor:pointer;
+  }
+  .sheet-chip.on{background:var(--gold);color:#fff;}
+  .sheet-actions{
+    display:flex; gap:8px; align-items:center; margin-top:18px;
+    position:sticky; bottom:-22px; background:#fff; padding:10px 0 0;
+  }
+  .sheet-reset{
+    background:none; border:none; font-family:'Poppins'; font-weight:700; font-size:13px;
+    color:var(--mist-dk); cursor:pointer; padding:12px 4px;
+  }
+  .sheet-done{
+    flex:1 1 auto; background:var(--gold); color:#fff; border:none; border-radius:16px;
+    padding:13px; font-family:'Poppins'; font-weight:900; font-size:13.5px; cursor:pointer;
+  }
+
   .collection-grid{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-  /* One neutral outline for every bird - My Birds treats them all alike.
-     The pack-colour dot (position:relative anchors it) is the only thing
-     that varies by pack here, not the card itself. */
+  /* Large mode: two up, for longer names and bigger photographs. */
+  .collection-grid.large{grid-template-columns:repeat(2,1fr);gap:12px;}
+  /* One neutral outline for every bird - My Birds treats them all alike. */
   .collection-item{position:relative;background:#fff;border-radius:12px;overflow:hidden;border:2px solid var(--parch-dk);}
   .collection-item img{width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
-  .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;}
+  .collection-grid.large .collection-item img,
+  .collection-grid.large .ci-blank{height:118px;}
+  .ci-blank{height:70px;background:var(--parch-dk);}
+  .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;
+    overflow-wrap:anywhere;}
+  .collection-grid.large .ci-name{font-size:12.5px;padding:8px 6px;}
   .collection-empty{text-align:center;color:rgba(255,255,255,0.85);font-size:13px;margin-top:40px;width:100%;}
+  .collection-empty b{display:block;font-size:15px;color:#fff;margin-bottom:6px;}
+  .collection-empty .flock-ctl{display:inline-flex;margin-top:14px;}
   .collection-item{cursor:pointer;}
+
+  /* --- History -------------------------------------------------------- */
+  .hist-day{
+    font-family:'Poppins'; font-weight:900; font-size:12px; letter-spacing:.05em;
+    text-transform:uppercase; color:rgba(255,255,255,0.8); margin:16px 0 8px;
+  }
+  .hist-day:first-child{margin-top:2px;}
+  .hist-row{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    background:#fff; border:2px solid var(--parch-dk); border-radius:13px;
+    padding:8px 11px 8px 8px; margin-bottom:7px; cursor:pointer; min-height:56px;
+  }
+  .hist-row img, .hist-thumb{
+    width:42px; height:42px; border-radius:9px; object-fit:cover; flex:0 0 auto;
+    background:var(--parch-dk); display:block;
+  }
+  /* nowrap and a minimum rather than a fixed width: a 24-hour locale gives
+     "18:42" and a 12-hour one "06:30 PM", and the second must not wrap. */
+  .hist-time{
+    flex:0 0 auto; font-family:'Poppins'; font-weight:900; font-size:12.5px;
+    color:var(--mist-dk); min-width:42px; white-space:nowrap;
+  }
+  .hist-text{display:flex;flex-direction:column;min-width:0;gap:2px;}
+  .hist-name{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--ink);
+    line-height:1.2;overflow-wrap:anywhere;}
+  .hist-meta{font-size:11px;color:var(--mist-dk);line-height:1.2;overflow-wrap:anywhere;}
 
   /* --- Bird detail --- */
   .detail-card{
@@ -1899,78 +2075,447 @@ function renderNoBirds() {
   };
 }
 
-let collectionSort = 'az';
-let collectionSortDesc = false;
+// --- My Flock --------------------------------------------------------------
+// One screen over two views. Birds is a card per species; History is a row
+// per detection, newest first. Search, filters and the grid density apply to
+// both; sort applies to Birds only, since History is chronological by
+// definition.
+//
+// Everything here reads the sightings the app already has. Nothing is
+// invented: a sort or filter only exists if a real field backs it, which is
+// why there is no taxonomic order (no taxonomy in birds.py), no distance (no
+// reference point to measure from) and no rarity (rarity lives in the
+// collector packs on purpose - see CLAUDE.md).
+let flockView = 'birds';       // 'birds' | 'history'
+let flockSort = 'az';
+let flockQuery = '';
+let flockDensity = 'compact';  // 'compact' | 'large'
+let flockFilters = {};         // {facet: [values]} - only non-empty facets present
 let collectionBirds = [];
+
+// Sorts, in the order they appear in the sheet. `get` returns the value to
+// compare; `desc` flips it. Kept as data so the sheet, the button label and
+// the comparison can never drift apart.
+const FLOCK_SORTS = [
+  { id: 'az',     label: 'A–Z',                  get: b => b.common_name.toLowerCase() },
+  { id: 'za',     label: 'Z–A',                  get: b => b.common_name.toLowerCase(), desc: true },
+  { id: 'recent', label: 'Recently discovered',  get: b => +new Date(b.first_found),    desc: true },
+  { id: 'first',  label: 'First discovered',     get: b => +new Date(b.first_found) },
+  { id: 'heard',  label: 'Recently heard',       get: b => +new Date(b.last_found),     desc: true },
+  { id: 'most',   label: 'Most heard',           get: b => b.times_heard,               desc: true },
+  { id: 'least',  label: 'Least heard',          get: b => b.times_heard },
+];
+
+const SEASON_OF = m =>
+  (m === 12 || m <= 2) ? 'Winter' : m <= 5 ? 'Spring' : m <= 8 ? 'Summer' : 'Autumn';
+const SEASON_ORDER = ['Spring', 'Summer', 'Autumn', 'Winter'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+                     'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Confidence is a 0-1 float on every sighting. Three bands rather than a
+// slider: a number between 0 and 1 means nothing to an eight-year-old.
+const CONFIDENCE_BANDS = [
+  { id: 'sure',   label: 'Very sure',  test: c => c >= 0.9 },
+  { id: 'likely', label: 'Likely',     test: c => c >= 0.7 && c < 0.9 },
+  { id: 'maybe',  label: 'A good guess', test: c => c < 0.7 },
+];
+
+// Each facet says how to get its values off a sighting and how to order the
+// options. Returning [] means "this sighting matches no value", so a bird
+// with no recorded location simply never matches a location filter.
+const FLOCK_FACETS = [
+  { id: 'habitat', label: 'Habitat',
+    of: s => (s.bird && s.bird.habitat_tags) || [] },
+  { id: 'location', label: 'Where you heard it',
+    of: s => s.location_name ? [s.location_name] : [] },
+  { id: 'season', label: 'Season',
+    of: s => [SEASON_OF(new Date(s.created_at).getMonth() + 1)],
+    order: v => SEASON_ORDER.indexOf(v) },
+  { id: 'month', label: 'Month',
+    of: s => [MONTH_NAMES[new Date(s.created_at).getMonth()]],
+    order: v => MONTH_NAMES.indexOf(v) },
+  { id: 'year', label: 'Year',
+    of: s => [String(new Date(s.created_at).getFullYear())],
+    order: v => -Number(v) },
+  { id: 'confidence', label: 'How sure Warble was',
+    of: s => { const b = CONFIDENCE_BANDS.find(b => b.test(s.confidence)); return b ? [b.label] : []; },
+    order: v => CONFIDENCE_BANDS.findIndex(b => b.label === v) },
+];
+
+function flockStore(key, value) {
+  // A remembered view is a convenience, never state the screen needs - a
+  // private window or blocked site data must not break My Flock.
+  try {
+    if (value === undefined) return localStorage.getItem('warble.' + key);
+    localStorage.setItem('warble.' + key, value);
+  } catch (e) { /* no storage, no preference - the defaults still work */ }
+  return null;
+}
 
 function renderCollection() {
   setActiveTab('collection');
   stage.classList.add('top-aligned');
+  flockSort = FLOCK_SORTS.some(s => s.id === flockStore('flockSort'))
+    ? flockStore('flockSort') : 'az';
+  flockDensity = flockStore('flockDensity') === 'large' ? 'large' : 'compact';
+
   stage.innerHTML = `
     <div class="collection-header">
       <div class="collection-title"><img src="/static/title-my-flock-v1.webp" alt="My Flock" style="height:30px;width:auto;display:block;"></div>
     </div>
-    <div class="collection-count">Loading...</div>
-    <div class="sort-row" id="sortRow">
-      <button class="sort-btn" data-sort="az">A–Z</button>
-      <button class="sort-btn" data-sort="date">Discovered</button>
+    <div class="flock-stats" id="flockStats">Loading…</div>
+    <div class="flock-bar" id="flockBar">
+      <div class="flock-seg" id="flockSeg">
+        <button data-view="birds">Birds</button>
+        <button data-view="history">History</button>
+      </div>
+      <div class="flock-search" id="flockSearchWrap">
+        ${SEARCH_ICON}
+        <input id="flockSearch" type="search" autocomplete="off" placeholder="Search my flock"
+               aria-label="Search my flock">
+        <button class="flock-clear" id="flockClear" aria-label="Clear search">×</button>
+      </div>
+      <div class="flock-ctls">
+        <button class="flock-compact-title" id="flockCompactTitle">My Flock</button>
+        <button class="flock-searchbtn" id="flockSearchBtn" aria-label="Search my flock">${SEARCH_ICON}</button>
+        <button class="flock-ctl" id="flockSortBtn"><span class="flock-ctl-label"></span> ▾</button>
+        <button class="flock-ctl" id="flockFilterBtn"><span class="flock-ctl-label">Filter</span></button>
+        <span class="flock-spacer"></span>
+        <button class="flock-density" id="flockDensityBtn"></button>
+      </div>
     </div>
     <div class="collection-grid" id="collectionGrid"></div>
   `;
-  stage.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.onclick = () => {
-      if (collectionSort === btn.dataset.sort) {
-        collectionSortDesc = !collectionSortDesc;   // tap again to invert
-      } else {
-        collectionSort = btn.dataset.sort;
-        collectionSortDesc = false;                 // new sort starts ascending
-      }
-      updateSortButtons();
-      shuffleCollectionTo(sortCollection(collectionBirds));
-    };
+
+  const search = document.getElementById('flockSearch');
+  search.value = flockQuery;
+  search.oninput = () => { flockQuery = search.value; paintFlock(); };
+  document.getElementById('flockClear').onclick = () => {
+    flockQuery = ''; search.value = ''; search.focus(); paintFlock();
+  };
+  document.getElementById('flockSeg').querySelectorAll('button').forEach(b => {
+    b.onclick = () => { flockView = b.dataset.view; paintFlock(); };
   });
-  updateSortButtons();
+  document.getElementById('flockSearchBtn').onclick = () => {
+    const bar = document.getElementById('flockBar');
+    bar.classList.toggle('searching');
+    document.getElementById('flockSearchBtn').classList.toggle('on', bar.classList.contains('searching'));
+    if (bar.classList.contains('searching')) document.getElementById('flockSearch').focus();
+  };
+  document.getElementById('flockSortBtn').onclick = openSortSheet;
+  document.getElementById('flockFilterBtn').onclick = openFilterSheet;
+  document.getElementById('flockDensityBtn').onclick = () => {
+    flockDensity = flockDensity === 'large' ? 'compact' : 'large';
+    flockStore('flockDensity', flockDensity);
+    paintFlock();
+  };
+  // Tapping the collapsed title goes back to the top, so the header you just
+  // scrolled past is one tap away rather than a long swipe.
+  document.getElementById('flockCompactTitle').onclick = () =>
+    window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+
+  watchFlockBar();
   loadCollection();
 }
 
-const SORT_LABELS = { az: 'A–Z', date: 'Discovered' };
+const SEARCH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"
+  stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 L21 21"/></svg>`;
 
-function updateSortButtons() {
-  stage.querySelectorAll('.sort-btn').forEach(b => {
-    const isActive = b.dataset.sort === collectionSort;
-    b.classList.toggle('active', isActive);
-    // The arrow only appears on the active button, so it reads as "this is
-    // the sort, and this is its direction" rather than three competing arrows.
-    b.textContent = SORT_LABELS[b.dataset.sort] + (isActive ? (collectionSortDesc ? ' ↓' : ' ↑') : '');
+// A sentinel above the bar tells us when the bar has reached the top, which
+// is cheaper and far steadier than reading scrollTop on every scroll event.
+function watchFlockBar() {
+  const bar = document.getElementById('flockBar');
+  if (!bar || !window.IntersectionObserver) return;
+  const mark = document.createElement('div');
+  mark.style.cssText = 'position:absolute;height:1px;width:1px;';
+  bar.parentNode.insertBefore(mark, bar);
+  new IntersectionObserver(([e]) => {
+    bar.classList.toggle('stuck', !e.isIntersecting);
+    // Collapsing on top of a live search would hide the text you typed, so
+    // the field stays unfolded while there is anything in it.
+    if (flockQuery) bar.classList.add('searching');
+  }, { threshold: 0 }).observe(mark);
+}
+
+// --- the pipeline ----------------------------------------------------------
+// Search, then filters, then sort, in that order and always all three: a new
+// sort must not drop the search, and a new search must not drop the filters.
+function matchesQuery(s) {
+  const q = flockQuery.trim().toLowerCase();
+  if (!q) return true;
+  return s.common_name.toLowerCase().includes(q) ||
+         (s.scientific_name || '').toLowerCase().includes(q);
+}
+
+function matchesFilters(s) {
+  return FLOCK_FACETS.every(f => {
+    const want = flockFilters[f.id];
+    if (!want || !want.length) return true;
+    return f.of(s).some(v => want.includes(v));   // within a facet, any of them
   });
 }
 
-function sortCollection(birds) {
-  const out = [...birds];
-  if (collectionSort === 'date') {
-    // First discovered first - first_found is the oldest sighting per species
-    out.sort((a, b) => new Date(a.first_found) - new Date(b.first_found));
-  } else {
-    out.sort((a, b) => a.common_name.localeCompare(b.common_name));
-  }
-  // Reversing the sorted list handles all three cases, including the
-  // tie-break within a rarity tier, which flips with it.
-  return collectionSortDesc ? out.reverse() : out;
+function activeFilterCount() {
+  return FLOCK_FACETS.reduce((n, f) => n + ((flockFilters[f.id] || []).length ? 1 : 0), 0);
 }
 
-// My Birds is simply everything found, all treated alike. Rarity belongs to
-// the collector packs, so no tier label and no tier-coloured outline here.
+function visibleSightings() {
+  return allSightingsRaw.filter(s => matchesQuery(s) && matchesFilters(s));
+}
+
+// A species survives if any one of its detections does - filtering by
+// "Woodland in October" should keep the bird you heard in a wood in October,
+// not drop it because you also heard it in a garden in May.
+function visibleBirds() {
+  const kept = new Set(visibleSightings().map(s => s.common_name));
+  const birds = collectionBirds.filter(b => kept.has(b.common_name));
+  const rule = FLOCK_SORTS.find(r => r.id === flockSort) || FLOCK_SORTS[0];
+  const out = [...birds].sort((a, b) => {
+    const x = rule.get(a), y = rule.get(b);
+    if (x < y) return -1;
+    if (x > y) return 1;
+    return a.common_name.localeCompare(b.common_name);   // steady tie-break
+  });
+  return rule.desc ? out.reverse() : out;
+}
+
+// --- painting --------------------------------------------------------------
+function paintFlock() {
+  const bar = document.getElementById('flockBar');
+  if (!bar) return;
+  const sortRule = FLOCK_SORTS.find(r => r.id === flockSort) || FLOCK_SORTS[0];
+  const filters = activeFilterCount();
+
+  document.getElementById('flockSearchWrap')
+    .classList.toggle('has-text', !!flockQuery);
+  document.getElementById('flockSeg').querySelectorAll('button')
+    .forEach(b => b.classList.toggle('on', b.dataset.view === flockView));
+
+  const sortBtn = document.getElementById('flockSortBtn');
+  sortBtn.querySelector('.flock-ctl-label').textContent = 'Sort: ' + sortRule.label;
+  sortBtn.disabled = flockView === 'history';
+  sortBtn.style.opacity = flockView === 'history' ? '.45' : '';
+
+  const filterBtn = document.getElementById('flockFilterBtn');
+  filterBtn.querySelector('.flock-ctl-label').textContent =
+    filters ? `Filter (${filters})` : 'Filter';
+  filterBtn.classList.toggle('on', filters > 0);
+
+  const d = document.getElementById('flockDensityBtn');
+  d.innerHTML = flockDensity === 'large'
+    ? '<i style="width:4px;height:13px"></i><i style="width:4px;height:13px"></i><i style="width:4px;height:13px"></i>'
+    : '<i style="width:6px;height:13px"></i><i style="width:6px;height:13px"></i>';
+  d.setAttribute('aria-label', flockDensity === 'large' ? 'Show smaller cards' : 'Show bigger cards');
+
+  paintFlockStats();
+  if (flockView === 'history') paintHistory(); else paintBirds();
+}
+
+function paintFlockStats() {
+  const el = document.getElementById('flockStats');
+  const compact = document.getElementById('flockCompactTitle');
+  if (!el) return;
+  const species = collectionBirds.length;
+  const shown = flockView === 'history' ? visibleSightings().length : visibleBirds().length;
+  const narrowed = flockQuery.trim() || activeFilterCount();
+
+  if (flockView === 'history') {
+    el.innerHTML = narrowed
+      ? `<b>${shown}</b> of ${allSightingsRaw.length} detections`
+      : `<b>${species}</b> species · <b>${allSightingsRaw.length}</b> detections`;
+  } else {
+    el.innerHTML = narrowed
+      ? `<b>${shown}</b> of ${species} species`
+      : `<b>${species}</b> species · <b>${allSightingsRaw.length}</b> detections`;
+  }
+  if (compact) compact.textContent = `My Flock · ${narrowed ? shown : species}`;
+}
+
+function flockEmpty(html) {
+  const grid = document.getElementById('collectionGrid');
+  if (grid) grid.innerHTML = `<div class="collection-empty" style="grid-column:1/-1;">${html}</div>`;
+}
+
+function paintBirds() {
+  const grid = document.getElementById('collectionGrid');
+  if (!grid) return;
+  grid.className = 'collection-grid' + (flockDensity === 'large' ? ' large' : '');
+
+  if (!collectionBirds.length) {
+    flockEmpty(`<b>No birds yet!</b>Tap the big button on Home and listen for a
+                bird. Every one Warble hears lands here.`);
+    return;
+  }
+  const birds = visibleBirds();
+  if (!birds.length) {
+    if (flockQuery.trim()) {
+      flockEmpty(`<b>No birds found in your flock.</b>Nothing matches
+                  “${escapeFlock(flockQuery.trim())}”.`);
+    } else {
+      flockEmpty(`<b>Nothing matches those filters.</b>None of your birds fit
+        what you picked.<button class="flock-ctl" id="flockResetEmpty">Reset filters</button>`);
+      const btn = document.getElementById('flockResetEmpty');
+      if (btn) btn.onclick = () => { flockFilters = {}; paintFlock(); };
+    }
+    return;
+  }
+  shuffleCollectionTo(birds);
+}
+
+function paintHistory() {
+  const grid = document.getElementById('collectionGrid');
+  if (!grid) return;
+  grid.className = '';           // a list, not a grid
+  grid.style.width = '100%';
+
+  if (!allSightingsRaw.length) {
+    flockEmpty(`<b>Nothing heard yet.</b>Every bird Warble picks up will show
+                up here, newest first.`);
+    return;
+  }
+  const rows = visibleSightings();   // already newest-first from the backend
+  if (!rows.length) {
+    flockEmpty(flockQuery.trim()
+      ? `<b>No birds found in your flock.</b>Nothing matches “${escapeFlock(flockQuery.trim())}”.`
+      : `<b>Nothing matches those filters.</b>Try fewer of them.`);
+    return;
+  }
+
+  let html = '', day = null;
+  for (const s of rows) {
+    const when = new Date(s.created_at);
+    const label = dayLabel(when);
+    if (label !== day) { html += `<div class="hist-day">${label}</div>`; day = label; }
+    // Only real metadata: a sighting with no named location says nothing
+    // rather than "Unknown".
+    const band = CONFIDENCE_BANDS.find(b => b.test(s.confidence));
+    const meta = [s.location_name, band && band.label].filter(Boolean).join(' · ');
+    html += `
+      <div class="hist-row" data-name="${escapeFlock(s.common_name)}">
+        <div class="hist-time">${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        ${s.image_url ? `<img src="${s.image_url}" alt="">` : '<div class="hist-thumb"></div>'}
+        <div class="hist-text">
+          <div class="hist-name">${s.common_name}</div>
+          ${meta ? `<div class="hist-meta">${meta}</div>` : ''}
+        </div>
+      </div>`;
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll('.hist-row').forEach(el => {
+    el.onclick = () => renderBirdDetail(el.dataset.name);
+  });
+}
+
+function dayLabel(d) {
+  const midnight = x => new Date(x.getFullYear(), x.getMonth(), x.getDate());
+  const days = Math.round((midnight(new Date()) - midnight(d)) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return d.toLocaleDateString(undefined, { weekday: 'long' });
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function escapeFlock(t) {
+  return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+// --- the sheets ------------------------------------------------------------
+function openSheet(title, body, onClose) {
+  const wrap = document.createElement('div');
+  wrap.className = 'sheet-wrap';
+  wrap.innerHTML = `<div class="sheet"><div class="sheet-grip"></div>
+    <div class="sheet-title">${title}</div>${body}</div>`;
+  const close = () => { wrap.remove(); if (onClose) onClose(); };
+  wrap.onclick = e => { if (e.target === wrap) close(); };
+  document.body.appendChild(wrap);
+  return { wrap, close };
+}
+
+function openSortSheet() {
+  if (flockView === 'history') return;
+  const body = FLOCK_SORTS.map(r => `
+    <button class="sheet-opt ${r.id === flockSort ? 'on' : ''}" data-sort="${r.id}">
+      ${r.label}${r.id === flockSort ? '<span class="tick">✓</span>' : ''}
+    </button>`).join('');
+  const sheet = openSheet('Sort your flock', body);
+  sheet.wrap.querySelectorAll('[data-sort]').forEach(b => {
+    b.onclick = () => {
+      flockSort = b.dataset.sort;
+      flockStore('flockSort', flockSort);
+      sheet.close();
+      paintFlock();
+    };
+  });
+}
+
+// Filter options come out of the collection itself, so you are never offered
+// a month you have never been out in or a place you have never recorded.
+function flockFacetValues(facet) {
+  const counts = new Map();
+  for (const s of allSightingsRaw) {
+    for (const v of facet.of(s)) counts.set(v, (counts.get(v) || 0) + 1);
+  }
+  const vals = [...counts.keys()];
+  vals.sort(facet.order ? (a, b) => facet.order(a) - facet.order(b)
+                        : (a, b) => a.localeCompare(b));
+  return vals;
+}
+
+function openFilterSheet() {
+  const before = JSON.stringify(flockFilters);
+  const groups = FLOCK_FACETS.map(f => {
+    const vals = flockFacetValues(f);
+    if (vals.length < 2) return '';      // nothing to choose between
+    return `<div class="sheet-group">${f.label}</div>
+      <div class="sheet-chips">${vals.map(v => `
+        <button class="sheet-chip ${(flockFilters[f.id] || []).includes(v) ? 'on' : ''}"
+                data-facet="${f.id}" data-value="${escapeFlock(v)}">${escapeFlock(v)}</button>`).join('')}
+      </div>`;
+  }).join('');
+
+  const body = (groups || `<div style="color:var(--mist-dk);font-size:13px;">
+      There is not enough in your flock to filter yet — find a few more birds.</div>`) +
+    `<div class="sheet-actions">
+       <button class="sheet-reset" id="flockReset">Reset</button>
+       <button class="sheet-done" id="flockDone"></button>
+     </div>`;
+
+  const sheet = openSheet('Filter your flock', body, () => paintFlock());
+
+  const refresh = () => {
+    sheet.wrap.querySelectorAll('[data-facet]').forEach(c => {
+      c.classList.toggle('on', (flockFilters[c.dataset.facet] || []).includes(c.dataset.value));
+    });
+    const n = flockView === 'history' ? visibleSightings().length : visibleBirds().length;
+    sheet.wrap.querySelector('#flockDone').textContent =
+      flockView === 'history' ? `Show ${n} detection${n === 1 ? '' : 's'}`
+                              : `Show ${n} species`;
+  };
+
+  sheet.wrap.querySelectorAll('[data-facet]').forEach(c => {
+    c.onclick = () => {
+      const { facet, value } = c.dataset;
+      const list = flockFilters[facet] || [];
+      flockFilters[facet] = list.includes(value)
+        ? list.filter(v => v !== value) : [...list, value];
+      refresh();
+    };
+  });
+  sheet.wrap.querySelector('#flockReset').onclick = () => { flockFilters = {}; refresh(); };
+  sheet.wrap.querySelector('#flockDone').onclick = sheet.close;
+  refresh();
+  if (before !== JSON.stringify(flockFilters)) paintFlock();
+}
+
+// --- cards -----------------------------------------------------------------
+// No pack dot. My Flock treats every bird alike - which pack it came from is
+// the collector packs' business, and the marker was leaving a hole in the
+// corner of the photograph.
 function collectionCardHtml(bird) {
-  const photo = bird.image_url
-    ? `<img src="${bird.image_url}">`
-    : `<div style="height:70px;background:var(--parch-dk);"></div>`;
-  const packColor = bird.bird?.pack_color;
-  const packDot = packColor ? `<div class="pack-dot" style="--pack-color:${packColor}"></div>` : '';
   return `
     <div class="collection-item"
-         data-name="${bird.common_name}" data-key="${bird.key || bird.common_name}">
-      ${packDot}
-      ${photo}
+         data-name="${escapeFlock(bird.common_name)}" data-key="${escapeFlock(bird.key || bird.common_name)}">
+      ${bird.image_url ? `<img src="${bird.image_url}" alt="">` : '<div class="ci-blank"></div>'}
       <div class="ci-name">${bird.common_name}</div>
     </div>`;
 }
@@ -1986,6 +2531,7 @@ function bindCollectionCards() {
 // FLIP: measure where every card is now, re-render in the new order, then
 // animate each from its old position to its new one. Doing it this way means
 // the cards genuinely slide between positions rather than the grid snapping.
+// Cards that were not there before (a search being cleared) simply appear.
 function shuffleCollectionTo(sorted) {
   const grid = document.getElementById('collectionGrid');
   if (!grid) return;
@@ -1997,6 +2543,7 @@ function shuffleCollectionTo(sorted) {
 
   grid.innerHTML = sorted.map(collectionCardHtml).join('');
   bindCollectionCards();
+  if (reducedMotion()) return;
 
   grid.querySelectorAll('.collection-item').forEach((el, i) => {
     const old = before.get(el.dataset.key);
@@ -2016,44 +2563,33 @@ function shuffleCollectionTo(sorted) {
 }
 
 async function loadCollection() {
-  const countEl = stage.querySelector('.collection-count');
-  const grid = document.getElementById('collectionGrid');
   try {
     const res = await fetch('/sightings');
     const data = await res.json();
     allSightingsRaw = data.sightings || [];
 
-    // The backend logs every individual sighting - collapse that down to one
-    // entry per species, keeping the most recent (the list arrives
-    // newest-first) but remembering when it was FIRST found, for date sorting.
-    // One card per species. Rarity is a fixed property of the bird now, so
-    // there's no longer such a thing as the same bird at a different tier.
+    // The backend logs every individual detection - collapse that down to one
+    // entry per species for the Birds view, keeping the most recent (the list
+    // arrives newest-first) but remembering when it was FIRST found, when it
+    // was LAST heard and how many times, which is what the sorts run on.
     const seen = new Map();
     for (const s of allSightingsRaw) {
       const key = s.common_name;
       if (!seen.has(key)) {
-        seen.set(key, { ...s, first_found: s.created_at, key });
+        seen.set(key, { ...s, key, first_found: s.created_at, last_found: s.created_at, times_heard: 1 });
       } else {
         // Still newer-to-older, so each later row is an earlier sighting
-        seen.get(key).first_found = s.created_at;
+        const b = seen.get(key);
+        b.first_found = s.created_at;
+        b.times_heard++;
       }
     }
     collectionBirds = [...seen.values()];
-
-    if (countEl) countEl.textContent = `${collectionBirds.length} species found`;
-
-    if (collectionBirds.length === 0) {
-      if (grid) grid.outerHTML = `<div class="collection-empty">Nothing found yet — go warbling!</div>`;
-      return;
-    }
-
-    if (grid) {
-      grid.innerHTML = sortCollection(collectionBirds).map(collectionCardHtml).join('');
-      bindCollectionCards();
-    }
+    paintFlock();
   } catch (e) {
-    if (countEl) countEl.textContent = '';
-    if (grid) grid.outerHTML = `<div class="collection-empty">Couldn't load your collection right now.</div>`;
+    const stats = document.getElementById('flockStats');
+    if (stats) stats.textContent = '';
+    flockEmpty(`Couldn't load your collection right now.`);
   }
 }
 
