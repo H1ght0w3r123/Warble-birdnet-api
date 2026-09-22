@@ -757,7 +757,8 @@ def pack_progress():
         got = sum(1 for b in birds if b["found"])
         packs.append({
             "key": key, "name": pack["name"], "blurb": pack["blurb"],
-            "emoji": pack["emoji"], "color": pack["color"], "birds": birds,
+            "emoji": pack["emoji"], "art": pack["art"],
+            "color": pack["color"], "birds": birds,
             "cards_found": got, "cards_total": len(birds),
             "complete": got == len(birds),
         })

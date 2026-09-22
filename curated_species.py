@@ -19,6 +19,11 @@ Each pack also carries a fixed "color" - its identity everywhere a bird from
 that pack shows up in the app (discovery discs, My Birds cards, the pack's
 own cards), so the same small coloured marker means "this bird belongs to
 this pack" no matter which screen you're looking at.
+
+Each pack also carries an "art" slug, naming its three painted assets in
+static/: pack-<art>-icon-v1.webp (the loose shape), -badge-v1.webp (the same
+shape on a wooden coin) and -name-v1.webp (the painted wordmark). The "emoji"
+beside it stays as the plain-text fallback.
 """
 
 PACKS = {
@@ -26,6 +31,7 @@ PACKS = {
         "name": "Locals",
         "blurb": "The regulars you'll meet on almost any doorstep.",
         "emoji": "\U0001F3E1",
+        "art": "locals",
         "color": "#E8845C",
         "common": [
             "European Robin", "Common Blackbird", "House Sparrow", "Dunnock",
@@ -38,6 +44,7 @@ PACKS = {
         "name": "Acrobats",
         "blurb": "Tiny daredevils that hang upside down and run up trees.",
         "emoji": "\U0001F343",
+        "art": "acrobats",
         "color": "#7EC8A4",
         "common": [
             "Eurasian Blue Tit", "Great Tit", "Coal Tit", "Long-tailed Tit",
@@ -49,6 +56,7 @@ PACKS = {
         "name": "Nutcrackers",
         "blurb": "Stubby little bills built for cracking seeds open.",
         "emoji": "\U0001F33B",
+        "art": "nutcrackers",
         "color": "#F2C94C",
         "common": [
             "Common Chaffinch", "European Goldfinch", "European Greenfinch",
@@ -61,6 +69,7 @@ PACKS = {
         "name": "Little Loudmouths",
         "blurb": "Small brown birds with astonishingly big voices.",
         "emoji": "\U0001F3B5",
+        "art": "littleloudmouths",
         "color": "#E87EA1",
         "common": [
             "Eurasian Blackcap", "Common Chiffchaff", "Willow Warbler",
@@ -73,6 +82,7 @@ PACKS = {
         "name": "Mischiefs",
         "blurb": "The cleverest, cheekiest birds - and the ones that drum on trees.",
         "emoji": "\u2728",
+        "art": "mischiefs",
         "color": "#9B6FC4",
         "common": [
             "Eurasian Magpie", "Eurasian Jay", "Western Jackdaw", "Carrion Crow",
@@ -85,6 +95,7 @@ PACKS = {
         "name": "Diggers",
         "blurb": "Hoppers and probers, always working the ground.",
         "emoji": "\U0001F33E",
+        "art": "diggers",
         "color": "#C68958",
         "common": [
             "Song Thrush", "Mistle Thrush", "Eurasian Skylark", "Common Pheasant",
@@ -96,6 +107,7 @@ PACKS = {
         "name": "Sky Divers",
         "blurb": "Sharp eyes, hooked bills, and a dive you'll never hear coming.",
         "emoji": "\U0001F985",
+        "art": "skydivers",
         "color": "#3B82C4",
         "common": [
             "Common Buzzard", "Common Kestrel", "Eurasian Sparrowhawk", "Red Kite",
@@ -107,6 +119,7 @@ PACKS = {
         "name": "Waterwings",
         "blurb": "Paddlers, divers and dabblers.",
         "emoji": "\U0001F986",
+        "art": "waterwings",
         "color": "#4FB8B0",
         "common": [
             "Mallard", "Mute Swan", "Canada Goose", "Greylag Goose",
@@ -118,6 +131,7 @@ PACKS = {
         "name": "Mucky Puddles",
         "blurb": "Long legs, long bills, and a lot of standing about in mud.",
         "emoji": "\U0001FAB6",
+        "art": "muckypuddles",
         "color": "#A88F3D",
         "common": [
             "Grey Heron", "Eurasian Oystercatcher", "Common Ringed Plover",
@@ -130,6 +144,7 @@ PACKS = {
         "name": "Wind Surfers",
         "blurb": "Birds of the open air and the open water.",
         "emoji": "\U0001F30A",
+        "art": "windsurfers",
         "color": "#4A5FA0",
         "common": [
             "Herring Gull", "Black-headed Gull", "Common Gull",

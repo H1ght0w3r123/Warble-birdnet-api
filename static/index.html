@@ -766,11 +766,12 @@
     cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
     padding:2px 4px;
   }
-  .pack-current-emoji{font-size:19px;line-height:1;}
-  .pack-current-name{
-    font-family:'Poppins';font-weight:900;font-size:16px;letter-spacing:.04em;
-    color:#fff;text-transform:uppercase;white-space:nowrap;
-  }
+  /* Painted art, not an emoji and not type. Both are sized by HEIGHT and
+     left to find their own width, so "Locals" and "Little Loudmouths" sit on
+     the same baseline instead of one being twice as tall as the other. */
+  .pack-current-icon{height:30px;width:auto;flex:0 0 auto;display:block;}
+  .pack-current-name{height:24px;width:auto;display:block;max-width:100%;
+    object-fit:contain;object-position:left center;}
   .pack-tally{
     text-align:center;font-family:'Poppins';font-weight:700;font-size:12.5px;
     color:rgba(255,255,255,0.8);margin-top:1px;
@@ -805,9 +806,12 @@
     min-height:46px;
   }
   .all-pack.on{background:var(--goldbg,#FBF0D8);outline:2px solid var(--gold);}
-  .all-pack-emoji{font-size:17px;line-height:1;flex:0 0 auto;}
-  .all-pack-text{display:flex;flex-direction:column;min-width:0;}
-  .all-pack-name{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);line-height:1.2;}
+  /* The round badge here rather than the loose icon: ten circles of one
+     width line the grid up, where ten different silhouettes would not. */
+  .all-pack-badge{height:26px;width:26px;object-fit:contain;flex:0 0 auto;display:block;}
+  .all-pack-text{display:flex;flex-direction:column;min-width:0;gap:2px;}
+  .all-pack-name{height:15px;width:auto;max-width:100%;object-fit:contain;
+    object-position:left center;display:block;}
   .all-pack-count{font-family:'Poppins';font-weight:900;font-size:10px;color:var(--mist-dk);}
   .all-pack.done .all-pack-count{color:var(--gold-dk);}
 
@@ -4140,8 +4144,8 @@ function renderPackSelector() {
     <div class="pack-nav">
       <button class="pack-arrow" id="packPrev" aria-label="Previous pack">&lsaquo;</button>
       <button class="pack-current" id="packCurrent">
-        <span class="pack-current-emoji">${p.emoji}</span>
-        <span class="pack-current-name">${p.name}</span>
+        <img class="pack-current-icon" src="/static/pack-${p.art}-icon-v1.webp" alt="">
+        <img class="pack-current-name" src="/static/pack-${p.art}-name-v1.webp" alt="${p.name}">
       </button>
       <button class="pack-arrow" id="packNext" aria-label="Next pack">&rsaquo;</button>
     </div>
@@ -4187,9 +4191,9 @@ function openAllPacks() {
       <div class="all-packs-grid">
         ${allPacksRaw.map((p, i) => `
           <button class="all-pack ${i === selectedPack ? 'on' : ''} ${p.complete ? 'done' : ''}" data-i="${i}">
-            <span class="all-pack-emoji">${p.emoji}</span>
+            <img class="all-pack-badge" src="/static/pack-${p.art}-badge-v1.webp" alt="">
             <span class="all-pack-text">
-              <span class="all-pack-name">${p.name}</span>
+              <img class="all-pack-name" src="/static/pack-${p.art}-name-v1.webp" alt="${p.name}">
               <span class="all-pack-count">${p.cards_found}/${p.cards_total}</span>
             </span>
           </button>`).join('')}
