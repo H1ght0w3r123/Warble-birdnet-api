@@ -51,8 +51,7 @@ from scipy import ndimage
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from curated_species import PACKS  # noqa: E402
 
-KINDS = ("icon", "badge", "name")
-DERIVED = ("emblem",)   # built from the icon, not delivered as its own file
+KINDS = ("icon", "badge", "name", "emblem")
 
 # Export heights, roughly 3x the largest size each is ever drawn at, so they
 # stay crisp on a 3x phone screen without carrying pixels nobody will see.
@@ -61,9 +60,18 @@ TARGET_H = {"icon": 120, "badge": 120, "name": 84}
 # The emblem is the flat one-colour mark that sits in the card frame's two
 # corner discs, recoloured per pack via CSS mask + background-color. It is
 # squared off and padded so every pack drops into the same round disc at the
-# same size whatever its own proportions, which vary a lot - Waterwings is a
-# wide low band where Locals is nearly square.
+# same size whatever its own proportions.
+#
+# Emblems are delivered on flat white rather than with an alpha channel, on
+# purpose: generators ignore a transparency request more often than they
+# honour it, and one flat colour on flat white keys out in a single step with
+# nothing to guess at. PAPER is that background, INK the lightest tone that
+# still counts as solid mark - one mark came back in two greens, so the
+# mapping has to make both fully opaque and leave only the real anti-aliased
+# edge in between.
 EMBLEM_BOX = 120
+PAPER = 254.0
+INK = 120.0
 
 ORANGE = 0.30   # saturation at or above this is artwork, never caption text
 CARVED = 110    # luminance below this is the icon's recessed fill, not its raised ridge
@@ -109,43 +117,24 @@ def strip_caption(im):
     return keep, cut < height
 
 
-def emblem_mask(im, keep):
-    """The icon reduced to the flat mark the card frame's corner discs take.
+def emblem_alpha(im):
+    """Flat mark on flat white -> a white-on-transparent mask."""
+    lum = im[:, :, :3].mean(2).astype(np.float64)
+    if im.shape[2] == 4:                      # honour real alpha if it is there
+        lum = np.where(im[:, :, 3] > 16, lum, PAPER)
+    a = np.clip((PAPER - lum) / (PAPER - INK), 0.0, 1.0)
 
-    The icon art is a bright raised ridge tracing the shape, with a darker
-    recessed fill inside each region it encloses. The flat mark is those
-    recessed regions grown back out to the ridge, so the ridge becomes the
-    gap between them - the cap and the nut of the acorn read as two shapes
-    rather than one blob. Thresholding the dark fill alone gives a hollow
-    outline instead, which is what makes this a region-grow and not a
-    threshold.
-    """
-    rgb = im[:, :, :3]
-    hi, lo = rgb.max(2), rgb.min(2)
-    sat = np.where(hi > 0, (hi - lo) / np.maximum(hi, 1), 0)
-    body = ndimage.binary_fill_holes(keep & (sat > ORANGE) & (im[:, :, 3] > 128))
-    lum = rgb.mean(2)
-
-    seeds = ndimage.binary_opening(body & (lum < CARVED), np.ones((3, 3)))
-    labels, count = ndimage.label(seeds)
-    if count == 0:
-        return body
-    sizes = ndimage.sum(np.ones_like(labels), labels, range(1, count + 1))
-    labels = np.where(np.isin(labels, [i + 1 for i, s in enumerate(sizes) if s >= SPECK]), labels, 0)
-
-    _, (iy, ix) = ndimage.distance_transform_edt(labels == 0, return_indices=True)
-    grown = np.where(body, labels[iy, ix], 0)
-    seam = np.zeros_like(body)
-    for dy, dx in ((0, 1), (1, 0), (1, 1), (1, -1)):
-        shifted = np.roll(np.roll(grown, dy, 0), dx, 1)
-        seam |= (grown > 0) & (shifted > 0) & (grown != shifted)
-    mark = (grown > 0) & ~ndimage.binary_dilation(seam, np.ones((3, 3)))
-
-    labels, count = ndimage.label(mark)
-    if count:
+    solid = a > 0.5
+    if not solid.any():
+        raise ValueError("no mark found - is this file blank?")
+    labels, count = ndimage.label(solid)
+    if count > 1:
         sizes = ndimage.sum(np.ones_like(labels), labels, range(1, count + 1))
-        mark &= np.isin(labels, [i + 1 for i, s in enumerate(sizes) if s >= SPECK])
-    return mark
+        near = ndimage.binary_dilation(
+            np.isin(labels, [i + 1 for i, sz in enumerate(sizes) if sz >= SPECK]),
+            np.ones((5, 5)))
+        a = np.where(near, a, 0.0)            # drop stray dust, keep soft edges
+    return a
 
 
 def downscale(rgba, height):
@@ -161,21 +150,26 @@ def downscale(rgba, height):
     return np.concatenate([np.clip(rgb, 0, 255), small[:, :, 3:4]], axis=2).astype(np.uint8)
 
 
-def write_emblem(im, keep, out, slug, version):
-    """White-on-transparent mask for the card frame's corner discs."""
-    mark = emblem_mask(im, keep)
-    ys, xs = np.where(mark)
-    cropped = mark[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+def write_emblem(im, out, slug, version):
+    """White-on-transparent mask for the card frame's corner discs.
+
+    Squared off and centred here rather than in CSS, because the ten marks are
+    not the same shape - a tall dive and a wide duck-on-waves both have to
+    drop into the same round disc without either being stretched.
+    """
+    a = emblem_alpha(im)
+    ys, xs = np.where(a > 0.02)
+    cropped = a[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 
     side = max(cropped.shape)
-    square = np.zeros((side, side), bool)
+    square = np.zeros((side, side), np.float64)
     y = (side - cropped.shape[0]) // 2
     x = (side - cropped.shape[1]) // 2
     square[y:y + cropped.shape[0], x:x + cropped.shape[1]] = cropped
 
     rgba = np.zeros((side, side, 4), np.uint8)
     rgba[:, :, :3] = 255
-    rgba[:, :, 3] = square * 255
+    rgba[:, :, 3] = np.round(square * 255).astype(np.uint8)
     rgba = downscale(rgba, EMBLEM_BOX)
 
     dest = os.path.join(out, "pack-%s-emblem-v%d.webp" % (slug, version))
@@ -192,6 +186,9 @@ def main():
     ap.add_argument("--version", type=int, required=True,
                     help="filename version, e.g. 2 for pack-locals-icon-v2.webp")
     ap.add_argument("--out", default=None, help="defaults to the repo's static/")
+    ap.add_argument("--only", nargs="+", choices=KINDS, default=list(KINDS),
+                    help="build just these kinds, so re-delivering one of them "
+                         "does not renumber the others")
     args = ap.parse_args()
 
     out = args.out or os.path.join(
@@ -199,7 +196,7 @@ def main():
 
     # Same guard as unfound_hints.py: a slug that does not match a pack fails
     # loudly here rather than silently shipping a broken image link.
-    wanted = {(p["art"], kind) for p in PACKS.values() for kind in KINDS}
+    wanted = {(p["art"], kind) for p in PACKS.values() for kind in args.only}
     missing = sorted("%s_%s.png" % (s, k) for s, k in wanted
                      if not os.path.exists(os.path.join(args.source, "%s_%s.png" % (s, k))))
     if missing:
@@ -209,6 +206,10 @@ def main():
     for slug, kind in sorted(wanted):
         src = os.path.join(args.source, "%s_%s.png" % (slug, kind))
         im = np.array(Image.open(src).convert("RGBA")).astype(np.int16)
+
+        if kind == "emblem":
+            total += write_emblem(im, out, slug, args.version)
+            continue
 
         keep, had_caption = strip_caption(im)
         art = im.copy()
@@ -222,13 +223,12 @@ def main():
         kb = os.path.getsize(dest) / 1024
         total += kb
 
-        if kind == "icon":
-            kb += write_emblem(im, keep, out, slug, args.version)
+
         print("%-36s %3dx%-3d %5.1fKB%s" % (os.path.basename(dest), art.shape[1],
                                             art.shape[0], kb,
                                             "" if had_caption else "  (no caption found)"))
     print("\n%d files, %.0f KB. Now point static/index.html at -v%d."
-          % (len(wanted) + len(PACKS) * len(DERIVED), total, args.version))
+          % (len(wanted), total, args.version))
 
 
 if __name__ == "__main__":
