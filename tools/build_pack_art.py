@@ -52,12 +52,21 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from curated_species import PACKS  # noqa: E402
 
 KINDS = ("icon", "badge", "name")
+DERIVED = ("emblem",)   # built from the icon, not delivered as its own file
 
 # Export heights, roughly 3x the largest size each is ever drawn at, so they
 # stay crisp on a 3x phone screen without carrying pixels nobody will see.
 TARGET_H = {"icon": 120, "badge": 120, "name": 84}
 
+# The emblem is the flat one-colour mark that sits in the card frame's two
+# corner discs, recoloured per pack via CSS mask + background-color. It is
+# squared off and padded so every pack drops into the same round disc at the
+# same size whatever its own proportions, which vary a lot - Waterwings is a
+# wide low band where Locals is nearly square.
+EMBLEM_BOX = 120
+
 ORANGE = 0.30   # saturation at or above this is artwork, never caption text
+CARVED = 110    # luminance below this is the icon's recessed fill, not its raised ridge
 GREY = 0.20     # saturation below this is caption text, or the art's own outline
 VISIBLE = 16    # alpha above this counts as a pixel that is there at all
 SPECK = 40      # islands smaller than this are anti-aliasing left behind
@@ -100,6 +109,45 @@ def strip_caption(im):
     return keep, cut < height
 
 
+def emblem_mask(im, keep):
+    """The icon reduced to the flat mark the card frame's corner discs take.
+
+    The icon art is a bright raised ridge tracing the shape, with a darker
+    recessed fill inside each region it encloses. The flat mark is those
+    recessed regions grown back out to the ridge, so the ridge becomes the
+    gap between them - the cap and the nut of the acorn read as two shapes
+    rather than one blob. Thresholding the dark fill alone gives a hollow
+    outline instead, which is what makes this a region-grow and not a
+    threshold.
+    """
+    rgb = im[:, :, :3]
+    hi, lo = rgb.max(2), rgb.min(2)
+    sat = np.where(hi > 0, (hi - lo) / np.maximum(hi, 1), 0)
+    body = ndimage.binary_fill_holes(keep & (sat > ORANGE) & (im[:, :, 3] > 128))
+    lum = rgb.mean(2)
+
+    seeds = ndimage.binary_opening(body & (lum < CARVED), np.ones((3, 3)))
+    labels, count = ndimage.label(seeds)
+    if count == 0:
+        return body
+    sizes = ndimage.sum(np.ones_like(labels), labels, range(1, count + 1))
+    labels = np.where(np.isin(labels, [i + 1 for i, s in enumerate(sizes) if s >= SPECK]), labels, 0)
+
+    _, (iy, ix) = ndimage.distance_transform_edt(labels == 0, return_indices=True)
+    grown = np.where(body, labels[iy, ix], 0)
+    seam = np.zeros_like(body)
+    for dy, dx in ((0, 1), (1, 0), (1, 1), (1, -1)):
+        shifted = np.roll(np.roll(grown, dy, 0), dx, 1)
+        seam |= (grown > 0) & (shifted > 0) & (grown != shifted)
+    mark = (grown > 0) & ~ndimage.binary_dilation(seam, np.ones((3, 3)))
+
+    labels, count = ndimage.label(mark)
+    if count:
+        sizes = ndimage.sum(np.ones_like(labels), labels, range(1, count + 1))
+        mark &= np.isin(labels, [i + 1 for i, s in enumerate(sizes) if s >= SPECK])
+    return mark
+
+
 def downscale(rgba, height):
     """Premultiplied-alpha resize - see note 2 in the module docstring."""
     a = rgba[:, :, 3:4].astype(np.float64) / 255.0
@@ -111,6 +159,30 @@ def downscale(rgba, height):
     sa = small[:, :, 3:4] / 255.0
     rgb = np.where(sa > 0, small[:, :, :3] / np.maximum(sa, 1e-6), 0)
     return np.concatenate([np.clip(rgb, 0, 255), small[:, :, 3:4]], axis=2).astype(np.uint8)
+
+
+def write_emblem(im, keep, out, slug, version):
+    """White-on-transparent mask for the card frame's corner discs."""
+    mark = emblem_mask(im, keep)
+    ys, xs = np.where(mark)
+    cropped = mark[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+
+    side = max(cropped.shape)
+    square = np.zeros((side, side), bool)
+    y = (side - cropped.shape[0]) // 2
+    x = (side - cropped.shape[1]) // 2
+    square[y:y + cropped.shape[0], x:x + cropped.shape[1]] = cropped
+
+    rgba = np.zeros((side, side, 4), np.uint8)
+    rgba[:, :, :3] = 255
+    rgba[:, :, 3] = square * 255
+    rgba = downscale(rgba, EMBLEM_BOX)
+
+    dest = os.path.join(out, "pack-%s-emblem-v%d.webp" % (slug, version))
+    Image.fromarray(rgba).save(dest, "WEBP", quality=90, method=6, lossless=True)
+    kb = os.path.getsize(dest) / 1024
+    print("%-36s %3dx%-3d %5.1fKB" % (os.path.basename(dest), rgba.shape[1], rgba.shape[0], kb))
+    return kb
 
 
 def main():
@@ -149,11 +221,14 @@ def main():
         Image.fromarray(art).save(dest, "WEBP", quality=88, method=6)
         kb = os.path.getsize(dest) / 1024
         total += kb
+
+        if kind == "icon":
+            kb += write_emblem(im, keep, out, slug, args.version)
         print("%-36s %3dx%-3d %5.1fKB%s" % (os.path.basename(dest), art.shape[1],
                                             art.shape[0], kb,
                                             "" if had_caption else "  (no caption found)"))
     print("\n%d files, %.0f KB. Now point static/index.html at -v%d."
-          % (len(wanted), total, args.version))
+          % (len(wanted) + len(PACKS) * len(DERIVED), total, args.version))
 
 
 if __name__ == "__main__":

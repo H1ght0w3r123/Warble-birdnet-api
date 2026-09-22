@@ -845,7 +845,7 @@
   .card-carousel img{-webkit-user-drag:none;user-drag:none;}
   .card-carousel .fan-photo,
   .card-carousel .fan-name,
-  .card-carousel .fan-leaf{pointer-events:none;}
+  .card-carousel .fan-badge{pointer-events:none;}
   .card-carousel.settling .fan-card{
     transition:transform .34s cubic-bezier(.22,.9,.3,1.05), opacity .34s ease;
   }
@@ -871,60 +871,44 @@
   /* The frame art is a layer ON TOP of the photo, not the card's background,
      so the photo can be bigger than the window and tuck its edges behind the
      painted wood instead of overlapping it. The window itself is a real
-     transparent hole in card-frame-v6.webp, so the photo shows through it. */
+     transparent hole in card-frame-v7.webp, so the photo shows through it. */
   .fan-card::after{
     content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
-    background:url('/static/card-frame-v6.webp') center/100% 100% no-repeat;
+    background:url('/static/card-frame-v7.webp') center/100% 100% no-repeat;
   }
   .fan-card.unfound{filter:grayscale(1) brightness(.9);}
-  /* Two leaf marks, playing-card style (top-left / bottom-right), coloured
-     live via mask + background-color so all 10 packs recolour the same two
-     image files rather than needing 10 painted variants.
-     Both the outline and the fill are traced from the artwork itself: the
-     outline mask is the whole sticker (leaf plus the white edge the artist
-     drew round it) and the fill mask is just the leaf, and the two are
-     cropped to the same box so they line up exactly at mask-size:100%.
-     The frame has that same sticker shape cut out of it, so the outline
-     covers the hole edge to edge with nothing showing through behind. */
-  .fan-leaf{position:absolute; z-index:3;}
-  .fan-leaf, .fan-leaf::before{
-    -webkit-mask-size:100% 100%; mask-size:100% 100%;
+  /* The frame art has an empty cream disc in each of those two corners; the
+     pack's own mark drops into them. One flat silhouette per pack, recoloured
+     live via mask + background-color, so all ten share the frame rather than
+     needing ten painted frames.
+
+     The box is square IN PIXELS (9% of 66 = 5.94px across, 5.85% of 101.5 =
+     5.94px down) and the mask is sized to contain, so a wide mark like
+     Waterwings and a tall one like Locals both sit inside the same round disc
+     without either being stretched. Centres measured off the frame artwork:
+     the discs are not quite symmetric, so each corner carries its own. */
+  .fan-badge{
+    position:absolute; z-index:3; width:9.00%; height:5.85%;
+    background-color:var(--pack-color);
+    /* Pack colours are picked to read on the app's dark backgrounds; three of
+       them (the yellow, the mint, the tan) all but vanish on this cream disc,
+       so the mark is darkened uniformly rather than the palette being forked. */
+    filter:brightness(.72) saturate(1.15);
+    -webkit-mask-size:contain; mask-size:contain;
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
     -webkit-mask-position:center; mask-position:center;
   }
-  .fan-leaf::before{
-    content:''; position:absolute; inset:0;
-    background-color:var(--pack-color);
-  }
-  .fan-leaf.tl{
-    left:4.63%; top:2.87%; width:9.80%; height:8.31%;
-    background-color:#fff;
-    -webkit-mask-image:url('/static/fan-leaf-tl-outline-v3.webp');
-    mask-image:url('/static/fan-leaf-tl-outline-v3.webp');
-  }
-  .fan-leaf.tl::before{
-    -webkit-mask-image:url('/static/fan-leaf-tl-mask-v3.webp');
-    mask-image:url('/static/fan-leaf-tl-mask-v3.webp');
-  }
-  .fan-leaf.br{
-    right:3.85%; bottom:4.51%; width:9.47%; height:6.95%;
-    background-color:#fff;
-    -webkit-mask-image:url('/static/fan-leaf-br-outline-v3.webp');
-    mask-image:url('/static/fan-leaf-br-outline-v3.webp');
-  }
-  .fan-leaf.br::before{
-    -webkit-mask-image:url('/static/fan-leaf-br-mask-v3.webp');
-    mask-image:url('/static/fan-leaf-br-mask-v3.webp');
-  }
+  .fan-badge.tl{left:4.50%; top:3.03%;}
+  .fan-badge.br{right:4.22%; bottom:3.93%;}
   /* Sits BEHIND the frame layer (z-index 1 vs the frame's 2) and is 5px
      bigger than the window in both directions, centred on it, so its edges
      disappear under the painted wood rather than butting up against it.
-     Window measured off card-frame-v6.webp: 4.00px from left, 5.02px from
-     top, 57.93 x 56.48px on this 66 x 101.5px card - the card box now
-     matches the artwork's own 908x1396 proportions, so nothing is stretched. */
+     Window measured off card-frame-v7.webp: 3.93px from left, 4.59px from
+     top, 58.06 x 56.94px on this 66 x 101.5px card - the card box matches the
+     artwork's own 906x1394 proportions, so nothing is stretched. */
   .fan-photo{
     position:absolute; z-index:1;
-    left:1.50px; top:2.52px; width:62.93px; height:61.48px;
+    left:1.43px; top:2.09px; width:63.06px; height:61.94px;
     object-fit:cover; display:block; background:var(--parch-dk);
   }
   .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);}
@@ -4227,8 +4211,12 @@ function renderSelectedPack() {
     return `
       <div class="fan-card ${b.found ? 'tappable' : 'unfound'} ${away ? 'away' : ''}"
            data-i="${i}" data-name="${b.found ? b.common_name : ''}">
-        <div class="fan-leaf tl" style="--pack-color:${p.color}"></div>
-        <div class="fan-leaf br" style="--pack-color:${p.color}"></div>
+        <div class="fan-badge tl" style="--pack-color:${p.color};
+             -webkit-mask-image:url('/static/pack-${p.art}-emblem-v1.webp');
+             mask-image:url('/static/pack-${p.art}-emblem-v1.webp')"></div>
+        <div class="fan-badge br" style="--pack-color:${p.color};
+             -webkit-mask-image:url('/static/pack-${p.art}-emblem-v1.webp');
+             mask-image:url('/static/pack-${p.art}-emblem-v1.webp')"></div>
         ${face}
         <div class="fan-name">${b.common_name}</div>
         ${rareMark}
