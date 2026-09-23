@@ -393,8 +393,8 @@
      you actually operate stays stuck to the top, so a long collection is
      mostly bird photos rather than chrome. The page itself is the scroller
      (body scrolls, there is no inner pane), so position:sticky is enough. */
-  .flock-stats{font-size:12.5px;color:rgba(255,255,255,0.85);text-align:center;margin-bottom:12px;}
-  .flock-stats b{font-weight:700;color:#fff;}
+  .flock-stats{font-size:12.5px;color:rgba(245,237,214,0.82);text-align:center;margin-bottom:12px;}
+  .flock-stats b{font-weight:700;color:var(--parch);}
   .flock-bar{
     position:sticky; top:0; z-index:40; width:100%;
     padding:8px 0 10px; margin-bottom:10px;
@@ -416,15 +416,19 @@
   .flock-compact-title{
     flex:0 1 auto; min-width:0; text-align:left; background:none; border:none;
     padding:0 2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    font-family:'Poppins'; font-weight:900; font-size:13px; color:#fff; cursor:pointer;
+    font-family:'Poppins'; font-weight:900; font-size:13px; color:var(--parch); cursor:pointer;
   }
   .flock-searchbtn{
     flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:none; cursor:pointer;
-    background:rgba(255,255,255,0.18); align-items:center; justify-content:center; padding:0;
+    background:#7E4B29; color:var(--parch);
+    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 1px 2px rgba(26,17,40,0.25);
+    align-items:center; justify-content:center; padding:0;
   }
-  .flock-searchbtn.on{background:#fff;}
+  .flock-searchbtn.on{
+    background:linear-gradient(180deg, var(--wood-lit), var(--wood));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(116,50,6,0.45);
+  }
   .flock-searchbtn svg{width:15px;height:15px;}
-  .flock-searchbtn.on svg{stroke:var(--dusk);}
   /* The seg control and the field itself fold away when stuck, which is the
      point of the collapse - what is left is a title, a way back to search and
      the two controls. Tapping search unfolds the field again. */
@@ -436,51 +440,83 @@
   /* Stuck, the spacer would push the density button off on a narrow phone. */
   .flock-bar.stuck .flock-spacer{display:none;}
   .flock-bar.stuck .flock-ctls{gap:5px;}
+  /* Filter has to stay readable - "Filter (2)" ellipsised to "Filte..." is
+     not a control. Only the title and the sort pill give ground. */
+  .flock-bar.stuck #flockFilterBtn,
+  .flock-bar.stuck .flock-searchbtn,
+  .flock-bar.stuck .flock-density{flex:0 0 auto;}
+  .flock-bar.stuck #flockSortBtn{flex:0 1 auto;min-width:0;}
+  /* On the narrowest phones the longest sort name and two active filters
+     still will not fit beside the title. The title is the one thing there
+     that is a label rather than a control, so it is what goes. */
+  @media (max-width:340px){
+    .flock-bar.stuck .flock-compact-title{display:none;}
+  }
+  /* Every control below shares one palette: a wash of --wood over the dark
+     background at rest, --parch when it is the chosen one. No plain white
+     anywhere - white read as a different design system sitting on top of the
+     wooden cards rather than part of them. */
   .flock-search{
     display:flex; align-items:center; gap:7px; width:100%;
-    background:rgba(255,255,255,0.14); border-radius:22px; padding:0 12px; height:38px;
+    background:#6E4226; border-radius:22px; padding:0 12px; height:38px;
+    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.14), inset 0 2px 5px rgba(26,17,40,0.3);
+    color:var(--parch);
   }
   .flock-bar.stuck .flock-search.tucked{display:none;}
   .flock-search svg{width:15px;height:15px;flex:0 0 auto;opacity:.8;}
   .flock-search input{
     flex:1 1 auto; min-width:0; background:none; border:none; outline:none;
-    font-family:'Poppins'; font-weight:600; font-size:13.5px; color:#fff;
+    font-family:'Poppins'; font-weight:600; font-size:13.5px; color:var(--parch);
   }
-  .flock-search input::placeholder{color:rgba(255,255,255,0.6);font-weight:500;}
+  .flock-search input::placeholder{color:rgba(245,237,214,0.55);font-weight:500;}
   .flock-clear{
     flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:none; cursor:pointer;
-    background:rgba(255,255,255,0.25); color:#fff; font-size:14px; line-height:1;
+    background:var(--parch); color:var(--wood-edge); font-size:14px; line-height:1;
     display:none; align-items:center; justify-content:center;
   }
   .flock-search.has-text .flock-clear{display:flex;}
   .flock-ctls{display:flex; align-items:center; gap:6px; width:100%; margin-top:8px;}
   .flock-bar.stuck .flock-ctls{margin-top:0;}
   .flock-ctl{
-    background:rgba(255,255,255,0.18); color:#fff; border:none; border-radius:18px;
+    background:#7E4B29; color:var(--parch); border:none; border-radius:18px;
+    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 1px 2px rgba(26,17,40,0.25);
     padding:0 12px; height:32px; font-family:'Poppins'; font-weight:700; font-size:11.5px;
     cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;
     max-width:100%; overflow:hidden;
   }
-  .flock-ctl.on{background:#fff;color:var(--dusk);}
+  /* Chosen: solid wood with a lit top edge, the same read as a pressed
+     wooden button elsewhere in the app. */
+  .flock-ctl.on{
+    background:linear-gradient(180deg, var(--wood-lit), var(--wood));
+    color:var(--parch);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(116,50,6,0.45);
+  }
   .flock-ctl-label{overflow:hidden;text-overflow:ellipsis;}
   .flock-spacer{flex:1 1 auto;}
   .flock-density{
     flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:none; cursor:pointer;
-    background:rgba(255,255,255,0.18); color:#fff;
+    background:#7E4B29; color:var(--parch);
+    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 1px 2px rgba(26,17,40,0.25);
     display:flex; align-items:center; justify-content:center; gap:2px;
   }
-  .flock-density i{display:block;background:#fff;border-radius:1px;}
+  .flock-density i{display:block;background:var(--parch);border-radius:1px;}
   /* Segmented Birds | History - one species per card, or every detection */
   .flock-seg{
-    display:flex; width:100%; background:rgba(255,255,255,0.14);
+    display:flex; width:100%; background:#6E4226;
     border-radius:20px; padding:3px; margin-bottom:8px;
+    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.14), inset 0 2px 5px rgba(26,17,40,0.3);
   }
   .flock-seg button{
     flex:1 1 0; background:none; border:none; border-radius:17px; cursor:pointer;
     padding:7px 0; font-family:'Poppins'; font-weight:700; font-size:12.5px;
-    color:rgba(255,255,255,0.8); transition:background .18s ease, color .18s ease;
+    color:rgba(245,237,214,0.78); transition:background .18s ease, color .18s ease;
   }
-  .flock-seg button.on{background:#fff;color:var(--dusk);}
+  /* The one parchment element in the bar, so which view you are in is the
+     first thing you see - and it is the same cream as the nameplates. */
+  .flock-seg button.on{
+    background:var(--parch); color:var(--wood-edge);
+    box-shadow:0 1px 2px rgba(26,17,40,0.25);
+  }
 
   /* --- Sort / filter sheet -------------------------------------------- */
   .sheet-wrap{
@@ -2155,13 +2191,20 @@ let collectionBirds = [];
 // compare; `desc` flips it. Kept as data so the sheet, the button label and
 // the comparison can never drift apart.
 const FLOCK_SORTS = [
-  { id: 'az',     label: 'A–Z',                  get: b => b.common_name.toLowerCase() },
-  { id: 'za',     label: 'Z–A',                  get: b => b.common_name.toLowerCase(), desc: true },
-  { id: 'recent', label: 'Recently discovered',  get: b => +new Date(b.first_found),    desc: true },
-  { id: 'first',  label: 'First discovered',     get: b => +new Date(b.first_found) },
-  { id: 'heard',  label: 'Recently heard',       get: b => +new Date(b.last_found),     desc: true },
-  { id: 'most',   label: 'Most heard',           get: b => b.times_heard,               desc: true },
-  { id: 'least',  label: 'Least heard',          get: b => b.times_heard },
+  { id: 'az',     label: 'A–Z',                 short: 'A–Z',
+    get: b => b.common_name.toLowerCase() },
+  { id: 'za',     label: 'Z–A',                 short: 'Z–A',
+    get: b => b.common_name.toLowerCase(), desc: true },
+  { id: 'recent', label: 'Recently discovered', short: 'Newest',
+    get: b => +new Date(b.first_found), desc: true },
+  { id: 'first',  label: 'First discovered',    short: 'Oldest',
+    get: b => +new Date(b.first_found) },
+  { id: 'heard',  label: 'Recently heard',      short: 'Last heard',
+    get: b => +new Date(b.last_found), desc: true },
+  { id: 'most',   label: 'Most heard',          short: 'Most heard',
+    get: b => b.times_heard, desc: true },
+  { id: 'least',  label: 'Least heard',         short: 'Least heard',
+    get: b => b.times_heard },
 ];
 
 const SEASON_OF = m =>
@@ -2276,7 +2319,7 @@ function renderCollection() {
   loadCollection();
 }
 
-const SEARCH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"
+const SEARCH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
   stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 L21 21"/></svg>`;
 
 // A sentinel above the bar tells us when the bar has reached the top, which
@@ -2289,6 +2332,7 @@ function watchFlockBar() {
   bar.parentNode.insertBefore(mark, bar);
   new IntersectionObserver(([e]) => {
     bar.classList.toggle('stuck', !e.isIntersecting);
+    setSortLabel();
     // Collapsing on top of a live search would hide the text you typed, so
     // the field stays unfolded while there is anything in it.
     if (flockQuery) bar.classList.add('searching');
@@ -2350,7 +2394,7 @@ function paintFlock() {
     .forEach(b => b.classList.toggle('on', b.dataset.view === flockView));
 
   const sortBtn = document.getElementById('flockSortBtn');
-  sortBtn.querySelector('.flock-ctl-label').textContent = 'Sort: ' + sortRule.label;
+  setSortLabel();
   sortBtn.disabled = flockView === 'history';
   sortBtn.style.opacity = flockView === 'history' ? '.45' : '';
 
@@ -2367,6 +2411,15 @@ function paintFlock() {
 
   paintFlockStats();
   if (flockView === 'history') paintHistory(); else paintBirds();
+}
+
+function setSortLabel() {
+  const btn = document.getElementById('flockSortBtn');
+  const bar = document.getElementById('flockBar');
+  if (!btn || !bar) return;
+  const rule = FLOCK_SORTS.find(r => r.id === flockSort) || FLOCK_SORTS[0];
+  btn.querySelector('.flock-ctl-label').textContent =
+    bar.classList.contains('stuck') ? rule.short : 'Sort: ' + rule.label;
 }
 
 function paintFlockStats() {
