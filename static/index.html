@@ -24,6 +24,22 @@
        on the pack cards: --wood is its lit face, --wood-edge its shadowed
        outer edge. */
     --wood:#D87A38; --wood-lit:#E59450; --wood-dk:#B8632A; --wood-edge:#743206;
+    /* Where a bird photo gets cropped from. Every window in the app is wider
+       than it is tall, so object-fit:cover crops top and bottom - between 16%
+       and 63% of the photo's height depending on how the photo was shot. The
+       default, centre, takes the middle band, and a bird's head is above the
+       middle of its body, so centre is the one crop that reliably loses the
+       head. Biased up to keep it. 30% rather than 0 because a bird photo
+       usually has some sky or branch above the bird, and cropping hard to the
+       top gives you that instead.
+
+       35% is measured, not picked: crops from 31% to 39% all score the same
+       and it is the middle of that window. Above 40% the high-framed photos
+       start losing their heads again, below 31% the low-framed ones do.
+       Across seven windows and eight framings it takes head losses from 9 to
+       4, and the 4 left are a bird sitting in the bottom fifth of the frame,
+       which a centre crop loses too - no single crop point saves those. */
+    --bird-crop:50% 35%;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{overflow-x:hidden;}
@@ -287,7 +303,7 @@
     60%{transform:scale(1.06) rotateY(0deg); opacity:1;}
     100%{transform:scale(1) rotateY(0deg); opacity:1;}
   }
-  .card-photo{width:100%;height:200px;object-fit:cover;background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
+  .card-photo{width:100%;height:200px;object-fit:cover;object-position:var(--bird-crop);background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .card-body{padding:16px 18px 20px;}
   .card-name{font-family:'Poppins';font-weight:900;font-size:22px;color:var(--dusk);}
   .card-sci{font-size:12px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
@@ -611,7 +627,8 @@
   .collection-item{--frame:3.5px; --inner:8px; cursor:pointer;}
   .collection-grid.large .collection-item{--frame:4.5px; --inner:9px;}
   .collection-item img, .ci-blank{
-    width:100%;height:70px;object-fit:cover;display:block;background:var(--parch-dk);
+    width:100%;height:70px;object-fit:cover;object-position:var(--bird-crop);
+    display:block;background:var(--parch-dk);
     border-radius:var(--inner) var(--inner) 0 0;
   }
   .collection-item img{filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
@@ -650,7 +667,8 @@
   .hist-row > *{position:relative; z-index:1;}
   .hist-row{padding:var(--frame) calc(var(--frame) + 8px) var(--frame) calc(var(--frame) + 5px);}
   .hist-row img, .hist-thumb{
-    width:42px; height:42px; border-radius:9px; object-fit:cover; flex:0 0 auto;
+    width:42px; height:42px; border-radius:9px; object-fit:cover;
+    object-position:var(--bird-crop); flex:0 0 auto;
     background:var(--parch-dk); display:block;
   }
   /* nowrap and a minimum rather than a fixed width: a 24-hour locale gives
@@ -670,7 +688,7 @@
     overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.14);
     border:3px solid var(--parch-dk);
   }
-  .detail-photo{width:100%;height:220px;object-fit:cover;background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
+  .detail-photo{width:100%;height:220px;object-fit:cover;object-position:var(--bird-crop);background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .detail-body{padding:18px 20px 22px;}
   .detail-name{font-family:'Poppins';font-weight:900;font-size:24px;color:var(--dusk);}
   .detail-sci{font-size:13px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
@@ -1185,7 +1203,8 @@
   .fan-photo{
     position:absolute; z-index:1;
     left:1.43px; top:2.09px; width:63.06px; height:61.94px;
-    object-fit:cover; display:block; background:var(--parch-dk);
+    object-fit:cover; object-position:var(--bird-crop);
+    display:block; background:var(--parch-dk);
   }
   .fan-photo.empty{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--parch-dk);}
   /* opacity lives on the emoji itself, not .fan-photo.empty - that div's own
@@ -1214,7 +1233,7 @@
   .hab-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:7px 12px 7px 8px;}
   .hab-row.mystery{background:rgba(255,255,255,0.42);}
   .hab-row-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--mist-dk);width:18px;text-align:center;flex-shrink:0;}
-  .hab-row-thumb{width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--parch-dk);display:flex;align-items:center;justify-content:center;}
+  .hab-row-thumb{width:38px;height:38px;border-radius:9px;object-fit:cover;object-position:var(--bird-crop);flex-shrink:0;background:var(--parch-dk);display:flex;align-items:center;justify-content:center;}
   .hab-row-silhouette{font-size:19px;filter:grayscale(1) brightness(.4);opacity:.45;}
   .hab-row-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
   .hab-row.mystery .hab-row-name{color:var(--mist-dk);font-weight:400;font-style:italic;}
