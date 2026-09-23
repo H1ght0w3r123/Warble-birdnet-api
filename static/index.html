@@ -647,11 +647,27 @@
   .collection-item{cursor:pointer;}
 
   /* --- History -------------------------------------------------------- */
+  /* Each day folds away, because a busy week of listening is a long scroll
+     and the day you want is usually not the one you are standing in. */
   .hist-day{
+    display:flex; align-items:center; gap:7px; width:100%;
+    background:none; border:none; padding:6px 2px; margin:10px 0 4px; cursor:pointer;
     font-family:'Poppins'; font-weight:900; font-size:12px; letter-spacing:.05em;
-    text-transform:uppercase; color:rgba(255,255,255,0.8); margin:16px 0 8px;
+    text-transform:uppercase; color:rgba(245,237,214,0.82); text-align:left;
+    min-height:38px;
   }
-  .hist-day:first-child{margin-top:2px;}
+  .hist-group:first-child .hist-day{margin-top:2px;}
+  .hist-day-count{
+    font-weight:700; font-size:11px; letter-spacing:0; text-transform:none;
+    color:var(--parch); background:#7E4B29; border-radius:10px;
+    padding:2px 8px; min-width:22px; text-align:center;
+  }
+  .hist-chev{
+    margin-left:auto; width:15px; height:15px; flex:0 0 auto;
+    transition:transform .22s ease;
+  }
+  .hist-group.shut .hist-chev{transform:rotate(-90deg);}
+  .hist-body{overflow:hidden; transition:max-height .28s cubic-bezier(.3,.9,.4,1);}
   .hist-row{
     --frame:3.5px; --inner:9px;
     display:flex; align-items:center; gap:10px; width:100%; text-align:left;
@@ -2210,6 +2226,7 @@ let flockSort = 'az';
 let flockQuery = '';
 let flockDensity = 'compact';  // 'compact' | 'large'
 let flockFilters = {};         // {facet: [values]} - only non-empty facets present
+let flockShutDays = new Set(); // History day keys the user has folded away
 let collectionBirds = [];
 
 // Sorts, in the order they appear in the sheet. `get` returns the value to
@@ -2546,29 +2563,93 @@ function paintHistory() {
     return;
   }
 
-  let html = '', day = null;
+  // Group first, then render, so each day knows its own count before its
+  // header is written.
+  const days = [];
   for (const s of rows) {
     const when = new Date(s.created_at);
-    const label = dayLabel(when);
-    if (label !== day) { html += `<div class="hist-day">${label}</div>`; day = label; }
-    // Only real metadata: a sighting with no named location says nothing
-    // rather than "Unknown".
-    const band = CONFIDENCE_BANDS.find(b => b.test(s.confidence));
-    const meta = [s.location_name, band && band.label].filter(Boolean).join(' · ');
-    html += `
-      <div class="hist-row woodframe" data-name="${escapeFlock(s.common_name)}">
-        <div class="hist-time">${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-        ${s.image_url ? `<img src="${s.image_url}" alt="">` : '<div class="hist-thumb"></div>'}
-        <div class="hist-text">
-          <div class="hist-name">${s.common_name}</div>
-          ${meta ? `<div class="hist-meta">${meta}</div>` : ''}
-        </div>
-      </div>`;
+    // Keyed by the actual date, not the label: "Today" becomes "Yesterday"
+    // tomorrow, and a day left folded should stay folded under its new name.
+    const key = when.getFullYear() + '-' + (when.getMonth() + 1) + '-' + when.getDate();
+    if (!days.length || days[days.length - 1].key !== key) {
+      days.push({ key, label: dayLabel(when), rows: [] });
+    }
+    days[days.length - 1].rows.push({ s, when });
   }
-  grid.innerHTML = html;
+
+  grid.innerHTML = days.map(d => {
+    const shut = flockShutDays.has(d.key);
+    const body = d.rows.map(({ s, when }) => {
+      // Only real metadata: a sighting with no named location says nothing
+      // rather than "Unknown".
+      const band = CONFIDENCE_BANDS.find(b => b.test(s.confidence));
+      const meta = [s.location_name, band && band.label].filter(Boolean).join(' · ');
+      return `
+        <div class="hist-row woodframe" data-name="${escapeFlock(s.common_name)}">
+          <div class="hist-time">${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+          ${s.image_url ? `<img src="${s.image_url}" alt="">` : '<div class="hist-thumb"></div>'}
+          <div class="hist-text">
+            <div class="hist-name">${s.common_name}</div>
+            ${meta ? `<div class="hist-meta">${meta}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="hist-group ${shut ? 'shut' : ''}" data-day="${d.key}">
+        <button class="hist-day" aria-expanded="${!shut}">
+          <span>${d.label}</span>
+          <span class="hist-day-count">${d.rows.length}</span>
+          ${CHEVRON_ICON}
+        </button>
+        <div class="hist-body">${body}</div>
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.hist-group').forEach(group => {
+    const body = group.querySelector('.hist-body');
+    // Folded groups start at zero; open ones are left with no max-height at
+    // all, so a group can grow later without being clipped by a stale number.
+    body.style.maxHeight = group.classList.contains('shut') ? '0px' : '';
+    group.querySelector('.hist-day').onclick = () => toggleHistoryDay(group);
+  });
   grid.querySelectorAll('.hist-row').forEach(el => {
     el.onclick = () => renderBirdDetail(el.dataset.name);
   });
+}
+
+const CHEVRON_ICON = `<svg class="hist-chev" viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true"><path d="M5 9 L12 16 L19 9"/></svg>`;
+
+// max-height rather than a class, because the height is only knowable once
+// the rows are on the page - and it has to be cleared again afterwards so an
+// open group is not capped at whatever it measured.
+function toggleHistoryDay(group) {
+  const body = group.querySelector('.hist-body');
+  const key = group.dataset.day;
+  const opening = group.classList.contains('shut');
+
+  if (reducedMotion()) {
+    group.classList.toggle('shut', !opening);
+    body.style.maxHeight = opening ? '' : '0px';
+  } else if (opening) {
+    group.classList.remove('shut');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.addEventListener('transitionend', function done(e) {
+      if (e.propertyName !== 'max-height') return;
+      body.style.maxHeight = '';
+      body.removeEventListener('transitionend', done);
+    });
+  } else {
+    body.style.maxHeight = body.scrollHeight + 'px';   // pin it, then collapse
+    requestAnimationFrame(() => {
+      group.classList.add('shut');
+      body.style.maxHeight = '0px';
+    });
+  }
+
+  if (opening) flockShutDays.delete(key); else flockShutDays.add(key);
+  group.querySelector('.hist-day').setAttribute('aria-expanded', String(opening));
 }
 
 function dayLabel(d) {
