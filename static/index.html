@@ -72,9 +72,19 @@
      which is all either in flow or positioned later. Fixed rather than
      scrolled, so the scene sits still while the cards move over it. */
   #sceneBg{
-    position:fixed; inset:0; z-index:-1; pointer-events:none;
+    position:fixed; left:0; right:0; top:0; z-index:-1; pointer-events:none;
     opacity:0; transition:opacity .45s ease;
     background-position:center bottom; background-size:cover; background-repeat:no-repeat;
+    /* lvh, not vh. On a phone the address bar slides away as you scroll, and
+       that changes the viewport height - so a layer sized in vh resizes
+       mid-scroll, and because the image is sized with cover, resizing it
+       rescales the picture. The scene visibly zoomed while you scrolled.
+       lvh is the viewport at its LARGEST, with the bar retracted, so the
+       layer is one fixed size and the bar coming and going moves nothing.
+       The vh line above stays for browsers that do not know lvh - they get
+       today's behaviour rather than a broken layout. */
+    height:100vh;
+    height:100lvh;
   }
   #sceneBg.on{opacity:1;}
   /* The scrim is what makes the white type survive a bright midday sky, and
@@ -90,7 +100,7 @@
     background:linear-gradient(180deg,
       rgba(26,17,40,0.66) 0%,  rgba(26,17,40,0.32) 20%,
       rgba(26,17,40,0.26) 34%, rgba(26,17,40,0.57) 42%,
-      rgba(26,17,40,0.58) 52%, rgba(26,17,40,0.44) 64%,
+      rgba(26,17,40,0.60) 52%, rgba(26,17,40,0.45) 64%,
       rgba(26,17,40,0.54) 80%, rgba(26,17,40,0.68) 100%);
   }
   /* Belt and braces over the scrim: a shadow keeps a glyph readable where it
@@ -4176,7 +4186,7 @@ const HOME_SCENES = [
   { id: 'coast',  name: 'Coast' },
   { id: 'meadow', name: 'Meadow' },
 ];
-const sceneUrl = (id, band) => `/static/scene-${id}-${band}-v1.webp`;
+const sceneUrl = (id, band) => `/static/scene-${id}-${band}-v2.webp`;
 
 // Only Home wears a scene. Every other screen is a list or a grid of cards
 // that would have to fight it, and the recording screen has scenery of its
