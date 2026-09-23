@@ -332,7 +332,12 @@
   }
 
   /* Tip and joke: a light strip, deliberately not a third and fourth card. */
-  .home-minis{display:flex; gap:9px; width:100%; margin-top:12px; align-items:stretch;}
+  /* Just the joke lives here now - the listening tip moved to the screen
+     where a child actually needs it, the one that says nothing was heard.
+     Centred and only as wide as it needs to be, so a lone pill does not read
+     as half of a row with something missing from it. */
+  .home-minis{display:flex; gap:9px; width:100%; margin-top:12px;
+    align-items:stretch; justify-content:center;}
   .mini-card{
     border:none; cursor:pointer; text-align:left; border-radius:16px;
     /* Solid, not translucent. The Home background runs from deep purple at
@@ -345,8 +350,7 @@
     transition:transform .12s ease;
   }
   .mini-card:active{transform:scale(.97);}
-  .mini-tip{flex:1 1 auto; min-width:0;}
-  .mini-joke{flex:0 0 auto;}
+  .mini-joke{flex:0 0 auto; padding-right:16px;}
   .mini-icon{font-size:19px; line-height:1; flex:0 0 auto;}
   .mini-text{display:flex; flex-direction:column; gap:1px; min-width:0;}
   .mini-label{
@@ -358,10 +362,6 @@
     color:var(--parch); overflow-wrap:anywhere;
   }
   /* Narrow phones: the joke drops under the tip rather than squeezing both. */
-  @media (max-width:339px){
-    .home-minis{flex-direction:column;}
-    .mini-joke{align-self:flex-start;}
-  }
 
   @media (prefers-reduced-motion: reduce){
     .mic-alive .mic-icon,
@@ -427,6 +427,19 @@
   .tip-icon{font-size:22px;flex-shrink:0;}
   .tip-title{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
   .tip-text{font-size:12.5px;line-height:1.5;color:var(--ink);}
+  /* The same card, but a button: on the no-birds screen it is the way
+     through to the rest of the tips, which is otherwise a dead end now that
+     Home no longer carries one. */
+  .nobirds-tip{
+    border:none; cursor:pointer; text-align:left; max-width:340px;
+    margin-top:22px; transition:transform .12s ease;
+    box-shadow:0 4px 12px rgba(26,17,40,0.22);
+  }
+  .nobirds-tip:active{transform:scale(.98);}
+  .tip-more{
+    font-family:'Poppins'; font-weight:700; font-size:11.5px;
+    color:var(--gold-dk); margin-top:7px;
+  }
   .reveal-mark{
     margin-top:14px; background:var(--terra); color:#fff; border:none; border-radius:50%;
     width:44px; height:44px; font-size:20px; font-weight:900; cursor:pointer;
@@ -1656,13 +1669,6 @@ function renderIdle() {
     </button>
 
     <div class="home-minis">
-      <button class="mini-card mini-tip" id="tipMini">
-        <span class="mini-icon">${tipOfTheDay().icon}</span>
-        <span class="mini-text">
-          <span class="mini-label">Listening tip</span>
-          <span class="mini-body">${escapeFlock(tipOfTheDay().short)}</span>
-        </span>
-      </button>
       <button class="mini-card mini-joke" id="jokeMini">
         <span class="mini-icon" id="jokeMiniIcon">😄</span>
         <span class="mini-text">
@@ -1683,7 +1689,6 @@ function renderIdle() {
 
   document.getElementById('hereNowCard').onclick = renderWhatsHere;
   document.getElementById('challengeCard').onclick = renderChallenges;
-  document.getElementById('tipMini').onclick = renderTips;
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
   showHomeScene(true);
   loadHereNowCard();
@@ -1701,12 +1706,14 @@ const FLYING_BIRDS_SVG = `<svg class="herenow-birds" viewBox="0 0 120 62" fill="
   <path class="b3" d="M78 40 q6 -7 12 0 q6 -7 12 0"/>
 </svg>`;
 
-// Rotates daily rather than per visit, so it reads as today's tip rather
-// than a shuffle, and a child can tell a friend about it.
-function tipOfTheDay() {
-  const start = new Date(new Date().getFullYear(), 0, 0);
-  const day = Math.floor((new Date() - start) / 86400000);
-  return WARBLING_TIPS[day % WARBLING_TIPS.length];
+// Walks the list one at a time and remembers where it got to, so a run of
+// quiet sessions works through all six rather than repeating whichever one
+// today happened to land on.
+function nextListeningTip() {
+  const seen = parseInt(remember('tipSeen'), 10);
+  const next = (Number.isFinite(seen) ? seen + 1 : 0) % WARBLING_TIPS.length;
+  remember('tipSeen', next);
+  return WARBLING_TIPS[next];
 }
 
 // Display copy only - never matched back against a species. Full common
@@ -2509,12 +2516,26 @@ function wikipediaUrl(scientificName) {
 }
 
 function renderNoBirds() {
+  // A tip belongs here rather than on Home: this is the moment a child has
+  // actually failed to hear anything and a reason why is worth reading.
+  // It advances every time this screen appears, so hearing nothing twice in
+  // a row gives two different things to try rather than the same one again.
+  const tip = nextListeningTip();
   stage.innerHTML = `
     <img class="done-icon" src="/static/empty-nest.webp" alt="Empty nest">
     <div class="done-title">No birds heard this time</div>
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
     <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt="Go again"></button>
+    <button class="tip-card nobirds-tip" id="noBirdsTip">
+      <div class="tip-icon">${tip.icon}</div>
+      <div>
+        <div class="tip-title">${escapeFlock(tip.title)}</div>
+        <div class="tip-text">${escapeFlock(tip.text)}</div>
+        <div class="tip-more">More warbling tips →</div>
+      </div>
+    </button>
   `;
+  document.getElementById('noBirdsTip').onclick = renderTips;
   document.getElementById('againBtn').onclick = () => {
     // Location naming still has to happen first if it's pending, but once
     // that's done, go straight into recording rather than back to Home.
@@ -2600,7 +2621,7 @@ const FLOCK_FACETS = [
     order: v => CONFIDENCE_BANDS.findIndex(b => b.label === v) },
 ];
 
-function flockStore(key, value) {
+function remember(key, value) {
   // A remembered view is a convenience, never state the screen needs - a
   // private window or blocked site data must not break My Flock.
   try {
@@ -2613,9 +2634,9 @@ function flockStore(key, value) {
 function renderCollection() {
   setActiveTab('collection');
   stage.classList.add('top-aligned');
-  flockSort = FLOCK_SORTS.some(s => s.id === flockStore('flockSort'))
-    ? flockStore('flockSort') : 'az';
-  flockDensity = flockStore('flockDensity') === 'large' ? 'large' : 'compact';
+  flockSort = FLOCK_SORTS.some(s => s.id === remember('flockSort'))
+    ? remember('flockSort') : 'az';
+  flockDensity = remember('flockDensity') === 'large' ? 'large' : 'compact';
 
   stage.innerHTML = `
     <div class="collection-header">
@@ -2666,7 +2687,7 @@ function renderCollection() {
   document.getElementById('flockFilterBtn').onclick = openFilterSheet;
   document.getElementById('flockDensityBtn').onclick = () => {
     flockDensity = flockDensity === 'large' ? 'compact' : 'large';
-    flockStore('flockDensity', flockDensity);
+    remember('flockDensity', flockDensity);
     paintFlock();
   };
   // Tapping the collapsed title goes back to the top, so the header you just
@@ -3102,7 +3123,7 @@ function openSortSheet() {
   sheet.wrap.querySelectorAll('[data-sort]').forEach(b => {
     b.onclick = () => {
       flockSort = b.dataset.sort;
-      flockStore('flockSort', flockSort);
+      remember('flockSort', flockSort);
       sheet.close();
       paintFlock();
     };
