@@ -85,6 +85,15 @@
        today's behaviour rather than a broken layout. */
     height:100vh;
     height:100lvh;
+    /* Promoted onto the compositor. A fixed layer that the browser repaints
+       every frame drifts against the content on a phone while the page
+       scrolls and the address bar animates - it is painted from the last
+       frame's scroll offset, so it lags and reads as the scene sliding up
+       with the cards. One that lives on the compositor is pinned there and
+       cannot lag, which is what these three lines buy. */
+    transform:translateZ(0);
+    will-change:transform;
+    backface-visibility:hidden;
   }
   #sceneBg.on{opacity:1;}
   /* The scrim is what makes the white type survive a bright midday sky, and
@@ -4191,6 +4200,24 @@ const sceneUrl = (id, band) => `/static/scene-${id}-${band}-v2.webp`;
 // Only Home wears a scene. Every other screen is a list or a grid of cards
 // that would have to fight it, and the recording screen has scenery of its
 // own. Called with false from setActiveTab for anything that is not Home.
+// The CSS sizes this in lvh, which is the viewport at its largest. Where lvh
+// is not understood it falls back to vh, which a phone changes as the address
+// bar comes and goes - so remember the tallest viewport seen and hold the
+// layer at that. It can grow once, on the first scroll, and never shrink.
+let sceneMaxHeight = 0;
+function sizeSceneLayer() {
+  const el = document.getElementById('sceneBg');
+  if (!el || CSS.supports('height', '100lvh')) return;
+  sceneMaxHeight = Math.max(sceneMaxHeight, window.innerHeight);
+  el.style.height = sceneMaxHeight + 'px';
+}
+// Turning the phone gives a genuinely different viewport, so start again.
+window.addEventListener('orientationchange', () => {
+  sceneMaxHeight = 0;
+  setTimeout(sizeSceneLayer, 350);
+});
+window.addEventListener('resize', sizeSceneLayer);
+
 function showHomeScene(on) {
   const el = document.getElementById('sceneBg');
   if (!el) return;
@@ -4207,6 +4234,7 @@ function showHomeScene(on) {
     el.style.backgroundImage = `url('${url}')`;
     el.dataset.url = url;
   }
+  sizeSceneLayer();
   el.classList.add('on');
   document.body.classList.add('scene-on');
 }
