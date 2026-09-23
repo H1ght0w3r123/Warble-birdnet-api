@@ -178,23 +178,8 @@
   .mic-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
   @keyframes micBreathe{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
   .mic-alive .mic-icon{animation:micBreathe 2.6s ease-in-out infinite;}
-  /* Two rings leaving the mic like a sound wave, a beat apart so it reads as
-     radiating rather than blinking. Behind the button, never on top of it. */
-  .mic-wrap::before, .mic-wrap::after{
-    content:''; position:absolute; left:50%; top:50%; width:108px; height:108px;
-    margin:-54px 0 0 -54px; border-radius:50%;
-    border:3px solid var(--terra); opacity:0; pointer-events:none; z-index:0;
-  }
-  .mic-alive.mic-wrap::before{animation:micRing 2.6s ease-out infinite;}
-  .mic-alive.mic-wrap::after{animation:micRing 2.6s ease-out infinite 1.3s;}
-  @keyframes micRing{
-    0%{transform:scale(.92);opacity:0;}
-    18%{opacity:.5;}
-    100%{transform:scale(1.55);opacity:0;}
-  }
   /* Pressed: the breathing stops dead and the mic dips, so the tap is
      answered before the listening screen has even loaded. */
-  .mic-wrap.pressed::before, .mic-wrap.pressed::after{animation:none;opacity:0;}
   .mic-wrap.pressed .mic-icon{animation:none;transform:scale(.9);transition:transform .1s ease;}
 
   /* --- Home cards ------------------------------------------------------
@@ -299,7 +284,7 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .mic-alive .mic-icon, .mic-alive.mic-wrap::before, .mic-alive.mic-wrap::after,
+    .mic-alive .mic-icon,
     .herenow-birds .b1, .herenow-birds .b2, .herenow-birds .b3{animation:none;}
     .challenge-fill{transition:none;}
   }
@@ -1590,10 +1575,10 @@ function renderIdle() {
 
     <div class="home-minis">
       <button class="mini-card mini-tip" id="tipMini">
-        <span class="mini-icon">💡</span>
+        <span class="mini-icon">${tipOfTheDay().icon}</span>
         <span class="mini-text">
           <span class="mini-label">Listening tip</span>
-          <span class="mini-body">${escapeFlock(tipOfTheDay().title)}</span>
+          <span class="mini-body">${escapeFlock(tipOfTheDay().short)}</span>
         </span>
       </button>
       <button class="mini-card mini-joke" id="jokeMini">
@@ -1939,13 +1924,29 @@ async function renderJokeOfDay() {
   }
 }
 
+// `short` is the one-line version for the strip on Home. Keep them to 26
+// characters. That is measured rather than guessed: the tightest case is a
+// 360px phone, where the tip shares its row with the joke and 28 characters
+// of ordinary text is all that fits - a 29-character tip that looks fine at
+// 390px wraps there and pushes the whole strip taller. Below 340px the joke
+// drops onto its own line and the tip gets the full width, so the middle
+// sizes are the ones to check.
+// Each one is the advice itself rather than the tip's title, so the strip is
+// useful on its own - tapping through to the full tip is a bonus, not the
+// point.
 const WARBLING_TIPS = [
-  { icon: '🌅', title: 'Early birds sing loudest', text: "Dawn is when birds sing the most, right before and after sunrise. Get out early and you'll hear far more than any other time of day." },
-  { icon: '🤫', title: 'Stay still and quiet', text: 'Birds go quiet if they hear something moving or talking nearby. Find a spot, stop, and just listen for a minute before you start recording.' },
-  { icon: '📍', title: 'Try lots of different places', text: "Different birds live in different spots — some like gardens, some like woods, some like water. The more places you warble, the more you'll find." },
-  { icon: '🎧', title: 'Get close, but not too close', text: "Hold your phone up and point it toward where the sound is coming from. You don't need to be right next to a bird, just close enough to hear it clearly." },
-  { icon: '🌦️', title: 'Birds sing on rainy days too', text: "Don't wait for perfect weather. Many birds keep singing through light rain and cloudy skies — you might hear something new." },
-  { icon: '🧘', title: "It's okay to hear nothing", text: "Sometimes you won't hear any birds, and that's completely normal. Just try again another time or another place." },
+  { icon: '🌅', title: 'Early birds sing loudest', short: 'Birds sing most at sunrise',
+    text: "Dawn is when birds sing the most, right before and after sunrise. Get out early and you'll hear far more than any other time of day." },
+  { icon: '🤫', title: 'Stay still and quiet', short: 'Stand still and listen',
+    text: 'Birds go quiet if they hear something moving or talking nearby. Find a spot, stop, and just listen for a minute before you start recording.' },
+  { icon: '📍', title: 'Try lots of different places', short: 'New places, new birds',
+    text: "Different birds live in different spots — some like gardens, some like woods, some like water. The more places you warble, the more you'll find." },
+  { icon: '🎧', title: 'Get close, but not too close', short: 'Point your phone at it',
+    text: "Hold your phone up and point it toward where the sound is coming from. You don't need to be right next to a bird, just close enough to hear it clearly." },
+  { icon: '🌦️', title: 'Birds sing on rainy days too', short: 'Birds sing in light rain',
+    text: "Don't wait for perfect weather. Many birds keep singing through light rain and cloudy skies — you might hear something new." },
+  { icon: '🧘', title: "It's okay to hear nothing", short: 'Heard nothing? Try again',
+    text: "Sometimes you won't hear any birds, and that's completely normal. Just try again another time or another place." },
 ];
 
 function renderTips() {
