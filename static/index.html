@@ -66,6 +66,67 @@
   body.time-dusk{background:linear-gradient(180deg,var(--dusk) 0%,var(--rose) 45%,var(--terra) 75%,var(--gold) 100%);}
   body.time-night{background:linear-gradient(180deg,var(--ink) 0%,var(--dusk) 60%,var(--dusk-mid) 100%);}
 
+  /* --- The painted scene behind Home -----------------------------------
+     A fixed layer at z-index -1: above the gradient body background, which
+     the canvas paints below everything, and below every bit of content,
+     which is all either in flow or positioned later. Fixed rather than
+     scrolled, so the scene sits still while the cards move over it. */
+  #sceneBg{
+    position:fixed; inset:0; z-index:-1; pointer-events:none;
+    opacity:0; transition:opacity .45s ease;
+    background-position:center bottom; background-size:cover; background-repeat:no-repeat;
+  }
+  #sceneBg.on{opacity:1;}
+  /* The scrim is what makes the white type survive a bright midday sky, and
+     its shape is measured rather than judged by eye. "Get out there" and the
+     line under it sit at 42-47% down the screen, which is where the first
+     attempt made the scrim LIGHTEST - white on a sunlit meadow came out at
+     1.7:1 there, against the 4.5:1 that text needs. The band around them is
+     now 0.57, which is what it takes to hold a bright sky down to 4.5.
+     The window that stays open is 20-34%, above the heading and behind the
+     sky, which is the part of these paintings worth seeing. */
+  #sceneBg::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg,
+      rgba(26,17,40,0.66) 0%,  rgba(26,17,40,0.32) 20%,
+      rgba(26,17,40,0.26) 34%, rgba(26,17,40,0.57) 42%,
+      rgba(26,17,40,0.58) 52%, rgba(26,17,40,0.44) 64%,
+      rgba(26,17,40,0.54) 80%, rgba(26,17,40,0.68) 100%);
+  }
+  /* Belt and braces over the scrim: a shadow keeps a glyph readable where it
+     lands on a highlight the gradient could not know about. Only when a
+     scene is up - on the plain gradient it just makes the type muddy. */
+  body.scene-on .stage-label, body.scene-on .stage-sub{
+    text-shadow:0 1px 2px rgba(26,17,40,0.75), 0 2px 12px rgba(26,17,40,0.55);
+  }
+  @media (prefers-reduced-motion: reduce){ #sceneBg{transition:none;} }
+
+  /* Settings picker */
+  .scene-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; width:100%; margin-top:4px;}
+  .scene-pick{
+    position:relative; border:none; padding:0; cursor:pointer; overflow:hidden;
+    border-radius:14px; aspect-ratio:3/4; background:var(--parch-dk);
+    box-shadow:0 2px 7px rgba(26,17,40,0.25);
+  }
+  .scene-pick img{width:100%; height:100%; object-fit:cover; display:block;}
+  .scene-pick.none{
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,var(--dusk-mid),var(--gold));
+  }
+  .scene-pick-name{
+    position:absolute; left:0; right:0; bottom:0; padding:12px 4px 5px;
+    font-family:'Poppins'; font-weight:900; font-size:10.5px; color:#fff; text-align:center;
+    background:linear-gradient(180deg,rgba(26,17,40,0),rgba(26,17,40,0.78));
+  }
+  /* A tick as well as the ring, so the choice is not carried by colour alone */
+  .scene-pick.on{outline:3px solid var(--gold); outline-offset:-3px;}
+  .scene-pick-tick{
+    position:absolute; top:5px; right:5px; width:21px; height:21px; border-radius:50%;
+    background:var(--gold); color:#fff; font-size:12px; font-weight:900;
+    display:none; align-items:center; justify-content:center;
+  }
+  .scene-pick.on .scene-pick-tick{display:flex;}
+
   .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;position:relative;}
   .top-actions{display:flex;align-items:center;gap:8px;}
   .top-settings-btn{background:transparent;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;}
@@ -1446,6 +1507,8 @@
   </div>
 
 
+  <div id="sceneBg"></div>
+
   <div class="stage" id="stage"></div>
 
   <div class="bottom-nav">
@@ -1603,6 +1666,7 @@ function renderIdle() {
   document.getElementById('challengeCard').onclick = renderChallenges;
   document.getElementById('tipMini').onclick = renderTips;
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
+  showHomeScene(true);
   loadHereNowCard();
   loadChallengeCard();
   loadJokeTileStatus();
@@ -3624,6 +3688,7 @@ async function startRecording() {
     // screen in the recording flow - listening, saving, the results pile, the
     // reveal - is centred and had been relying on Home to leave this off.
     stage.classList.remove('top-aligned');
+    showHomeScene(false);
     requestGpsPosition();
     // { audio: true } accepts the browser's voice-call defaults: noise
     // suppression, echo cancellation and automatic gain control all on. Those
@@ -4050,14 +4115,90 @@ function stopRecording() {
   mediaRecorder.stream.getTracks().forEach(t => t.stop());
 }
 
-function applyTimeOfDayBackground() {
+// dawn / day / dusk / night. The gradient background has always used these
+// bands; the painted scenes now pick their variant from the same four, so a
+// scene and the fallback gradient can never disagree about the time.
+function timeBand() {
   const hour = new Date().getHours();
-  let band;
-  if (hour >= 5 && hour < 8) band = 'time-dawn';
-  else if (hour >= 8 && hour < 17) band = 'time-day';
-  else if (hour >= 17 && hour < 21) band = 'time-dusk';
-  else band = 'time-night';
-  document.body.classList.add(band);
+  if (hour >= 5 && hour < 8) return 'dawn';
+  if (hour >= 8 && hour < 17) return 'day';
+  if (hour >= 17 && hour < 21) return 'dusk';
+  return 'night';
+}
+
+// The thumbnails show each scene at the CURRENT time of day, so what you are
+// choosing between is what you will actually get right now rather than four
+// pictures of the morning.
+function renderScenePicker() {
+  const grid = document.getElementById('sceneGrid');
+  if (!grid) return;
+  const band = timeBand();
+  const chosen = (currentProfile && currentProfile.home_scene) || 'none';
+  grid.innerHTML = HOME_SCENES.map(sc => `
+    <button class="scene-pick ${chosen === sc.id ? 'on' : ''}" data-scene="${sc.id}"
+            aria-pressed="${chosen === sc.id}">
+      <img src="${sceneUrl(sc.id, band)}" alt="${sc.name}">
+      <span class="scene-pick-tick">✓</span>
+      <span class="scene-pick-name">${sc.name}</span>
+    </button>`).join('') + `
+    <button class="scene-pick none ${chosen === 'none' ? 'on' : ''}" data-scene="none"
+            aria-pressed="${chosen === 'none'}">
+      <span class="scene-pick-tick">✓</span>
+      <span class="scene-pick-name">No picture</span>
+    </button>`;
+
+  grid.querySelectorAll('[data-scene]').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.scene;
+      currentProfile.home_scene = id;
+      grid.querySelectorAll('[data-scene]').forEach(b => {
+        const on = b.dataset.scene === id;
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      // Warm the full-size image now, while the child is still in Settings,
+      // so Home is not a blank gradient for a moment when they go back.
+      if (id !== 'none') new Image().src = sceneUrl(id, timeBand());
+      const formData = new FormData();
+      formData.append('home_scene', id);
+      try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
+    };
+  });
+}
+
+function applyTimeOfDayBackground() {
+  document.body.classList.add('time-' + timeBand());
+}
+
+const HOME_SCENES = [
+  { id: 'garden', name: 'Garden' },
+  { id: 'river',  name: 'River' },
+  { id: 'coast',  name: 'Coast' },
+  { id: 'meadow', name: 'Meadow' },
+];
+const sceneUrl = (id, band) => `/static/scene-${id}-${band}-v1.webp`;
+
+// Only Home wears a scene. Every other screen is a list or a grid of cards
+// that would have to fight it, and the recording screen has scenery of its
+// own. Called with false from setActiveTab for anything that is not Home.
+function showHomeScene(on) {
+  const el = document.getElementById('sceneBg');
+  if (!el) return;
+  const scene = currentProfile && currentProfile.home_scene;
+  if (!on || !scene || scene === 'none' || !HOME_SCENES.some(s => s.id === scene)) {
+    el.classList.remove('on');
+    document.body.classList.remove('scene-on');
+    return;
+  }
+  const url = sceneUrl(scene, timeBand());
+  // Only touch background-image when it actually changes, so re-rendering
+  // Home does not make the scene flicker through a reload.
+  if (el.dataset.url !== url) {
+    el.style.backgroundImage = `url('${url}')`;
+    el.dataset.url = url;
+  }
+  el.classList.add('on');
+  document.body.classList.add('scene-on');
 }
 
 applyTimeOfDayBackground();
@@ -4069,6 +4210,14 @@ async function loadProfileForNav() {
     const res = await fetch('/profile');
     currentProfile = await res.json();
     updateNavAvatarIcon();
+    // Home has already rendered by the time this lands - it runs before the
+    // profile is known - so the scene has to be asked for a second time now
+    // that there is a saved choice to read. Only if Home is still the screen
+    // you are on.
+    if (document.querySelector('.nav-tab.active')?.dataset.tab === 'home'
+        && document.getElementById('micWrap')) {
+      showHomeScene(true);
+    }
   } catch (e) { /* keep the default person icon if this fails */ }
 }
 loadProfileForNav();
@@ -4087,6 +4236,10 @@ function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
+  // Home turns its own scene back on at the end of renderIdle. Doing it the
+  // other way round would leave the scene up behind Settings and the
+  // recording screen, both of which reach here with 'home' still active.
+  if (tabName !== 'home') showHomeScene(false);
   // Home already shows the big hero wordmark, so the small top-bar one would
   // just duplicate it. Kept as visibility rather than display so the feather
   // count and profile button don't shift position between screens.
@@ -4266,6 +4419,10 @@ async function renderSettings() {
     </div>
     <div class="collection-title" style="margin-bottom:14px;">Settings</div>
 
+    <div class="profile-section-title">Home background</div>
+    <div class="reset-note">Pick a place. It changes through the day on its own — sunrise, daytime, sunset and night.</div>
+    <div class="scene-grid" id="sceneGrid"></div>
+
     <div class="profile-section-title">Bird names</div>
     <label class="toggle-row">
       <span>Show scientific names</span>
@@ -4310,6 +4467,8 @@ async function renderSettings() {
     const res = await fetch('/profile');
     currentProfile = await res.json();
   } catch (e) { /* fall back to whatever's in memory */ }
+
+  renderScenePicker();
 
   const toggle = document.getElementById('sciNamesToggle');
   toggle.checked = currentProfile.show_scientific_names !== false;

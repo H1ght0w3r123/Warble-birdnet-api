@@ -110,6 +110,10 @@ class Profile(Base):
     last_name = Column(String, nullable=True)
     show_scientific_names = Column(Boolean, default=True)
     avatar_photo = Column(Text, nullable=True)   # data URL, replaces the bird avatar when set
+    # Which painted scene sits behind Home: garden / river / coast / meadow,
+    # or "none" for the plain gradient. The time of day is not stored - the
+    # scene picks its own dawn/day/dusk/night variant from the clock.
+    home_scene = Column(String, default="none")
     avatar_body = Column(String, default="#C4BFDF")
     avatar_face = Column(String, default="#E8845C")
     avatar_beak = Column(String, default="#8E87B8")
@@ -170,6 +174,7 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS last_name VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS show_scientific_names BOOLEAN DEFAULT TRUE"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_photo TEXT"))
+        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS home_scene VARCHAR DEFAULT 'none'"))
         # Birds outside the 100 have no rarity, so tier must accept NULL.
         # Without this an existing database still rejects them and the whole
         # session fails with a 500.
@@ -759,7 +764,7 @@ def get_profile():
         "first_name": "Explorer", "last_name": None,
         "avatar_body": "#C4BFDF", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
         "avatar_species": "default",
-        "avatar_photo": None, "show_scientific_names": True,
+        "avatar_photo": None, "show_scientific_names": True, "home_scene": "none",
         "equipped": {"hats": None, "neck": None, "held": None, "glasses": None, "shoes": None},
     }
     if SessionLocal is None:
@@ -784,6 +789,7 @@ def get_profile():
             "avatar_species": p.avatar_species or "default",
             "avatar_photo": p.avatar_photo,
             "show_scientific_names": True if p.show_scientific_names is None else p.show_scientific_names,
+            "home_scene": p.home_scene or "none",
             "equipped": {
                 "hats": p.equipped_hats,
                 "neck": p.equipped_neck,
@@ -797,7 +803,8 @@ def get_profile():
 def update_profile(first_name: str = None, last_name: str = None,
                    avatar_body: str = None, avatar_face: str = None, avatar_beak: str = None,
                    avatar_species: str = None,
-                   show_scientific_names: bool = None, avatar_photo: str = None):
+                   show_scientific_names: bool = None, avatar_photo: str = None,
+                   home_scene: str = None):
     """avatar_photo accepts the string "none" to clear a photo, since an empty
     form field is indistinguishable from "not provided"."""
     if SessionLocal is None:
@@ -823,6 +830,8 @@ def update_profile(first_name: str = None, last_name: str = None,
             p.show_scientific_names = show_scientific_names
         if avatar_photo is not None:
             p.avatar_photo = None if avatar_photo == "none" else avatar_photo
+        if home_scene is not None:
+            p.home_scene = home_scene
         session.commit()
 
 
