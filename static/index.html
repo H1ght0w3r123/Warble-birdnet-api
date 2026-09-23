@@ -1922,7 +1922,7 @@ function renderCard() {
     <div class="card-wrap">
       <div class="progress">Bird ${cardIndex + 1} of ${sessionResults.length}</div>
       <div class="card ${bird.tier === 'Rare' ? 'rare-card' : ''}" id="revealCard" style="--tier-color:${tierColor}">
-        ${bird.photo_url ? `<img class="card-photo" src="${bird.photo_url}">` : `<div class="card-photo"></div>`}
+        ${bird.photo_url ? `<img class="card-photo" ${birdImg(bird.photo_url, 800)}>` : `<div class="card-photo"></div>`}
         <div class="card-body">
           <div class="card-name">${bird.common_name}</div>
           ${currentProfile.show_scientific_names !== false ? `<div class="card-sci">${bird.scientific_name}</div>` : ''}
@@ -2604,7 +2604,7 @@ function paintHistory() {
       return `
         <div class="hist-row woodframe" data-name="${escapeFlock(s.common_name)}">
           <div class="hist-time">${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-          ${s.image_url ? `<img src="${s.image_url}" alt="">` : '<div class="hist-thumb"></div>'}
+          ${s.image_url ? `<img ${birdImg(s.image_url, 96)} alt="">` : '<div class="hist-thumb"></div>'}
           <div class="hist-text">
             <div class="hist-name">${s.common_name}</div>
             ${meta ? `<div class="hist-meta">${meta}</div>` : ''}
@@ -2717,6 +2717,53 @@ function dayLabel(d) {
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+// --- Bird photographs ------------------------------------------------------
+// Wikimedia serves any width of the same file: a thumbnail URL carries its
+// own width in the filename, so asking for a different size is a rewrite of
+// the URL, not another request to the API. What the backend stores is
+// whatever Wikipedia's summary endpoint handed over, which is 320px wide -
+// soft on a detail photo shown at 358 CSS px on a 3x screen. So every place
+// that shows a bird asks for the size it actually draws at.
+//
+// It only ever asks for MORE. A surface smaller than 320px keeps the stored
+// URL rather than fetching a tidier little copy of the same bird: the saving
+// is a few KB and the cost is a second file, where as it stands the card
+// grid and the history thumbnails all share one already-cached image.
+//
+// Only Wikimedia thumbnails are touched. A child's own photo is a data URL
+// and an original (rather than a thumbnail) has no width in its name, so
+// both fall straight through.
+function birdPhoto(url, width) {
+  if (!url || url.indexOf('upload.wikimedia.org') < 0) return url;
+  const cut = url.lastIndexOf('/');
+  if (cut < 0) return url;
+  // 320px-Foo.jpg, and the odd lossy-page1-320px-Foo.tif.jpg
+  const m = url.slice(cut + 1).match(/^(.*?)(\d+)px-(.+)$/);
+  if (!m || +m[2] >= width) return url;
+  return url.slice(0, cut + 1) + m[1] + width + 'px-' + m[3];
+}
+
+// Wikimedia will not upscale past a file's real size, so a bird whose source
+// photo is smaller than we asked for comes back as an error. The original URL
+// rides along in data-fallback and is swapped back in once - better a
+// slightly soft photo than a broken one. error does not bubble, hence the
+// capture phase, and one listener covers every image in the app.
+document.addEventListener('error', e => {
+  const img = e.target;
+  if (!img || img.tagName !== 'IMG' || !img.dataset.fallback) return;
+  const back = img.dataset.fallback;
+  delete img.dataset.fallback;
+  img.src = back;
+}, true);
+
+// src plus, where the URL was rewritten, the original to fall back to.
+function birdImg(url, width) {
+  const up = birdPhoto(url, width);
+  return up === url
+    ? `src="${escapeFlock(url)}"`
+    : `src="${escapeFlock(up)}" data-fallback="${escapeFlock(url)}"`;
+}
+
 function escapeFlock(t) {
   return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
@@ -2817,7 +2864,7 @@ function collectionCardHtml(bird) {
   return `
     <div class="collection-item woodframe"
          data-name="${escapeFlock(bird.common_name)}" data-key="${escapeFlock(bird.key || bird.common_name)}">
-      ${bird.image_url ? `<img src="${bird.image_url}" alt="">` : '<div class="ci-blank"></div>'}
+      ${bird.image_url ? `<img ${birdImg(bird.image_url, flockDensity === 'large' ? 400 : 260)} alt="">` : '<div class="ci-blank"></div>'}
       <div class="ci-name">${bird.common_name}</div>
     </div>`;
 }
@@ -2914,7 +2961,7 @@ function renderBirdDetail(commonName, onBack) {
     <div class="detail-card">
       <div class="detail-photo-wrap">
         <div class="detail-photo-strip" id="detailPhotoStrip">
-          ${latest.image_url ? `<img class="detail-photo" src="${latest.image_url}">` : `<div class="detail-photo"></div>`}
+          ${latest.image_url ? `<img class="detail-photo" ${birdImg(latest.image_url, 800)}>` : `<div class="detail-photo"></div>`}
         </div>
         <div class="detail-photo-dots" id="detailPhotoDots"></div>
         <label class="add-photo-btn" for="birdPhotoInput">+</label>
@@ -5041,7 +5088,7 @@ function renderSelectedPack() {
       ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
       : '';
     const face = b.photo_url
-      ? `<img class="fan-photo" src="${b.photo_url}" alt="">`
+      ? `<img class="fan-photo" ${birdImg(b.photo_url, 420)} alt="">`
       : `<div class="fan-photo empty">${b.found ? '' : '<span class="fan-photo-emoji">🐦</span>'}</div>`;
     // An away bird is marked as such, so an empty slot reads as "not this
     // month" rather than something the child has failed to find.
