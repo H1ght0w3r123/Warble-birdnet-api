@@ -170,6 +170,139 @@
      of being sized off font-size like the old icon-on-button approach. */
   .mic-icon{width:100%; height:100%; object-fit:contain; display:block;}
   @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+
+  /* --- Home: the mic breathing ----------------------------------------
+     Only the idle Home mic gets this. .mic-btn is shared with the small
+     "go again" button on the reveal screen, which must not breathe while a
+     child is deciding whether to record. */
+  .mic-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+  @keyframes micBreathe{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+  .mic-alive .mic-icon{animation:micBreathe 2.6s ease-in-out infinite;}
+  /* Two rings leaving the mic like a sound wave, a beat apart so it reads as
+     radiating rather than blinking. Behind the button, never on top of it. */
+  .mic-wrap::before, .mic-wrap::after{
+    content:''; position:absolute; left:50%; top:50%; width:108px; height:108px;
+    margin:-54px 0 0 -54px; border-radius:50%;
+    border:3px solid var(--terra); opacity:0; pointer-events:none; z-index:0;
+  }
+  .mic-alive.mic-wrap::before{animation:micRing 2.6s ease-out infinite;}
+  .mic-alive.mic-wrap::after{animation:micRing 2.6s ease-out infinite 1.3s;}
+  @keyframes micRing{
+    0%{transform:scale(.92);opacity:0;}
+    18%{opacity:.5;}
+    100%{transform:scale(1.55);opacity:0;}
+  }
+  /* Pressed: the breathing stops dead and the mic dips, so the tap is
+     answered before the listening screen has even loaded. */
+  .mic-wrap.pressed::before, .mic-wrap.pressed::after{animation:none;opacity:0;}
+  .mic-wrap.pressed .mic-icon{animation:none;transform:scale(.9);transition:transform .1s ease;}
+
+  /* --- Home cards ------------------------------------------------------
+     One shared shell. Here Now and Challenge are the two things worth
+     looking at after the mic; the tip and joke are a lighter strip under
+     them rather than two more of the same. */
+  .home-card{
+    width:100%; margin-top:14px; border:none; padding:0; cursor:pointer;
+    border-radius:20px; text-align:left; display:block;
+    box-shadow:0 6px 16px rgba(26,17,40,0.28);
+    transition:transform .12s ease;
+  }
+  .home-card:active{transform:scale(.982);}
+  .home-card-eyebrow{
+    display:flex; align-items:center; gap:7px;
+    font-family:'Poppins'; font-weight:900; font-size:11px; letter-spacing:.09em;
+    text-transform:uppercase;
+  }
+  .home-card-eyebrow .spacer{margin-left:auto;}
+
+  /* Here Now: sky rather than parchment - this is the one card about being
+     outside, and it has to look different from a list of things to do. */
+  .herenow-card{
+    position:relative; overflow:hidden; padding:15px 16px 14px;
+    background:linear-gradient(135deg,#4FB8B0 0%,#3B82C4 62%,#4A5FA0 100%);
+    color:#fff;
+  }
+  .herenow-card .home-card-eyebrow{color:rgba(255,255,255,0.88);}
+  .herenow-head{
+    font-family:'Poppins'; font-weight:900; font-size:19px; line-height:1.2;
+    margin:7px 0 5px; overflow-wrap:anywhere;
+  }
+  .herenow-sub{
+    font-size:12.5px; color:rgba(255,255,255,0.9); line-height:1.35;
+    display:flex; align-items:center; gap:5px;
+  }
+  .herenow-birds{
+    position:absolute; right:-6px; top:8px; width:120px; height:62px;
+    opacity:.5; pointer-events:none;
+  }
+  @keyframes drift{0%,100%{transform:translate(0,0);}50%{transform:translate(-7px,-5px);}}
+  .herenow-birds .b1{animation:drift 7s ease-in-out infinite;}
+  .herenow-birds .b2{animation:drift 9s ease-in-out infinite .8s;}
+  .herenow-birds .b3{animation:drift 8s ease-in-out infinite 1.6s;}
+
+  /* Challenge: parchment, because this one is about keeping score. */
+  .challenge-card{background:var(--parch); color:var(--dusk); padding:14px 16px 15px;}
+  .challenge-card .home-card-eyebrow{color:var(--mist-dk);}
+  .challenge-tally{
+    font-family:'Poppins'; font-weight:900; font-size:12px; letter-spacing:0;
+    color:var(--gold-dk); background:#fff; border-radius:11px; padding:2px 9px;
+  }
+  .challenge-text{
+    font-family:'Poppins'; font-weight:700; font-size:15px; color:var(--ink);
+    line-height:1.25; margin:8px 0 10px; overflow-wrap:anywhere;
+  }
+  .challenge-bar{
+    height:14px; border-radius:7px; background:#fff; overflow:hidden;
+    box-shadow:inset 0 1px 3px rgba(26,17,40,0.16);
+  }
+  .challenge-fill{
+    height:100%; border-radius:7px; min-width:14px;
+    background:linear-gradient(90deg,var(--gold),#F0A93C);
+    transition:width .5s cubic-bezier(.3,.9,.4,1);
+  }
+  .challenge-fill.done{background:linear-gradient(90deg,var(--sage),#3F9C72);}
+  .challenge-note{
+    font-family:'Poppins'; font-weight:700; font-size:12.5px;
+    color:var(--mist-dk); margin-top:8px;
+  }
+
+  /* Tip and joke: a light strip, deliberately not a third and fourth card. */
+  .home-minis{display:flex; gap:9px; width:100%; margin-top:12px; align-items:stretch;}
+  .mini-card{
+    border:none; cursor:pointer; text-align:left; border-radius:16px;
+    /* Solid, not translucent. The Home background runs from deep purple at
+       the top to warm orange at the bottom, and a white wash over that comes
+       out a different colour at every scroll position - the same reason the
+       My Flock pills ended up solid wood. */
+    background:#7E4B29; color:var(--parch);
+    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 3px 8px rgba(26,17,40,0.28);
+    padding:10px 12px; display:flex; align-items:center; gap:9px;
+    transition:transform .12s ease;
+  }
+  .mini-card:active{transform:scale(.97);}
+  .mini-tip{flex:1 1 auto; min-width:0;}
+  .mini-joke{flex:0 0 auto;}
+  .mini-icon{font-size:19px; line-height:1; flex:0 0 auto;}
+  .mini-text{display:flex; flex-direction:column; gap:1px; min-width:0;}
+  .mini-label{
+    font-family:'Poppins'; font-weight:900; font-size:9.5px; letter-spacing:.07em;
+    text-transform:uppercase; color:rgba(245,237,214,0.7);
+  }
+  .mini-body{
+    font-family:'Poppins'; font-weight:700; font-size:12px; line-height:1.25;
+    color:var(--parch); overflow-wrap:anywhere;
+  }
+  /* Narrow phones: the joke drops under the tip rather than squeezing both. */
+  @media (max-width:339px){
+    .home-minis{flex-direction:column;}
+    .mini-joke{align-self:flex-start;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .mic-alive .mic-icon, .mic-alive.mic-wrap::before, .mic-alive.mic-wrap::after,
+    .herenow-birds .b1, .herenow-birds .b2, .herenow-birds .b3{animation:none;}
+    .challenge-fill{transition:none;}
+  }
   .stage-label{margin-top:22px;font-family:'Poppins';font-weight:700;font-size:16px;color:#fff;text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
   .timer{font-family:'Poppins';font-weight:700;font-size:22px;color:#fff;margin-top:14px;}
@@ -225,30 +358,6 @@
   /* The four shortcuts sit on an arc beneath the mic rather than as four
      full-width stacked tiles, which dominated the screen. Positions are set
      per-button with --x/--y so the arc is defined in one place. */
-  /* Wider and tighter to the mic: radius 122 with 55deg between buttons,
-     so the outer two sit almost level with the call to action. 314px across
-     inside roughly 328px of usable width. */
-  .home-arc{position:relative;width:100%;height:190px;margin-top:-4px;}
-  .arc-btn{
-    position:absolute; left:50%; top:8px;
-    transform:translate(calc(-50% + var(--x)), var(--y));
-    background:none; border:none; padding:0; cursor:pointer;
-    display:flex; flex-direction:column; align-items:center; gap:4px; width:72px;
-  }
-  .arc-circle{
-    position:relative; width:54px; height:54px; border-radius:50%;
-    background:rgba(255,255,255,0.94); box-shadow:0 4px 12px rgba(0,0,0,0.18);
-    display:flex; align-items:center; justify-content:center; font-size:24px;
-  }
-  .arc-label{font-family:'Poppins';font-weight:700;font-size:10px;color:#fff;text-align:center;line-height:1.15;}
-  .arc-badge{
-    position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; padding:0 4px;
-    border-radius:9px; background:var(--dusk); color:#fff;
-    font-family:'Poppins'; font-weight:900; font-size:9.5px;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .arc-badge:empty{display:none;}
-  .arc-badge.urgent{background:var(--terra);}
   .tip-card{width:100%;background:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
   .tip-icon{font-size:22px;flex-shrink:0;}
   .tip-title{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
@@ -1447,52 +1556,178 @@ function animateFeatherCount(newTotal) {
   requestAnimationFrame(step);
 }
 
+// --- Home ------------------------------------------------------------------
+// One obvious thing to do, then two things worth looking at, then two small
+// ones. The four equal circles that used to sit here read as a menu of app
+// features; a child opening this should see somewhere to start instead.
 function renderIdle() {
   setActiveTab('home');
+  stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="home-wordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;margin:0 auto;"></div>
-    <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic-v2.webp" alt="Record"></button>
+    <div class="mic-wrap mic-alive" id="micWrap">
+      <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic-v2.webp" alt="Record"></button>
+    </div>
     <div class="stage-label">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
     <div class="stage-sub">Hear some birds? Then tap the mic!</div>
-    <div class="home-arc">
-      <button class="arc-btn" id="tipsTile" style="--x:-121px; --y:16px;">
-        <span class="arc-circle">💡</span>
-        <span class="arc-label">Tips</span>
+
+    <button class="home-card herenow-card" id="hereNowCard">
+      ${FLYING_BIRDS_SVG}
+      <div class="home-card-eyebrow">🪽 Here Now</div>
+      <div class="herenow-head" id="hereNowHead">Who's visiting?</div>
+      <div class="herenow-sub"><span id="hereNowSub">Discover the birds around you right now</span> →</div>
+    </button>
+
+    <button class="home-card challenge-card" id="challengeCard">
+      <div class="home-card-eyebrow">🎯 Your challenge
+        <span class="spacer"></span>
+        <span class="challenge-tally" id="challengeTally"></span>
+      </div>
+      <div class="challenge-text" id="challengeText">Loading…</div>
+      <div class="challenge-bar"><div class="challenge-fill" id="challengeFill" style="width:0%"></div></div>
+      <div class="challenge-note" id="challengeNote"></div>
+    </button>
+
+    <div class="home-minis">
+      <button class="mini-card mini-tip" id="tipMini">
+        <span class="mini-icon">💡</span>
+        <span class="mini-text">
+          <span class="mini-label">Listening tip</span>
+          <span class="mini-body">${escapeFlock(tipOfTheDay().title)}</span>
+        </span>
       </button>
-      <button class="arc-btn" id="seasonTile" style="--x:-56px; --y:108px;">
-        <span class="arc-circle">🗓️<span class="arc-badge" id="seasonBadge"></span></span>
-        <span class="arc-label">Here Now</span>
-      </button>
-      <button class="arc-btn" id="challengeTile" style="--x:56px; --y:108px;">
-        <span class="arc-circle">🎯<span class="arc-badge" id="challengeBadge"></span></span>
-        <span class="arc-label">Challenges</span>
-      </button>
-      <button class="arc-btn" id="jokeTile" style="--x:121px; --y:16px;">
-        <span class="arc-circle" id="jokeTileIcon">😄</span>
-        <span class="arc-label">Joke</span>
+      <button class="mini-card mini-joke" id="jokeMini">
+        <span class="mini-icon" id="jokeMiniIcon">😄</span>
+        <span class="mini-text">
+          <span class="mini-label">Bird joke</span>
+          <span class="mini-body" id="jokeMiniBody">Tap me!</span>
+        </span>
       </button>
     </div>
   `;
-  document.getElementById('recordBtn').onclick = startRecording;
-  document.getElementById('challengeTile').onclick = renderChallenges;
-  document.getElementById('seasonTile').onclick = renderWhatsHere;
-  loadSeasonTileStatus();
-  loadChallengeTileStatus();
-  document.getElementById('tipsTile').onclick = renderTips;
-  document.getElementById('jokeTile').onclick = renderJokeOfDay;
+
+  // Answer the tap before the listening screen has loaded - on a slow phone
+  // that gap is long enough for a child to press again.
+  const wrap = document.getElementById('micWrap');
+  const mic = document.getElementById('recordBtn');
+  mic.onpointerdown = () => wrap.classList.add('pressed');
+  mic.onpointerup = mic.onpointercancel = () => wrap.classList.remove('pressed');
+  mic.onclick = () => { wrap.classList.remove('mic-alive'); startRecording(); };
+
+  document.getElementById('hereNowCard').onclick = renderWhatsHere;
+  document.getElementById('challengeCard').onclick = renderChallenges;
+  document.getElementById('tipMini').onclick = renderTips;
+  document.getElementById('jokeMini').onclick = renderJokeOfDay;
+  loadHereNowCard();
+  loadChallengeCard();
   loadJokeTileStatus();
 }
 
-async function loadSeasonTileStatus() {
-  const el = document.getElementById('seasonBadge');
-  if (!el) return;
+// Three birds in the corner of the Here Now card. Drawn rather than an
+// emoji: this is the one picture on the screen that has to say "migration"
+// rather than "calendar".
+const FLYING_BIRDS_SVG = `<svg class="herenow-birds" viewBox="0 0 120 62" fill="none"
+  stroke="#fff" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+  <path class="b1" d="M12 26 q9 -11 18 0 q9 -11 18 0"/>
+  <path class="b2" d="M55 12 q7 -8 14 0 q7 -8 14 0"/>
+  <path class="b3" d="M78 40 q6 -7 12 0 q6 -7 12 0"/>
+</svg>`;
+
+// Rotates daily rather than per visit, so it reads as today's tip rather
+// than a shuffle, and a child can tell a friend about it.
+function tipOfTheDay() {
+  const start = new Date(new Date().getFullYear(), 0, 0);
+  const day = Math.floor((new Date() - start) / 86400000);
+  return WARBLING_TIPS[day % WARBLING_TIPS.length];
+}
+
+// Display copy only - never matched back against a species. Full common
+// names are what BirdNET returns and what everything else keys on, but
+// "Common House-Martin are back!" is not a sentence a seven-year-old reads.
+const SEASONAL_NICKNAMES = {
+  'Barn Swallow': 'swallows', 'Common House-Martin': 'house martins',
+  'Common Tern': 'terns', 'Willow Warbler': 'willow warblers',
+  'Common Whitethroat': 'whitethroats', 'Sedge Warbler': 'sedge warblers',
+  'Common Redstart': 'redstarts', 'Ring Ouzel': 'ring ouzels',
+  'Lesser Whitethroat': 'lesser whitethroats',
+  'Eurasian Reed Warbler': 'reed warblers',
+  'European Turtle-Dove': 'turtle doves', 'Eurasian Hobby': 'hobbies',
+  'Common Cuckoo': 'cuckoos', 'Redwing': 'redwings',
+};
+const nickname = n => SEASONAL_NICKNAMES[n] || n;
+
+async function loadHereNowCard() {
+  const head = document.getElementById('hereNowHead');
+  const sub = document.getElementById('hereNowSub');
+  if (!head) return;
   try {
     const res = await fetch('/whats-here');
     const d = await res.json();
-    // Leaving-soon is the urgent number, so it wins the badge when there is one
-    if (d.leaving_count) { el.textContent = d.leaving_count; el.classList.add('urgent'); }
-    else if (d.to_find) { el.textContent = d.to_find; }
-  } catch (e) { /* no badge is fine */ }
+    const birds = d.birds || [];
+    const of = st => birds.filter(b => b.state === st);
+    const leaving = of('leaving'), here = of('here').filter(b => b.pack), arriving = of('arriving');
+
+    // Urgency first: a bird about to go is the one thing here with a deadline.
+    if (leaving.length) {
+      head.textContent = `Last chance to hear the ${nickname(leaving[0].common_name)}!`;
+      sub.textContent = leaving.length > 1
+        ? `${leaving.length} birds are leaving soon` : 'They are leaving soon';
+    } else if (here.length) {
+      head.textContent = `The ${nickname(here[0].common_name)} are back!`;
+      sub.textContent = d.to_find
+        ? `${d.to_find} visiting bird${d.to_find === 1 ? '' : 's'} still to find`
+        : 'See every bird visiting right now';
+    } else if (arriving.length) {
+      head.textContent = `The ${nickname(arriving[0].common_name)} are on their way!`;
+      sub.textContent = 'See who is arriving next';
+    } else {
+      head.textContent = "Who's visiting?";
+      sub.textContent = 'Discover the birds around you right now';
+    }
+  } catch (e) { /* the card keeps the copy it rendered with */ }
+}
+
+async function loadChallengeCard() {
+  const text = document.getElementById('challengeText');
+  if (!text) return;
+  const tally = document.getElementById('challengeTally');
+  const fill = document.getElementById('challengeFill');
+  const note = document.getElementById('challengeNote');
+  try {
+    const res = await fetch('/weekly-challenges');
+    const d = await res.json();
+    const all = d.challenges || [];
+    // The one being worked on: furthest along of the unfinished ones, so the
+    // card shows progress a child can nearly finish rather than a fresh zero.
+    const open = all.filter(c => !c.complete)
+      .sort((a, b) => (b.progress / b.target) - (a.progress / a.target));
+
+    if (!all.length) {
+      text.textContent = 'New challenges every Monday';
+      note.textContent = 'Tap to take a look';
+      fill.style.width = '0%';
+      return;
+    }
+    if (!open.length) {
+      tally.textContent = `${all.length}/${all.length}`;
+      text.textContent = 'Every challenge done this week!';
+      fill.style.width = '100%';
+      fill.classList.add('done');
+      note.textContent = 'Come back on Monday for more 🎉';
+      return;
+    }
+    const c = open[0];
+    tally.textContent = `${c.progress}/${c.target}`;
+    text.textContent = c.text;
+    fill.style.width = Math.round((c.progress / c.target) * 100) + '%';
+    const left = c.target - c.progress;
+    note.textContent = c.progress === 0 ? "Let's get started!"
+      : left === 1 ? 'Just one more to go!'
+      : `${left} more to go!`;
+  } catch (e) {
+    text.textContent = 'This week\'s challenges';
+    note.textContent = 'Tap to take a look';
+  }
 }
 
 async function renderWhatsHere() {
@@ -1607,17 +1842,6 @@ async function renderMigrationCard(commonName, onBack) {
 
 }
 
-async function loadChallengeTileStatus() {
-  const el = document.getElementById('challengeBadge');
-  if (!el) return;
-  try {
-    const res = await fetch('/weekly-challenges');
-    const d = await res.json();
-    const total = (d.challenges || []).length;
-    if (d.completed < total) el.textContent = `${d.completed}/${total}`;
-  } catch (e) { /* no badge is fine */ }
-}
-
 async function renderChallenges() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
@@ -1667,9 +1891,13 @@ async function loadJokeTileStatus() {
   try {
     const res = await fetch('/joke-of-the-day');
     const data = await res.json();
-    const iconEl = document.getElementById('jokeTileIcon');
+    const iconEl = document.getElementById('jokeMiniIcon');
     if (!iconEl) return; // already navigated away before this resolved
     iconEl.textContent = data.unlocked ? '😄' : '🔒';
+    // A padlock on its own is a dead end. The joke unlocks after a listen,
+    // which is the thing we want them doing anyway.
+    const bodyEl = document.getElementById('jokeMiniBody');
+    if (bodyEl) bodyEl.textContent = data.unlocked ? 'Tap me!' : 'Listen first';
   } catch (e) { /* leave the loading text if this fails */ }
 }
 
@@ -3391,6 +3619,10 @@ async function startRecording() {
     // mic button, not just from Home - so make sure the Home tab reads as
     // active rather than leaving whatever tab was highlighted before.
     setActiveTab('home');
+    // Home is top-aligned now that it carries cards below the mic, and every
+    // screen in the recording flow - listening, saving, the results pile, the
+    // reveal - is centred and had been relying on Home to leave this off.
+    stage.classList.remove('top-aligned');
     requestGpsPosition();
     // { audio: true } accepts the browser's voice-call defaults: noise
     // suppression, echo cancellation and automatic gain control all on. Those
