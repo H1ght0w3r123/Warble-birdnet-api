@@ -20,10 +20,14 @@ that pack shows up in the app (discovery discs, My Birds cards, the pack's
 own cards), so the same small coloured marker means "this bird belongs to
 this pack" no matter which screen you're looking at.
 
-Each pack also carries an "art" slug, naming its three painted assets in
-static/: pack-<art>-icon-v1.webp (the loose shape), -badge-v1.webp (the same
-shape on a wooden coin) and -name-v1.webp (the painted wordmark). The "emoji"
-beside it stays as the plain-text fallback.
+Each pack also carries an "art" slug, naming its painted assets in static/:
+pack-<art>-icon-v2.webp (the loose shape), -badge-v2.webp (the same shape on
+a wooden coin), -name-v2.webp (the painted wordmark) and -emblem-v2.webp (the
+flat one-colour mark the card frame's corner discs are masked to). The
+version suffix is the cache-buster and moves when the art is re-exported, so
+these names go stale - tools/build_pack_art.py is what writes them, and the
+src= lines in static/index.html are what read them. The "emoji" beside the
+slug stays as the plain-text fallback.
 """
 
 PACKS = {

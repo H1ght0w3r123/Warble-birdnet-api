@@ -5645,8 +5645,8 @@ function renderPackSelector() {
     <div class="pack-nav">
       <button class="pack-arrow" id="packPrev" aria-label="Previous pack">&lsaquo;</button>
       <button class="pack-current" id="packCurrent">
-        <img class="pack-current-icon" src="/static/pack-${p.art}-icon-v1.webp" alt="">
-        <img class="pack-current-name" src="/static/pack-${p.art}-name-v1.webp" alt="${p.name}">
+        <img class="pack-current-icon" src="/static/pack-${p.art}-icon-v2.webp" alt="">
+        <img class="pack-current-name" src="/static/pack-${p.art}-name-v2.webp" alt="${p.name}">
       </button>
       <button class="pack-arrow" id="packNext" aria-label="Next pack">&rsaquo;</button>
     </div>
@@ -5692,9 +5692,9 @@ function openAllPacks() {
       <div class="all-packs-grid">
         ${allPacksRaw.map((p, i) => `
           <button class="all-pack ${i === selectedPack ? 'on' : ''} ${p.complete ? 'done' : ''}" data-i="${i}">
-            <img class="all-pack-badge" src="/static/pack-${p.art}-badge-v1.webp" alt="">
+            <img class="all-pack-badge" src="/static/pack-${p.art}-badge-v2.webp" alt="">
             <span class="all-pack-text">
-              <img class="all-pack-name" src="/static/pack-${p.art}-name-v1.webp" alt="${p.name}">
+              <img class="all-pack-name" src="/static/pack-${p.art}-name-v2.webp" alt="${p.name}">
               <span class="all-pack-count">${p.cards_found}/${p.cards_total}</span>
             </span>
           </button>`).join('')}
