@@ -971,12 +971,14 @@
      downward as badges appear during a recording. */
   .rec-column{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;}
   .live-bird-stack{display:flex;justify-content:center;align-items:center;margin-bottom:14px;height:56px;position:relative;z-index:1;}
-  /* The badge is the carved medallion itself - the art has its own wooden
-     ring, so the element carries no border or background of its own, the
-     same way the mic button does. */
+  /* The badge is the carved tile itself - the art has its own wooden
+     frame, so the element carries no border or background of its own, the
+     same way the mic button does. The 10% radius is measured off the art:
+     the painted corner arc is 98px on a 966px tile, so at 46px the box
+     shadow and the gold glow follow the wood instead of cutting across it. */
   .live-bird-badge{
     position:relative;
-    width:46px;height:46px;border-radius:50%;
+    width:46px;height:46px;border-radius:10%;
     background:none;border:none;
     margin-left:-14px; box-shadow:0 3px 8px rgba(26,17,40,0.4);
     display:flex;align-items:center;justify-content:center;
@@ -993,15 +995,17 @@
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
               rareGlow 1.9s ease-in-out .5s infinite;
   }
-  /* Two rings of gold, a tight bright one and a wide soft one, so the glow
-     has a core rather than just a haze. */
+  /* Two rings of gold, a tight bright one and a wider soft one. Both reach
+     about half as far as they used to but carry more alpha, so the glow
+     hugs the tile as a bright edge rather than washing across its
+     neighbours. */
   @keyframes rareGlow{
     0%,100%{box-shadow:0 3px 8px rgba(26,17,40,0.4),
-                       0 0 13px 4px rgba(255,195,0,0.85),
-                       0 0 26px 11px rgba(255,195,0,0.40);}
+                       0 0 7px 2px rgba(255,199,20,0.95),
+                       0 0 13px 6px rgba(255,195,0,0.60);}
     50%    {box-shadow:0 3px 8px rgba(26,17,40,0.4),
-                       0 0 24px 8px rgba(255,199,20,1),
-                       0 0 46px 20px rgba(255,195,0,0.62);}
+                       0 0 12px 4px rgba(255,205,40,1),
+                       0 0 23px 10px rgba(255,195,0,0.85);}
   }
   .live-bird-badge:first-child{margin-left:0;}
   /* The pack-colour marker, still used on the live-detection badges' cousins
@@ -1034,8 +1038,8 @@
     .live-bird-badge.rare{
       animation:none;
       box-shadow:0 3px 8px rgba(26,17,40,0.4),
-                 0 0 18px 6px rgba(255,195,0,0.9),
-                 0 0 34px 14px rgba(255,195,0,0.45);
+                 0 0 9px 3px rgba(255,202,30,1),
+                 0 0 17px 8px rgba(255,195,0,0.72);
     }
   }
   /* Three levels of find, escalating in weight so the difference is obvious
@@ -2133,12 +2137,12 @@ async function loadRecordingLocation() {
 // so it can be restored after a photo is cleared.
 const PROFILE_BIRD_SVG = '<svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
 
-const BADGE_BIRD_IMG = '<img src="/static/live-bird-v1.webp" alt="">';
+const BADGE_BIRD_IMG = '<img src="/static/live-bird-v2.webp" alt="">';
 
-// Rare first, then collector birds, then anything else - so the best find
-// of the session sits at the front of the badge stack.
 // Rare first. Anything else - Common, or a bird outside Warble's hundred
 // with no tier at all - sorts together, because they now look the same.
+// Rare leading also keeps the gold off its neighbours: a badge's glow paints
+// over the badges declared before it, and there are none before the first.
 const TIER_ORDER = { Rare: 0 };
 let liveDetectedBirds = [];
 let liveBadgedSpecies = new Set();
@@ -2146,7 +2150,7 @@ let liveBadgedSpecies = new Set();
 function renderLiveBirdStack() {
   const el = document.getElementById('liveBirdStack');
   if (!el) return;
-  // Tiered (pack) birds first and rarest-first; untiered birds after them.
+  // Rare birds to the front, everything else in the order it was heard.
   const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 1) - (TIER_ORDER[b.tier] ?? 1));
   el.innerHTML = sorted.map((bird, i) => {
     const t = sessionTier(bird.tier);
