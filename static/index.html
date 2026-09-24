@@ -43,21 +43,27 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{overflow-x:hidden;}
+  /* The page does not scroll: #scroller does. Everything that moves lives
+     inside it, and it stops at the top of the nav bar - so the only thing
+     ever behind the nav is the scene, which is what lets the nav be
+     transparent. Before this, the bird grid slid underneath and the labels
+     landed on cream card faces at 1.17:1. */
   body{
     font-family:'Poppins',sans-serif;
     color:#fff;
-    min-height:100vh;
-    /* clip, not hidden: overflow-x:hidden makes body a scroll container, and
-       a sticky element inside a scroll container that is not the one actually
-       scrolling never sticks. clip contains the same overflow without
-       creating that container. The hidden line stays underneath it for
-       browsers that do not know clip - they lose the sticky bar, not the
-       layout. */
-    overflow-x:hidden;
-    overflow-x:clip;
-    display:flex; flex-direction:column; align-items:center;
-    padding:20px 16px 90px;
+    height:100vh; height:100lvh;
+    overflow:hidden;
     transition:background 1.2s ease;
+  }
+  /* lvh for the same reason #sceneBg uses it: a phone hides its address bar
+     as you scroll, and a pane sized in vh would change height mid-scroll and
+     drag the crop line with it. */
+  #scroller{
+    position:fixed; top:0; left:0; right:0; bottom:var(--nav-h, 64px);
+    overflow-y:auto; overflow-x:hidden;
+    display:flex; flex-direction:column; align-items:center;
+    padding:20px 16px 20px;
+    -webkit-overflow-scrolling:touch;
   }
 
   /* --- Time-of-day backgrounds, applied globally, every screen --- */
@@ -186,7 +192,7 @@
   body.scene-on .reset-note, body.scene-on .stat-empty,
   body.scene-on .flock-stats, body.scene-on .pack-tally,
   body.scene-on .pack-blurb, body.scene-on .fan-caption,
-  body.scene-on .challenge-strip,
+  body.scene-on .challenge-strip, body.scene-on .nav-tab,
   body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
     /* Four stacked shadows, not one. A single soft shadow reads as a shadow
        but does almost nothing for legibility - measured, it moved the worst
@@ -255,45 +261,75 @@
 
   .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;margin-top:16px;}
 
-  /* --- Bottom tab navigation, fixed, present on every screen --- */
+  /* --- Bottom tab navigation, fixed, present on every screen ---
+     The white slab is gone and a single white hairline says where the bar
+     starts. The drop shadow went with the slab - it was a shadow cast onto
+     the content by a solid bar, and there is no solid bar now.
+     It is not fully transparent, though, and the reason is measured. With
+     no fill at all, My Flock's bird grid scrolls underneath and the labels
+     land on the cream card faces: white type on rgb(245,237,214) is 1.17:1,
+     which is invisible. Over a cream card it takes about 0.55 of ink to
+     reach 4.5:1, so the gradient runs from nothing at the hairline to 0.68
+     at the very bottom where the labels sit. On Home, where the scene is
+     dark down there anyway, it reads as no bar at all; on the busy screens
+     it gives the type a floor. */
   .bottom-nav{
-    position:fixed; bottom:0; left:0; width:100%; background:#fff;
+    position:fixed; bottom:0; left:0; width:100%;
+    background:linear-gradient(180deg,
+      rgba(26,17,40,0) 0%, rgba(26,17,40,0.22) 34%,
+      rgba(26,17,40,0.56) 70%, rgba(26,17,40,0.68) 100%);
     display:flex; justify-content:space-around; align-items:center;
     padding:4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
-    box-shadow:0 -4px 16px rgba(0,0,0,0.1); z-index:20;
+    border-top:1px solid rgba(255,255,255,0.65); z-index:20;
   }
   /* flex:1 on every slot (with the Home circle fixed) is what actually
      centres Home. Previously the empty void slot was only as wide as its
      padding while the real tabs sized to their labels, so the left side was
      much narrower than the right and Home sat off-centre. */
+  /* White, not --mist-dk. That muted purple was picked to sit on a white
+     bar; with the bar gone the labels sit on the scene, so they take the
+     same treatment as every other run of naked type - white, and in the
+     body.scene-on shadow list below. */
   .nav-tab{
     display:flex; flex-direction:column; align-items:center; gap:1px;
-    background:none; border:none; cursor:pointer; padding:2px 6px;
-    color:var(--mist-dk); font-family:'Poppins'; font-size:10.8px; font-weight:700;
+    background:none; border:none; cursor:pointer; padding:2px 3px;
+    color:#fff; font-family:'Poppins'; font-size:10.8px; font-weight:700;
     flex:1 1 0; min-width:0;
   }
-  /* "The Hoot-tique" is longer than any other label and wraps to two
-     lines at the shared 10.8px size - shrunk just this one so it fits on
-     one line within its ~66px available width. */
-  #navDressUp span:last-child{font-size:9.3px;}
-  .nav-tab .nav-icon-svg{width:35.6px; height:35.6px; color:var(--mist-dk);}
+  .nav-tab.active{color:var(--gold);}
+  /* "The Hoot-tique" is far longer than any other label. It has always
+     needed its own size, and the bigger Home button took 28px of width off
+     the other four tabs, so it needs a smaller one: measured on one line it
+     is 60.7px at 9.3px and 56.1px at 8.6px, against 56px of room on a 360px
+     phone and 62px on a 390px one. The tab padding came down from 6px to
+     3px a side to find part of that back.
+     At 320px there is only 48px per tab and this label cannot fit on one
+     line at any size worth reading - it wrapped there before any of this
+     too, and two lines is the better answer than four-point type. */
+  #navDressUp span:last-child{font-size:8.6px;}
+  .nav-tab .nav-icon-svg{width:49.8px; height:49.8px; color:#fff;}
   .nav-tab.active .nav-icon-svg{color:var(--terra);}
-  /* Kept at the icon's own 35.6px box (not enlarged) rather than adding
-     visible padding around it - .pines is positioned at a hardcoded
-     bottom:64px that assumes this exact nav-bar height, and grew the icon
-     box once broke that before. */
+  /* 49.8px is 35.6 up by 40%. The wrap matches it exactly rather than
+     padding around it. Growing this used to be dangerous - the recording
+     screen's pine silhouette was pinned to a hardcoded nav height and any
+     change here broke it - but the pines are gone, and nothing else depends
+     on how tall the bar happens to be. */
   .nav-icon-wrap{
     display:flex; align-items:center; justify-content:center;
-    width:35.6px; height:35.6px; border-radius:50%;
+    width:49.8px; height:49.8px; border-radius:50%;
     transition:background-color .15s;
   }
-  .nav-tab.active .nav-icon-wrap{background:rgba(232,132,92,0.18);}
+  /* Stronger than the 0.18 it was: that was tuned against a flat white bar,
+     and on a photograph it disappeared. */
+  .nav-tab.active .nav-icon-wrap{background:rgba(232,132,92,0.34);}
 
   /* --- Home gets a raised, circular treatment as the primary tab --- */
+  /* Up 40% with the rest: 69 -> 96.6, and the lift that keeps it riding
+     proud of the bar scaled with it, -25 -> -35. */
   .nav-tab.home-tab{
-    flex:0 0 69px;
-    width:69px; height:69px; border-radius:50%;
-    background:transparent; margin-top:-25px; gap:0;
+    flex:0 0 96.6px;
+    width:96.6px; height:96.6px; border-radius:50%;
+    background:transparent; margin-top:-35px; gap:0;
     box-shadow:none;
     justify-content:center;
   }
@@ -304,16 +340,6 @@
      inside a flat terracotta circle. */
   .nav-tab.home-tab .nav-icon-svg{width:100%; height:100%; color:#fff;}
   .nav-tab.home-tab span:last-child{display:none;}
-
-  /* --- Recording screen keeps its pine silhouette as the one
-     screen-specific extra, on top of whatever the global time-of-day
-     background currently is. Sits just above the bottom nav bar (which is
-     opaque and z-index:20) rather than behind it - at bottom:0 it was
-     completely hidden behind the nav bar's own footprint. --- */
-  .pines{
-    position:fixed; bottom:64px; left:0; width:100%; height:70px; background:var(--ink); z-index:1;
-    clip-path:polygon(0 100%,0 60%,5% 10%,10% 60%,15% 60%,20% 5%,25% 60%,30% 60%,35% 15%,40% 60%,45% 60%,50% 0%,55% 60%,60% 60%,65% 15%,70% 60%,75% 60%,80% 5%,85% 60%,90% 60%,95% 10%,100% 60%,100% 100%);
-  }
 
   /* --- Idle / Recording --- */
   .mic-btn{
@@ -1753,6 +1779,7 @@
     </filter>
   </svg>
 
+  <div id="scroller">
   <div class="top">
     <div class="feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> <span id="featherCount">–</span></div>
     <div class="top-wordmark" id="topWordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;"></div>
@@ -1765,9 +1792,10 @@
   </div>
 
 
-  <div id="sceneBg"></div>
-
   <div class="stage" id="stage"></div>
+  </div>
+
+  <div id="sceneBg"></div>
 
   <div class="bottom-nav">
     <button class="nav-tab" id="navHabitats" data-tab="habitats">
@@ -2302,7 +2330,6 @@ function renderRecording() {
   liveDetectedBirds = [];
   liveBadgedSpecies = new Set();
   stage.innerHTML = `
-    <div class="pines"></div>
     <div class="rec-column">
       <div class="live-bird-stack" id="liveBirdStack"></div>
       ${treeSvgMarkup()}
@@ -2908,7 +2935,7 @@ function renderCollection() {
   // Tapping the collapsed title goes back to the top, so the header you just
   // scrolled past is one tap away rather than a long swipe.
   document.getElementById('flockCompactTitle').onclick = () =>
-    window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+    scroller().scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
 
   watchFlockBar();
   loadCollection();
@@ -2956,13 +2983,17 @@ function watchFlockBar() {
   const mark = document.createElement('div');
   mark.style.cssText = 'position:absolute;height:1px;width:1px;';
   bar.parentNode.insertBefore(mark, bar);
+  // root is the pane, not the viewport. An IntersectionObserver left on its
+  // default root watches the window, and the window no longer scrolls - the
+  // sentinel would never cross anything and the bar would never stick. This
+  // is the same trap as the overflow-x:hidden one noted on body.
   new IntersectionObserver(([e]) => {
     bar.classList.toggle('stuck', !e.isIntersecting);
     setSortLabel();
     // Collapsing on top of a live search would hide the text you typed, so
     // the field stays unfolded while there is anything in it.
     if (flockQuery) bar.classList.add('searching');
-  }, { threshold: 0 }).observe(mark);
+  }, { threshold: 0, root: scroller() }).observe(mark);
 }
 
 // --- the pipeline ----------------------------------------------------------
@@ -3250,8 +3281,10 @@ function toggleAllHistoryDays() {
     const grid = document.getElementById('collectionGrid');
     const bar = document.getElementById('flockBar');
     if (grid && bar) {
-      const top = window.scrollY + grid.getBoundingClientRect().top - bar.offsetHeight - 6;
-      window.scrollTo({ top: Math.max(0, top), behavior: reducedMotion() ? 'auto' : 'smooth' });
+      const pane = scroller();
+      const top = pane.scrollTop + grid.getBoundingClientRect().top
+                  - pane.getBoundingClientRect().top - bar.offsetHeight - 6;
+      pane.scrollTo({ top: Math.max(0, top), behavior: reducedMotion() ? 'auto' : 'smooth' });
     }
   }
 }
@@ -4446,6 +4479,23 @@ const sceneUrl = (id, band) => `/static/scene-${id}-${band}-v2.webp`;
 // is not understood it falls back to vh, which a phone changes as the address
 // bar comes and goes - so remember the tallest viewport seen and hold the
 // layer at that. It can grow once, on the first scroll, and never shrink.
+// What actually scrolls is #scroller, not the window - the pane stops at the
+// top of the nav bar so that content never passes behind it. Everything that
+// used to reach for window.scrollTo or window.scrollY goes through here.
+const scroller = () => document.getElementById('scroller');
+
+// The pane's bottom edge is the nav bar's top edge, so the bar's real height
+// has to be published rather than guessed. Measured, not hardcoded: the old
+// hardcoded 64px was already 3px wrong, and the icons have since grown 40%.
+function syncNavHeight() {
+  const nav = document.querySelector('.bottom-nav');
+  if (!nav) return;
+  document.documentElement.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+}
+syncNavHeight();
+window.addEventListener('resize', syncNavHeight);
+window.addEventListener('orientationchange', () => setTimeout(syncNavHeight, 350));
+
 let sceneMaxHeight = 0;
 function sizeSceneLayer() {
   const el = document.getElementById('sceneBg');
