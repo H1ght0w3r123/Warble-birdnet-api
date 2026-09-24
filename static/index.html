@@ -186,6 +186,7 @@
   body.scene-on .reset-note, body.scene-on .stat-empty,
   body.scene-on .flock-stats, body.scene-on .pack-tally,
   body.scene-on .pack-blurb, body.scene-on .fan-caption,
+  body.scene-on .challenge-strip,
   body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
     /* Four stacked shadows, not one. A single soft shadow reads as a shadow
        but does almost nothing for legibility - measured, it moved the worst
@@ -391,9 +392,39 @@
   /* Challenge: parchment, because this one is about keeping score. */
   .challenge-card{background:var(--parch); color:var(--dusk); padding:14px 16px 15px;}
   .challenge-card .home-card-eyebrow{color:var(--mist-dk);}
-  .challenge-tally{
-    font-family:'Poppins'; font-weight:900; font-size:12px; letter-spacing:0;
-    color:var(--gold-dk); background:#fff; border-radius:11px; padding:2px 9px;
+
+  /* --- The weekly challenge on Home, reduced to a line ------------------
+     It used to be a full cream card: an eyebrow, the challenge, a progress
+     bar and a "3 more to go" note. Four pieces of furniture around one
+     number, on a screen whose job is to get a child outside. What is left is
+     the icon, what the challenge is, and how far along it is.
+     Losing the card means losing the background the type was sitting on, so
+     it now sits directly on the scene - which is why .challenge-strip is in
+     the body.scene-on shadow list with every other run of naked text.
+     text-shadow inherits, so the one rule covers the title and the tally. */
+  .challenge-strip{
+    display:flex; align-items:center; gap:10px;
+    width:100%; margin-top:18px; padding:2px 2px;
+    background:none; border:none; cursor:pointer; text-align:left;
+    color:#fff; font-family:'Poppins';
+    transition:transform .12s ease;
+  }
+  .challenge-strip:active{transform:scale(.985);}
+  /* Sized as a box rather than a font size, so the emoji standing in for the
+     carved icon and the icon itself occupy exactly the same space and the
+     swap moves nothing. */
+  .challenge-strip-icon{
+    flex:0 0 auto; width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; line-height:1;
+  }
+  .challenge-strip-icon img{width:100%; height:100%; object-fit:contain; display:block;}
+  .challenge-strip-text{
+    flex:1 1 auto; min-width:0;
+    font-weight:700; font-size:13.5px; line-height:1.3; overflow-wrap:anywhere;
+  }
+  .challenge-strip-tally{
+    flex:0 0 auto; font-weight:900; font-size:14.5px; color:var(--gold);
   }
   .challenge-text{
     font-family:'Poppins'; font-weight:700; font-size:15px; color:var(--ink);
@@ -402,16 +433,6 @@
   .challenge-bar{
     height:14px; border-radius:7px; background:#fff; overflow:hidden;
     box-shadow:inset 0 1px 3px rgba(26,17,40,0.16);
-  }
-  .challenge-fill{
-    height:100%; border-radius:7px; min-width:14px;
-    background:linear-gradient(90deg,var(--gold),#F0A93C);
-    transition:width .5s cubic-bezier(.3,.9,.4,1);
-  }
-  .challenge-fill.done{background:linear-gradient(90deg,var(--sage),#3F9C72);}
-  .challenge-note{
-    font-family:'Poppins'; font-weight:700; font-size:12.5px;
-    color:var(--mist-dk); margin-top:8px;
   }
 
   /* Tip and joke: a light strip, deliberately not a third and fourth card. */
@@ -449,7 +470,6 @@
   @media (prefers-reduced-motion: reduce){
     .mic-alive .mic-icon,
     .herenow-birds .b1, .herenow-birds .b2, .herenow-birds .b3{animation:none;}
-    .challenge-fill{transition:none;}
   }
   .stage-label{margin-top:22px;font-family:'Poppins';font-weight:700;font-size:16px;color:#fff;text-align:center;}
   .stage-sub{margin-top:6px;font-size:13px;color:rgba(255,255,255,0.85);text-align:center;}
@@ -1862,14 +1882,10 @@ function renderIdle() {
              loadHereNowCard();
          Note that this card was the ONLY way into renderWhatsHere, so that
          screen is currently unreachable rather than merely hidden. -->
-    <button class="home-card challenge-card" id="challengeCard">
-      <div class="home-card-eyebrow">🎯 Your challenge
-        <span class="spacer"></span>
-        <span class="challenge-tally" id="challengeTally"></span>
-      </div>
-      <div class="challenge-text" id="challengeText">Loading…</div>
-      <div class="challenge-bar"><div class="challenge-fill" id="challengeFill" style="width:0%"></div></div>
-      <div class="challenge-note" id="challengeNote"></div>
+    <button class="challenge-strip" id="challengeCard">
+      <span class="challenge-strip-icon" id="challengeIcon">🎯</span>
+      <span class="challenge-strip-text" id="challengeText">Loading…</span>
+      <span class="challenge-strip-tally" id="challengeTally"></span>
     </button>
 
     <div class="home-minis">
@@ -1964,46 +1980,38 @@ async function loadHereNowCard() {
   } catch (e) { /* the card keeps the copy it rendered with */ }
 }
 
+// One line on Home: what the challenge is, and the count. The encouragement
+// ("3 more to go!") and the bar both went with the card - the tally says the
+// same thing in less room, and the Challenges screen still has all of it.
 async function loadChallengeCard() {
   const text = document.getElementById('challengeText');
   if (!text) return;
   const tally = document.getElementById('challengeTally');
-  const fill = document.getElementById('challengeFill');
-  const note = document.getElementById('challengeNote');
   try {
     const res = await fetch('/weekly-challenges');
     const d = await res.json();
     const all = d.challenges || [];
-    // The one being worked on: furthest along of the unfinished ones, so the
-    // card shows progress a child can nearly finish rather than a fresh zero.
+    // The one being worked on: furthest along of the unfinished ones, so it
+    // shows progress a child can nearly finish rather than a fresh zero.
     const open = all.filter(c => !c.complete)
       .sort((a, b) => (b.progress / b.target) - (a.progress / a.target));
 
     if (!all.length) {
       text.textContent = 'New challenges every Monday';
-      note.textContent = 'Tap to take a look';
-      fill.style.width = '0%';
+      tally.textContent = '';
       return;
     }
     if (!open.length) {
-      tally.textContent = `${all.length}/${all.length}`;
       text.textContent = 'Every challenge done this week!';
-      fill.style.width = '100%';
-      fill.classList.add('done');
-      note.textContent = 'Come back on Monday for more 🎉';
+      tally.textContent = `${all.length}/${all.length}`;
       return;
     }
     const c = open[0];
-    tally.textContent = `${c.progress}/${c.target}`;
     text.textContent = c.text;
-    fill.style.width = Math.round((c.progress / c.target) * 100) + '%';
-    const left = c.target - c.progress;
-    note.textContent = c.progress === 0 ? "Let's get started!"
-      : left === 1 ? 'Just one more to go!'
-      : `${left} more to go!`;
+    tally.textContent = `${c.progress}/${c.target}`;
   } catch (e) {
-    text.textContent = 'This week\'s challenges';
-    note.textContent = 'Tap to take a look';
+    text.textContent = "This week's challenges";
+    tally.textContent = '';
   }
 }
 
