@@ -987,22 +987,21 @@
      not. cardReveal and rareGlow can share this element because one animates
      transform and the other box-shadow - it is the jitter, which is also a
      transform, that has to live on the wrapper inside. */
+  /* No z-index: a rare badge sits in the pack like any other, and the next
+     one along is welcome to cover part of its glow. */
   .live-bird-badge.rare{
-    /* Badges overlap by 14px, so without this the next one along paints over
-       the glow and eats most of it. */
-    z-index:2;
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
               rareGlow 1.9s ease-in-out .5s infinite;
   }
+  /* Two rings of gold, a tight bright one and a wide soft one, so the glow
+     has a core rather than just a haze. */
   @keyframes rareGlow{
-    0%,100%{box-shadow:0 3px 8px rgba(26,17,40,0.4), 0 0 9px 2px rgba(255,195,0,0.55);}
-    50%    {box-shadow:0 3px 8px rgba(26,17,40,0.4), 0 0 20px 6px rgba(255,195,0,0.95);}
-  }
-  @media (prefers-reduced-motion: reduce){
-    .live-bird-badge.rare{
-      animation:none;
-      box-shadow:0 3px 8px rgba(26,17,40,0.4), 0 0 14px 4px rgba(255,195,0,0.8);
-    }
+    0%,100%{box-shadow:0 3px 8px rgba(26,17,40,0.4),
+                       0 0 13px 4px rgba(255,195,0,0.85),
+                       0 0 26px 11px rgba(255,195,0,0.40);}
+    50%    {box-shadow:0 3px 8px rgba(26,17,40,0.4),
+                       0 0 24px 8px rgba(255,199,20,1),
+                       0 0 46px 20px rgba(255,195,0,0.62);}
   }
   .live-bird-badge:first-child{margin-left:0;}
   /* The pack-colour marker, still used on the live-detection badges' cousins
@@ -1023,11 +1022,21 @@
      one synchronised block. */
   .badge-jitter{display:flex;align-items:center;justify-content:center;animation-name:badgeJitter;animation-timing-function:ease-in-out;animation-iteration-count:infinite;}
   @keyframes badgeJitter{
-    0%,100%{transform:rotate(0deg) translate(0,0);}
-    20%{transform:rotate(-4deg) translate(-1px,0.6px);}
-    45%{transform:rotate(2deg) translate(0.6px,-1px);}
-    70%{transform:rotate(-2deg) translate(1px,0.6px);}
-    85%{transform:rotate(3deg) translate(-0.6px,-0.6px);}
+    0%,100%{transform:translate(0,0) rotate(0deg);}
+    20%{transform:translate(-0.7px,0.4px) rotate(-0.8deg);}
+    40%{transform:translate(0.6px,-0.6px) rotate(0.7deg);}
+    60%{transform:translate(-0.4px,-0.5px) rotate(-0.5deg);}
+    80%{transform:translate(0.6px,0.5px) rotate(0.6deg);}
+  }
+  /* Everything on this badge is decoration, so all of it stops. */
+  @media (prefers-reduced-motion: reduce){
+    .badge-jitter{animation:none;}
+    .live-bird-badge.rare{
+      animation:none;
+      box-shadow:0 3px 8px rgba(26,17,40,0.4),
+                 0 0 18px 6px rgba(255,195,0,0.9),
+                 0 0 34px 14px rgba(255,195,0,0.45);
+    }
   }
   /* Three levels of find, escalating in weight so the difference is obvious
      at a glance rather than needing the colours to be learned. */
@@ -2146,8 +2155,10 @@ function renderLiveBirdStack() {
     // the same trick used for the dancing avatar's wings - it's what makes
     // a row of badges read as independently jittering rather than one badge
     // copy-pasted sideways.
-    const dur = (2.1 + (i % 4) * 0.3).toFixed(2);
-    const delay = (-(i % 5) * 0.4).toFixed(2);
+    // Around half a second a cycle, varied slightly per badge and started
+    // mid-cycle, so a row hums rather than pulsing as one block.
+    const dur = (0.46 + (i % 4) * 0.05).toFixed(2);
+    const delay = (-(i % 5) * 0.11).toFixed(2);
     return `<div class="live-bird-badge ${bird.tier === 'Rare' ? 'rare' : ''}">
       <div class="badge-jitter" style="animation-duration:${dur}s; animation-delay:${delay}s;">${BADGE_BIRD_IMG}</div>
     </div>`;
