@@ -1852,13 +1852,16 @@ function renderIdle() {
     <div class="stage-label">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
     <div class="stage-sub">Hear some birds? Then tap the mic!</div>
 
-    <button class="home-card herenow-card" id="hereNowCard">
-      ${FLYING_BIRDS_SVG}
-      <div class="home-card-eyebrow">🪽 Here Now</div>
-      <div class="herenow-head" id="hereNowHead">Who's visiting?</div>
-      <div class="herenow-sub"><span id="hereNowSub">Discover the birds around you right now</span> →</div>
-    </button>
-
+    <!-- The "Here Now" card sat here and is parked, not deleted: Home was
+         getting crowded and what the feature should be is still an open
+         question. Everything behind it is untouched - renderWhatsHere, the
+         /whats-here endpoint, loadHereNowCard, FLYING_BIRDS_SVG and the
+         .herenow- styles. To bring it back, restore this markup and the two
+         lines below that wired it up:
+             document.getElementById('hereNowCard').onclick = renderWhatsHere;
+             loadHereNowCard();
+         Note that this card was the ONLY way into renderWhatsHere, so that
+         screen is currently unreachable rather than merely hidden. -->
     <button class="home-card challenge-card" id="challengeCard">
       <div class="home-card-eyebrow">🎯 Your challenge
         <span class="spacer"></span>
@@ -1888,11 +1891,9 @@ function renderIdle() {
   mic.onpointerup = mic.onpointercancel = () => wrap.classList.remove('pressed');
   mic.onclick = () => { wrap.classList.remove('mic-alive'); startRecording(); };
 
-  document.getElementById('hereNowCard').onclick = renderWhatsHere;
   document.getElementById('challengeCard').onclick = renderChallenges;
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
   setSceneFocus(true);
-  loadHereNowCard();
   loadChallengeCard();
   loadJokeTileStatus();
 }
