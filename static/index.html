@@ -148,30 +148,54 @@
        transparent on Home and comes up on the blurred screens, where the
        extra saturation would otherwise fight the cards sitting on top.
        A colour animates; the gradient stops above it could not.
-       0.38 is measured, not judged. The shaped scrim above was tuned around
-       where Home puts its heading, and the other screens put type wherever
-       they like - so every screen was rendered against all sixteen pictures
-       twice, once normally and once with every glyph made transparent, and
-       the contrast read off the pixels the glyphs actually land on. At 0.22
-       one control went backwards against the plain gradient these screens
-       used to wear: the translucent "Use bird" pill on My Profile, white on
-       a pale tint, over a bright dawn sky, 3.04 down to 2.64. 0.38 is the
-       lowest value at which nothing is worse than it was, and most things
-       are better - Collections 1.84 to 3.27, Settings 1.42 to 3.05. */
+       The blurred state also fades the whole scrim to 0.82, so the veil is
+       lighter overall rather than a wash piled on top of a scrim at full
+       strength. Together these leave about 0.37 of darkening where the
+       gradient is thinnest, against 0.54 before - roughly a third less.
+       Both numbers are measured. Every screen was rendered against all
+       sixteen pictures three times - as shipped, with text-shadow off, and
+       with the glyphs transparent - so the exact glyph mask comes from the
+       shadowless pair and the contrast is read against the ring of pixels
+       touching each letterform in the shipped render. The worst run of type
+       on any blurred screen against any sky sits at 2.72 here; at the old,
+       darker setting it was 2.32, because the type had almost no shadow to
+       help it. Home, whose scrim was tuned for it specifically, is 4.51. */
     background-color:rgba(26,17,40,0);
-    transition:background-color .55s ease;
+    opacity:1;
+    transition:background-color .55s ease, opacity .55s ease;
     background-image:linear-gradient(180deg,
       rgba(26,17,40,0.66) 0%,  rgba(26,17,40,0.32) 20%,
       rgba(26,17,40,0.26) 34%, rgba(26,17,40,0.57) 42%,
       rgba(26,17,40,0.60) 52%, rgba(26,17,40,0.45) 64%,
       rgba(26,17,40,0.54) 80%, rgba(26,17,40,0.68) 100%);
   }
-  body.scene-blurred #sceneBg::after{background-color:rgba(26,17,40,0.38);}
+  body.scene-blurred #sceneBg::after{background-color:rgba(26,17,40,0.26); opacity:0.82;}
   /* Belt and braces over the scrim: a shadow keeps a glyph readable where it
      lands on a highlight the gradient could not know about. Only when a
-     scene is up - on the plain gradient it just makes the type muddy. */
-  body.scene-on .stage-label, body.scene-on .stage-sub{
-    text-shadow:0 1px 2px rgba(26,17,40,0.75), 0 2px 12px rgba(26,17,40,0.55);
+     scene is up - on the plain gradient it just makes the type muddy.
+     The list past the first two is every run of type that sits straight on
+     the picture with no card under it, found by rendering each screen twice
+     - once normally, once with every glyph made transparent - and diffing.
+     They all used to be safe because the only thing behind them was a dark
+     purple gradient; on a dawn sky at 75% white they were the two screens
+     that went backwards when the veil was lightened. text-shadow inherits,
+     so putting it on the container covers the spans inside it. */
+  body.scene-on .stage-label, body.scene-on .stage-sub,
+  body.scene-on .back-btn, body.scene-on .collection-title,
+  body.scene-on .collection-count, body.scene-on .profile-section-title,
+  body.scene-on .reset-note, body.scene-on .stat-empty,
+  body.scene-on .flock-stats, body.scene-on .pack-tally,
+  body.scene-on .pack-blurb, body.scene-on .fan-caption,
+  body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
+    /* Four stacked shadows, not one. A single soft shadow reads as a shadow
+       but does almost nothing for legibility - measured, it moved the worst
+       run from 1.91 to 1.89. What small light type on a bright photograph
+       needs is a scrim it carries with it, so the first three are tight and
+       nearly opaque and build up into a dark collar right against the
+       letterform; the fourth is the wide soft one that stops the whole block
+       looking cut out. */
+    text-shadow:0 0 2px rgba(26,17,40,0.95), 0 0 4px rgba(26,17,40,0.85),
+                0 1px 3px rgba(26,17,40,0.92), 0 2px 12px rgba(26,17,40,0.5);
   }
   /* Nothing here animates for anyone who has asked for that: the scene
      arrives at whichever focus the screen calls for. */
@@ -612,6 +636,25 @@
     background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
     border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
   }
+  /* --- Controls that sit straight on the scene ------------------------
+     Six of these: prev-btn, the Hoot-tique reset, "Use bird" on My Profile,
+     the Settings reset buttons, the Collections pack arrows and the Awards
+     bonus rows. All of them are white type on a thin film of white, which
+     worked when the only thing behind them was a dark purple gradient and
+     stopped working the moment a daylit photograph went behind them instead.
+     They were the reason the blurred veil had to sit as dark as it did - the
+     measurement pass named the "Use bird" pill specifically.
+     brightness() on the backdrop rather than a different background colour:
+     it darkens whatever is actually behind each control, so the film of
+     white still reads as a lifted panel instead of turning into a smoked
+     one, and the control no longer depends on what the scene is doing.
+     Where backdrop-filter is not supported this is simply ignored and the
+     behaviour is what it was before. */
+  .prev-btn, .reset-accessories-btn, .photo-btn-clear,
+  .reset-btn, .pack-arrow, .bonus-row{
+    backdrop-filter:brightness(0.58) saturate(0.9);
+    -webkit-backdrop-filter:brightness(0.58) saturate(0.9);
+  }
   .prev-btn{
     flex:0 0 auto; padding:15px 20px;
     background:rgba(255,255,255,0.18); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
@@ -655,11 +698,39 @@
      (body scrolls, there is no inner pane), so position:sticky is enough. */
   .flock-stats{font-size:12.5px;color:rgba(245,237,214,0.82);text-align:center;margin-bottom:12px;}
   .flock-stats b{font-weight:700;color:var(--parch);}
+  /* No colour of its own any more - it used to be a slab of rgba(45,27,105)
+     which read as a purple box sitting on the scene. The work is done by the
+     backdrop instead of a fill, so what is left reads as frosted glass.
+     It still needs a fill when it is stuck, and the reason is worth writing
+     down: on a 50px-tall element Chromium's backdrop blur does far less
+     than the radius suggests, because that band is all the backdrop it has
+     to sample. blur(30px) with no fill left the grid's card labels plainly
+     readable through the bar. Measuring that properly took three goes -
+     mean-absolute-difference across the bar said the grid had gone while
+     the words were still there to read. What settles it is hiding the
+     labels and diffing: the contrast of what shows through. The purple bar
+     that shipped scored 1.025, near enough invisible, and it got there on
+     coverage rather than blur. So the fill stays and the colour goes.
+     Two strengths. At rest the only thing behind it is the already-blurred
+     scene, so 0.20 is enough and the bar all but disappears - which is the
+     state you are looking at when you arrive on the screen, and the state
+     the purple slab was most obvious in. Stuck, it has the grid running
+     underneath and needs 0.72 to match what the purple one hid (measured
+     1.044 against its 1.025). Dark ink rather than rgba(45,27,105): it
+     reads as the bar dimming what is behind it, the same ink as every other
+     scrim in the app, instead of a coloured panel of its own. */
   .flock-bar{
     position:sticky; top:0; z-index:40; width:100%;
     padding:8px 0 10px; margin-bottom:10px;
-    background:var(--flock-veil, rgba(45,27,105,0.82));
-    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    background:var(--flock-veil, rgba(26,17,40,0.20));
+    backdrop-filter:blur(10px) saturate(1.05);
+    -webkit-backdrop-filter:blur(10px) saturate(1.05);
+    transition:background-color .2s ease;
+  }
+  .flock-bar.stuck{
+    background:rgba(26,17,40,0.72);
+    backdrop-filter:blur(18px) saturate(1.02);
+    -webkit-backdrop-filter:blur(18px) saturate(1.02);
   }
   /* Pulled out to the full page width so the blur covers the gutter too,
      then padded back in, rather than a 16px strip of unblurred card
