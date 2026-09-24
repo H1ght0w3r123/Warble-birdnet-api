@@ -5559,31 +5559,6 @@ document.getElementById('navDressUp').onclick = renderDressUp;
 
 let allTrophiesRaw = [];
 
-// Per-trophy emblem, drawn in the cup's bowl. Each one represents the
-// achievement rather than being a generic badge.
-const TROPHY_EMBLEMS = {
-  fledgling: '<ellipse cx="0" cy="1" rx="9" ry="11.5" fill="#F5EDD6"/><path d="M-9 2 a9 11.5 0 0 0 18 0 a9 6 0 0 1 -18 0z" fill="#E4D5AE"/><path d="M-5 -3 l3 3 l-2 3" fill="none" stroke="#C4B48D" stroke-width="1.4" stroke-linecap="round"/>',
-  early_bird: '<path d="M-12 6 h24" stroke="#F5EDD6" stroke-width="2.2" stroke-linecap="round"/><path d="M-9 6 a9 9 0 0 1 18 0z" fill="#F2C94C"/><path d="M0 -10 v4 M-9 -6 l2.5 2.5 M9 -6 l-2.5 2.5" stroke="#F2C94C" stroke-width="2" stroke-linecap="round"/>',
-  nomad: '<circle cx="0" cy="0" r="11" fill="#F5EDD6"/><circle cx="0" cy="0" r="11" fill="none" stroke="#B85A36" stroke-width="2"/><path d="M0 -8 L3.5 0 L0 8 L-3.5 0 Z" fill="#C0392B"/><circle cx="0" cy="0" r="1.6" fill="#2D1B69"/>',
-  rooster: '<path d="M-6 10 q-4 -8 2 -12 q6 -4 9 1 q3 5 -1 11 z" fill="#F5EDD6"/><path d="M4 -3 q4 -1 5 2 l-5 1z" fill="#F2C94C"/><path d="M-2 -9 q1 -4 3 -1 q2 -4 3 0 q2 -3 2 1" fill="none" stroke="#C0392B" stroke-width="2.2" stroke-linecap="round"/><circle cx="2" cy="-2" r="1.4" fill="#2D1B69"/>',
-  golden_eagle: '<path d="M0 -9 q7 0 11 6 q-5 -1 -8 1 q4 1 6 5 q-6 -2 -9 1 q-3 -3 -9 -1 q2 -4 6 -5 q-3 -2 -8 -1 q4 -6 11 -6z" fill="#F5EDD6"/><path d="M0 1 q3 3 0 9 q-3 -6 0 -9z" fill="#F2C94C"/><circle cx="0" cy="-5" r="1.5" fill="#2D1B69"/>',
-  dawn_chorus: '<path d="M-11 5 h22" stroke="#F5EDD6" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/><ellipse cx="-5" cy="4" rx="3.4" ry="2.6" fill="#F5EDD6" transform="rotate(-18 -5 4)"/><path d="M-2 4 V-8 q5 1.5 6 4" fill="none" stroke="#F5EDD6" stroke-width="2"/><ellipse cx="6" cy="0" rx="3" ry="2.3" fill="#F2C94C" transform="rotate(-18 6 0)"/><path d="M8.8 0 V-9" stroke="#F2C94C" stroke-width="1.8"/>',
-  forager: '<path d="M0 10 q-1 -9 0 -14" stroke="#E4D5AE" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M0 -2 q-9 -2 -9 -9 q9 -1 9 9z" fill="#7EC8A4"/><path d="M0 1 q9 -2 9 -9 q-9 -1 -9 9z" fill="#5FB88F"/>',
-  night_owl: '<circle cx="0" cy="0" r="11" fill="#3D2A85"/><path d="M-9 -5 q1 -7 5 -6 M9 -5 q-1 -7 -5 -6" fill="none" stroke="#F5EDD6" stroke-width="2" stroke-linecap="round"/><circle cx="-4" cy="-1" r="4" fill="#F5EDD6"/><circle cx="4" cy="-1" r="4" fill="#F5EDD6"/><circle cx="-4" cy="-1" r="1.8" fill="#1A1128"/><circle cx="4" cy="-1" r="1.8" fill="#1A1128"/><path d="M0 3 l2.5 3 l-2.5 3 l-2.5 -3z" fill="#F2C94C"/>',
-  globetrotter: '<circle cx="0" cy="0" r="11" fill="#5B93C4"/><path d="M-11 -2 q6 -4 11 0 q5 4 11 0" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.55"/><path d="M-11 4 q6 -4 11 0 q5 4 11 0" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.55"/><path d="M0 -11 q5 5.5 0 22 q-5 -16.5 0 -22z" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.55"/><path d="M-8 -5 q4 -3 7 0 q-2 4 -7 3z" fill="#7EC8A4"/><path d="M2 2 q5 -2 7 2 q-3 4 -7 1z" fill="#7EC8A4"/><circle cx="0" cy="0" r="11" fill="none" stroke="#F5EDD6" stroke-width="1.6"/>',
-  summer_squad: '<circle cx="0" cy="1" r="6" fill="#F2C94C"/><path d="M0 -11 V-7 M0 9 V13 M-11 1 H-7 M7 1 H11 M-8 -7 l2.8 2.8 M8 -7 l-2.8 2.8 M-8 9 l2.8 -2.8 M8 9 l-2.8 -2.8" stroke="#F2C94C" stroke-width="2.2" stroke-linecap="round"/><path d="M-5 2 q2.5 -2.5 5 0 q2.5 -2.5 5 0" fill="none" stroke="#F5EDD6" stroke-width="1.6" stroke-linecap="round"/>',
-  empty_nester: '<path d="M-12 0 q2 10 12 10 q10 0 12 -10 q-4 3 -12 3 q-8 0 -12 -3z" fill="#8B5A2B"/><path d="M-12 0 q4 -5 12 -5 q8 0 12 5" fill="none" stroke="#A9713F" stroke-width="2.4" stroke-linecap="round"/><path d="M-9 -2 q9 -4 18 0" fill="none" stroke="#C89A63" stroke-width="1.6" stroke-linecap="round"/><path d="M-4 -8 q4 -3 8 0" fill="none" stroke="#C4BFDF" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
-  preener: '<path d="M0 11 q-2 -11 0 -20" stroke="#E4D5AE" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M0 -9 q8 4 6 12 q-2 7 -6 8 q-4 -1 -6 -8 q-2 -8 6 -12z" fill="#F5EDD6"/><path d="M0 -9 q8 4 6 12 q-2 7 -6 8z" fill="#E4D5AE"/>',
-  evergreen: '<path d="M0 -11 l6 8 h-3 l5 7 h-3 l5 7 H-10 l5 -7 h-3 l5 -7 h-3z" fill="#5FB88F"/><rect x="-2" y="11" width="4" height="4" fill="#8B5A2B"/>',
-  tailwind: '<path d="M-11 -4 h12 a3.5 3.5 0 1 0 -3.5 -3.5" fill="none" stroke="#F5EDD6" stroke-width="2.2" stroke-linecap="round"/><path d="M-11 2 h16 a3.5 3.5 0 1 1 -3.5 3.5" fill="none" stroke="#F5EDD6" stroke-width="2.2" stroke-linecap="round"/><path d="M-11 8 h8" stroke="#F5EDD6" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>',
-  migrator: '<circle cx="0" cy="0" r="11" fill="#5FB88F"/><path d="M-11 -1 q6 -4 11 0 q5 4 11 0" fill="none" stroke="#F5EDD6" stroke-width="1.6" opacity="0.8"/><path d="M-6 -8 q4 5 0 10 M6 -8 q-4 5 0 10" fill="none" stroke="#F5EDD6" stroke-width="1.4" opacity="0.6"/><path d="M-7 6 q3 -3 6 0 q3 -3 6 0" fill="none" stroke="#F2C94C" stroke-width="2" stroke-linecap="round"/>',
-  skylark: '<path d="M-11 10 h22" stroke="#E4D5AE" stroke-width="2" stroke-linecap="round"/><path d="M-7 10 V0 M0 10 V-3 M7 10 V0" stroke="#F2C94C" stroke-width="2.4" stroke-linecap="round"/><path d="M-7 0 q-2 -4 0 -5 q2 1 0 5z" fill="#F2C94C"/><path d="M0 -3 q-2 -4 0 -5 q2 1 0 5z" fill="#F2C94C"/><path d="M7 0 q-2 -4 0 -5 q2 1 0 5z" fill="#F2C94C"/>',
-  high_flyer: '<path d="M0 -10 q8 1 12 7 q-6 -2 -9 0 q5 2 7 6 q-7 -3 -10 0 q-3 -3 -10 0 q2 -4 7 -6 q-3 -2 -9 0 q4 -6 12 -7z" fill="#F5EDD6"/><circle cx="0" cy="-6" r="1.6" fill="#2D1B69"/><path d="M0 4 q2 4 0 8 q-2 -4 0 -8z" fill="#F2C94C"/>',
-  still_water: '<path d="M-11 -2 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#5FB88F" stroke-width="2.4" stroke-linecap="round"/><path d="M-11 4 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#7EC8A4" stroke-width="2.4" stroke-linecap="round"/><path d="M-11 10 q5 -4 11 0 q6 4 11 0" fill="none" stroke="#C4BFDF" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/><circle cx="0" cy="-8" r="2.6" fill="#F5EDD6"/>',
-  brooder: '<path d="M-10 -1 a6 6 0 0 1 4 -6 a7 7 0 0 1 13 2 a5 5 0 0 1 -1 10 H-6 a5 5 0 0 1 -4 -6z" fill="#F5EDD6"/><path d="M-6 7 l-2 6 M0 7 l-2 7 M6 7 l-2 6" stroke="#5B93C4" stroke-width="2" stroke-linecap="round"/>',
-  wingman: '<path d="M-11 2 q4 -5 8 -2 l3 2" fill="none" stroke="#F5EDD6" stroke-width="2.4" stroke-linecap="round"/><path d="M11 2 q-4 -5 -8 -2 l-3 2" fill="none" stroke="#F2C94C" stroke-width="2.4" stroke-linecap="round"/><circle cx="-5" cy="-6" r="3.2" fill="#F5EDD6"/><circle cx="5" cy="-6" r="3.2" fill="#F2C94C"/><path d="M-4 6 q4 3 8 0" fill="none" stroke="#F5EDD6" stroke-width="2" stroke-linecap="round"/>',
-  century: '<circle cx="0" cy="0" r="11" fill="none" stroke="#F5EDD6" stroke-width="2"/><text x="0" y="4.5" text-anchor="middle" font-family="Poppins,sans-serif" font-weight="900" font-size="12" fill="#F5EDD6">100</text>',
-};
 
 // Little stars on the plinth showing how many of the three levels are held -
 // so the carousel communicates progress at a glance, not just earned/not.
@@ -5597,29 +5572,15 @@ const TROPHY_EMBLEMS = {
 // and empty sockets fall to 1.31:1 in luminance, so the colour is doing most
 // of the work; what saves it is that the empty sockets are carved and stay
 // visible as structure regardless.
-// The carved emblems arrive a sheet at a time, so the two kinds live side by
-// side: a key listed here uses its rendered art, anything else falls back to
-// the drawn SVG it has always had. The list shrinks to nothing as the rest
-// are delivered, and then this can go.
-const CARVED_EMBLEMS = new Set([
-  'fledgling', 'early_bird', 'nomad', 'rooster',
-  'golden_eagle', 'dawn_chorus', 'forager',
-]);
-
+// All twenty-one emblems are carved art now, one file per trophy key, so
+// there is no fallback left to keep. The drawn SVG set that used to live
+// here is gone with it.
 function trophyArt(trophy) {
   const level = Math.max(0, Math.min(3, trophy.level || 0));
   const dim = trophy.earned ? '' : ' style="opacity:.45"';
-  let emblem = '';
-  if (CARVED_EMBLEMS.has(trophy.key)) {
-    emblem = `<img class="trophy-emblem" src="/static/emblem-${trophy.key}-v1.webp" alt=""${dim}>`;
-  } else if (TROPHY_EMBLEMS[trophy.key]) {
-    // preserveAspectRatio defaults to meet, which is the same fit as
-    // object-fit:contain - so both kinds sit in the box the same way.
-    emblem = `<svg class="trophy-emblem" viewBox="-12 -12 24 24"${dim}>${TROPHY_EMBLEMS[trophy.key]}</svg>`;
-  }
   return `<div class="trophy-art">
     <img class="trophy-svg" src="/static/trophy-l${level}-v1.webp" alt="">
-    ${emblem}
+    <img class="trophy-emblem" src="/static/emblem-${trophy.key}-v1.webp" alt=""${dim}>
   </div>`;
 }
 
