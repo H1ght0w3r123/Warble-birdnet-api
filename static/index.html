@@ -1604,14 +1604,17 @@
   .trophy-svg{width:100%;height:auto;display:block;}
   /* Measured off the art, the same way the bird card's window and nameplate
      are: the pale plaque is an ellipse 162x104 in a 369x390 picture, centred
-     at 50.81%, 33.72%. A square inside that ellipse can only be 87px, but
-     the emblems are drawn to a circle rather than a square - nothing of
-     theirs reaches the corners - and a circle fits the plaque's 104px
-     height. 96px, 26% of the width, keeps the rim clear with a little to
-     spare. Worth re-measuring when the rendered emblems arrive, since they
-     may not be as circular as the drawn ones. */
+     at 50.81%, 33.72%.
+     A width alone will not do it. The rendered emblems come in at aspects
+     from 0.81 to 1.16, and at a fixed width the tall ones (the rooster,
+     the hatching egg) grow past the plaque's 104px height and foul its rim.
+     So the emblem gets a BOX and is fitted inside it. 100x80 art units is
+     the largest useful rectangle that sits wholly within the ellipse -
+     (50/81)^2 + (40/52)^2 = 0.97, just inside 1 - which is 27.1% by 20.5%.
+     Anything scaled to fit that box clears the rim whatever its shape. */
   .trophy-emblem{
-    position:absolute; left:50.81%; top:33.72%; width:26%;
+    position:absolute; left:50.81%; top:33.72%;
+    width:27.1%; height:20.5%; object-fit:contain;
     transform:translate(-50%,-50%); display:block; pointer-events:none;
   }
   .trophy-slide.locked .trophy-art{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 6px 12px rgba(0,0,0,0.28));}
@@ -5594,14 +5597,29 @@ const TROPHY_EMBLEMS = {
 // and empty sockets fall to 1.31:1 in luminance, so the colour is doing most
 // of the work; what saves it is that the empty sockets are carved and stay
 // visible as structure regardless.
+// The carved emblems arrive a sheet at a time, so the two kinds live side by
+// side: a key listed here uses its rendered art, anything else falls back to
+// the drawn SVG it has always had. The list shrinks to nothing as the rest
+// are delivered, and then this can go.
+const CARVED_EMBLEMS = new Set([
+  'fledgling', 'early_bird', 'nomad', 'rooster',
+  'golden_eagle', 'dawn_chorus', 'forager',
+]);
+
 function trophyArt(trophy) {
   const level = Math.max(0, Math.min(3, trophy.level || 0));
-  const emblem = TROPHY_EMBLEMS[trophy.key] || '';
+  const dim = trophy.earned ? '' : ' style="opacity:.45"';
+  let emblem = '';
+  if (CARVED_EMBLEMS.has(trophy.key)) {
+    emblem = `<img class="trophy-emblem" src="/static/emblem-${trophy.key}-v1.webp" alt=""${dim}>`;
+  } else if (TROPHY_EMBLEMS[trophy.key]) {
+    // preserveAspectRatio defaults to meet, which is the same fit as
+    // object-fit:contain - so both kinds sit in the box the same way.
+    emblem = `<svg class="trophy-emblem" viewBox="-12 -12 24 24"${dim}>${TROPHY_EMBLEMS[trophy.key]}</svg>`;
+  }
   return `<div class="trophy-art">
     <img class="trophy-svg" src="/static/trophy-l${level}-v1.webp" alt="">
-    ${emblem ? `<svg class="trophy-emblem" viewBox="-12 -12 24 24">
-      <g ${trophy.earned ? '' : 'opacity="0.45"'}>${emblem}</g>
-    </svg>` : ''}
+    ${emblem}
   </div>`;
 }
 
