@@ -496,7 +496,6 @@
   .card-sci{font-size:12px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
   .card-tags{display:flex;gap:8px;margin-top:10px;animation:statFadeUp 0.4s ease 0.45s both;}
   .tag{font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
-  .tag.tier{background:var(--tier-color, var(--sage)); color:#fff;}
   .tag.new{background:var(--gold); color:var(--ink);}
   .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
   .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:15px;color:var(--gold-dk);animation:statFadeUp 0.4s ease 0.6s both;}
@@ -973,43 +972,50 @@
      downward as badges appear during a recording. */
   .rec-column{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;}
   .live-bird-stack{display:flex;justify-content:center;align-items:center;margin-bottom:14px;height:56px;position:relative;z-index:1;}
+  /* The badge is the carved medallion itself - the art has its own wooden
+     ring, so the element carries no border or background of its own, the
+     same way the mic button does. */
   .live-bird-badge{
     position:relative;
-    width:46px;height:46px;border-radius:50%;background:#fff;
-    border:5px solid var(--tier-color, var(--sage));
-    margin-left:-14px; box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5);
+    width:46px;height:46px;border-radius:50%;
+    background:none;border:none;
+    margin-left:-14px; box-shadow:0 3px 8px rgba(26,17,40,0.4);
     display:flex;align-items:center;justify-content:center;
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
+  .live-bird-badge img{width:100%;height:100%;display:block;}
+  /* Two states, and only two: a rare bird glows gold, everything else does
+     not. cardReveal and rareGlow can share this element because one animates
+     transform and the other box-shadow - it is the jitter, which is also a
+     transform, that has to live on the wrapper inside. */
+  .live-bird-badge.rare{
+    /* Badges overlap by 14px, so without this the next one along paints over
+       the glow and eats most of it. */
+    z-index:2;
+    animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+              rareGlow 1.9s ease-in-out .5s infinite;
+  }
+  @keyframes rareGlow{
+    0%,100%{box-shadow:0 3px 8px rgba(26,17,40,0.4), 0 0 9px 2px rgba(255,195,0,0.55);}
+    50%    {box-shadow:0 3px 8px rgba(26,17,40,0.4), 0 0 20px 6px rgba(255,195,0,0.95);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .live-bird-badge.rare{
+      animation:none;
+      box-shadow:0 3px 8px rgba(26,17,40,0.4), 0 0 14px 4px rgba(255,195,0,0.8);
+    }
+  }
   .live-bird-badge:first-child{margin-left:0;}
-  /* The pack-colour marker - same small dot, same top-left corner, on every
-     card a species shows up on (this badge, My Birds grid cards, and the
-     collection pack's own fan cards) - so "which pack is this bird from" is
-     recognisable at a glance without reading anything. Not a border, since
-     the border here is already doing tier duty (green/gold/grey). Rendered
-     only when the species actually has a pack (the curated 100 all do). */
+  /* The pack-colour marker, still used on the live-detection badges' cousins
+     elsewhere. It is not on this badge any more: the medallion is a painted
+     object with its own rim, and a flat coloured disc stuck on its corner
+     fought it, the same reason these came off the My Flock cards. */
   .pack-dot{
     position:absolute; top:-3px; left:-3px; z-index:6;
     width:13px; height:13px; border-radius:50%;
     background:var(--pack-color); border:2px solid #fff;
     box-shadow:0 1px 3px rgba(0,0,0,0.35);
   }
-  /* Six variations: collection (green)/rare (gold)/other (grey) border,
-     each either plain or "new" - new adds a matching glow on top of the
-     base ring rather than replacing it, so it reads as an emphasised
-     version of the same badge. This co-opts the find-collect/find-rare/
-     find-plain tier classes shared with .silhouette-card elsewhere, but
-     resets their glow back to the plain ring first - here, glow means "new
-     find", not "collector tier", which is a different meaning from what
-     those shared classes carry on that other component. */
-  .live-bird-badge.find-collect,
-  .live-bird-badge.find-rare,
-  .live-bird-badge.find-plain{
-    box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5);
-  }
-  .live-bird-badge.find-collect.badge-new{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5), 0 0 14px 3px rgba(126,200,164,0.75);}
-  .live-bird-badge.find-rare.badge-new{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5), 0 0 16px 4px rgba(255,195,0,0.8);}
-  .live-bird-badge.find-plain.badge-new{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 2px rgba(255,255,255,0.5), 0 0 12px 3px rgba(196,191,223,0.7);}
   /* The jitter lives on an inner wrapper rather than .live-bird-badge itself
      - that element already has its own one-shot cardReveal entrance
      animation, and a single element can't cleanly run a one-off entrance
@@ -1026,7 +1032,7 @@
   }
   /* Three levels of find, escalating in weight so the difference is obvious
      at a glance rather than needing the colours to be learned. */
-  .find-collect{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 3px rgba(126,200,164,0.35);}
+  .find-normal{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 3px rgba(126,200,164,0.35);}
   .find-rare{box-shadow:0 4px 14px rgba(255,195,0,0.75), 0 0 0 4px rgba(255,195,0,0.3);}
   .silhouette-card.find-rare{box-shadow:0 6px 20px rgba(255,195,0,0.7);}
   .rec-location{
@@ -1570,24 +1576,22 @@
 const stage = document.getElementById('stage');
 const featherCountEl = document.getElementById('featherCount');
 
-// Untiered birds (everything outside a collector pack) get a neutral edge.
-// Falling back to sage would have coloured them exactly like a Common bird,
-// which claims a rarity they don't have.
-function tierColorOf(tier) { return tier ? TIER_COLORS[tier] : 'var(--mist)'; }
+// Untiered birds - ones BirdNET knows that Warble does not collect - used to
+// get a grey edge here, a third colour on top of the two the badges use. A
+// child hearing a bird does not care whether it is in the set, and grey read
+// as a lesser find, so they take the same edge as any other non-rare bird.
+function tierColorOf(tier) { return tier === 'Rare' ? TIER_COLORS.Rare : TIER_COLORS.Common; }
 
-// Three levels of "how exciting is this find", used during a session:
-//   no tier  - a bird, but not one of Warble's 100
-//   Common   - a collector bird, so it counts towards a pack
-//   Rare     - one of the 20 rare collector birds
+// Two states, not three. There used to be a third for a bird with no tier at
+// all - one BirdNET knows but Warble does not collect - which gave a grey
+// badge that meant nothing to a child and read as a lesser find. A bird is
+// either rare or it is not.
 const SESSION_TIERS = {
-  none:   { color: 'var(--mist)',   cls: 'find-plain'  },
-  common: { color: 'var(--sage)',   cls: 'find-collect' },
-  rare:   { color: 'var(--rare)',   cls: 'find-rare'   },
+  normal: { color: 'var(--sage)', cls: 'find-normal' },
+  rare:   { color: 'var(--rare)', cls: 'find-rare'   },
 };
 function sessionTier(tier) {
-  if (tier === 'Rare') return SESSION_TIERS.rare;
-  if (tier) return SESSION_TIERS.common;
-  return SESSION_TIERS.none;
+  return tier === 'Rare' ? SESSION_TIERS.rare : SESSION_TIERS.normal;
 }
 
 // Only two rarities exist now - Visitor went when rarity became a fixed
@@ -2121,11 +2125,13 @@ async function loadRecordingLocation() {
 // so it can be restored after a photo is cleared.
 const PROFILE_BIRD_SVG = '<svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
 
-const BADGE_BIRD_SVG = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
+const BADGE_BIRD_IMG = '<img src="/static/live-bird-v1.webp" alt="">';
 
 // Rare first, then collector birds, then anything else - so the best find
 // of the session sits at the front of the badge stack.
-const TIER_ORDER = { Rare: 0, Common: 1 };
+// Rare first. Anything else - Common, or a bird outside Warble's hundred
+// with no tier at all - sorts together, because they now look the same.
+const TIER_ORDER = { Rare: 0 };
 let liveDetectedBirds = [];
 let liveBadgedSpecies = new Set();
 
@@ -2133,7 +2139,7 @@ function renderLiveBirdStack() {
   const el = document.getElementById('liveBirdStack');
   if (!el) return;
   // Tiered (pack) birds first and rarest-first; untiered birds after them.
-  const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 3) - (TIER_ORDER[b.tier] ?? 3));
+  const sorted = [...liveDetectedBirds].sort((a, b) => (TIER_ORDER[a.tier] ?? 1) - (TIER_ORDER[b.tier] ?? 1));
   el.innerHTML = sorted.map((bird, i) => {
     const t = sessionTier(bird.tier);
     // Duration and a negative delay (so it starts already mid-cycle rather
@@ -2143,10 +2149,8 @@ function renderLiveBirdStack() {
     // copy-pasted sideways.
     const dur = (2.1 + (i % 4) * 0.3).toFixed(2);
     const delay = (-(i % 5) * 0.4).toFixed(2);
-    const packDot = bird.pack_color ? `<div class="pack-dot" style="--pack-color:${bird.pack_color}"></div>` : '';
-    return `<div class="live-bird-badge ${t.cls} ${bird.is_new ? 'badge-new' : ''}" style="--tier-color:${t.color}">
-      ${packDot}
-      <div class="badge-jitter" style="animation-duration:${dur}s; animation-delay:${delay}s;">${BADGE_BIRD_SVG}</div>
+    return `<div class="live-bird-badge ${bird.tier === 'Rare' ? 'rare' : ''}">
+      <div class="badge-jitter" style="animation-duration:${dur}s; animation-delay:${delay}s;">${BADGE_BIRD_IMG}</div>
     </div>`;
   }).join('');
 }
