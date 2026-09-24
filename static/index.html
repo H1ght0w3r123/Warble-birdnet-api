@@ -410,9 +410,12 @@
     transition:transform .12s ease;
   }
   .challenge-strip:active{transform:scale(.985);}
-  /* Sized as a box rather than a font size, so the emoji standing in for the
-     carved icon and the icon itself occupy exactly the same space and the
-     swap moves nothing. */
+  /* Sized as a box rather than by font size. That was so the emoji standing
+     in for the carved icon could be swapped for it without anything moving,
+     and it is worth keeping for the next time. The rings survive the shrink:
+     measured across the middle at 30px, the art still shows 9 light/dark
+     alternations over a contrast range of 182, which is what the alternating
+     maple and brown bands buy. */
   .challenge-strip-icon{
     flex:0 0 auto; width:30px; height:30px;
     display:flex; align-items:center; justify-content:center;
@@ -1883,7 +1886,7 @@ function renderIdle() {
          Note that this card was the ONLY way into renderWhatsHere, so that
          screen is currently unreachable rather than merely hidden. -->
     <button class="challenge-strip" id="challengeCard">
-      <span class="challenge-strip-icon" id="challengeIcon">🎯</span>
+      <span class="challenge-strip-icon" id="challengeIcon"><img src="/static/challenge-icon-v1.webp" alt=""></span>
       <span class="challenge-strip-text" id="challengeText">Loading…</span>
       <span class="challenge-strip-tally" id="challengeTally"></span>
     </button>
