@@ -193,6 +193,7 @@
   body.scene-on .flock-stats, body.scene-on .pack-tally,
   body.scene-on .pack-blurb, body.scene-on .fan-caption,
   body.scene-on .challenge-strip, body.scene-on .nav-tab,
+  body.scene-on .hoot-welcome, body.scene-on .colour-label,
   body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
     /* Four stacked shadows, not one. A single soft shadow reads as a shadow
        but does almost nothing for legibility - measured, it moved the worst
@@ -699,7 +700,7 @@
      one, and the control no longer depends on what the scene is doing.
      Where backdrop-filter is not supported this is simply ignored and the
      behaviour is what it was before. */
-  .prev-btn, .reset-accessories-btn, .photo-btn-clear,
+  .prev-btn, .photo-btn-clear,
   .reset-btn, .pack-arrow, .bonus-row{
     backdrop-filter:brightness(0.58) saturate(0.9);
     -webkit-backdrop-filter:brightness(0.58) saturate(0.9);
@@ -1260,38 +1261,138 @@
     padding:0 50%;
   }
   .species-silhouette-btn{
-    flex-shrink:0; background:none; border:none; padding:0; margin:0 4px;
-    cursor:pointer; height:150px; display:flex; align-items:center;
-    scroll-snap-align:center; opacity:0.9; transform:scale(0.9); transform-origin:center center;
+    flex-shrink:0; background:none; border:none; padding:0; margin:0 6px;
+    cursor:pointer; height:180px; display:flex; align-items:center;
+    scroll-snap-align:center; transform:scale(0.9); transform-origin:center center;
     will-change:transform;
   }
   .species-silhouette-btn.is-current{visibility:hidden;}
-  .species-silhouette-btn img{height:100%; width:auto; display:block; pointer-events:none;}
-  .species-silhouette-btn:active{opacity:0.65;}
+  /* These are the player's other birds, and they are meant to be tapped -
+     but the art is dark purple (36,26,59) at about half alpha, which on a
+     navy screen is very nearly nothing. Lifting it to near-white at 40%
+     keeps it plainly subdued next to the lit bird in the frame while
+     actually being a recognisable bird you can aim at. */
+  .species-silhouette-btn img{
+    height:100%; width:auto; display:block; pointer-events:none;
+    filter:brightness(0) invert(1) opacity(0.4)
+           drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+    transition:filter .2s ease;
+  }
+  .species-silhouette-btn:active img{filter:brightness(0) invert(1) opacity(0.7);}
+
+  /* --- Hoot-tique: the header arrives big, then gets out of the way ----
+     The shop sign is the best thing on this screen and also the most
+     expensive: at 62px plus a welcome line it was eating 84px of a 684px
+     pane. So it plays as an entrance and then settles - the logo shrinks to
+     30px and the welcome folds away, on a spring rather than a linear ease
+     so it lands rather than slides. Reduced motion skips straight to the
+     settled state. */
+  .hoot-head{display:flex; flex-direction:column; align-items:center; width:100%;}
+  .hoot-head img{
+    height:62px; width:auto; display:block;
+    transition:height .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .hoot-welcome{
+    font-size:12px; color:rgba(255,255,255,0.88); text-align:center;
+    max-height:44px; opacity:1; margin-top:8px; overflow:hidden;
+    transition:max-height .42s ease, opacity .26s ease, margin-top .42s ease;
+  }
+  .hoot-head.settled img{height:30px;}
+  .hoot-head.settled .hoot-welcome{max-height:0; opacity:0; margin-top:0;}
+
+  /* The one label on the stage. The swatches arc over the frame's own top
+     edge, so there is nowhere above them to put it without pushing the bird
+     down - it sits under the arc instead, on the frame's shoulder. */
+  .colour-label{
+    font-family:'Poppins'; font-weight:700; font-size:10px; letter-spacing:.09em;
+    text-transform:uppercase; color:rgba(255,255,255,0.82); text-align:center;
+    margin:7px 0 2px;
+  }
+
+  /* Selected colour: a terracotta ring and a tick, not a dark border. The
+     tick's colour is set per swatch in JS from that swatch's own luminance -
+     white on the cream one was invisible. */
+  .color-wheel .color-swatch.is-on{
+    width:30px; height:30px;
+    box-shadow:0 0 0 3px var(--terra), 0 2px 8px rgba(0,0,0,0.35);
+  }
+  .color-wheel .color-swatch.is-on::after{
+    content:'\2713'; position:absolute; inset:0; display:flex;
+    align-items:center; justify-content:center;
+    font-size:15px; font-weight:900; line-height:1;
+  }
+
+  /* Category chips. These were 62px-tall white cards with labels under the
+     icons; they are 46px circles now, which is the single biggest saving on
+     the screen. The label went with them - the icons are pictorial (hat,
+     glasses, bow, held, shoe) and the carousel underneath shows what you
+     picked immediately - but every chip keeps an aria-label so it is still
+     announced. Selection is shape and elevation, not colour alone: the
+     active chip lifts, grows and fills terracotta. */
+  .category-chip{
+    width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.15); padding:0; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1),
+               background .18s ease, box-shadow .18s ease;
+  }
+  .category-chip img{
+    width:26px; height:26px; object-fit:contain; display:block;
+    filter:brightness(0) invert(1) opacity(.82);
+  }
+  .category-chip.active{
+    background:var(--terra); transform:translateY(-5px) scale(1.12);
+    box-shadow:0 7px 16px rgba(0,0,0,0.38), inset 0 2px 0 rgba(255,255,255,0.28);
+  }
+  .category-chip.active img{filter:brightness(0) invert(1);}
+
+  /* Reset and Randomise, as the secondary utilities they are rather than
+     the widest button on the screen, which is what Reset used to be. */
+  .dress-utils{display:flex; gap:12px; justify-content:center; margin-top:8px;}
+  .dress-util{
+    width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.16); color:#fff; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .dress-util:active{transform:scale(.9); background:rgba(255,255,255,0.3);}
+  .dress-util svg{width:19px; height:19px; display:block;}
+
+  /* Three different things happen to the bird and each needs its own
+     language, so you can tell them apart without reading anything:
+     an accessory pops on, a colour cross-fades, a different bird swaps in
+     by receding and coming back. */
+  @keyframes hootPop{0%{transform:scale(1);} 34%{transform:scale(1.07);} 100%{transform:scale(1);}}
+  @keyframes hootTint{0%{opacity:1;} 42%{opacity:.5;} 100%{opacity:1;}}
+  @keyframes hootSwap{0%{transform:scale(1);opacity:1;} 42%{transform:scale(.84);opacity:.3;} 100%{transform:scale(1);opacity:1;}}
+  .avatar-frame.pop{animation:hootPop .34s cubic-bezier(.34,1.56,.64,1);}
+  .avatar-frame.tint{animation:hootTint .3s ease;}
+  .avatar-frame.swap{animation:hootSwap .44s ease;}
+
+  .hoot-spark{
+    position:absolute; z-index:5; pointer-events:none; font-size:15px;
+    animation:hootSpark .72s ease-out forwards;
+  }
+  @keyframes hootSpark{
+    0%{transform:translate(-50%,-50%) scale(.3); opacity:0;}
+    28%{opacity:1;}
+    100%{transform:translate(-50%,-50%) translateY(-28px) scale(1.15); opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hoot-head img, .hoot-welcome{transition:none;}
+    .avatar-frame.pop, .avatar-frame.tint, .avatar-frame.swap{animation:none;}
+    .hoot-spark{display:none;}
+    .category-chip{transition:none;}
+  }
 
   /* --- Dress Up: categories + carousel --- */
-  .reset-accessories-btn{
-    background:rgba(255,255,255,0.18); color:#fff; border:none; border-radius:20px;
-    padding:7px 20px; font-family:'Poppins'; font-weight:700; font-size:11px;
-    cursor:pointer; margin:4px auto 0; display:block;
-  }
-  .category-row{display:flex;gap:5px;justify-content:center;width:100%;margin-top:14px;}
-  .category-tile{
-    background:#fff; border:2px solid transparent; border-radius:14px; padding:9px 3px;
-    display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
-    font-family:'Poppins'; font-size:9px; font-weight:700; color:var(--dusk);
-    flex:1; max-width:48px;
-  }
-  .category-tile .cat-icon{font-size:26px;line-height:1;}
-  .category-tile .cat-icon svg{width:26px !important;height:26px !important;}
-  .category-tile .cat-icon img{width:26px;height:26px;display:block;}
-  .category-tile.active{border-color:var(--terra); background:var(--parch-dk);}
+  .category-row{display:flex;gap:11px;justify-content:center;width:100%;margin-top:12px;}
   /* Plain white circle - the wood ring (.avatar-ring-frame) is a separate
      layer sized to match this circle's own exterior edge, stacked ABOVE
      it (z-index below the ring's) so the ring's band overlays the white
      circle/bird art's outer edge directly, like a picture frame laid on
      top of a photo rather than tucked behind it. */
-  .avatar-frame{background:#fff;border-radius:50%;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;position:relative;z-index:1;}
+  .avatar-frame{background:#fff;border-radius:50%;padding:12px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;position:relative;z-index:1;}
   /* SVGs are inline by default, which leaves ~4px of phantom baseline
      whitespace below them (the classic inline-replaced-element gap) - that
      was making avatar-frame render 230x234 instead of a true 230x230
@@ -1306,7 +1407,7 @@
      both, always clickable. */
   .avatar-ring-frame{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:230px; height:230px; border-radius:50%;
+    width:276px; height:276px; border-radius:50%;
     background:url('/static/avatar-ring-v1.webp') center/100% 100% no-repeat;
     z-index:2; pointer-events:none;
   }
@@ -1363,14 +1464,36 @@
      the freed space below - internal height/shift left untouched since
      those numbers were tuned specifically to avoid clipping the swatch
      arc and the ring. */
-  .dressup-avatar-stage{position:relative; width:100%; height:258px; margin-top:18px; margin-bottom:4px;}
-  /* Shifted up ~14px from dead-centre per Phil's request. */
+  /* Everything on this stage is 20% up on what it was, which is the middle
+     of the 15-25% asked for. The three numbers have to move together or the
+     ring stops matching the white circle's edge: the avatar art is 252
+     (was 210), its padding 12 (was 10), so the frame's outer edge is 276 -
+     which is what .avatar-ring-frame is set to. The swatch arc needs no
+     attention, it was already expressed as a percentage of the frame. */
+  .dressup-avatar-stage{position:relative; width:100%; height:316px; margin-top:6px; margin-bottom:2px;}
+  /* Pushed DOWN 20px from dead-centre, where it used to be pulled up 14.
+     The swatches arc 36px above the frame's own top edge, and with the frame
+     high in the stage that arc escaped the stage box entirely - measured, its
+     topmost swatch sat at y=92 while the stage started at 125, which put it
+     straight through the shop sign and the "Feather colour" label. Sitting
+     the frame low leaves the arc room inside the stage where it belongs. */
   .avatar-frame-wrap{
-    position:absolute; left:50%; top:50%; transform:translate(-50%, calc(-50% - 14px));
+    position:absolute; left:50%; top:50%; transform:translate(-50%, calc(-50% + 20px));
     z-index:2; pointer-events:none;
   }
   .avatar-frame-wrap .avatar-frame{pointer-events:auto; cursor:grab;}
   .avatar-frame-wrap .avatar-frame:active{cursor:grabbing;}
+  /* On a 320px phone the 276px frame leaves only 6px either side, which
+     buries the species silhouettes behind it and pushes the swatch arc
+     (313px wide) onto the screen edges. Scaling the whole assembly - frame,
+     ring, avatar and the percentage-positioned arc all move together -
+     gives the silhouettes ~41px of visible bird to aim at and pulls the
+     arc 25px clear of each edge. Nothing else on the stage changes. */
+  @media (max-width:360px){
+    .avatar-frame-wrap{transform:translate(-50%, calc(-50% + 20px)) scale(0.86);}
+    .dressup-avatar-stage{height:296px;}
+    .species-silhouette-btn{height:156px;}
+  }
   /* The swatches arch over the top of the avatar frame, sitting ON its
      edge circle - so the assembly is barely wider than the avatar
      itself, unlike a full wheel or a side-by-side column. */
@@ -5115,6 +5238,16 @@ async function saveAvatarColors() {
 // illustrated art (the beak is baked into the body art as a fixed colour
 // in every variant) - body is the only recolorable part now, so there's no
 // part-toggle needed, just the one swatch row.
+// Relative luminance of a hex swatch, for deciding what colour a mark laid
+// on top of it has to be.
+function swatchLuminance(hex) {
+  const v = i => {
+    const c = parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * v(0) + 0.7152 * v(1) + 0.0722 * v(2);
+}
+
 function renderSwatchRows() {
   const swatches = AVATAR_SWATCHES;
   const currentColor = currentProfile.avatar_body;
@@ -5136,13 +5269,22 @@ function renderSwatchRows() {
     const x = 50 + 59 * Math.cos(angle); // % of frame box; 59% (vs the frame's own 50% edge) leaves a real gap - back to this now the ring matches the white circle's own exterior instead of extending past it
     const y = 50 + 59 * Math.sin(angle);
     const btn = document.createElement('button');
-    btn.className = 'color-swatch';
+    const on = currentColor === hex;
+    btn.className = 'color-swatch' + (on ? ' is-on' : '');
     btn.style.background = hex;
-    btn.style.borderColor = currentColor === hex ? 'var(--ink)' : '#fff';
+    btn.style.borderColor = '#fff';
+    btn.setAttribute('aria-label', 'Feather colour');
+    btn.setAttribute('aria-pressed', String(on));
+    // The tick sits ON the swatch, so its colour comes from the swatch. White
+    // on #F5EDD6 was not there at all; this picks whichever of ink or white
+    // the swatch can actually carry.
+    if (on) btn.style.color = swatchLuminance(hex) > 0.55 ? 'var(--ink)' : '#fff';
     btn.style.left = `${x}%`;
     btn.style.top = `${y}%`;
     btn.onclick = () => {
+      if (currentProfile.avatar_body === hex) return;
       currentProfile.avatar_body = hex;
+      flashAvatar('tint');
       saveAvatarColors();
     };
     wheel.appendChild(btn);
@@ -5325,6 +5467,10 @@ function commitSpeciesSelection(id) {
   currentProfile.avatar_species = id;
   renderDressUpPreview();
   updateNavAvatarIcon();
+  // Its own language, distinct from an accessory popping on: the bird in the
+  // frame recedes and the new one comes forward, which is the same movement
+  // the silhouette just made coming in from the side.
+  flashAvatar('swap');
   saveSpeciesSelection(id);
 }
 
@@ -5437,8 +5583,11 @@ async function renderDressUp() {
   stage.classList.add('top-aligned');
   selectedCategory = null;
   stage.innerHTML = `
-    <div class="collection-header" style="margin-bottom:8px;"><div class="collection-title"><img src="/static/title-hoottique-v3.webp" alt="The Hoot-tique" style="height:62px;width:auto;display:block;"></div></div>
-    <div class="collection-count" style="margin-bottom:22px;text-align:center;">Welcome to The Hoot-tique! Don't leave until you're looking fly!</div>
+    <div class="hoot-head" id="hootHead">
+      <img src="/static/title-hoottique-v3.webp" alt="The Hoot-tique">
+      <div class="hoot-welcome">Welcome to The Hoot-tique! Don't leave until you're looking fly!</div>
+    </div>
+    <div class="colour-label">Feather colour</div>
     <div class="dressup-avatar-stage" id="dressUpAvatarStage">
       <div class="species-track" id="speciesTrack"></div>
       <div class="avatar-frame-wrap">
@@ -5447,9 +5596,12 @@ async function renderDressUp() {
         <div class="color-wheel" id="colorWheel"></div>
       </div>
     </div>
-    <button class="reset-accessories-btn" id="resetAccessoriesBtn">Reset</button>
     <div class="category-row" id="categoryRow"></div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
+    <div class="dress-utils">
+      <button class="dress-util" id="randomiseBtn" aria-label="Randomise outfit" title="Randomise outfit">${SHUFFLE_ICON}</button>
+      <button class="dress-util" id="resetAccessoriesBtn" aria-label="Reset outfit" title="Reset outfit">${RESET_ICON}</button>
+    </div>
     <div class="dressup-hint" id="dressUpHint"></div>
   `;
 
@@ -5471,10 +5623,87 @@ async function renderDressUp() {
     initDressUpAvatarPicker();
     renderCategoryRow();
     document.getElementById('resetAccessoriesBtn').onclick = resetAllAccessories;
+    document.getElementById('randomiseBtn').onclick = randomiseOutfit;
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
+    settleHootHeader();
   } catch (e) {
     const wrap = document.getElementById('carouselWrap');
     if (wrap) wrap.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
+  }
+}
+
+// Circular arrow and shuffle, drawn rather than lettered - the brief wants
+// these to read as utilities, and two words at the widest point of the
+// screen read as the main thing to do.
+const RESET_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/></svg>`;
+const SHUFFLE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h3.5l3 4"/><path d="M14.5 17H18"/><path d="M3 18h3.5l7-12H18"/><path d="M16 3.5 19 6l-3 2.5"/><path d="M16 14.5 19 17l-3 2.5"/></svg>`;
+
+// The entrance: the sign is full size for a beat, then settles small and
+// gives its height back to the bird. Anyone who has asked for less motion
+// gets the settled state immediately, with no animation to sit through.
+function settleHootHeader() {
+  const head = document.getElementById('hootHead');
+  if (!head) return;
+  if (reducedMotion()) { head.classList.add('settled'); return; }
+  setTimeout(() => head.classList.add('settled'), 1000);
+}
+
+// One helper for all three, so they cannot fight: re-adding a class that is
+// already there does not restart a CSS animation, which is why this takes it
+// off and forces a reflow before putting it back.
+function flashAvatar(kind) {
+  const el = document.getElementById('dressUpPreview');
+  if (!el || reducedMotion()) return;
+  el.classList.remove('pop', 'tint', 'swap');
+  void el.offsetWidth;
+  el.classList.add(kind);
+}
+
+// A handful of sparks off the frame's edge, for putting something on. Kept
+// to the frame's own box so they cannot land on the nav or the carousel.
+function sparkleAvatar() {
+  const wrap = document.querySelector('.avatar-frame-wrap');
+  if (!wrap || reducedMotion()) return;
+  for (let i = 0; i < 5; i++) {
+    const s = document.createElement('span');
+    s.className = 'hoot-spark';
+    s.textContent = '\u2728';
+    s.style.left = (18 + Math.random() * 64) + '%';
+    s.style.top = (20 + Math.random() * 50) + '%';
+    s.style.animationDelay = (i * 55) + 'ms';
+    wrap.appendChild(s);
+    setTimeout(() => s.remove(), 1100);
+  }
+}
+
+// Randomise: a complete look out of what the player actually owns. Each
+// category independently gets one of its owned items or nothing, so a child
+// with three hats and no shoes gets a hat and bare feet rather than a
+// half-applied outfit or an empty one.
+async function randomiseOutfit() {
+  const owned = accessoryCatalog.filter(a => a.owned);
+  if (!owned.length) { setDressUpHint('Buy something first!'); return; }
+  const picked = {};
+  dressUpCategories.forEach(cat => {
+    const mine = owned.filter(a => a.category === cat.id);
+    if (!mine.length) return;
+    // A one-in-four chance of leaving a slot empty, so it does not always
+    // come back wearing absolutely everything.
+    picked[cat.id] = Math.random() < 0.25 ? null : mine[Math.floor(Math.random() * mine.length)].id;
+  });
+  currentProfile.equipped = picked;
+  renderDressUpPreview();
+  renderCarousel();
+  updateNavAvatarIcon();
+  flashAvatar('pop');
+  sparkleAvatar();
+  setDressUpHint('How about this?');
+  for (const [category, id] of Object.entries(picked)) {
+    const formData = new FormData();
+    formData.append('category', category);
+    if (id) formData.append('accessory_id', id);
+    try { await fetch('/accessories/equip', { method: 'POST', body: formData }); }
+    catch (e) { /* local state already updated */ }
   }
 }
 
@@ -5501,19 +5730,20 @@ function renderDressUpPreview() {
   // Always the avatar here, regardless of any profile photo - this is the
   // bird being dressed, so the accessories have something to sit on.
   const el = document.getElementById('dressUpPreview');
-  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 210, currentProfile.equipped, false, currentProfile.avatar_species);
+  if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, currentProfile.avatar_species);
 }
 
 function renderCategoryRow() {
   const row = document.getElementById('categoryRow');
   if (!row) return;
   row.innerHTML = dressUpCategories.map(cat => `
-    <button class="category-tile ${selectedCategory === cat.id ? 'active' : ''}" data-category="${cat.id}">
-      <span class="cat-icon"><img src="${cat.icon_img}" alt="${cat.name}" width="26" height="26" style="object-fit:contain;"></span>
-      <div>${cat.name}</div>
+    <button class="category-chip ${selectedCategory === cat.id ? 'active' : ''}"
+            data-category="${cat.id}" aria-label="${cat.name}" title="${cat.name}"
+            aria-pressed="${selectedCategory === cat.id}">
+      <img src="${cat.icon_img}" alt="" width="26" height="26">
     </button>
   `).join('');
-  row.querySelectorAll('.category-tile').forEach(btn => {
+  row.querySelectorAll('.category-chip').forEach(btn => {
     btn.onclick = () => selectCategory(btn.dataset.category);
   });
 }
@@ -5637,6 +5867,9 @@ async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
   renderDressUpPreview();
   renderCarousel();
   updateNavAvatarIcon();
+  // Taking something off is not an event; putting something on is.
+  flashAvatar('pop');
+  if (!currentlyWorn) sparkleAvatar();
   try {
     const formData = new FormData();
     formData.append('category', category);
