@@ -66,15 +66,20 @@
   body.time-dusk{background:linear-gradient(180deg,var(--dusk) 0%,var(--rose) 45%,var(--terra) 75%,var(--gold) 100%);}
   body.time-night{background:linear-gradient(180deg,var(--ink) 0%,var(--dusk) 60%,var(--dusk-mid) 100%);}
 
-  /* --- The painted scene behind Home -----------------------------------
+  /* --- The painted scene, behind every screen ---------------------------
      A fixed layer at z-index -1: above the gradient body background, which
      the canvas paints below everything, and below every bit of content,
      which is all either in flow or positioned later. Fixed rather than
-     scrolled, so the scene sits still while the cards move over it. */
+     scrolled, so the scene sits still while the cards move over it.
+     Three layers, because the blur has to reach the picture without
+     touching anything else: the element itself holds position and size,
+     ::before is the picture and carries the blur, ::after is the scrim. */
   #sceneBg{
     position:fixed; left:0; right:0; top:0; z-index:-1; pointer-events:none;
     opacity:0; transition:opacity .45s ease;
-    background-position:center bottom; background-size:cover; background-repeat:no-repeat;
+    /* The blurred plate is scaled up past the edges of this box; clip it
+       here so it cannot paint outside the viewport. */
+    overflow:hidden;
     /* lvh, not vh. On a phone the address bar slides away as you scroll, and
        that changes the viewport height - so a layer sized in vh resizes
        mid-scroll, and because the image is sized with cover, resizing it
@@ -96,6 +101,38 @@
     backface-visibility:hidden;
   }
   #sceneBg.on{opacity:1;}
+  /* The picture. Sharp is the resting state, so a first paint on Home shows
+     a sharp scene rather than racking into focus on every app launch.
+     blur(0px), not none: a filter only animates into another filter with
+     the same functions in the same order, so both ends have to be spelled
+     out the same way. */
+  #sceneBg::before{
+    content:''; position:absolute; inset:0;
+    background-image:var(--scene-img, none);
+    background-position:center bottom; background-size:cover; background-repeat:no-repeat;
+    filter:blur(0px) saturate(1);
+    transition:filter .55s ease, transform .55s ease;
+    /* No transform here, deliberately - not even scale(1). An identity
+       transform still promotes this to its own composited layer, and that
+       layer resampled its own right-hand edge: one device-pixel column down
+       the side of the screen, up to 24/255 out. Invisible in a screenshot
+       until you diff it against the version before this change, which is
+       how it was found. With the property absent on Home the picture paints
+       straight onto the page as it always did, and "none" interpolates to
+       scale(1.22) perfectly well, so the animation is unaffected. */
+  }
+  /* Every screen that is not Home. The scale is not decoration: a blurred
+     layer samples the transparent space beyond its own edges, so at its
+     true size the picture would fade out around the rim and let the purple
+     gradient show through as a soft border. Scaling it up by 22% pushes
+     that rim outside the viewport - at 390px wide that is 43px of margin
+     against a 16px blur, which is 2.7 standard deviations, so the edge you
+     can actually see is 99.6% opaque. It doubles as the small push-in a
+     real lens gives you when it racks out of focus. */
+  body.scene-blurred #sceneBg::before{
+    filter:blur(16px) saturate(1.45);
+    transform:scale(1.22);
+  }
   /* The scrim is what makes the white type survive a bright midday sky, and
      its shape is measured rather than judged by eye. "Get out there" and the
      line under it sit at 42-47% down the screen, which is where the first
@@ -106,19 +143,41 @@
      sky, which is the part of these paintings worth seeing. */
   #sceneBg::after{
     content:''; position:absolute; inset:0;
-    background:linear-gradient(180deg,
+    /* background-color paints underneath background-image, so this is one
+       flat wash below the shaped scrim rather than a fourth layer. It is
+       transparent on Home and comes up on the blurred screens, where the
+       extra saturation would otherwise fight the cards sitting on top.
+       A colour animates; the gradient stops above it could not.
+       0.38 is measured, not judged. The shaped scrim above was tuned around
+       where Home puts its heading, and the other screens put type wherever
+       they like - so every screen was rendered against all sixteen pictures
+       twice, once normally and once with every glyph made transparent, and
+       the contrast read off the pixels the glyphs actually land on. At 0.22
+       one control went backwards against the plain gradient these screens
+       used to wear: the translucent "Use bird" pill on My Profile, white on
+       a pale tint, over a bright dawn sky, 3.04 down to 2.64. 0.38 is the
+       lowest value at which nothing is worse than it was, and most things
+       are better - Collections 1.84 to 3.27, Settings 1.42 to 3.05. */
+    background-color:rgba(26,17,40,0);
+    transition:background-color .55s ease;
+    background-image:linear-gradient(180deg,
       rgba(26,17,40,0.66) 0%,  rgba(26,17,40,0.32) 20%,
       rgba(26,17,40,0.26) 34%, rgba(26,17,40,0.57) 42%,
       rgba(26,17,40,0.60) 52%, rgba(26,17,40,0.45) 64%,
       rgba(26,17,40,0.54) 80%, rgba(26,17,40,0.68) 100%);
   }
+  body.scene-blurred #sceneBg::after{background-color:rgba(26,17,40,0.38);}
   /* Belt and braces over the scrim: a shadow keeps a glyph readable where it
      lands on a highlight the gradient could not know about. Only when a
      scene is up - on the plain gradient it just makes the type muddy. */
   body.scene-on .stage-label, body.scene-on .stage-sub{
     text-shadow:0 1px 2px rgba(26,17,40,0.75), 0 2px 12px rgba(26,17,40,0.55);
   }
-  @media (prefers-reduced-motion: reduce){ #sceneBg{transition:none;} }
+  /* Nothing here animates for anyone who has asked for that: the scene
+     arrives at whichever focus the screen calls for. */
+  @media (prefers-reduced-motion: reduce){
+    #sceneBg, #sceneBg::before, #sceneBg::after{transition:none;}
+  }
 
   /* Settings picker */
   .scene-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; width:100%; margin-top:4px;}
@@ -1706,7 +1765,7 @@ function renderIdle() {
   document.getElementById('hereNowCard').onclick = renderWhatsHere;
   document.getElementById('challengeCard').onclick = renderChallenges;
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
-  showHomeScene(true);
+  setSceneFocus(true);
   loadHereNowCard();
   loadChallengeCard();
   loadJokeTileStatus();
@@ -3746,7 +3805,9 @@ async function startRecording() {
     // screen in the recording flow - listening, saving, the results pile, the
     // reveal - is centred and had been relying on Home to leave this off.
     stage.classList.remove('top-aligned');
-    showHomeScene(false);
+    // Not taken away - blurred back, like every screen that is not Home.
+    // The tree and the badges are the thing to look at here.
+    setSceneFocus(false);
     requestGpsPosition();
     // { audio: true } accepts the browser's voice-call defaults: noise
     // suppression, echo cancellation and automatic gain control all on. Those
@@ -4214,6 +4275,9 @@ function renderScenePicker() {
         b.classList.toggle('on', on);
         b.setAttribute('aria-pressed', String(on));
       });
+      // The scene is behind Settings too, so the choice can be shown for
+      // real the moment it is made - blurred, as this screen always is.
+      setSceneFocus(false);
       // Warm the full-size image now, while the child is still in Settings,
       // so Home is not a blank gradient for a moment when they go back.
       if (id !== 'none') new Image().src = sceneUrl(id, timeBand());
@@ -4236,9 +4300,10 @@ const HOME_SCENES = [
 ];
 const sceneUrl = (id, band) => `/static/scene-${id}-${band}-v2.webp`;
 
-// Only Home wears a scene. Every other screen is a list or a grid of cards
-// that would have to fight it, and the recording screen has scenery of its
-// own. Called with false from setActiveTab for anything that is not Home.
+// The scene is behind every screen now, but only Home gets it in focus.
+// Everywhere else it racks out to a heavy blur so the lists and grids of
+// cards have something calm to sit on rather than a picture competing with
+// them. Called with false from setActiveTab for anything that is not Home.
 // The CSS sizes this in lvh, which is the viewport at its largest. Where lvh
 // is not understood it falls back to vh, which a phone changes as the address
 // bar comes and goes - so remember the tallest viewport seen and hold the
@@ -4257,25 +4322,31 @@ window.addEventListener('orientationchange', () => {
 });
 window.addEventListener('resize', sizeSceneLayer);
 
-function showHomeScene(on) {
+// focused: true on Home, false on every other screen. The scene shows
+// either way - it is only the focus that changes - so the one thing that
+// still hides it entirely is having picked "No picture".
+function setSceneFocus(focused) {
   const el = document.getElementById('sceneBg');
   if (!el) return;
   const scene = currentProfile && currentProfile.home_scene;
-  if (!on || !scene || scene === 'none' || !HOME_SCENES.some(s => s.id === scene)) {
+  if (!scene || scene === 'none' || !HOME_SCENES.some(s => s.id === scene)) {
     el.classList.remove('on');
-    document.body.classList.remove('scene-on');
+    document.body.classList.remove('scene-on', 'scene-blurred');
     return;
   }
   const url = sceneUrl(scene, timeBand());
-  // Only touch background-image when it actually changes, so re-rendering
-  // Home does not make the scene flicker through a reload.
+  // The picture lives on #sceneBg::before, which a pseudo-element cannot be
+  // handed directly - so it comes through a custom property, which does
+  // inherit into one. Only written when it actually changes, so re-rendering
+  // a screen does not make the scene flicker through a reload.
   if (el.dataset.url !== url) {
-    el.style.backgroundImage = `url('${url}')`;
+    el.style.setProperty('--scene-img', `url('${url}')`);
     el.dataset.url = url;
   }
   sizeSceneLayer();
   el.classList.add('on');
   document.body.classList.add('scene-on');
+  document.body.classList.toggle('scene-blurred', !focused);
 }
 
 applyTimeOfDayBackground();
@@ -4287,14 +4358,14 @@ async function loadProfileForNav() {
     const res = await fetch('/profile');
     currentProfile = await res.json();
     updateNavAvatarIcon();
-    // Home has already rendered by the time this lands - it runs before the
-    // profile is known - so the scene has to be asked for a second time now
-    // that there is a saved choice to read. Only if Home is still the screen
-    // you are on.
-    if (document.querySelector('.nav-tab.active')?.dataset.tab === 'home'
-        && document.getElementById('micWrap')) {
-      showHomeScene(true);
-    }
+    // The screen has already rendered by the time this lands - it runs
+    // before the profile is known - so the scene has to be asked for a
+    // second time now that there is a saved choice to read. In focus only
+    // if Home is still the screen you are on; blurred in behind anything
+    // else, because every screen wears it now.
+    const onHome = document.querySelector('.nav-tab.active')?.dataset.tab === 'home'
+                   && !!document.getElementById('micWrap');
+    setSceneFocus(onHome);
   } catch (e) { /* keep the default person icon if this fails */ }
 }
 loadProfileForNav();
@@ -4313,10 +4384,10 @@ function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
-  // Home turns its own scene back on at the end of renderIdle. Doing it the
-  // other way round would leave the scene up behind Settings and the
-  // recording screen, both of which reach here with 'home' still active.
-  if (tabName !== 'home') showHomeScene(false);
+  // Home pulls its own scene back into focus at the end of renderIdle. Doing
+  // it the other way round would leave the scene sharp behind Settings and
+  // the recording screen, both of which reach here with 'home' still active.
+  if (tabName !== 'home') setSceneFocus(false);
   // Home already shows the big hero wordmark, so the small top-bar one would
   // just duplicate it. Kept as visibility rather than display so the feather
   // count and profile button don't shift position between screens.
@@ -4496,8 +4567,8 @@ async function renderSettings() {
     </div>
     <div class="collection-title" style="margin-bottom:14px;">Settings</div>
 
-    <div class="profile-section-title">Home background</div>
-    <div class="reset-note">Pick a place. It changes through the day on its own — sunrise, daytime, sunset and night.</div>
+    <div class="profile-section-title">Background</div>
+    <div class="reset-note">Pick a place. It changes through the day on its own — sunrise, daytime, sunset and night. It stays behind every screen, softly blurred away from Home.</div>
     <div class="scene-grid" id="sceneGrid"></div>
 
     <div class="profile-section-title">Bird names</div>
