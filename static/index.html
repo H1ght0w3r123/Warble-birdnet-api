@@ -1595,10 +1595,28 @@
     position:absolute; left:50%; top:8px; width:130px; cursor:pointer;
     transition:transform .32s cubic-bezier(.34,1.3,.64,1), opacity .32s ease;
   }
-  .trophy-svg{width:100%;height:auto;display:block;filter:drop-shadow(0 8px 14px rgba(0,0,0,0.3));}
-  .trophy-slide.locked .trophy-svg{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 6px 12px rgba(0,0,0,0.28));}
-  .trophy-slide.front .trophy-svg{filter:drop-shadow(0 12px 20px rgba(0,0,0,0.38));}
-  .trophy-slide.front.locked .trophy-svg{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 10px 16px rgba(0,0,0,0.34));}
+  /* The trophy is now carved art with the emblem laid into its maple plaque,
+     so there are two elements where there used to be one drawing. The
+     filters sit on the wrapper rather than the image: a locked trophy has to
+     grey out its emblem too, and a drop shadow on the wrapper follows the
+     whole silhouette instead of being drawn twice. */
+  .trophy-art{position:relative;width:100%;filter:drop-shadow(0 8px 14px rgba(0,0,0,0.3));}
+  .trophy-svg{width:100%;height:auto;display:block;}
+  /* Measured off the art, the same way the bird card's window and nameplate
+     are: the pale plaque is an ellipse 162x104 in a 369x390 picture, centred
+     at 50.81%, 33.72%. A square inside that ellipse can only be 87px, but
+     the emblems are drawn to a circle rather than a square - nothing of
+     theirs reaches the corners - and a circle fits the plaque's 104px
+     height. 96px, 26% of the width, keeps the rim clear with a little to
+     spare. Worth re-measuring when the rendered emblems arrive, since they
+     may not be as circular as the drawn ones. */
+  .trophy-emblem{
+    position:absolute; left:50.81%; top:33.72%; width:26%;
+    transform:translate(-50%,-50%); display:block; pointer-events:none;
+  }
+  .trophy-slide.locked .trophy-art{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 6px 12px rgba(0,0,0,0.28));}
+  .trophy-slide.front .trophy-art{filter:drop-shadow(0 12px 20px rgba(0,0,0,0.38));}
+  .trophy-slide.front.locked .trophy-art{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 10px 16px rgba(0,0,0,0.34));}
   .trophy-caption{width:100%;max-width:300px;text-align:center;margin-top:6px;min-height:64px;}
   .trophy-caption-name{font-family:'Poppins';font-weight:900;font-size:19px;color:#fff;}
   .trophy-caption-req{font-size:12.5px;color:rgba(255,255,255,0.88);margin-top:4px;line-height:1.4;}
@@ -5566,35 +5584,25 @@ const TROPHY_EMBLEMS = {
 
 // Little stars on the plinth showing how many of the three levels are held -
 // so the carousel communicates progress at a glance, not just earned/not.
-function levelPips(t) {
-  const total = t.level_count || 3;
-  const got = t.level || 0;
-  const w = 9, gap = 3;
-  const startX = 50 - ((total * w + (total - 1) * gap) / 2) + w / 2;
-  return Array.from({ length: total }, (_, i) => {
-    const x = startX + i * (w + gap);
-    const on = i < got;
-    return `<circle cx="${x}" cy="103" r="3.1" fill="${on ? '#F2C94C' : '#3D2A85'}"
-            stroke="${on ? '#B8901F' : '#2D1B69'}" stroke-width="1"/>`;
-  }).join('');
-}
-
-function trophySvg(trophy) {
-  const earned = trophy.earned;
-  const cup = earned ? '#F2C94C' : '#8E87B8';
-  const cupDark = earned ? '#B8901F' : '#6F68A0';
+// The tier used to be a row of pips under a drawn cup. It is now the number
+// of leaves sitting in the three carved sockets on the trophy's base, which
+// is a property of the artwork - so the level picks the picture and there is
+// nothing to draw. Four pictures: none, one, two, three.
+// Measured at the sizes the carousel actually draws (130, 101 and 73px), the
+// leaves stay separable at every one of them - a blob count of the green
+// comes back as exactly 1, 2 and 3. Under simulated deuteranopia the filled
+// and empty sockets fall to 1.31:1 in luminance, so the colour is doing most
+// of the work; what saves it is that the empty sockets are carved and stay
+// visible as structure regardless.
+function trophyArt(trophy) {
+  const level = Math.max(0, Math.min(3, trophy.level || 0));
   const emblem = TROPHY_EMBLEMS[trophy.key] || '';
-  return `<svg viewBox="0 0 100 116" class="trophy-svg">
-    <path d="M22 16 H78 V44 a28 28 0 0 1 -56 0 Z" fill="${cup}"/>
-    <path d="M22 16 H78 V26 H22 Z" fill="${cupDark}" opacity="0.35"/>
-    <path d="M22 24 h-9 a11 11 0 0 0 11 15" fill="none" stroke="${cup}" stroke-width="5"/>
-    <path d="M78 24 h9 a11 11 0 0 1 -11 15" fill="none" stroke="${cup}" stroke-width="5"/>
-    <rect x="44" y="70" width="12" height="14" fill="${cupDark}"/>
-    <path d="M30 98 h40 l-4 -12 H34 Z" fill="${cupDark}"/>
-    <rect x="24" y="98" width="52" height="10" rx="3" fill="${cup}"/>
-    <g transform="translate(50,36)" ${earned ? '' : 'opacity="0.45"'}>${emblem}</g>
-    ${levelPips(trophy)}
-  </svg>`;
+  return `<div class="trophy-art">
+    <img class="trophy-svg" src="/static/trophy-l${level}-v1.webp" alt="">
+    ${emblem ? `<svg class="trophy-emblem" viewBox="-12 -12 24 24">
+      <g ${trophy.earned ? '' : 'opacity="0.45"'}>${emblem}</g>
+    </svg>` : ''}
+  </div>`;
 }
 
 let trophyIndex = 0;
@@ -6024,7 +6032,7 @@ async function renderTrophies() {
     const carousel = document.getElementById('trophyCarousel');
     carousel.innerHTML = allTrophiesRaw.map((t, i) => `
       <div class="trophy-slide ${t.earned ? 'earned' : 'locked'}" data-i="${i}">
-        ${trophySvg(t)}
+        ${trophyArt(t)}
       </div>
     `).join('');
     carousel.querySelectorAll('.trophy-slide').forEach(el => {
@@ -6140,7 +6148,7 @@ function renderTrophyDetail(trophyKey) {
     </div>
     <div class="detail-card" style="--tier-color:var(--gold);">
       <div class="detail-photo" style="display:flex;align-items:center;justify-content:center;background:var(--goldbg,#FBF0D8);padding:12px 0;">
-        <div style="width:110px;">${trophySvg(trophy)}</div>
+        <div style="width:110px;">${trophyArt(trophy)}</div>
       </div>
       <div class="detail-body">
         <div class="detail-name">${trophy.name}</div>
