@@ -1620,10 +1620,44 @@
   .trophy-slide.locked .trophy-art{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 6px 12px rgba(0,0,0,0.28));}
   .trophy-slide.front .trophy-art{filter:drop-shadow(0 12px 20px rgba(0,0,0,0.38));}
   .trophy-slide.front.locked .trophy-art{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 10px 16px rgba(0,0,0,0.34));}
+  /* --- The trophy detail card ------------------------------------------
+     Three things this does NOT reuse from the bird card, each for a reason.
+     .detail-photo, because it carries filter:url(#watercolor-filter) - a
+     displacement map that makes a photograph look painted and makes a
+     crisply rendered trophy look bent. .detail-card's own border, because
+     the frame here is the drawn wooden one the My Flock cards wear. And its
+     height is fixed rather than fitted, so a long citation cannot move the
+     trophy up the screen. */
+  .detail-wood{--frame:7px; --inner:16px; width:100%; max-width:340px;}
+  .detail-wood .detail-card{
+    width:100%; max-width:none; border:none; border-radius:var(--inner);
+    box-shadow:none;
+  }
+  .trophy-hero{
+    height:236px; background:var(--goldbg,#FBF0D8);
+    display:flex; align-items:center; justify-content:center;
+    border-radius:var(--inner) var(--inner) 0 0;
+  }
+  /* Bigger than the 130px the carousel gives it: this is the one screen
+     that is only about this trophy. */
+  .trophy-hero-art{width:186px;}
+  .trophy-hero-art .trophy-art{animation:trophyBreathe 3s ease-in-out infinite;}
+  @keyframes trophyBreathe{
+    0%,100%{transform:scale(1);}
+    50%    {transform:scale(1.05);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .trophy-hero-art .trophy-art{animation:none;}
+  }
   .trophy-caption{width:100%;max-width:300px;text-align:center;margin-top:6px;min-height:64px;}
   .trophy-caption-name{font-family:'Poppins';font-weight:900;font-size:19px;color:#fff;}
   .trophy-caption-req{font-size:12.5px;color:rgba(255,255,255,0.88);margin-top:4px;line-height:1.4;}
-  .trophy-level{display:inline-block;background:var(--gold);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+  /* text-shadow:none is load-bearing. The pill sits inside
+     .trophy-caption-name, which on a scene screen carries a four-layer dark
+     shadow so white type survives a bright sky - and text-shadow inherits.
+     Dark text on a gold pill was getting all four, which read as badly out
+     of focus. */
+  .trophy-level{display:inline-block;background:var(--gold);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;text-shadow:none;}
   .trophy-caption-next{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:5px;}
   .trophy-caption-tap{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
   /* Feathers-earned and "go again" share one grid cell (both always in the
@@ -5986,7 +6020,12 @@ async function renderHabitats() {
 
 async function renderTrophies() {
   setActiveTab('trophies');
-  stage.classList.remove('top-aligned');
+  // Top-aligned, like Collections and My Flock, for two reasons: the header
+  // then sits at the same height as theirs, and the carousel stops moving.
+  // Centred, the whole column was balanced about the middle of the screen,
+  // so a trophy with a long citation under it pushed the trophy upward - the
+  // picture shifted depending on how much text happened to be below it.
+  stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title"><img src="/static/title-awards-v2.webp" alt="Awards" style="height:30px;width:auto;display:block;"></div></div>
     <div class="collection-count" id="trophyCount">Loading...</div>
@@ -6125,15 +6164,17 @@ function renderTrophyDetail(trophyKey) {
     <div style="width:100%;margin-bottom:14px;">
       <button class="back-btn" id="backBtn">← Back</button>
     </div>
+    <div class="woodframe detail-wood">
     <div class="detail-card" style="--tier-color:var(--gold);">
-      <div class="detail-photo" style="display:flex;align-items:center;justify-content:center;background:var(--goldbg,#FBF0D8);padding:12px 0;">
-        <div style="width:110px;">${trophyArt(trophy)}</div>
+      <div class="trophy-hero">
+        <div class="trophy-hero-art">${trophyArt(trophy)}</div>
       </div>
       <div class="detail-body">
         <div class="detail-name">${trophy.name}</div>
         <div class="detail-sci" style="font-style:normal;color:var(--gold-dk);font-weight:700;">${trophy.citation}</div>
         <div class="detail-desc">${trophy.description}</div>
       </div>
+    </div>
     </div>
   `;
   document.getElementById('backBtn').onclick = renderTrophies;
