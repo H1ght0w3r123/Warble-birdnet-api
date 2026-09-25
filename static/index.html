@@ -1267,35 +1267,11 @@
      the floor instead of floating them mid-room. */
   .species-track{
     position:absolute; left:0; right:0; top:16%; bottom:10%;
-    -webkit-mask-image:linear-gradient(to right, transparent 15.2%, #000 17.2%, #000 82.7%, transparent 84.7%);
-    mask-image:linear-gradient(to right, transparent 15.2%, #000 17.2%, #000 82.7%, transparent 84.7%);
     z-index:1; display:flex; align-items:flex-end;
     overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
     padding:0 50%;
   }
   .species-track::-webkit-scrollbar{display:none;}
-  /* Stage lighting. The waiting birds are ghosts laid over the room art, and
-     the room art is busy exactly where they stand - a wardrobe full of
-     coloured clothes on one side, a gilt mirror on the other. Measured, a
-     pale ghost over that reads as fog, not a bird, at any opacity: there is
-     no filter that separates a 46px sliver of wing from a rail of shirts.
-     So the sides of the room go into shadow, which is what a spotlit stage
-     does anyway - the lit centre is where the bird you are dressing stands,
-     and the wings are dark enough for a pale bird to read against. Sits
-     above the room background and below the track. */
-  .room-wings{
-    position:absolute; left:16.2%; right:16.3%; top:14%; bottom:5%; z-index:0;
-    pointer-events:none;
-    background:linear-gradient(to right,
-      rgba(22,7,38,0.62) 0%, rgba(22,7,38,0.55) 14%, rgba(22,7,38,0.1) 34%,
-      rgba(22,7,38,0) 50%,
-      rgba(22,7,38,0.1) 66%, rgba(22,7,38,0.55) 86%, rgba(22,7,38,0.62) 100%);
-    /* Without this the overlay's own top and bottom edges draw two straight
-       lines across the room that belong to no part of the picture. Fading it
-       out into the ceiling and the floor leaves only the shadow. */
-    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 13%, #000 86%, transparent 100%);
-    mask-image:linear-gradient(to bottom, transparent 0%, #000 13%, #000 86%, transparent 100%);
-  }
   .species-silhouette-btn{
     flex-shrink:0; background:none; border:none; padding:0; margin:0 4px 4%;
     cursor:pointer; height:54%; display:flex; align-items:flex-end;
@@ -1303,21 +1279,16 @@
     will-change:transform;
   }
   .species-silhouette-btn.is-current{visibility:hidden;}
-  /* These are the player's other birds, waiting in the wings, and they are
-     meant to be tapped. The source art is dark purple (36,26,59) at about
-     half alpha - near-invisible as drawn - so it is flattened to white and
-     dropped back to 58%, which against the shadowed sides of the room reads
-     as a bird standing just out of the light. */
-  .species-silhouette-btn img{
-    height:100%; width:auto; display:block; pointer-events:none;
-    filter:brightness(0) invert(1) opacity(0.58)
-           drop-shadow(0 3px 8px rgba(12,4,22,0.6));
-    transition:filter .2s ease;
-  }
-  .species-silhouette-btn:active img{
-    filter:brightness(0) invert(1) opacity(0.85)
-           drop-shadow(0 3px 8px rgba(12,4,22,0.6));
-  }
+  /* Nothing is drawn any more. The strip still exists, and every button
+     still occupies its slot, because the whole species carousel - the
+     endless three-copy loop, the scroll-settle that commits a choice, the
+     drag-the-bird-to-scroll bridge - is built on measuring these boxes.
+     Hiding them with visibility keeps every one of those measurements
+     intact (and keeps them out of the tab order and off hit-testing) while
+     the chevrons below become the thing you actually press. Swiping the
+     room still works, because that is this track scrolling. */
+  .species-silhouette-btn{visibility:hidden;}
+  .species-silhouette-btn img{height:100%; width:auto; display:block;}
 
   /* --- Hoot-tique: the header arrives big, then gets out of the way ----
      The shop sign is the best thing on this screen and also the most
@@ -1345,7 +1316,7 @@
   .colour-label{
     font-family:'Poppins'; font-weight:700; font-size:10px; letter-spacing:.09em;
     text-transform:uppercase; color:rgba(255,255,255,0.82); text-align:center;
-    margin:5px 0 1px;
+    margin:3px 0 1px;
   }
 
   /* Selected colour: a terracotta ring, a lift and a tick, not a dark
@@ -1451,6 +1422,34 @@
      whitespace below them (the classic inline-replaced-element gap).
      display:block on the injected avatar SVG removes it. */
   .avatar-frame svg{display:block; width:100%; height:auto;}
+  /* Two chevrons say "there are other birds" in a way a five-year-old can
+     act on without being taught a swipe. They sit inside the doorway rather
+     than on the posts, which carry the light bulbs: measured, the bird's
+     wings reach 28% and 72% of the room's width and the posts' inner edges
+     are at 16.4% and 83.5%, which leaves about 39px of clear wall for a
+     34px button at either side. Dark disc, white chevron - it has to read
+     against the lilac wall on one side and the wardrobe on the other. */
+  .room-chevron{
+    position:absolute; top:52%; transform:translateY(-50%);
+    width:34px; height:34px; border-radius:50%; z-index:4; padding:0;
+    border:2px solid rgba(255,255,255,0.7);
+    background:rgba(28,10,46,0.76); color:#fff; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 10px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.25);
+    transition:transform .14s ease, background .14s ease;
+  }
+  .room-chevron.prev{left:18.6%;}
+  .room-chevron.next{right:18.6%;}
+  .room-chevron:active{background:rgba(232,132,92,0.9); transform:translateY(-50%) scale(.88);}
+  .room-chevron svg{width:19px; height:19px; display:block;}
+  @media (max-width:360px){
+    .room-chevron{width:30px; height:30px;}
+    .room-chevron svg{width:17px; height:17px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .room-chevron{transition:none;}
+  }
+
   .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:14px 4px 4px;margin-top:2px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
   .carousel-wrap::-webkit-scrollbar{display:none;}
   .carousel-panel{width:100%;max-width:100%;overflow-x:hidden;overflow-y:visible;}
@@ -1500,26 +1499,40 @@
      together at any width.
        Measured off the artwork (1298x1116 after the transparent margin is
      trimmed, so aspect-ratio 1298/1116):
-       - the rug spans x 23.9%-76.3%, y 76.9%-89.1%
-       - the frame's inner opening is x 16.2%-83.7%, y ~15% down
-     The room is capped at 360px wide because its height follows its width:
-     unchecked, a 430px phone would make it 342px tall and push the carousel
-     under the nav. */
+       - the rug spans x 24.5%-75.6%, y 78.0%-88.6%
+       - the frame's inner opening is x 16.4%-83.5%, y ~17% down
+     Art v2 arrived with a real alpha channel (v1 had the transparency
+     checkerboard baked in as pixels and had to be keyed back out), so it is
+     a straight premultiplied downscale with no reconstruction and no rim.
+     The room is capped at 340px wide because its height follows its width:
+     unchecked, a 430px phone would make it 380px tall and push the hint
+     line under the nav. */
   .dressup-avatar-stage{
-    position:relative; width:100%; max-width:340px; margin:4px auto 0;
-    aspect-ratio:1298/1116;
-    background:url('/static/hoot-room-v1.webp') center/100% 100% no-repeat;
+    position:relative; width:100%; max-width:340px; margin:2px auto 0;
+    aspect-ratio:1100/972;
+    background:url('/static/hoot-room-v2.webp') center/100% 100% no-repeat;
   }
   /* The bird stands on the rug rather than sitting in the middle of a
      circle. The avatar SVG's own feet are at 96.9% of its box (legs are
      drawn y=84 to 96.9 in a 0-100 viewBox), so the box has to hang about 3%
      of its own height below the point the feet should touch. Feet land at
      86% of the room's height - the front half of the rug, which reads as
-     standing ON it rather than behind it. 58% width keeps the bird's widest
-     point (wings reach ~87 of the 100 viewBox) inside the rug. */
+     standing ON it rather than behind it.
+       The 12.2% falls out of that rather than being dialled in: the box's
+     bottom sits at 0.14*roomH (the feet) minus 0.031*birdWidth, and with the
+     bird at 52% of a room whose aspect is 1.1317 that works out at
+     0.122*roomH whatever size the room ends up. Change the width and this
+     number has to move with it.
+       52% is the ceiling, and a hat is what sets it, not the bird: the
+     tallest ones (Ski Hat, Top Hat, Cozy Beanie) are drawn well above the
+     avatar's own box, and measured against a bare head they start 17.5% of
+     the box height above its top edge. Any wider and they push up through
+     the room's top rail and paint over the wooden frame, which reads as a
+     bug rather than a tall hat. At 52% the tallest hat tops out at 18.6%,
+     just inside the opening's 17%. */
   .avatar-frame-wrap{
-    position:absolute; left:50%; bottom:12.1%; transform:translateX(-50%);
-    width:42%; z-index:2; pointer-events:none;
+    position:absolute; left:50%; bottom:12.2%; transform:translateX(-50%);
+    width:52%; z-index:2; pointer-events:none;
   }
   .avatar-frame-wrap .avatar-frame{pointer-events:auto; cursor:grab;}
   .avatar-frame-wrap .avatar-frame:active{cursor:grabbing;}
@@ -1529,7 +1542,7 @@
      which clears it without shrinking the tap targets. */
   .color-wheel{
     display:flex; justify-content:center; align-items:center;
-    gap:clamp(4px, 1.7vw, 8px); width:100%; margin:2px 0 0; flex-wrap:nowrap;
+    gap:clamp(4px, 1.7vw, 8px); width:100%; margin:1px 0 0; flex-wrap:nowrap;
   }
   .color-wheel .color-swatch{
     position:relative; flex:0 0 auto; width:24px; height:24px; border-radius:50%;
@@ -5339,6 +5352,22 @@ let speciesScrollSettleTimer = null;
 let speciesScrollRAF = null;
 let activeSpeciesBtn = null;
 
+// The chevrons drive the same strip a swipe does, rather than setting the
+// species directly: scrolling it is what commits a choice, updates the
+// preview and saves, so both routes go through exactly one code path. The
+// endless three-copy loop keeps rewrapping to the middle copy, so there is
+// always a button one step either side of the active one to scroll to.
+function stepSpecies(dir) {
+  const track = document.getElementById('speciesTrack');
+  if (!track) return;
+  const btns = [...track.querySelectorAll('.species-silhouette-btn')];
+  const i = btns.indexOf(activeSpeciesBtn);
+  const next = btns[(i < 0 ? 0 : i) + dir];
+  if (!next) return;
+  next.scrollIntoView({ inline: 'center', block: 'nearest',
+                        behavior: reducedMotion() ? 'auto' : 'smooth' });
+}
+
 function initDressUpAvatarPicker() {
   const track = document.getElementById('speciesTrack');
   const circle = document.querySelector('#dressUpAvatarStage .avatar-frame');
@@ -5615,8 +5644,9 @@ async function renderDressUp() {
     <div class="colour-label">Feather colour</div>
     <div class="color-wheel" id="colorWheel"></div>
     <div class="dressup-avatar-stage" id="dressUpAvatarStage">
-      <div class="room-wings"></div>
       <div class="species-track" id="speciesTrack"></div>
+      <button class="room-chevron prev" id="speciesPrev" aria-label="Previous bird">${CHEVRON_L_ICON}</button>
+      <button class="room-chevron next" id="speciesNext" aria-label="Next bird">${CHEVRON_R_ICON}</button>
       <div class="avatar-frame-wrap">
         <div class="avatar-frame" id="dressUpPreview"></div>
       </div>
@@ -5649,6 +5679,8 @@ async function renderDressUp() {
     renderCategoryRow();
     document.getElementById('resetAccessoriesBtn').onclick = resetAllAccessories;
     document.getElementById('randomiseBtn').onclick = randomiseOutfit;
+    document.getElementById('speciesPrev').onclick = () => stepSpecies(-1);
+    document.getElementById('speciesNext').onclick = () => stepSpecies(1);
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
     settleHootHeader();
   } catch (e) {
@@ -5660,6 +5692,8 @@ async function renderDressUp() {
 // Circular arrow and shuffle, drawn rather than lettered - the brief wants
 // these to read as utilities, and two words at the widest point of the
 // screen read as the main thing to do.
+const CHEVRON_L_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>`;
+const CHEVRON_R_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`;
 const RESET_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/></svg>`;
 const SHUFFLE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h3.5l3 4"/><path d="M14.5 17H18"/><path d="M3 18h3.5l7-12H18"/><path d="M16 3.5 19 6l-3 2.5"/><path d="M16 14.5 19 17l-3 2.5"/></svg>`;
 
