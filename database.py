@@ -17,6 +17,19 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+# Name the Postgres driver explicitly rather than letting SQLAlchemy pick.
+# A bare postgresql:// URL means "use the default driver", and which driver
+# that is changed underneath us: SQLAlchemy 2.0 defaults to psycopg2, 2.1
+# defaults to psycopg (v3). requirements.txt doesn't pin SQLAlchemy, so a
+# deploy picked up 2.1, went looking for psycopg, and died on import with
+# ModuleNotFoundError — the process never opened the port, so every
+# healthcheck on / came back as service unavailable until the deploy gave
+# up. Only psycopg2-binary is installed, so say psycopg2. Anything that
+# already names its own driver (postgresql+psycopg://) is left alone, as is
+# sqlite:// for local testing.
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+
 engine = create_engine(DATABASE_URL) if DATABASE_URL else None
 SessionLocal = sessionmaker(bind=engine) if engine else None
 Base = declarative_base()
