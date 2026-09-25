@@ -1292,23 +1292,49 @@
 
   /* --- Hoot-tique: the header arrives big, then gets out of the way ----
      The shop sign is the best thing on this screen and also the most
-     expensive: at 62px plus a welcome line it was eating 84px of a 684px
-     pane. So it plays as an entrance and then settles - the logo shrinks to
-     30px and the welcome folds away, on a spring rather than a linear ease
-     so it lands rather than slides. Reduced motion skips straight to the
-     settled state. */
+     expensive: at full size with a welcome line under it, it was eating
+     84px of a 684px pane. So it gets its big moment and then gets out of
+     the way - see playHootEntrance. Reduced motion goes straight to the
+     finished screen. */
   .hoot-head{display:flex; flex-direction:column; align-items:center; width:100%;}
-  .hoot-head img{
-    height:62px; width:auto; display:block;
-    transition:height .5s cubic-bezier(.34,1.56,.64,1);
+  /* The sign is always at its settled size in the layout. The entrance is
+     played by a separate copy flying over the top (.hoot-flyer), so nothing
+     here ever reflows - this one is simply invisible until the flyer lands
+     on it and hands over. */
+  .hoot-head img{height:30px; width:auto; display:block;}
+  .hoot-head.arriving{opacity:0;}
+
+  /* Everything under the sign, wrapped so it can be dimmed out and then
+     bumped in as one piece rather than eight separate ones. width:100% and
+     the same flex column as .stage keep the children laid out exactly as
+     they were before the wrapper existed. */
+  .hoot-body{width:100%; display:flex; flex-direction:column; align-items:center;}
+  .hoot-body.arriving{opacity:0;}
+
+  /* The entrance. The shop is closed for a beat - the whole screen is
+     blacked back, including the top bar and the nav, which is why the veil
+     is a child of <body> rather than of the scroll pane: position:fixed
+     inside the pane would be trapped in the pane's own stacking context and
+     would leave the nav lit. */
+  .hoot-veil{
+    position:fixed; inset:0; z-index:900; pointer-events:none;
+    background:rgba(10,4,22,0.86);
+    display:flex; align-items:flex-start; justify-content:center;
   }
-  .hoot-welcome{
-    font-size:12px; color:rgba(255,255,255,0.88); text-align:center;
-    max-height:44px; opacity:1; margin-top:8px; overflow:hidden;
-    transition:max-height .42s ease, opacity .26s ease, margin-top .42s ease;
+  .hoot-veil .hoot-welcome{
+    position:absolute; left:6%; right:6%; text-align:center;
+    font-family:'Poppins'; font-size:13.5px; line-height:1.45;
+    color:rgba(255,255,255,0.92); opacity:0;
+    text-shadow:0 2px 8px rgba(0,0,0,0.6);
   }
-  .hoot-head.settled img{height:30px;}
-  .hoot-head.settled .hoot-welcome{max-height:0; opacity:0; margin-top:0;}
+  /* The flying sign. Laid out with left/top rather than a centring
+     transform, because the animation below owns `transform` outright and
+     anything already in there would be thrown away on the first keyframe. */
+  .hoot-flyer{
+    position:fixed; z-index:901; pointer-events:none; display:block;
+    transform-origin:50% 50%; will-change:transform;
+    filter:drop-shadow(0 10px 26px rgba(0,0,0,0.55));
+  }
 
   /* The one label on the stage. The swatches arc over the frame's own top
      edge, so there is nowhere above them to put it without pushing the bird
@@ -1399,7 +1425,6 @@
     100%{transform:translate(-50%,-50%) translateY(-28px) scale(1.15); opacity:0;}
   }
   @media (prefers-reduced-motion: reduce){
-    .hoot-head img, .hoot-welcome{transition:none;}
     .avatar-frame.pop, .avatar-frame.tint, .avatar-frame.swap{animation:none;}
     .hoot-spark{display:none;}
     .category-chip{transition:none;}
@@ -4739,6 +4764,7 @@ async function loadAccessoryCache() {
 loadAccessoryCache();
 
 function setActiveTab(tabName) {
+  if (tabName !== 'dressup') endHootEntrance();
   document.querySelectorAll('.nav-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
@@ -5637,10 +5663,10 @@ async function renderDressUp() {
   stage.classList.add('top-aligned');
   selectedCategory = null;
   stage.innerHTML = `
-    <div class="hoot-head" id="hootHead">
+    <div class="hoot-head arriving" id="hootHead">
       <img src="/static/title-hoottique-v3.webp" alt="The Hoot-tique">
-      <div class="hoot-welcome">Welcome to The Hoot-tique! Don't leave until you're looking fly!</div>
     </div>
+    <div class="hoot-body arriving" id="hootBody">
     <div class="colour-label">Feather colour</div>
     <div class="color-wheel" id="colorWheel"></div>
     <div class="dressup-avatar-stage" id="dressUpAvatarStage">
@@ -5658,6 +5684,7 @@ async function renderDressUp() {
       <button class="dress-util" id="resetAccessoriesBtn" aria-label="Reset outfit" title="Reset outfit">${RESET_ICON}</button>
     </div>
     <div class="dressup-hint" id="dressUpHint"></div>
+    </div>
   `;
 
   try {
@@ -5682,7 +5709,7 @@ async function renderDressUp() {
     document.getElementById('speciesPrev').onclick = () => stepSpecies(-1);
     document.getElementById('speciesNext').onclick = () => stepSpecies(1);
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
-    settleHootHeader();
+    playHootEntrance();
   } catch (e) {
     const wrap = document.getElementById('carouselWrap');
     if (wrap) wrap.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
@@ -5697,14 +5724,134 @@ const CHEVRON_R_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const RESET_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/></svg>`;
 const SHUFFLE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h3.5l3 4"/><path d="M14.5 17H18"/><path d="M3 18h3.5l7-12H18"/><path d="M16 3.5 19 6l-3 2.5"/><path d="M16 14.5 19 17l-3 2.5"/></svg>`;
 
-// The entrance: the sign is full size for a beat, then settles small and
-// gives its height back to the bird. Anyone who has asked for less motion
-// gets the settled state immediately, with no animation to sit through.
-function settleHootHeader() {
+// The entrance. The shop opens: the screen is blacked back, the sign
+// arrives big and centred, pulses, spins on its own axis and then flies
+// down to the spot above the swatches where it lives - and the room, the
+// bird and everything else bump into view behind it as it travels.
+//
+// The sign that flies is a COPY, fixed to the page over the veil, not the
+// one in the header. The real one never moves or resizes, so no part of
+// this touches layout: the flyer's whole job is to travel from the middle
+// of the screen to wherever the real one happens to be sitting, which is
+// measured rather than assumed - so it still lands correctly at 320px, at
+// 430px, or if the header ever moves again.
+const HOOT_ENTRANCE = {
+  appear: 170,     // fade up from small
+  pulse:  400,     // swell and settle
+  spin:   620,     // one full turn
+  travel: 720,     // fly down to the header
+};
+function hootEntranceTotal() {
+  const t = HOOT_ENTRANCE;
+  return t.appear + t.pulse + t.spin + t.travel;
+}
+
+// Leaving the tab part-way through has to take the entrance with it,
+// otherwise the veil sits over whatever screen you went to until its timer
+// runs out. setActiveTab calls this on every navigation - including, via
+// renderIdle, once while this file is still being evaluated, which is why
+// there is no module-level state here to clear: `let` at this point in the
+// file would not be initialised yet and reading it would throw.
+// Nothing needs clearing anyway. The hand-over below closes over its own
+// veil, flyer and header, so a timer left running from an abandoned
+// entrance removes nodes that are already detached and toggles a class on a
+// header that is no longer on the page. It cannot reach into a later one.
+function endHootEntrance() {
+  document.querySelectorAll('.hoot-veil, .hoot-flyer').forEach(el => el.remove());
+}
+
+function playHootEntrance() {
+  endHootEntrance();
   const head = document.getElementById('hootHead');
-  if (!head) return;
-  if (reducedMotion()) { head.classList.add('settled'); return; }
-  setTimeout(() => head.classList.add('settled'), 1000);
+  const body = document.getElementById('hootBody');
+  if (!head || !body) return;
+
+  // Reduced motion gets the finished screen, with nothing to sit through.
+  if (reducedMotion()) { head.classList.remove('arriving'); body.classList.remove('arriving'); return; }
+
+  const img = head.querySelector('img');
+  const target = img.getBoundingClientRect();
+  if (!target.width) { head.classList.remove('arriving'); body.classList.remove('arriving'); return; }
+
+  const veil = document.createElement('div');
+  veil.className = 'hoot-veil';
+  veil.innerHTML = `<div class="hoot-welcome">Welcome to The Hoot-tique!<br>Don't leave until you're looking fly!</div>`;
+  document.body.appendChild(veil);
+
+  // Big, but not so big the sign falls apart: the artwork is 314px wide, so
+  // 230 CSS px is already a 2.2x upscale on a 3x screen. Past that the
+  // carved edges visibly soften.
+  const bigW = Math.min(230, window.innerWidth * 0.74);
+  const bigH = bigW * (target.height / target.width);
+  const centreX = window.innerWidth / 2;
+  const centreY = window.innerHeight * 0.42;
+
+  const flyer = document.createElement('img');
+  flyer.src = img.currentSrc || img.src;
+  flyer.alt = '';
+  flyer.className = 'hoot-flyer';
+  flyer.style.width = bigW + 'px';
+  flyer.style.left = (centreX - bigW / 2) + 'px';
+  flyer.style.top = (centreY - bigH / 2) + 'px';
+  document.body.appendChild(flyer);
+
+  const welcome = veil.querySelector('.hoot-welcome');
+  welcome.style.top = (centreY + bigH / 2 + 18) + 'px';
+
+  // Where it has to end up, relative to where it starts.
+  const dx = (target.left + target.width / 2) - centreX;
+  const dy = (target.top + target.height / 2) - centreY;
+  const k = target.width / bigW;
+
+  const t = HOOT_ENTRANCE;
+  const total = hootEntranceTotal();
+  const at = ms => ms / total;   // keyframe offsets are fractions of the whole
+
+  const tAppear = t.appear;
+  const tPulse = tAppear + t.pulse;
+  const tSpin = tPulse + t.spin;
+
+  // perspective() has to lead every keyframe or rotateY is a flat
+  // horizontal squash rather than a sign turning on its own axis.
+  const P = 'perspective(760px) ';
+  flyer.animate([
+    { offset: 0,                   opacity: 0, transform: P + 'translate(0px,0px) scale(0.74) rotateY(0deg)' },
+    { offset: at(tAppear),         opacity: 1, transform: P + 'translate(0px,0px) scale(1) rotateY(0deg)' },
+    { offset: at(tAppear + t.pulse * 0.45), opacity: 1, transform: P + 'translate(0px,0px) scale(1.12) rotateY(0deg)' },
+    { offset: at(tPulse),          opacity: 1, transform: P + 'translate(0px,0px) scale(1) rotateY(0deg)' },
+    { offset: at(tSpin),           opacity: 1, transform: P + 'translate(0px,0px) scale(1) rotateY(360deg)' },
+    { offset: 1,                   opacity: 1, transform: P + `translate(${dx}px,${dy}px) scale(${k}) rotateY(360deg)` },
+  ], { duration: total, easing: 'linear', fill: 'both' });
+
+  // The welcome line only exists while the sign is being looked at.
+  welcome.animate([
+    { offset: 0, opacity: 0 },
+    { offset: at(tAppear), opacity: 0 },
+    { offset: at(tAppear + 160), opacity: 1 },
+    { offset: at(tSpin), opacity: 1 },
+    { offset: at(tSpin + 200), opacity: 0 },
+    { offset: 1, opacity: 0 },
+  ], { duration: total, easing: 'linear', fill: 'both' });
+
+  // The room comes up as the sign starts travelling, so the two read as one
+  // move rather than two. The little overshoot is the bump.
+  veil.animate([{ opacity: 1 }, { opacity: 0 }],
+    { duration: t.travel - 80, delay: tSpin + 40, easing: 'ease-out', fill: 'forwards' });
+
+  body.classList.remove('arriving');
+  body.animate([
+    { opacity: 0, transform: 'scale(0.93)' },
+    { opacity: 1, transform: 'scale(1.035)', offset: 0.72 },
+    { opacity: 1, transform: 'scale(1)' },
+  ], { duration: t.travel + 120, delay: tSpin, easing: 'cubic-bezier(.3,.8,.4,1)', fill: 'backwards' });
+
+  // Hand over: the real sign appears exactly where the flyer stopped, and
+  // the flyer and the veil are taken back out of the page.
+  setTimeout(() => {
+    head.classList.remove('arriving');
+    flyer.remove();
+    veil.remove();
+  }, total);
 }
 
 // One helper for all three, so they cannot fight: re-adding a class that is
