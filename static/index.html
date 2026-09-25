@@ -1255,30 +1255,69 @@
      smooth-scrolls this track alone to bring that silhouette behind the
      circle - the circle and whatever's equipped on it stay completely
      static throughout. */
+  /* The strip is clipped to the room's inner opening (measured off the art:
+     the posts' inner edges sit at 16.2% and 83.7%) so the wooden frame is
+     what the other birds slide in and out from behind, rather than an
+     invisible box. The clip is a MASK, not left/right insets: this track's
+     `padding:0 50%` - which is what lets the first and last bird reach the
+     centre - resolves against the containing block rather than the element,
+     so insetting the box made its own padding wider than it was and it
+     sprang back to full width, dragging a horizontal scrollbar onto the
+     whole page. Vertical insets are safe, and flex-end stands the birds on
+     the floor instead of floating them mid-room. */
   .species-track{
-    position:absolute; inset:0; z-index:1; display:flex; align-items:center;
+    position:absolute; left:0; right:0; top:16%; bottom:10%;
+    -webkit-mask-image:linear-gradient(to right, transparent 15.2%, #000 17.2%, #000 82.7%, transparent 84.7%);
+    mask-image:linear-gradient(to right, transparent 15.2%, #000 17.2%, #000 82.7%, transparent 84.7%);
+    z-index:1; display:flex; align-items:flex-end;
     overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
     padding:0 50%;
   }
+  .species-track::-webkit-scrollbar{display:none;}
+  /* Stage lighting. The waiting birds are ghosts laid over the room art, and
+     the room art is busy exactly where they stand - a wardrobe full of
+     coloured clothes on one side, a gilt mirror on the other. Measured, a
+     pale ghost over that reads as fog, not a bird, at any opacity: there is
+     no filter that separates a 46px sliver of wing from a rail of shirts.
+     So the sides of the room go into shadow, which is what a spotlit stage
+     does anyway - the lit centre is where the bird you are dressing stands,
+     and the wings are dark enough for a pale bird to read against. Sits
+     above the room background and below the track. */
+  .room-wings{
+    position:absolute; left:16.2%; right:16.3%; top:14%; bottom:5%; z-index:0;
+    pointer-events:none;
+    background:linear-gradient(to right,
+      rgba(22,7,38,0.62) 0%, rgba(22,7,38,0.55) 14%, rgba(22,7,38,0.1) 34%,
+      rgba(22,7,38,0) 50%,
+      rgba(22,7,38,0.1) 66%, rgba(22,7,38,0.55) 86%, rgba(22,7,38,0.62) 100%);
+    /* Without this the overlay's own top and bottom edges draw two straight
+       lines across the room that belong to no part of the picture. Fading it
+       out into the ceiling and the floor leaves only the shadow. */
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0%, #000 13%, #000 86%, transparent 100%);
+    mask-image:linear-gradient(to bottom, transparent 0%, #000 13%, #000 86%, transparent 100%);
+  }
   .species-silhouette-btn{
-    flex-shrink:0; background:none; border:none; padding:0; margin:0 6px;
-    cursor:pointer; height:180px; display:flex; align-items:center;
-    scroll-snap-align:center; transform:scale(0.9); transform-origin:center center;
+    flex-shrink:0; background:none; border:none; padding:0; margin:0 4px 4%;
+    cursor:pointer; height:54%; display:flex; align-items:flex-end;
+    scroll-snap-align:center; transform:scale(0.9); transform-origin:bottom center;
     will-change:transform;
   }
   .species-silhouette-btn.is-current{visibility:hidden;}
-  /* These are the player's other birds, and they are meant to be tapped -
-     but the art is dark purple (36,26,59) at about half alpha, which on a
-     navy screen is very nearly nothing. Lifting it to near-white at 40%
-     keeps it plainly subdued next to the lit bird in the frame while
-     actually being a recognisable bird you can aim at. */
+  /* These are the player's other birds, waiting in the wings, and they are
+     meant to be tapped. The source art is dark purple (36,26,59) at about
+     half alpha - near-invisible as drawn - so it is flattened to white and
+     dropped back to 58%, which against the shadowed sides of the room reads
+     as a bird standing just out of the light. */
   .species-silhouette-btn img{
     height:100%; width:auto; display:block; pointer-events:none;
-    filter:brightness(0) invert(1) opacity(0.4)
-           drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+    filter:brightness(0) invert(1) opacity(0.58)
+           drop-shadow(0 3px 8px rgba(12,4,22,0.6));
     transition:filter .2s ease;
   }
-  .species-silhouette-btn:active img{filter:brightness(0) invert(1) opacity(0.7);}
+  .species-silhouette-btn:active img{
+    filter:brightness(0) invert(1) opacity(0.85)
+           drop-shadow(0 3px 8px rgba(12,4,22,0.6));
+  }
 
   /* --- Hoot-tique: the header arrives big, then gets out of the way ----
      The shop sign is the best thing on this screen and also the most
@@ -1306,20 +1345,22 @@
   .colour-label{
     font-family:'Poppins'; font-weight:700; font-size:10px; letter-spacing:.09em;
     text-transform:uppercase; color:rgba(255,255,255,0.82); text-align:center;
-    margin:7px 0 2px;
+    margin:5px 0 1px;
   }
 
-  /* Selected colour: a terracotta ring and a tick, not a dark border. The
-     tick's colour is set per swatch in JS from that swatch's own luminance -
-     white on the cream one was invisible. */
+  /* Selected colour: a terracotta ring, a lift and a tick, not a dark
+     border. The ring is a box-shadow and the lift a transform, so neither
+     changes the swatch's layout box - picking a colour must not shuffle the
+     other nine along the row. The tick's colour is set per swatch in JS from
+     that swatch's own luminance; white on the cream one was invisible. */
   .color-wheel .color-swatch.is-on{
-    width:30px; height:30px;
-    box-shadow:0 0 0 3px var(--terra), 0 2px 8px rgba(0,0,0,0.35);
+    transform:translateY(-3px);
+    box-shadow:0 0 0 3px var(--terra), 0 4px 9px rgba(0,0,0,0.4);
   }
   .color-wheel .color-swatch.is-on::after{
     content:'\2713'; position:absolute; inset:0; display:flex;
     align-items:center; justify-content:center;
-    font-size:15px; font-weight:900; line-height:1;
+    font-size:13px; font-weight:900; line-height:1;
   }
 
   /* Category chips. These were 62px-tall white cards with labels under the
@@ -1348,7 +1389,15 @@
 
   /* Reset and Randomise, as the secondary utilities they are rather than
      the widest button on the screen, which is what Reset used to be. */
-  .dress-utils{display:flex; gap:12px; justify-content:center; margin-top:8px;}
+  .dress-utils{display:flex; gap:12px; justify-content:center; margin-top:6px;}
+  /* The hint is the only element here that appears and disappears, so it
+     reserves its line whether or not it has anything to say - otherwise
+     randomising nudges everything above it upward. */
+  .dressup-hint{
+    font-family:'Poppins'; font-size:12px; line-height:16px; min-height:16px;
+    color:rgba(255,255,255,0.9); text-align:center; margin-top:4px;
+    text-shadow:0 1px 3px rgba(0,0,0,0.5);
+  }
   .dress-util{
     width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
     background:rgba(255,255,255,0.16); color:#fff; padding:0;
@@ -1386,32 +1435,23 @@
   }
 
   /* --- Dress Up: categories + carousel --- */
-  .category-row{display:flex;gap:11px;justify-content:center;width:100%;margin-top:12px;}
-  /* Plain white circle - the wood ring (.avatar-ring-frame) is a separate
-     layer sized to match this circle's own exterior edge, stacked ABOVE
-     it (z-index below the ring's) so the ring's band overlays the white
-     circle/bird art's outer edge directly, like a picture frame laid on
-     top of a photo rather than tucked behind it. */
-  .avatar-frame{background:#fff;border-radius:50%;padding:12px;box-shadow:0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.4);flex-shrink:0;position:relative;z-index:1;}
-  /* SVGs are inline by default, which leaves ~4px of phantom baseline
-     whitespace below them (the classic inline-replaced-element gap) - that
-     was making avatar-frame render 230x234 instead of a true 230x230
-     circle, so it didn't quite match avatar-ring-frame's perfect circle.
-     display:block on the injected avatar SVG removes that gap. */
-  .avatar-frame svg{display:block;}
-  /* The ring: sized so its OUTER edge exactly matches avatar-frame's own
-     outer edge (230px, from content:210 + padding:10*2) - the ring's
-     exterior lines up with the white circle's exterior, rather than
-     extending past it. z-index above avatar-frame (2) so the ring paints
-     on top of the white circle/bird art. Swatches (z-index 3) stay above
-     both, always clickable. */
-  .avatar-ring-frame{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:276px; height:276px; border-radius:50%;
-    background:url('/static/avatar-ring-v1.webp') center/100% 100% no-repeat;
-    z-index:2; pointer-events:none;
+  .category-row{display:flex;gap:11px;justify-content:center;width:100%;margin-top:6px;}
+  /* No longer a frame in any visual sense - the room art is the frame now.
+     The class name stays because it is what the pop/tint/swap animations and
+     the drag-the-bird-to-scroll bridge are bound to. A grounding shadow
+     under the bird is what sells it as standing on the rug rather than
+     floating in front of it; it is drawn by ::after, below the SVG. */
+  .avatar-frame{position:relative; z-index:1; width:100%;}
+  .avatar-frame::after{
+    content:''; position:absolute; left:50%; bottom:1.5%; transform:translateX(-50%);
+    width:52%; height:6%; border-radius:50%; z-index:-1;
+    background:radial-gradient(ellipse at center, rgba(74,10,64,0.45) 0%, rgba(74,10,64,0.18) 55%, rgba(74,10,64,0) 72%);
   }
-  .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:18px 4px 6px;margin-top:4px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
+  /* SVGs are inline by default, which leaves ~4px of phantom baseline
+     whitespace below them (the classic inline-replaced-element gap).
+     display:block on the injected avatar SVG removes it. */
+  .avatar-frame svg{display:block; width:100%; height:auto;}
+  .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:14px 4px 4px;margin-top:2px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
   .carousel-wrap::-webkit-scrollbar{display:none;}
   .carousel-panel{width:100%;max-width:100%;overflow-x:hidden;overflow-y:visible;}
   .carousel-item{
@@ -1454,54 +1494,48 @@
   .carousel-item-price-badge.unaffordable{color:var(--mist-dk);opacity:0.75;}
   .avatar-option.selected{border-color:var(--gold);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
-  /* Height bumped to 258 to fit .avatar-frame's now-246px diameter (was
-     206px originally, then 222px after the ring padding fix, now bigger
-     again per Phil's "enlarge slightly" ask) plus headroom for the
-     colour swatches, which arch above the frame's own top edge, and the
-     upward shift applied on avatar-frame-wrap below.
-     Outer margins tightened (40->18, 20->4) to move the whole block
-     closer to the header above and let Reset/accessories move up into
-     the freed space below - internal height/shift left untouched since
-     those numbers were tuned specifically to avoid clipping the swatch
-     arc and the ring. */
-  /* Everything on this stage is 20% up on what it was, which is the middle
-     of the 15-25% asked for. The three numbers have to move together or the
-     ring stops matching the white circle's edge: the avatar art is 252
-     (was 210), its padding 12 (was 10), so the frame's outer edge is 276 -
-     which is what .avatar-ring-frame is set to. The swatch arc needs no
-     attention, it was already expressed as a percentage of the frame. */
-  .dressup-avatar-stage{position:relative; width:100%; height:316px; margin-top:6px; margin-bottom:2px;}
-  /* Pushed DOWN 20px from dead-centre, where it used to be pulled up 14.
-     The swatches arc 36px above the frame's own top edge, and with the frame
-     high in the stage that arc escaped the stage box entirely - measured, its
-     topmost swatch sat at y=92 while the stage started at 125, which put it
-     straight through the shop sign and the "Feather colour" label. Sitting
-     the frame low leaves the arc room inside the stage where it belongs. */
+  /* The dressing room. The white circle and its wooden ring are gone: the
+     bird now stands on the purple rug inside a lit dressing room, and every
+     position on this stage is a percentage of the room art so it all holds
+     together at any width.
+       Measured off the artwork (1298x1116 after the transparent margin is
+     trimmed, so aspect-ratio 1298/1116):
+       - the rug spans x 23.9%-76.3%, y 76.9%-89.1%
+       - the frame's inner opening is x 16.2%-83.7%, y ~15% down
+     The room is capped at 360px wide because its height follows its width:
+     unchecked, a 430px phone would make it 342px tall and push the carousel
+     under the nav. */
+  .dressup-avatar-stage{
+    position:relative; width:100%; max-width:340px; margin:4px auto 0;
+    aspect-ratio:1298/1116;
+    background:url('/static/hoot-room-v1.webp') center/100% 100% no-repeat;
+  }
+  /* The bird stands on the rug rather than sitting in the middle of a
+     circle. The avatar SVG's own feet are at 96.9% of its box (legs are
+     drawn y=84 to 96.9 in a 0-100 viewBox), so the box has to hang about 3%
+     of its own height below the point the feet should touch. Feet land at
+     86% of the room's height - the front half of the rug, which reads as
+     standing ON it rather than behind it. 58% width keeps the bird's widest
+     point (wings reach ~87 of the 100 viewBox) inside the rug. */
   .avatar-frame-wrap{
-    position:absolute; left:50%; top:50%; transform:translate(-50%, calc(-50% + 20px));
-    z-index:2; pointer-events:none;
+    position:absolute; left:50%; bottom:12.1%; transform:translateX(-50%);
+    width:42%; z-index:2; pointer-events:none;
   }
   .avatar-frame-wrap .avatar-frame{pointer-events:auto; cursor:grab;}
   .avatar-frame-wrap .avatar-frame:active{cursor:grabbing;}
-  /* On a 320px phone the 276px frame leaves only 6px either side, which
-     buries the species silhouettes behind it and pushes the swatch arc
-     (313px wide) onto the screen edges. Scaling the whole assembly - frame,
-     ring, avatar and the percentage-positioned arc all move together -
-     gives the silhouettes ~41px of visible bird to aim at and pulls the
-     arc 25px clear of each edge. Nothing else on the stage changes. */
-  @media (max-width:360px){
-    .avatar-frame-wrap{transform:translate(-50%, calc(-50% + 20px)) scale(0.86);}
-    .dressup-avatar-stage{height:296px;}
-    .species-silhouette-btn{height:156px;}
+  /* One straight row above the room. Ten swatches at 24px plus nine gaps
+     has to fit a 288px content column on a 320px phone, so the gap is
+     elastic (4px floor, 8px ceiling): 10*24 + 9*4 = 276 at the narrowest,
+     which clears it without shrinking the tap targets. */
+  .color-wheel{
+    display:flex; justify-content:center; align-items:center;
+    gap:clamp(4px, 1.7vw, 8px); width:100%; margin:2px 0 0; flex-wrap:nowrap;
   }
-  /* The swatches arch over the top of the avatar frame, sitting ON its
-     edge circle - so the assembly is barely wider than the avatar
-     itself, unlike a full wheel or a side-by-side column. */
-  .color-wheel{position:absolute;inset:0;pointer-events:none;z-index:3;}
-  .color-wheel .color-swatch{pointer-events:auto;}
   .color-wheel .color-swatch{
-    position:absolute; width:24px; height:24px; border-radius:50%; border:2px solid #fff;
-    cursor:pointer; padding:0; box-shadow:0 2px 6px rgba(0,0,0,0.28); transform:translate(-50%,-50%);
+    position:relative; flex:0 0 auto; width:24px; height:24px; border-radius:50%;
+    border:2px solid #fff; cursor:pointer; padding:0;
+    box-shadow:0 2px 6px rgba(0,0,0,0.28);
+    transition:transform .16s cubic-bezier(.34,1.5,.64,1), box-shadow .16s ease;
   }
   .profile-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px;}
   .profile-photo-preview{width:104px;height:104px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,0.22);}
@@ -5256,18 +5290,11 @@ function renderSwatchRows() {
   if (!wheel) return;
   wheel.querySelectorAll('.color-swatch').forEach(el => el.remove());
 
-  // The swatches form an arch across the TOP of the avatar frame, sitting
-  // on the frame's own edge circle - so they use the avatar's existing
-  // footprint instead of needing their own space beside or above it.
-  // Percentage-based so it stays correct if the avatar size changes.
-  const n = swatches.length;
-  const archStart = Math.PI * 1.16;  // just past 9 o'clock, going over the top
-  const archEnd = Math.PI * 1.84;    // to just before 3 o'clock
-  swatches.forEach((hex, i) => {
-    const t = n === 1 ? 0.5 : i / (n - 1);
-    const angle = archStart + (archEnd - archStart) * t;
-    const x = 50 + 59 * Math.cos(angle); // % of frame box; 59% (vs the frame's own 50% edge) leaves a real gap - back to this now the ring matches the white circle's own exterior instead of extending past it
-    const y = 50 + 59 * Math.sin(angle);
+  // A single straight row above the room, in palette order. They used to
+  // arch over the old circular frame; the room art has no circle to sit on
+  // and a horizontal line is easier for a child to read left-to-right
+  // anyway. Layout is pure flex now - nothing here positions them.
+  swatches.forEach((hex) => {
     const btn = document.createElement('button');
     const on = currentColor === hex;
     btn.className = 'color-swatch' + (on ? ' is-on' : '');
@@ -5279,8 +5306,6 @@ function renderSwatchRows() {
     // on #F5EDD6 was not there at all; this picks whichever of ink or white
     // the swatch can actually carry.
     if (on) btn.style.color = swatchLuminance(hex) > 0.55 ? 'var(--ink)' : '#fff';
-    btn.style.left = `${x}%`;
-    btn.style.top = `${y}%`;
     btn.onclick = () => {
       if (currentProfile.avatar_body === hex) return;
       currentProfile.avatar_body = hex;
@@ -5588,12 +5613,12 @@ async function renderDressUp() {
       <div class="hoot-welcome">Welcome to The Hoot-tique! Don't leave until you're looking fly!</div>
     </div>
     <div class="colour-label">Feather colour</div>
+    <div class="color-wheel" id="colorWheel"></div>
     <div class="dressup-avatar-stage" id="dressUpAvatarStage">
+      <div class="room-wings"></div>
       <div class="species-track" id="speciesTrack"></div>
       <div class="avatar-frame-wrap">
-        <div class="avatar-ring-frame"></div>
         <div class="avatar-frame" id="dressUpPreview"></div>
-        <div class="color-wheel" id="colorWheel"></div>
       </div>
     </div>
     <div class="category-row" id="categoryRow"></div>
