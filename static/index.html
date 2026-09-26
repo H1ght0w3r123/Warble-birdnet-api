@@ -4861,8 +4861,22 @@ const PROTO = {
   id: 'classic',
   dir: '/static/avatar/classic/',
   shiftY: 7.9,
+  // The layered art is the same height as the old birds but 19% narrower,
+  // because those wings stuck out to x 13 and 87 where these tuck in to 20
+  // and 80. Grown 20% it reads at the size the old ones did. It is grown
+  // about the feet, so the bird stays standing on the rug and the extra
+  // height goes upwards into the room rather than down through the floor.
+  scale: 1.2,
   pivots: { wingL: [33.5, 44], wingR: [66.5, 44] },
 };
+
+// Shift the art down onto the grid, then grow it about the point its feet
+// stand on (50, 96.9) so however big it gets it never sinks through the rug.
+function protoTransform() {
+  const t = `translate(0,${PROTO.shiftY})`;
+  if (PROTO.scale === 1) return t;
+  return `translate(50 96.9) scale(${PROTO.scale}) translate(-50 -96.9) ${t}`;
+}
 let protoUid = 0;
 
 // 0 -> 0, 0.5 -> the swatch, 1 -> 1. A straight two-piece ramp through the
@@ -4904,7 +4918,7 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
       ${mask(u + 'mwl', 'wash-wing-l.webp')}
       ${mask(u + 'mwr', 'wash-wing-r.webp')}
     </defs>
-    <g transform="translate(0,${PROTO.shiftY})">
+    <g transform="${protoTransform()}">
       <g class="av-torso">
         ${layer('body.webp')}
         <g class="av-wing-l">${layer('wing-l.webp', 1, u + 'mwl')}</g>
