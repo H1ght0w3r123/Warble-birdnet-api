@@ -4841,7 +4841,8 @@ const AVATAR_SPECIES_FULL = [
   { id: 'bluebird', name: 'Bluebird' },
 ];
 const AVATAR_SPECIES = PROTO_ONLY
-  ? [{ id: 'classic', name: 'Classic' }, { id: 'cardinal', name: 'Cardinal' }]
+  ? [{ id: 'classic', name: 'Classic' }, { id: 'cardinal', name: 'Cardinal' },
+     { id: 'parrot', name: 'Parrot' }]
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
@@ -4859,22 +4860,47 @@ let accessorySvgCache = {};
 // silhouette width already match to a tenth of a unit, so nothing is scaled.
 // Each bird's art is drawn on its own 1000x1000 canvas and needs nudging down
 // so its feet land on the grid's ground line at y 96.9. shiftY is 96.9 minus
-// wherever that bird's art actually ends - measured, not guessed: Classic's
-// feet are at y 89.0 and the Cardinal's at 92.0.
+// wherever that bird's art actually ends - measured, not guessed.
 //
-// `feet` says whether that bird's feet are their own layers, drawn behind the
-// body with a hidden overlap, rather than painted into the body itself.
+// They are all grown 20%. The layered art is as tall as the old birds but
+// narrower, because those wings stuck out to x 13 and 87 where these tuck in,
+// so at 1.0 they read small.
 //
-// They are all grown 20%. The layered art is as tall as the old birds but 19%
-// narrower, because those wings stuck out to x 13 and 87 where these tuck in
-// to 20 and 80, so at 1.0 they read small. hasBodyWash says whether that bird
-// has any recolourable plumage on its body layer - Classic has none, the
-// Cardinal does.
+// Every bird names its own stack, back to front, because the deliveries are
+// not all the same shape: Classic paints its feet into the body, the Cardinal
+// gives them their own layers, and the Parrot adds a hidden underlay behind
+// everything (so a lifted head or an open wing has something to sit against)
+// and a fixed face overlay above its washable head.
+//   grp  where the layer goes: 'under' behind the torso, 'torso' with the
+//        body, 'wingL'/'wingR' in the groups that rotate at the shoulders,
+//        'over' above the torso where the head lives.
+//   wash the mask marking which of that layer's pixels take the child's
+//        colour. Omit it and the layer never recolours.
 const PROTO_BIRDS = {
-  classic:  { dir: '/static/avatar/classic/',  shiftY: 7.9, scale: 1.2, hasBodyWash: false, feet: false },
-  cardinal: { dir: '/static/avatar/cardinal/', shiftY: 4.9, scale: 1.2, hasBodyWash: true,  feet: true  },
+  classic: { dir: '/static/avatar/classic/', shiftY: 7.9, scale: 1.2, stack: [
+    { f: 'body.webp',   grp: 'torso' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+  ]},
+  cardinal: { dir: '/static/avatar/cardinal/', shiftY: 4.9, scale: 1.2, stack: [
+    { f: 'foot-l.webp', grp: 'under' },
+    { f: 'foot-r.webp', grp: 'under' },
+    { f: 'body.webp',   grp: 'torso', wash: 'wash-body.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+  ]},
+  parrot: { dir: '/static/avatar/parrot/', shiftY: 4.8, scale: 1.2, stack: [
+    { f: 'underlay.webp', grp: 'under' },
+    { f: 'feet.webp',     grp: 'under' },
+    { f: 'body.webp',     grp: 'torso' },
+    { f: 'wing-l.webp',   grp: 'wingL', wash: 'wash-wing-l.webp' },
+    { f: 'wing-r.webp',   grp: 'wingR', wash: 'wash-wing-r.webp' },
+    { f: 'head.webp',     grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'face.webp',     grp: 'over' },
+  ]},
 };
-const PROTO_PIVOTS = { wingL: [33.5, 44], wingR: [66.5, 44] };
 
 function protoBird(species) {
   return PROTO_BIRDS[species] || PROTO_BIRDS.classic;
@@ -4915,29 +4941,32 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
   const u = 'p' + (++protoUid);
   const hex = (body || '#C4BFDF').replace('#', '').toUpperCase();
   const img = (file, extra) => `<image xlink:href="${d}${file}" href="${d}${file}" x="0" y="0" width="100" height="100" preserveAspectRatio="none"${extra || ''}/>`;
-  const mask = (name, file) => `<mask id="${name}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">${img(file)}</mask>`;
+  const maskId = i => `${u}m${i}`;
+
   // The plain layer, then a washed copy of the same layer laid over it through
-  // the mask - so the fixed parts show the original paint and only the plumage
-  // takes the colour, with the mask's own soft edge blending the two.
-  const layer = (file, washFile, maskName) => img(file) +
-    (washFile ? `<g mask="url(#${maskName})">${img(file, ` filter="url(#${u}f)"`)}</g>` : '');
+  // the mask - so the fixed parts show the original paint, only the plumage
+  // takes the colour, and the mask's own soft edge blends the two.
+  const draw = (lay, i) => img(lay.f) +
+    (lay.wash ? `<g mask="url(#${maskId(i)})">${img(lay.f, ` filter="url(#${u}f)"`)}</g>` : '');
+  const of = grp => bird.stack.map((lay, i) => lay.grp === grp ? draw(lay, i) : '').join('');
+
+  const masks = bird.stack.map((lay, i) => lay.wash
+    ? `<mask id="${maskId(i)}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">${img(lay.wash)}</mask>`
+    : '').join('');
 
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;" class="avatar-layered ${dancing ? 'avatar-dancing' : ''}">
     <defs>
       ${protoWashFilter(u + 'f', hex)}
-      ${mask(u + 'mh', 'wash-head.webp')}
-      ${mask(u + 'mwl', 'wash-wing-l.webp')}
-      ${mask(u + 'mwr', 'wash-wing-r.webp')}
-      ${bird.hasBodyWash ? mask(u + 'mb', 'wash-body.webp') : ''}
+      ${masks}
     </defs>
     <g transform="${protoTransform(bird)}">
-      ${bird.feet ? img('foot-l.webp') + img('foot-r.webp') : ''}
+      ${of('under')}
       <g class="av-torso">
-        ${layer('body.webp', bird.hasBodyWash ? 1 : 0, u + 'mb')}
-        <g class="av-wing-l">${layer('wing-l.webp', 1, u + 'mwl')}</g>
-        <g class="av-wing-r">${layer('wing-r.webp', 1, u + 'mwr')}</g>
+        ${of('torso')}
+        <g class="av-wing-l">${of('wingL')}</g>
+        <g class="av-wing-r">${of('wingR')}</g>
       </g>
-      ${layer('head.webp', 1, u + 'mh')}
+      ${of('over')}
     </g>
     <g class="av-face">
     ${accessoryLayers}
