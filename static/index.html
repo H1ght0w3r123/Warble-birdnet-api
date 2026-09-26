@@ -1470,6 +1470,7 @@
   }
   .room-chevron.prev{left:18.6%;}
   .room-chevron.next{right:18.6%;}
+  .room-chevron[hidden]{display:none;}
   .room-chevron:active{background:rgba(232,132,92,0.9); transform:translateY(-50%) scale(.88);}
   .room-chevron svg{width:19px; height:19px; display:block;}
   @media (max-width:360px){
@@ -1938,6 +1939,13 @@
   .avatar-dancing .av-wing-l{transform-origin:26px 58px;animation:wingL 0.6s ease-in-out infinite;}
   .avatar-dancing .av-wing-r,
   .avatar-dancing .av-held{transform-origin:74px 58px;animation:wingR 0.75s ease-in-out infinite;}
+  /* The layered prototype has its own shoulders. Its manifest puts them at
+     (335,440) and (665,440) on the 1000px canvas, which is (33.5,44) on the
+     0-100 grid - and those are inside the group that nudges the bird down, so
+     they are stated in the art's own coordinates, not the shifted ones. */
+  .avatar-dancing.avatar-layered .av-wing-l{transform-origin:33.5px 44px;}
+  .avatar-dancing.avatar-layered .av-wing-r,
+  .avatar-dancing.avatar-layered .av-held{transform-origin:66.5px 44px;}
   @keyframes bodyWiggle{0%,100%{transform:translateX(0);}25%{transform:translateX(-0.6px);}75%{transform:translateX(0.6px);}}
   @keyframes wingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(45deg);}}
   @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-45deg);}}
@@ -4819,7 +4827,11 @@ const SPECIES_LAYOUT = {
   duckling: { bodyW: 59.54, bodyX: 20.23, wingW: 21.12, legW: 12.10, wingX: 67.50 },
   bluebird: { bodyW: 56.85, bodyX: 21.57, wingW: 19.48, legW: 12.09, wingX: 58,    wingY: 60 },
 };
-const AVATAR_SPECIES = [
+// While the layered rebuild is being piloted, Classic is the only bird in the
+// Hoot-tique. Flip PROTO_ONLY back to false and restore the list below to get
+// the old six species and the old flat artwork back - nothing else was removed.
+const PROTO_ONLY = true;
+const AVATAR_SPECIES_FULL = [
   { id: 'default',  name: 'Classic' },
   { id: 'cardinal', name: 'Cardinal' },
   { id: 'owl',      name: 'Owl' },
@@ -4828,8 +4840,84 @@ const AVATAR_SPECIES = [
   { id: 'duckling', name: 'Duckling' },
   { id: 'bluebird', name: 'Bluebird' },
 ];
+const AVATAR_SPECIES = PROTO_ONLY
+  ? [{ id: 'default', name: 'Classic' }]
+  : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
+
+// --- Layered prototype (Classic v1) -----------------------------------------
+// The new artwork is four complete layers - body, two wings, head - each drawn
+// on the same 1000x1000 canvas in its final position, plus a wash mask per
+// layer marking which pixels take the child's colour. Nothing is pre-baked:
+// the colour is applied live by an SVG filter, so a swatch tap is instant and
+// there are no per-colour files at all.
+//
+// The art sits 7.9 units higher on its canvas than the accessory grid expects
+// - measured, its crown is at y 0.1 and its feet at y 89.0, against the grid's
+// 8 and 96.9 - so the whole bird is nudged down by that much. Height and
+// silhouette width already match to a tenth of a unit, so nothing is scaled.
+const PROTO = {
+  id: 'classic',
+  dir: '/static/avatar/classic/',
+  shiftY: 7.9,
+  pivots: { wingL: [33.5, 44], wingR: [66.5, 44] },
+};
+let protoUid = 0;
+
+// 0 -> 0, 0.5 -> the swatch, 1 -> 1. A straight two-piece ramp through the
+// swatch, which keeps the painted highlights and shadow instead of flattening
+// the plumage to one flat colour the way a plain fill would.
+function protoWashFilter(id, hex) {
+  // hex arrives with the leading '#' already stripped, so the channels start
+  // at 0, 2 and 4 - not 1, 3 and 5.
+  const c = n => (parseInt(hex.slice(n, n + 2), 16) / 255).toFixed(4);
+  return `<filter id="${id}" color-interpolation-filters="sRGB">
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0 ${c(0)} 1"/>
+        <feFuncG type="table" tableValues="0 ${c(2)} 1"/>
+        <feFuncB type="table" tableValues="0 ${c(4)} 1"/>
+      </feComponentTransfer>
+    </filter>`;
+}
+
+function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer) {
+  const d = PROTO.dir;
+  // Every instance gets its own ids: the nav icon and the big preview are both
+  // on the page at once, and url(#id) would otherwise resolve to whichever was
+  // written first.
+  const u = 'p' + (++protoUid);
+  const hex = (body || '#C4BFDF').replace('#', '').toUpperCase();
+  const img = (file, extra) => `<image xlink:href="${d}${file}" href="${d}${file}" x="0" y="0" width="100" height="100" preserveAspectRatio="none"${extra || ''}/>`;
+  const mask = (name, file) => `<mask id="${name}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">${img(file)}</mask>`;
+  // The plain layer, then a washed copy of the same layer laid over it through
+  // the mask - so the fixed parts show the original paint and only the plumage
+  // takes the colour, with the mask's own soft edge blending the two.
+  const layer = (file, washFile, maskName) => img(file) +
+    (washFile ? `<g mask="url(#${maskName})">${img(file, ` filter="url(#${u}f)"`)}</g>` : '');
+
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;" class="avatar-layered ${dancing ? 'avatar-dancing' : ''}">
+    <defs>
+      ${protoWashFilter(u + 'f', hex)}
+      ${mask(u + 'mh', 'wash-head.webp')}
+      ${mask(u + 'mwl', 'wash-wing-l.webp')}
+      ${mask(u + 'mwr', 'wash-wing-r.webp')}
+    </defs>
+    <g transform="translate(0,${PROTO.shiftY})">
+      <g class="av-torso">
+        ${layer('body.webp')}
+        <g class="av-wing-l">${layer('wing-l.webp', 1, u + 'mwl')}</g>
+        <g class="av-wing-r">${layer('wing-r.webp', 1, u + 'mwr')}</g>
+      </g>
+      ${layer('head.webp', 1, u + 'mh')}
+    </g>
+    <g class="av-face">
+    ${accessoryLayers}
+    <g class="av-held">${heldLayer}</g>
+    </g>
+  </svg>`;
+}
 
 function avatarSvg(body, size, equipped, dancing, species) {
   equipped = equipped || {};
@@ -4838,6 +4926,10 @@ function avatarSvg(body, size, equipped, dancing, species) {
   const layer = cat => (equipped[cat] && accessorySvgCache[equipped[cat]]) ? accessorySvgCache[equipped[cat]] : '';
   const accessoryLayers = ACCESSORY_LAYER_ORDER.filter(cat => cat !== 'held').map(layer).join('');
   const heldLayer = layer('held');
+
+  // Prototype: the layered Classic is the only bird for now, whatever species
+  // happens to be stored against the profile.
+  if (PROTO_ONLY) return protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer);
 
   // Real illustrated art (Warble art pass 04), replacing the old flat
   // vector shapes. Body and wings are recolorable: each swatch has its own
@@ -5712,6 +5804,11 @@ async function renderDressUp() {
     renderCategoryRow();
     document.getElementById('resetAccessoriesBtn').onclick = resetAllAccessories;
     document.getElementById('randomiseBtn').onclick = randomiseOutfit;
+    // With one bird in the list there is nowhere to step to, so the chevrons
+    // are taken off rather than left there doing nothing.
+    const onlyOne = AVATAR_SPECIES.length < 2;
+    document.getElementById('speciesPrev').hidden = onlyOne;
+    document.getElementById('speciesNext').hidden = onlyOne;
     document.getElementById('speciesPrev').onclick = () => stepSpecies(-1);
     document.getElementById('speciesNext').onclick = () => stepSpecies(1);
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
