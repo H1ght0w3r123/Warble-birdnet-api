@@ -4841,7 +4841,7 @@ const AVATAR_SPECIES_FULL = [
   { id: 'bluebird', name: 'Bluebird' },
 ];
 const AVATAR_SPECIES = PROTO_ONLY
-  ? [{ id: 'default', name: 'Classic' }]
+  ? [{ id: 'classic', name: 'Classic' }, { id: 'cardinal', name: 'Cardinal' }]
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
@@ -4857,25 +4857,32 @@ let accessorySvgCache = {};
 // - measured, its crown is at y 0.1 and its feet at y 89.0, against the grid's
 // 8 and 96.9 - so the whole bird is nudged down by that much. Height and
 // silhouette width already match to a tenth of a unit, so nothing is scaled.
-const PROTO = {
-  id: 'classic',
-  dir: '/static/avatar/classic/',
-  shiftY: 7.9,
-  // The layered art is the same height as the old birds but 19% narrower,
-  // because those wings stuck out to x 13 and 87 where these tuck in to 20
-  // and 80. Grown 20% it reads at the size the old ones did. It is grown
-  // about the feet, so the bird stays standing on the rug and the extra
-  // height goes upwards into the room rather than down through the floor.
-  scale: 1.2,
-  pivots: { wingL: [33.5, 44], wingR: [66.5, 44] },
+// Each bird's art is drawn on its own 1000x1000 canvas and needs nudging down
+// so its feet land on the grid's ground line at y 96.9. shiftY is 96.9 minus
+// wherever that bird's art actually ends - measured, not guessed: Classic's
+// feet are at y 89.0 and the Cardinal's at 92.5.
+//
+// They are all grown 20%. The layered art is as tall as the old birds but 19%
+// narrower, because those wings stuck out to x 13 and 87 where these tuck in
+// to 20 and 80, so at 1.0 they read small. hasBodyWash says whether that bird
+// has any recolourable plumage on its body layer - Classic has none, the
+// Cardinal does.
+const PROTO_BIRDS = {
+  classic:  { dir: '/static/avatar/classic/',  shiftY: 7.9, scale: 1.2, hasBodyWash: false },
+  cardinal: { dir: '/static/avatar/cardinal/', shiftY: 4.4, scale: 1.2, hasBodyWash: true },
 };
+const PROTO_PIVOTS = { wingL: [33.5, 44], wingR: [66.5, 44] };
+
+function protoBird(species) {
+  return PROTO_BIRDS[species] || PROTO_BIRDS.classic;
+}
 
 // Shift the art down onto the grid, then grow it about the point its feet
 // stand on (50, 96.9) so however big it gets it never sinks through the rug.
-function protoTransform() {
-  const t = `translate(0,${PROTO.shiftY})`;
-  if (PROTO.scale === 1) return t;
-  return `translate(50 96.9) scale(${PROTO.scale}) translate(-50 -96.9) ${t}`;
+function protoTransform(bird) {
+  const t = `translate(0,${bird.shiftY})`;
+  if (bird.scale === 1) return t;
+  return `translate(50 96.9) scale(${bird.scale}) translate(-50 -96.9) ${t}`;
 }
 let protoUid = 0;
 
@@ -4896,8 +4903,9 @@ function protoWashFilter(id, hex) {
     </filter>`;
 }
 
-function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer) {
-  const d = PROTO.dir;
+function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species) {
+  const bird = protoBird(species);
+  const d = bird.dir;
   // Every instance gets its own ids: the nav icon and the big preview are both
   // on the page at once, and url(#id) would otherwise resolve to whichever was
   // written first.
@@ -4917,10 +4925,11 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
       ${mask(u + 'mh', 'wash-head.webp')}
       ${mask(u + 'mwl', 'wash-wing-l.webp')}
       ${mask(u + 'mwr', 'wash-wing-r.webp')}
+      ${bird.hasBodyWash ? mask(u + 'mb', 'wash-body.webp') : ''}
     </defs>
-    <g transform="${protoTransform()}">
+    <g transform="${protoTransform(bird)}">
       <g class="av-torso">
-        ${layer('body.webp')}
+        ${layer('body.webp', bird.hasBodyWash ? 1 : 0, u + 'mb')}
         <g class="av-wing-l">${layer('wing-l.webp', 1, u + 'mwl')}</g>
         <g class="av-wing-r">${layer('wing-r.webp', 1, u + 'mwr')}</g>
       </g>
@@ -4943,7 +4952,7 @@ function avatarSvg(body, size, equipped, dancing, species) {
 
   // Prototype: the layered Classic is the only bird for now, whatever species
   // happens to be stored against the profile.
-  if (PROTO_ONLY) return protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer);
+  if (PROTO_ONLY) return protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species);
 
   // Real illustrated art (Warble art pass 04), replacing the old flat
   // vector shapes. Body and wings are recolorable: each swatch has its own
