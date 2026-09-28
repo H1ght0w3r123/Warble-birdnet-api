@@ -4871,7 +4871,8 @@ const AVATAR_SPECIES_FULL = [
 ];
 const AVATAR_SPECIES = PROTO_ONLY
   ? [{ id: 'classic', name: 'Classic' }, { id: 'cardinal', name: 'Cardinal' },
-     { id: 'parrot', name: 'Parrot' }, { id: 'kingfisher', name: 'Kingfisher' }]
+     { id: 'parrot', name: 'Parrot' }, { id: 'kingfisher', name: 'Kingfisher' },
+     { id: 'owl', name: 'Owl' }]
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
@@ -4942,6 +4943,21 @@ const PROTO_BIRDS = {
     { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
     { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
     { f: 'face.webp',   grp: 'over' },
+  ]},
+  // The one bird whose wings sit IN FRONT of its head. Lifted, the shoulder
+  // end of each wing swings in across the facial disc - about 4,000 pixels of
+  // overlap at the dance's 45 degrees - and the artist wants the wing on top
+  // there. So the head and face go in the torso group, drawn before the wings.
+  // The cost is that the head joins the body's 0.6-unit dance wiggle, which
+  // the other birds' heads sit out.
+  owl: { dir: '/static/avatar/owl/', shiftY: 4.8, scale: 1.2, wingY: 51.0, stack: [
+    { f: 'foot-l.webp', grp: 'under' },
+    { f: 'foot-r.webp', grp: 'under' },
+    { f: 'body.webp',   grp: 'torso' },
+    { f: 'head.webp',   grp: 'torso', wash: 'wash-head.webp' },
+    { f: 'face.webp',   grp: 'torso' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
   ]},
 };
 
