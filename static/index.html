@@ -1572,7 +1572,7 @@
   .avatar-frame-wrap .avatar-frame:active{cursor:grabbing;}
   /* One straight row above the room. Ten swatches at 24px plus nine gaps
      has to fit a 288px content column on a 320px phone, so the gap is
-     elastic (4px floor, 8px ceiling): 10*24 + 9*4 = 276 at the narrowest,
+     elastic (4px floor, 8px ceiling): 9*24 + 8*4 = 248 at the narrowest,
      which clears it without shrinking the tap targets. */
   .color-wheel{
     display:flex; justify-content:center; align-items:center;
@@ -4798,9 +4798,21 @@ function setActiveTab(tabName) {
   if (wm) wm.style.visibility = (tabName === 'home') ? 'hidden' : 'visible';
 }
 
-// One shared palette - every part offers the same 10 colours in the same
-// order, so the arch never reflows when switching between Body/Face/Beak.
-const AVATAR_SWATCHES = ['#C4BFDF', '#8E87B8', '#2D1B69', '#7EC8A4', '#E8845C', '#F2C94C', '#E87EA1', '#1A1128', '#F5EDD6', '#3F7C5C'];
+// Nine feather colours. Four of them are lifted straight off the birds
+// themselves, so a child can paint one bird in another's colours and have it
+// actually match: the orange and blue are the Kingfisher's body and eye
+// flash, the green is the Parrot's flight feather, the red is the Cardinal's.
+const AVATAR_SWATCHES = [
+  '#000000', // black
+  '#FFFFFF', // white
+  '#9CAF88', // sage green
+  '#F96A1C', // orange - Kingfisher body
+  '#0197B8', // blue - Kingfisher eye flash and tail
+  '#6DAA44', // green - Parrot flight feather
+  '#F91E27', // red - Cardinal face mask and body
+  '#F2C94C', // yellow
+  '#E87EA1', // pink
+];
 const ACCESSORY_LAYER_ORDER = ['shoes', 'neck', 'held', 'glasses', 'hats'];
 
 // Every non-default species has its own native art proportions, so a body/
@@ -4834,6 +4846,10 @@ const SPECIES_LAYOUT = {
 // Hoot-tique. Flip PROTO_ONLY back to false and restore the list below to get
 // the old six species and the old flat artwork back - nothing else was removed.
 const PROTO_ONLY = true;
+// Note if this is ever flipped back: the legacy path below loads pre-baked
+// body_<hex>.webp / wing_<hex>.webp art, one file per swatch, and those were
+// baked for the OLD ten colours. The nine in AVATAR_SWATCHES have no such
+// files, so the legacy birds would 404 until they are re-baked.
 const AVATAR_SPECIES_FULL = [
   { id: 'default',  name: 'Classic' },
   { id: 'cardinal', name: 'Cardinal' },
@@ -4956,7 +4972,7 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
   // on the page at once, and url(#id) would otherwise resolve to whichever was
   // written first.
   const u = 'p' + (++protoUid);
-  const hex = (body || '#C4BFDF').replace('#', '').toUpperCase();
+  const hex = (body || '#9CAF88').replace('#', '').toUpperCase();
   const img = (file, extra) => `<image xlink:href="${d}${file}" href="${d}${file}" x="0" y="0" width="100" height="100" preserveAspectRatio="none"${extra || ''}/>`;
   const maskId = i => `${u}m${i}`;
 
@@ -5025,7 +5041,7 @@ function avatarSvg(body, size, equipped, dancing, species) {
   // - built the same way (luminance-preserving overlay blend per swatch),
   // so the same colour wheel works for all of them; legs aren't recoloured
   // for any species, default included.
-  const hex = (body || '#C4BFDF').replace('#', '').toUpperCase();
+  const hex = (body || '#9CAF88').replace('#', '').toUpperCase();
   const sp = (species && species !== 'default') ? species : null;
   const bodyImg = sp ? `/static/avatar/body_${sp}_${hex}.webp` : `/static/avatar/body_${hex}.webp`;
   const wingImg = sp ? `/static/avatar/wing_${sp}_${hex}.webp` : `/static/avatar/wing_${hex}.webp`;
@@ -5516,8 +5532,8 @@ function renderSwatchRows() {
     btn.setAttribute('aria-label', 'Feather colour');
     btn.setAttribute('aria-pressed', String(on));
     // The tick sits ON the swatch, so its colour comes from the swatch. White
-    // on #F5EDD6 was not there at all; this picks whichever of ink or white
-    // the swatch can actually carry.
+    // on the white swatch would not be there at all; this picks whichever of
+    // ink or white that swatch can actually carry.
     if (on) btn.style.color = swatchLuminance(hex) > 0.55 ? 'var(--ink)' : '#fff';
     btn.onclick = () => {
       if (currentProfile.avatar_body === hex) return;
