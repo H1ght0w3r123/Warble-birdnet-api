@@ -1943,9 +1943,12 @@
      (335,440) and (665,440) on the 1000px canvas, which is (33.5,44) on the
      0-100 grid - and those are inside the group that nudges the bird down, so
      they are stated in the art's own coordinates, not the shifted ones. */
-  .avatar-dancing.avatar-layered .av-wing-l{transform-origin:33.5px 44px;}
+  /* Each delivery names its own shoulder height in its manifest - the Parrot's
+     sits 6.5 units lower than the others - so the bird sets --wing-y itself. */
+  .avatar-layered{--wing-y:44px;}
+  .avatar-dancing.avatar-layered .av-wing-l{transform-origin:33.5px var(--wing-y);}
   .avatar-dancing.avatar-layered .av-wing-r,
-  .avatar-dancing.avatar-layered .av-held{transform-origin:66.5px 44px;}
+  .avatar-dancing.avatar-layered .av-held{transform-origin:66.5px var(--wing-y);}
   @keyframes bodyWiggle{0%,100%{transform:translateX(0);}25%{transform:translateX(-0.6px);}75%{transform:translateX(0.6px);}}
   @keyframes wingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(45deg);}}
   @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-45deg);}}
@@ -4893,14 +4896,14 @@ const PROTO_BIRDS = {
     { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
     { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
   ]},
-  parrot: { dir: '/static/avatar/parrot/', shiftY: 4.8, scale: 1.2, stack: [
-    { f: 'underlay.webp', grp: 'under' },
-    { f: 'feet.webp',     grp: 'under' },
-    { f: 'body.webp',     grp: 'torso' },
-    { f: 'wing-l.webp',   grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp',   grp: 'wingR', wash: 'wash-wing-r.webp' },
-    { f: 'head.webp',     grp: 'over',  wash: 'wash-head.webp' },
-    { f: 'face.webp',     grp: 'over' },
+  parrot: { dir: '/static/avatar/parrot/', shiftY: 4.4, scale: 1.2, wingY: 50.5, stack: [
+    { f: 'foot-l.webp', grp: 'under' },
+    { f: 'foot-r.webp', grp: 'under' },
+    { f: 'body.webp',   grp: 'torso' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'face.webp',   grp: 'over' },
   ]},
 };
 
@@ -4956,7 +4959,8 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
     ? `<mask id="${maskId(i)}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">${img(lay.wash)}</mask>`
     : '').join('');
 
-  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;" class="avatar-layered ${dancing ? 'avatar-dancing' : ''}">
+  const pivot = bird.wingY ? `--wing-y:${bird.wingY}px;` : '';
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;${pivot}" class="avatar-layered ${dancing ? 'avatar-dancing' : ''}">
     <defs>
       ${protoWashFilter(u + 'f', hex)}
       ${masks}
