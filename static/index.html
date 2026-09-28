@@ -1570,17 +1570,30 @@
   }
   .avatar-frame-wrap .avatar-frame{pointer-events:auto; cursor:grab;}
   .avatar-frame-wrap .avatar-frame:active{cursor:grabbing;}
-  /* One straight row above the room. Ten swatches at 24px plus nine gaps
-     has to fit a 288px content column on a 320px phone, so the gap is
-     elastic (4px floor, 8px ceiling): 9*24 + 8*4 = 248 at the narrowest,
-     which clears it without shrinking the tap targets. */
+  /* One straight row above the room: a window exactly nine swatches wide onto
+     a strip that loops forever. Nine at 24px plus eight elastic gaps (4px
+     floor, 8px ceiling) is 269px at the narrowest, inside the 288px column
+     on a 320px phone, without shrinking the tap targets.
+     A scroller clips its contents, so the selected swatch's lift and ring
+     would lose their top edge. The padding gives them room back, and the
+     negative margin takes the same amount off again, so the row sits exactly
+     where it always did. The snap keeps nine whole swatches in view, and the
+     few pixels either side fade out - a hint there is more to find. */
   .color-wheel{
-    display:flex; justify-content:center; align-items:center;
-    gap:clamp(4px, 1.7vw, 8px); width:100%; margin:1px 0 0; flex-wrap:nowrap;
+    --sw:24px; --sw-gap:clamp(4px, 1.7vw, 8px); --sw-pad:5px;
+    display:flex; align-items:center; gap:var(--sw-gap); flex-wrap:nowrap;
+    width:calc(9 * var(--sw) + 8 * var(--sw-gap) + 2 * var(--sw-pad)); max-width:100%;
+    box-sizing:border-box; margin:-6px auto -9px; padding:7px var(--sw-pad) 9px;
+    overflow-x:auto; overflow-y:hidden; overscroll-behavior-x:contain;
+    scroll-snap-type:x mandatory; scroll-padding-inline:var(--sw-pad);
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    -webkit-mask-image:linear-gradient(to right, transparent 0, #000 var(--sw-pad), #000 calc(100% - var(--sw-pad)), transparent 100%);
+            mask-image:linear-gradient(to right, transparent 0, #000 var(--sw-pad), #000 calc(100% - var(--sw-pad)), transparent 100%);
   }
+  .color-wheel::-webkit-scrollbar{display:none;}
   .color-wheel .color-swatch{
-    position:relative; flex:0 0 auto; width:24px; height:24px; border-radius:50%;
-    border:2px solid #fff; cursor:pointer; padding:0;
+    position:relative; flex:0 0 auto; width:var(--sw); height:var(--sw); border-radius:50%;
+    border:2px solid #fff; cursor:pointer; padding:0; scroll-snap-align:start;
     box-shadow:0 2px 6px rgba(0,0,0,0.28);
     transition:transform .16s cubic-bezier(.34,1.5,.64,1), box-shadow .16s ease;
   }
@@ -4798,21 +4811,48 @@ function setActiveTab(tabName) {
   if (wm) wm.style.visibility = (tabName === 'home') ? 'hidden' : 'visible';
 }
 
-// Nine feather colours. Four of them are lifted straight off the birds
-// themselves, so a child can paint one bird in another's colours and have it
-// actually match: the orange and blue are the Kingfisher's body and eye
-// flash, the green is the Parrot's flight feather, the red is the Cardinal's.
+// Eighteen feather colours, nine on screen at a time in a loop that never
+// ends. Four are lifted straight off the birds themselves, so a child can
+// paint one bird in another's colours and have it actually match: the orange
+// and blue are the Kingfisher's body and eye flash, the green is the Parrot's
+// flight feather, the red is the Cardinal's.
+// The order here does not matter - the list is sorted round the colour wheel
+// just below, so a new colour only needs adding, not placing.
 const AVATAR_SWATCHES = [
-  '#000000', // black
-  '#FFFFFF', // white
-  '#9CAF88', // sage green
-  '#F96A1C', // orange - Kingfisher body
-  '#0197B8', // blue - Kingfisher eye flash and tail
-  '#6DAA44', // green - Parrot flight feather
-  '#F91E27', // red - Cardinal face mask and body
-  '#F2C94C', // yellow
-  '#E87EA1', // pink
-];
+  { hex: '#000000', name: 'Black' },
+  { hex: '#FFFFFF', name: 'White' },
+  { hex: '#9CAF88', name: 'Sage' },
+  { hex: '#F96A1C', name: 'Orange' },      // Kingfisher body
+  { hex: '#0197B8', name: 'Blue' },        // Kingfisher eye flash and tail
+  { hex: '#6DAA44', name: 'Green' },       // Parrot flight feather
+  { hex: '#F91E27', name: 'Red' },         // Cardinal face mask and body
+  { hex: '#F2C94C', name: 'Yellow' },
+  { hex: '#E87EA1', name: 'Pink' },
+  { hex: '#8B5A2B', name: 'Brown' },
+  { hex: '#B5D334', name: 'Lime' },
+  { hex: '#2E8B57', name: 'Emerald' },
+  { hex: '#3CC8C0', name: 'Aqua' },
+  { hex: '#2F5FD0', name: 'Royal blue' },
+  { hex: '#1F2A6B', name: 'Navy' },
+  { hex: '#B9A6E0', name: 'Lavender' },
+  { hex: '#7B3FB5', name: 'Purple' },
+  { hex: '#D0309A', name: 'Magenta' },
+].sort((a, b) => swatchHueKey(a.hex) - swatchHueKey(b.hex));
+
+// Where a colour sits going round the spectrum. The wheel is turned so the
+// reds just short of 360 count as the start, not the end, and the two with no
+// hue at all - white, then black - are parked after pink. So the loop runs
+// red, orange, brown, yellow ... purple, magenta, pink, white, black and back
+// round to red. A function declaration, so it is hoisted above the sort.
+function swatchHueKey(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b), d = max - Math.min(r, g, b);
+  if (d < 0.08) return 400 + (1 - max);            // white 400, black 401
+  let h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h *= 60;
+  if (h < 0) h += 360;
+  return h >= 345 ? h - 360 : h;
+}
 const ACCESSORY_LAYER_ORDER = ['shoes', 'neck', 'held', 'glasses', 'hats'];
 
 // All 55 accessories were drawn against the original bird, whose eyes sat at
@@ -4858,7 +4898,7 @@ const SPECIES_LAYOUT = {
 const PROTO_ONLY = true;
 // Note if this is ever flipped back: the legacy path below loads pre-baked
 // body_<hex>.webp / wing_<hex>.webp art, one file per swatch, and those were
-// baked for the OLD ten colours. The nine in AVATAR_SWATCHES have no such
+// baked for the OLD ten colours. The colours in AVATAR_SWATCHES have no such
 // files, so the legacy birds would 404 until they are re-baked.
 const AVATAR_SPECIES_FULL = [
   { id: 'default',  name: 'Classic' },
@@ -5550,37 +5590,99 @@ function swatchLuminance(hex) {
   return 0.2126 * v(0) + 0.7152 * v(1) + 0.0722 * v(2);
 }
 
-function renderSwatchRows() {
-  const swatches = AVATAR_SWATCHES;
-  const currentColor = currentProfile.avatar_body;
+// The endless swatch strip. The palette is laid down SWATCH_COPIES times
+// end to end and the view kept on the middle copy: when a swipe settles
+// anywhere outside it, the strip jumps back by exactly one copy's width. Every
+// copy is identical and the jump is a whole number of swatches, so the snap
+// point and the picture are the same before and after - the child never sees
+// it. Five copies leave a copy and a half of runway either side, more than a
+// hard fling covers before it settles.
+// Built once per visit. A tap only moves the tick; rebuilding the strip on
+// every tap would throw it back to the start under the child's finger.
+const SWATCH_COPIES = 5;
 
+// The distance from one swatch to the next. offsetLeft rounds to whole
+// pixels and the real spacing is fractional (29.44px on a 320px phone), so
+// measuring one gap was up to half a pixel out - and that error, multiplied
+// forty-odd swatches to reach the middle copy, opened the strip one colour
+// off. Measured across the whole strip the rounding is shared out ninety ways.
+function swatchPitch(wheel) {
+  const b = wheel.children;
+  return b.length > 1 ? (b[b.length - 1].offsetLeft - b[0].offsetLeft) / (b.length - 1) : 0;
+}
+
+// Keep the view on the middle copy. No module state: the settle timer lives on
+// the element, so a strip thrown away by a re-render takes its timer with it.
+function loopSwatches(wheel) {
+  const pitch = swatchPitch(wheel);
+  if (!pitch) return;
+  const copy = AVATAR_SWATCHES.length * pitch;
+  const mid = Math.floor(SWATCH_COPIES / 2);
+  if (wheel.scrollLeft < (mid - 0.5) * copy) wheel.scrollLeft += copy;
+  else if (wheel.scrollLeft >= (mid + 0.5) * copy) wheel.scrollLeft -= copy;
+}
+
+// Open with the child's colour in the middle of the nine (the fifth slot).
+// The strip has no width until it is laid out, so wait a frame if it has not
+// been yet - but only while it is still on the page.
+function centreSwatch(wheel, hex, tries) {
+  if (!wheel.isConnected) return;
+  const pitch = swatchPitch(wheel);
+  if (!pitch) {
+    if ((tries || 0) < 20) requestAnimationFrame(() => centreSwatch(wheel, hex, (tries || 0) + 1));
+    return;
+  }
+  const i = Math.max(0, AVATAR_SWATCHES.findIndex(sw => sw.hex === hex));
+  const mid = Math.floor(SWATCH_COPIES / 2);
+  wheel.scrollLeft = (mid * AVATAR_SWATCHES.length + i - 4) * pitch;
+}
+
+function renderSwatchRows() {
   const wheel = document.getElementById('colorWheel');
   if (!wheel) return;
-  wheel.querySelectorAll('.color-swatch').forEach(el => el.remove());
+  const current = (currentProfile.avatar_body || '').toUpperCase();
 
-  // A single straight row above the room, in palette order. They used to
-  // arch over the old circular frame; the room art has no circle to sit on
-  // and a horizontal line is easier for a child to read left-to-right
-  // anyway. Layout is pure flex now - nothing here positions them.
-  swatches.forEach((hex) => {
-    const btn = document.createElement('button');
-    const on = currentColor === hex;
-    btn.className = 'color-swatch' + (on ? ' is-on' : '');
-    btn.style.background = hex;
-    btn.style.borderColor = '#fff';
-    btn.setAttribute('aria-label', 'Feather colour');
+  if (wheel.dataset.built !== String(AVATAR_SWATCHES.length)) {
+    wheel.innerHTML = '';
+    const mid = Math.floor(SWATCH_COPIES / 2);
+    for (let copy = 0; copy < SWATCH_COPIES; copy++) {
+      AVATAR_SWATCHES.forEach(({ hex, name }) => {
+        const btn = document.createElement('button');
+        btn.className = 'color-swatch';
+        btn.dataset.hex = hex;
+        btn.style.background = hex;
+        btn.style.borderColor = '#fff';
+        btn.setAttribute('aria-label', name + ' feathers');
+        // Only the middle copy is real to a screen reader or the Tab key;
+        // the rest are scenery for the loop.
+        if (copy !== mid) { btn.tabIndex = -1; btn.setAttribute('aria-hidden', 'true'); }
+        btn.onclick = () => {
+          if ((currentProfile.avatar_body || '').toUpperCase() === hex) return;
+          currentProfile.avatar_body = hex;
+          flashAvatar('tint');
+          saveAvatarColors();
+        };
+        wheel.appendChild(btn);
+      });
+    }
+    wheel.dataset.built = String(AVATAR_SWATCHES.length);
+    wheel.addEventListener('scroll', () => {
+      clearTimeout(wheel._settle);
+      wheel._settle = setTimeout(() => loopSwatches(wheel), 140);
+    }, { passive: true });
+    wheel.addEventListener('scrollend', () => loopSwatches(wheel));
+    centreSwatch(wheel, current);
+  }
+
+  // The tick sits ON the swatch, so its colour comes from the swatch. White
+  // on the white swatch would not be there at all; this picks whichever of
+  // ink or white that swatch can actually carry. Every copy of the chosen
+  // colour carries it, so it is ticked wherever the strip has scrolled to.
+  wheel.querySelectorAll('.color-swatch').forEach(btn => {
+    const on = btn.dataset.hex === current;
+    btn.classList.toggle('is-on', on);
     btn.setAttribute('aria-pressed', String(on));
-    // The tick sits ON the swatch, so its colour comes from the swatch. White
-    // on the white swatch would not be there at all; this picks whichever of
-    // ink or white that swatch can actually carry.
-    if (on) btn.style.color = swatchLuminance(hex) > 0.55 ? 'var(--ink)' : '#fff';
-    btn.onclick = () => {
-      if (currentProfile.avatar_body === hex) return;
-      currentProfile.avatar_body = hex;
-      flashAvatar('tint');
-      saveAvatarColors();
-    };
-    wheel.appendChild(btn);
+    btn.style.color = on ? (swatchLuminance(btn.dataset.hex) > 0.55 ? 'var(--ink)' : '#fff') : '';
   });
 }
 
