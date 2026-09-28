@@ -4815,6 +4815,16 @@ const AVATAR_SWATCHES = [
 ];
 const ACCESSORY_LAYER_ORDER = ['shoes', 'neck', 'held', 'glasses', 'hats'];
 
+// All 55 accessories were drawn against the original bird, whose eyes sat at
+// y37.5 on this grid. The layered birds carry theirs at 25.8, so everything
+// that belongs to the head has to travel up with it - measured by putting a
+// hat and a pair of specs on all four birds at a range of offsets and looking:
+// -11 lands the lenses on the eyes and rests a brim on the skull of every one,
+// including the crestless Kingfisher.
+// Shoes stay put. They stand on the rug, and the rug has not moved.
+// Held items stay put too - they hang off the right wing, not the head.
+const ACCESSORY_SHIFT_Y = { hats: -11, glasses: -11, neck: -11, shoes: 0, held: 0 };
+
 // Every non-default species has its own native art proportions, so a body/
 // wing/leg box sized for the original bird would stretch or squash it.
 // These widths are pre-measured per species (height/x/y of each part stay
@@ -5013,7 +5023,13 @@ function avatarSvg(body, size, equipped, dancing, species) {
   equipped = equipped || {};
   // Held items ride with the right wing, so they're pulled out of the normal
   // layer stack and animated alongside it. Everything else layers as usual.
-  const layer = cat => (equipped[cat] && accessorySvgCache[equipped[cat]]) ? accessorySvgCache[equipped[cat]] : '';
+  // Only the layered birds need the shift; the legacy art below is the very
+  // thing the accessories were drawn to fit.
+  const layer = cat => {
+    const art = (equipped[cat] && accessorySvgCache[equipped[cat]]) ? accessorySvgCache[equipped[cat]] : '';
+    const dy = PROTO_ONLY ? (ACCESSORY_SHIFT_Y[cat] || 0) : 0;
+    return (art && dy) ? `<g transform="translate(0,${dy})">${art}</g>` : art;
+  };
   const accessoryLayers = ACCESSORY_LAYER_ORDER.filter(cat => cat !== 'held').map(layer).join('');
   const heldLayer = layer('held');
 
