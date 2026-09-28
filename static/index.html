@@ -4975,7 +4975,7 @@ function protoWashFilter(id, hex) {
     </filter>`;
 }
 
-function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species) {
+function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer) {
   const bird = protoBird(species);
   const d = bird.dir;
   // Every instance gets its own ids: the nav icon and the big preview are both
@@ -5003,8 +5003,9 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
       ${protoWashFilter(u + 'f', hex)}
       ${masks}
     </defs>
+    <g transform="${protoTransform(bird)}">${of('under')}</g>
+    <g class="av-shoes">${shoesLayer || ''}</g>
     <g transform="${protoTransform(bird)}">
-      ${of('under')}
       <g class="av-torso">
         ${of('torso')}
         <g class="av-wing-l">${of('wingL')}</g>
@@ -5035,7 +5036,13 @@ function avatarSvg(body, size, equipped, dancing, species) {
 
   // Prototype: the layered Classic is the only bird for now, whatever species
   // happens to be stored against the profile.
-  if (PROTO_ONLY) return protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species);
+  // Footwear goes BETWEEN the feet and the body on the layered birds - over
+  // the toes, under the breast - so a boot looks worn rather than stuck on
+  // the front of the bird.
+  if (PROTO_ONLY) {
+    const rest = ACCESSORY_LAYER_ORDER.filter(cat => cat !== 'held' && cat !== 'shoes').map(layer).join('');
+    return protoAvatarSvg(body, size, equipped, dancing, rest, heldLayer, species, layer('shoes'));
+  }
 
   // Real illustrated art (Warble art pass 04), replacing the old flat
   // vector shapes. Body and wings are recolorable: each swatch has its own
