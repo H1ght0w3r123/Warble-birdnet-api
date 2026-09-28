@@ -4877,7 +4877,9 @@ let accessorySvgCache = {};
 //   wash the mask marking which of that layer's pixels take the child's
 //        colour. Omit it and the layer never recolours.
 const PROTO_BIRDS = {
-  classic: { dir: '/static/avatar/classic/', shiftY: 7.9, scale: 1.2, stack: [
+  classic: { dir: '/static/avatar/classic/', shiftY: 5.0, scale: 1.2, stack: [
+    { f: 'foot-l.webp', grp: 'under' },
+    { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso' },
     { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
     { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
