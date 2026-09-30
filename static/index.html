@@ -4913,7 +4913,7 @@ const AVATAR_SPECIES = PROTO_ONLY
   ? [{ id: 'classic', name: 'Classic' }, { id: 'cardinal', name: 'Cardinal' },
      { id: 'parrot', name: 'Parrot' }, { id: 'kingfisher', name: 'Kingfisher' },
      { id: 'owl', name: 'Owl' }, { id: 'duckling', name: 'Duckling' },
-     { id: 'penguin', name: 'Penguin' }]
+     { id: 'penguin', name: 'Penguin' }, { id: 'woodpecker', name: 'Woodpecker' }]
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
@@ -5021,6 +5021,20 @@ const PROTO_BIRDS = {
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso', wash: 'wash-body.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'face.webp',   grp: 'over' },
+  ]},
+  // Took the Bluebird's place in the cast. Built like the Parrot - wings under
+  // the head, a fixed overlay on top - where the overlay carries the red crest
+  // as well as the face, and a dark tail behind the feet. The cream spots on
+  // each wing move with it but never wash (the mask weight is zero there).
+  woodpecker: { dir: '/static/avatar/woodpecker/', shiftY: 4.8, scale: 1.2, wingY: 51.0, stack: [
+    { f: 'tail.webp',   grp: 'under' },
+    { f: 'foot-l.webp', grp: 'under' },
+    { f: 'foot-r.webp', grp: 'under' },
+    { f: 'body.webp',   grp: 'torso' },
     { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
     { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
     { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
