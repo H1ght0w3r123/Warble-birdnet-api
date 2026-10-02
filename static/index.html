@@ -6667,17 +6667,31 @@ function renderCardDots(birds) {
 // Cover-flow: cards sit at fixed steps either side of the middle, scaled
 // down and tucked behind as they go. `drift` is how far a finger has dragged
 // in card-widths, so the whole row follows the thumb before snapping.
-const CARD_STEP = 35;      // how far the next card sits out from the middle
 const CARD_HERO = 2.2;     // scale of the card in the middle
 
 // Where the cards sit, by how many places they are from the middle: the
 // hero, the card behind it either side, the one behind that, and the one
-// past it that has faded away. Each layer's outer edge clears the layer in
-// front by about 11px (card half-width 33 x scale + offset: 72.6, 84.5,
-// 95.6), so the deck reads as two cards stacked behind the hero on each side
-// - a sliver of each: the most it shows of a name is the edge of one letter.
-const CARD_X     = [0, CARD_STEP, 62.6, 80.6];
+// past it that has faded away.
 const CARD_SCALE = [CARD_HERO, 1.5, 1.0, 0.7];
+const CARD_HALF = 33;      // half a card's natural 66px width
+
+// The offsets are worked out from the room on screen, so the deck spreads
+// to fill a 320px phone and a 430px one alike: the outermost card's edge
+// sits DECK_GUTTER in from the screen edge (never wider than DECK_HALF_MAX
+// either side of the middle), and of the width beyond the hero the first
+// layer gets a slightly bigger share than the second, so the stack still
+// reads as stepping back.
+let DECK_HALF_MAX = 185;
+let DECK_GUTTER = 18;
+function deckOffsets(width) {
+  const heroEdge = CARD_HALF * CARD_SCALE[0];
+  const half = Math.max(heroEdge + 24, Math.min(DECK_HALF_MAX, width / 2 - DECK_GUTTER));
+  const s1 = (half - heroEdge) / 1.85, s2 = s1 * 0.85;
+  const x1 = heroEdge + s1 - CARD_HALF * CARD_SCALE[1];
+  const x2 = heroEdge + s1 + s2 - CARD_HALF * CARD_SCALE[2];
+  return [0, x1, x2, x2 + 18];
+}
+let CARD_X = deckOffsets(390);
 
 // Between two whole places, part-way along - so a card being dragged slides
 // smoothly from one layer to the next instead of jumping.
@@ -6688,6 +6702,8 @@ function deckAt(table, away) {
 }
 
 function layoutCarousel(cards, drift = 0) {
+  const box = cards[0] && cards[0].parentElement;
+  if (box && box.clientWidth) CARD_X = deckOffsets(box.clientWidth);
   cards.forEach((card, i) => {
     const off = i - selectedCard - drift;
     const away = Math.abs(off);
@@ -6736,7 +6752,7 @@ function wireCardCarousel(carousel, birds) {
     if (!dragging && Math.abs(dx) < 6 && Math.abs(dx) <= Math.abs(dy)) return;
     dragging = true;
     if (Math.abs(dx) > 4) moved = true;
-    drift = -dx / (CARD_STEP * 1.6);
+    drift = -dx / (CARD_X[1] * 1.6);
     // Resist dragging past either end so the row feels bounded.
     const limit = 0.45;
     if (selectedCard + drift < -limit) drift = -limit - selectedCard;
@@ -6749,8 +6765,13 @@ function wireCardCarousel(carousel, birds) {
     pid = null;
     try { carousel.releasePointerCapture(e.pointerId); } catch (err) { /* already */ }
     if (moved) {
-      // One card per swipe, however far the finger travelled.
-      const stepBy = drift > 0.28 ? 1 : drift < -0.28 ? -1 : 0;
+      // One card per swipe, however far the finger travelled. The threshold
+      // is a fixed 16px of finger travel, whatever the deck's spread: drift
+      // is measured in places, and a place is wider on a bigger phone, so a
+      // threshold in places would make the same flick count on a small phone
+      // and not on a large one.
+      const swipeAt = 16 / (CARD_X[1] * 1.6);
+      const stepBy = drift > swipeAt ? 1 : drift < -swipeAt ? -1 : 0;
       selectedCard = Math.min(cards.length - 1, Math.max(0, selectedCard + stepBy));
       settle();
       return;
