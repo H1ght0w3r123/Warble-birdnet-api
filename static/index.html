@@ -6670,19 +6670,34 @@ function renderCardDots(birds) {
 const CARD_STEP = 35;      // how far the next card sits out from the middle
 const CARD_HERO = 2.2;     // scale of the card in the middle
 
+// Where the cards sit, by how many places they are from the middle: the
+// hero, the card behind it either side, the one behind that, and the one
+// past it that has faded away. Each layer's outer edge clears the layer in
+// front by about 11px (card half-width 33 x scale + offset: 72.6, 84.5,
+// 95.6), so the deck reads as two cards stacked behind the hero on each side
+// - a sliver of each: the most it shows of a name is the edge of one letter.
+const CARD_X     = [0, CARD_STEP, 62.6, 80.6];
+const CARD_SCALE = [CARD_HERO, 1.5, 1.0, 0.7];
+
+// Between two whole places, part-way along - so a card being dragged slides
+// smoothly from one layer to the next instead of jumping.
+function deckAt(table, away) {
+  const a = Math.min(away, table.length - 1);
+  const i = Math.floor(a), f = a - i;
+  return i >= table.length - 1 ? table[i] : table[i] + (table[i + 1] - table[i]) * f;
+}
+
 function layoutCarousel(cards, drift = 0) {
   cards.forEach((card, i) => {
     const off = i - selectedCard - drift;
     const away = Math.abs(off);
-    // The first card either side steps out by a full stride; the ones behind
-    // it barely move, so they stay tucked behind rather than fanning out and
-    // showing a row of competing names.
-    const x = Math.sign(off) *
-      (CARD_STEP * Math.min(away, 1) + CARD_STEP * 0.32 * Math.max(away - 1, 0));
-    const scale = Math.max(0.45, CARD_HERO - Math.min(away, 3) * 0.7);
+    const x = Math.sign(off) * deckAt(CARD_X, away);
+    const scale = deckAt(CARD_SCALE, away);
     card.style.transform =
       `translate(-50%,-50%) translateX(${x.toFixed(2)}px) scale(${scale.toFixed(3)})`;
-    card.style.opacity = away > 1.75 ? '0' : '1';
+    // Two layers either side stay fully visible; the third fades out as it
+    // tucks in behind them, rather than blinking off.
+    card.style.opacity = String(Math.max(0, Math.min(1, (2.75 - away) / 0.75)).toFixed(3));
     card.style.zIndex = String(100 - Math.round(away * 10));
   });
 }
@@ -6751,11 +6766,12 @@ function wireCardCarousel(carousel, birds) {
       if (hit.classList.contains('tappable')) openBirdFromPack(hit.dataset.name, hit);
       return;
     }
-    // Only a sliver of each neighbour is showing, which is far too small a
+    // Only a sliver of each card behind is showing, which is far too small a
     // target for a small child - so a tap anywhere to one side of the middle
-    // card steps that way, whether or not it landed on the card itself.
+    // card steps one place that way, and a tap that does land on a card
+    // brings that card to the middle, two places for the back layer.
     const mid = carousel.getBoundingClientRect();
-    const step = i >= 0 ? (i > selectedCard ? 1 : -1)
+    const step = i >= 0 ? i - selectedCard
                         : (e.clientX < mid.left + mid.width / 2 ? -1 : 1);
     selectedCard = Math.min(cards.length - 1, Math.max(0, selectedCard + step));
     settle();
