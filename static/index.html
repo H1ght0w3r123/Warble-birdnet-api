@@ -4802,7 +4802,7 @@ async function loadAccessoryCache() {
   try {
     const res = await fetch('/accessories');
     const data = await res.json();
-    (data.accessories || []).forEach(a => { accessorySvgCache[a.id] = a.svg; });
+    (data.accessories || []).forEach(a => { accessorySvgCache[a.id] = a.svg; accessoryLiftCache[a.id] = a.lift || 0; });
     updateNavAvatarIcon(); // re-render now the equipped item's SVG is actually available
   } catch (e) { /* avatars just show without an accessory if this fails */ }
 }
@@ -4930,6 +4930,10 @@ const AVATAR_SPECIES = PROTO_ONLY
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
+// How far each accessory lifts the bird off the rug, in the bird's own art
+// units - only skates have one: their wheels and blade go under the boot, so
+// the bird rises onto them rather than sinking them through the floor.
+let accessoryLiftCache = {};
 
 // --- Layered prototype (Classic v1) -----------------------------------------
 // The new artwork is four complete layers - body, two wings, head - each drawn
@@ -5085,7 +5089,7 @@ function protoWashFilter(id, hex) {
     </filter>`;
 }
 
-function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer) {
+function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer, lift) {
   const bird = protoBird(species);
   const d = bird.dir;
   // Every instance gets its own ids: the nav icon and the big preview are both
@@ -5108,13 +5112,17 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
     : '').join('');
 
   const pivot = bird.wingY ? `--wing-y:${bird.wingY}px;` : '';
+  // Skates raise everything - bird, shoes and every accessory - by the same
+  // amount. The lift is in the bird's art units, so it scales with the bird.
+  const up = lift ? `translate(0,${(-lift * bird.scale).toFixed(2)})` : '';
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="overflow:visible;${pivot}" class="avatar-layered ${dancing ? 'avatar-dancing' : ''}">
     <defs>
       ${protoWashFilter(u + 'f', hex)}
       ${masks}
     </defs>
+    <g transform="${up}">
     <g transform="${protoTransform(bird)}">${of('under')}</g>
-    <g class="av-shoes">${shoesLayer || ''}</g>
+    <g class="av-shoes" transform="${protoTransform(bird)}">${shoesLayer || ''}</g>
     <g transform="${protoTransform(bird)}">
       <g class="av-torso">
         ${of('torso')}
@@ -5126,6 +5134,7 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
     <g class="av-face">
     ${accessoryLayers}
     <g class="av-held">${heldLayer}</g>
+    </g>
     </g>
   </svg>`;
 }
@@ -5148,10 +5157,15 @@ function avatarSvg(body, size, equipped, dancing, species) {
   // happens to be stored against the profile.
   // Footwear goes BETWEEN the feet and the body on the layered birds - over
   // the toes, under the breast - so a boot looks worn rather than stuck on
-  // the front of the bird.
+  // the front of the bird. Shoes are drawn in the bird's own art space (the
+  // 1000px canvas its feet were drawn on, in 0-100 units) and sized with it,
+  // so they land on the feet whatever size the bird is shown at.
+  // Note for the legacy renderer below: these coordinates are bird-art
+  // coordinates, so shoes would sit wrong on the old birds.
   if (PROTO_ONLY) {
     const rest = ACCESSORY_LAYER_ORDER.filter(cat => cat !== 'held' && cat !== 'shoes').map(layer).join('');
-    return protoAvatarSvg(body, size, equipped, dancing, rest, heldLayer, species, layer('shoes'));
+    const lift = (equipped.shoes && accessoryLiftCache[equipped.shoes]) || 0;
+    return protoAvatarSvg(body, size, equipped, dancing, rest, heldLayer, species, layer('shoes'), lift);
   }
 
   // Real illustrated art (Warble art pass 04), replacing the old flat
@@ -6083,7 +6097,7 @@ async function renderDressUp() {
     const featherData = await featherRes.json();
     currentFeatherTotal = featherData.total_feathers;
 
-    accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; });
+    accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; accessoryLiftCache[a.id] = a.lift || 0; });
 
     initDressUpAvatarPicker();
     renderCategoryRow();

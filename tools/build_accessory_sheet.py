@@ -8,7 +8,13 @@ in requirements.txt:
     python3 tools/build_accessory_sheet.py SHEET.png --cols 3 --rows 6 \\
         --names round_specs,black_browline,... --prefix glasses --version 2
 
-Items are read off the sheet column by column, top to bottom, and saved as
+    python3 tools/build_accessory_sheet.py SHEET.png --pieces \\
+        --names wellies-l,wellies-r,... --prefix shoes --version 2
+
+With --cols/--rows, items are read off a grid column by column, top to bottom.
+With --pieces, the sheet need not be a grid: every separate piece is one item
+(a shoe each, say), read in rows top to bottom and left to right within a row,
+which is how a person reads the sheet. Either way each is saved as
 static/accessories/<prefix>_<name>-v<version>.webp. Always bump --version when
 the art changes: the filename is this project's cache-buster.
 
@@ -137,12 +143,39 @@ def split_sheet(sheet, cols, rows):
     return masks
 
 
+def split_pieces(sheet, min_px=2000, row_gap=90):
+    """-> masks for every piece on the sheet, in reading order."""
+    ink = sheet[:, :, 3] >= PIECE_ALPHA
+    lbl, n = ndimage.label(ink)
+    pieces = []
+    for i in range(1, n + 1):
+        m = lbl == i
+        ys, xs = np.where(m)
+        if len(xs) >= min_px:
+            pieces.append((ys.min(), ys.max(), xs.mean(), m))
+    # a new row starts where a piece's top is below every piece in the current
+    # row's bottom half - robust to pieces of different heights in one row
+    pieces.sort(key=lambda p: p[0])
+    rows, cur = [], []
+    for p in pieces:
+        if cur and p[0] > np.median([q[1] for q in cur]) - row_gap:
+            rows.append(cur); cur = []
+        cur.append(p)
+    rows.append(cur)
+    out = []
+    for r in rows:
+        out += [p[3] for p in sorted(r, key=lambda p: p[2])]
+    # take back the soft edge round each piece, as split_sheet does
+    return [ndimage.binary_dilation(m, np.ones((7, 7))) for m in out]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('sheet')
-    ap.add_argument('--cols', type=int, required=True)
-    ap.add_argument('--rows', type=int, required=True)
-    ap.add_argument('--names', required=True, help='comma list, column by column, top to bottom')
+    ap.add_argument('--cols', type=int)
+    ap.add_argument('--rows', type=int)
+    ap.add_argument('--pieces', action='store_true', help='one item per separate piece, in reading order')
+    ap.add_argument('--names', required=True, help='comma list in reading order')
     ap.add_argument('--prefix', required=True)
     ap.add_argument('--version', type=int, required=True)
     ap.add_argument('--lens-clear', type=float, default=None,
@@ -153,13 +186,15 @@ def main():
     args = ap.parse_args()
 
     names = args.names.split(',')
-    assert len(names) == args.cols * args.rows, f'{len(names)} names for {args.cols * args.rows} cells'
     sheet = np.array(Image.open(args.sheet).convert('RGBA')).astype(np.float64)
-    masks = split_sheet(sheet, args.cols, args.rows)
+    if args.pieces:
+        ordered = split_pieces(sheet)
+    else:
+        masks = split_sheet(sheet, args.cols, args.rows)
+        ordered = [masks[divmod(i, args.rows)] for i in range(args.cols * args.rows)]
+    assert len(names) == len(ordered), f'{len(names)} names for {len(ordered)} items'
 
-    for idx, name in enumerate(names):
-        c, r = divmod(idx, args.rows)
-        m = masks[(c, r)]
+    for name, m in zip(names, ordered):
         ys, xs = np.where(m)
         y0, y1 = max(ys.min() - PAD, 0), ys.max() + PAD + 1
         x0, x1 = max(xs.min() - PAD, 0), xs.max() + PAD + 1
