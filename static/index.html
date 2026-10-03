@@ -609,7 +609,27 @@
      name less room on those cards rather than letting it run underneath. */
   .fan-card.away .fan-name{height:25px;}
   .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);}
-  .fan-rare{position:absolute;z-index:3;top:4px;right:4px;background:var(--tier-color);color:var(--ink);font-family:'Poppins';font-weight:900;font-size:6.5px;padding:2px 4px;border-radius:4px;letter-spacing:.04em;}
+  /* Rare cards: a gold band across the bottom of the bird window, a gold
+     trim round the whole card, and the pack mark in the corners in gold.
+     The band sits under the frame layer (z-index 1, after the photo) and runs
+     a little wider and lower than the window, like the photo does, so the
+     painted wood trims its edges. Visible part: 8.5px tall, full width. */
+  .fan-rare{position:absolute;z-index:1;left:1.43px;width:63.06px;top:53px;height:9.5px;
+    padding-bottom:1px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#FFE58A 0%,#F2C230 45%,#C99312 100%);
+    color:#5A3B00;font-family:'Poppins';font-weight:900;font-size:5.6px;letter-spacing:.18em;
+    box-shadow:0 -0.5px 0 rgba(90,59,0,.35);}
+  .fan-card.rare::before{
+    content:'';position:absolute;inset:0;z-index:4;pointer-events:none;
+    border-radius:5px;padding:1.6px;
+    background:linear-gradient(135deg,#FFF0A8 0%,#E9B52C 30%,#B07D0E 55%,#F6D063 78%,#B88412 100%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+  }
+  .fan-card.rare .fan-badge{
+    background:linear-gradient(135deg,#F8D25A 0%,#D9A21B 50%,#A9740A 100%);
+    filter:drop-shadow(0 0 .3px rgba(90,59,0,.6));
+  }
   .collector-pip{
     flex:1; font-family:'Poppins'; font-weight:700; font-size:9.5px; padding:4px 0;
     border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
@@ -1701,12 +1721,12 @@
   /* Tap the pack name for all ten at once, rather than arrowing round. */
   .all-packs{
     position:fixed;inset:0;z-index:500;display:flex;align-items:center;
-    justify-content:center;padding:16px;background:rgba(45,27,105,0.55);
+    justify-content:center;padding:12px;background:rgba(45,27,105,0.55);
     backdrop-filter:blur(3px);
   }
   .all-packs-sheet{
-    width:100%;max-width:360px;background:rgba(255,255,255,0.97);
-    border-radius:20px;padding:12px;box-shadow:0 14px 34px rgba(45,27,105,0.3);
+    width:100%;max-width:380px;background:rgba(255,255,255,0.97);
+    border-radius:20px;padding:10px;box-shadow:0 14px 34px rgba(45,27,105,0.3);
   }
   .all-packs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   .all-pack{
@@ -1718,14 +1738,17 @@
   /* The round badge here rather than the loose icon: ten circles of one
      width line the grid up, where ten different silhouettes would not. */
   .all-pack-badge{height:36px;width:36px;object-fit:contain;flex:0 0 auto;display:block;}
-  /* Name and tally share one line. On a narrow phone the longest names
-     ("Little Loudmouths") don't leave room, so the tally wraps underneath
-     rather than squashing the name. */
-  .all-pack-text{display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:2px;min-width:0;}
-  .all-pack-name{height:15px;width:auto;max-width:100%;flex:0 0 auto;object-fit:contain;
+  /* Name on the left, tally on the right, one line. The name starts from a
+     58px basis and grows to fill the gap (drawn left-aligned, never past its
+     own size), so a long name ("Little Loudmouths") gives up a little height
+     rather than pushing the tally onto a second line. Only on a very narrow
+     phone, where even 58px won't fit, does the tally wrap underneath. */
+  .all-pack-text{display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:2px;
+    flex:1 1 auto;min-width:0;}
+  .all-pack-name{height:19px;width:auto;max-width:100%;flex:1 1 58px;min-width:0;object-fit:contain;
     object-position:left center;display:block;}
   .all-pack-count{font-family:'Poppins';font-weight:900;font-size:10.5px;color:var(--mist-dk);
-    white-space:nowrap;line-height:15px;}
+    white-space:nowrap;line-height:19px;}
   .all-pack.done .all-pack-count{color:var(--gold-dk);}
 
   /* No card frame - the fan sits straight on the background. All ten cards
@@ -6611,9 +6634,8 @@ function renderSelectedPack() {
   if (selectedCard >= p.birds.length) selectedCard = 0;
 
   const cards = p.birds.map((b, i) => {
-    const rareMark = b.rarity === 'Rare'
-      ? `<div class="fan-rare" style="--tier-color:${TIER_COLORS.Rare}">RARE</div>`
-      : '';
+    const rare = b.rarity === 'Rare';
+    const rareMark = rare ? `<div class="fan-rare">RARE</div>` : '';
     const face = b.photo_url
       ? `<img class="fan-photo" ${birdImg(b.photo_url, 420)} alt="">`
       : `<div class="fan-photo empty">${b.found ? '' : '<span class="fan-photo-emoji">🐦</span>'}</div>`;
@@ -6621,7 +6643,7 @@ function renderSelectedPack() {
     // month" rather than something the child has failed to find.
     const away = !b.found && b.season_state === 'away';
     return `
-      <div class="fan-card ${b.found ? 'tappable' : 'unfound'} ${away ? 'away' : ''}"
+      <div class="fan-card ${b.found ? 'tappable' : 'unfound'} ${away ? 'away' : ''} ${rare ? 'rare' : ''}"
            data-i="${i}" data-name="${b.found ? b.common_name : ''}">
         <div class="fan-badge tl" style="--pack-color:${p.color};
              -webkit-mask-image:url('/static/pack-${p.art}-emblem-v2.webp');
