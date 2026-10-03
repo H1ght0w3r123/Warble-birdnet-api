@@ -1798,6 +1798,10 @@
   }
   .card-dot.found{background:#fff;}
   .card-dot.now{transform:scale(1.55);border-color:#fff;}
+  /* The pack's two rares are always gold: a gold ring until found, then
+     filled in. The card itself stays grey until then like any other. */
+  .card-dot.rare, .card-dot.rare.now{border-color:#F2C230;}
+  .card-dot.rare.found{background:#F2C230;}
   .fan-card{
     /* The frame art draws its own rounded corners (a ~4.5px radius at this
        size) and is transparent outside them, so this clip only exists to
@@ -6688,7 +6692,7 @@ function renderCardDots(birds) {
   const el = document.getElementById('cardDots');
   if (!el) return;
   el.innerHTML = birds.map((b, i) =>
-    `<span class="card-dot ${b.found ? 'found' : ''} ${i === selectedCard ? 'now' : ''}"></span>`).join('');
+    `<span class="card-dot ${b.found ? 'found' : ''} ${b.rarity === 'Rare' ? 'rare' : ''} ${i === selectedCard ? 'now' : ''}"></span>`).join('');
 }
 
 // Cover-flow: cards sit at fixed steps either side of the middle, scaled
