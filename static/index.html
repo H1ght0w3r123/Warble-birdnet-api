@@ -1737,7 +1737,12 @@
      other to auto too, so an enlarged card poking above the row was
      silently getting clipped. With neither axis restricted now, that's
      gone. */
-  .pack-blurb{font-size:12.5px;color:rgba(255,255,255,0.88);text-align:center;line-height:1.45;margin:15px auto 4px;max-width:320px;padding:0 10px;}
+  /* One line, always: bold capitals, never wrapping. The blurbs are written
+     short enough to fit a small phone; fitBlurb() shrinks the type a touch if
+     a bigger system font would still push one over. */
+  .pack-blurb{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+    color:rgba(255,255,255,0.92);text-align:center;line-height:1.45;margin:15px auto 4px;
+    max-width:340px;padding:0 10px;white-space:nowrap;overflow:hidden;}
   /* Cover-flow carousel: the centred card is the hero, its neighbours peek
      out either side so it reads as swipeable without any instructions.
      Cards keep their natural 66 x 101.5 box and are scaled by transform, so
@@ -6639,8 +6644,20 @@ function renderSelectedPack() {
     <div class="fan-caption" id="fanCaption"></div>
   `;
 
+  fitBlurb(el.querySelector('.pack-blurb'));
   const carousel = document.getElementById('cardCarousel');
   if (carousel) wireCardCarousel(carousel, p.birds);
+}
+
+// Shrink a pack's blurb until it fits on its one line.
+function fitBlurb(b) {
+  if (!b) return;
+  b.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(b).fontSize);
+  while (b.scrollWidth > b.clientWidth && size > 9) {
+    size -= 0.5;
+    b.style.fontSize = size + 'px';
+  }
 }
 
 // One dot per card in the pack: filled once found, and the one you're

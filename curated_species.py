@@ -33,7 +33,7 @@ slug stays as the plain-text fallback.
 PACKS = {
     "garden_regulars": {
         "name": "Locals",
-        "blurb": "The regulars you'll meet on almost any doorstep.",
+        "blurb": "Regulars on every doorstep",
         "emoji": "\U0001F3E1",
         "art": "locals",
         "color": "#E8845C",
@@ -46,7 +46,7 @@ PACKS = {
     },
     "tits_and_climbers": {
         "name": "Acrobats",
-        "blurb": "Tiny daredevils that hang upside down and run up trees.",
+        "blurb": "Upside-down tree daredevils",
         "emoji": "\U0001F343",
         "art": "acrobats",
         "color": "#7EC8A4",
@@ -58,7 +58,7 @@ PACKS = {
     },
     "seed_eaters": {
         "name": "Nutcrackers",
-        "blurb": "Stubby little bills built for cracking seeds open.",
+        "blurb": "Little bills for cracking seeds",
         "emoji": "\U0001F33B",
         "art": "nutcrackers",
         "color": "#F2C94C",
@@ -71,7 +71,7 @@ PACKS = {
     },
     "small_singers": {
         "name": "Little Loudmouths",
-        "blurb": "Small brown birds with astonishingly big voices.",
+        "blurb": "Small birds with big voices",
         "emoji": "\U0001F3B5",
         "art": "littleloudmouths",
         "color": "#E87EA1",
@@ -84,7 +84,7 @@ PACKS = {
     },
     "tricksters": {
         "name": "Mischiefs",
-        "blurb": "The cleverest, cheekiest birds - and the ones that drum on trees.",
+        "blurb": "Clever, cheeky tree drummers",
         "emoji": "\u2728",
         "art": "mischiefs",
         "color": "#9B6FC4",
@@ -97,7 +97,7 @@ PACKS = {
     },
     "ground_feeders": {
         "name": "Diggers",
-        "blurb": "Hoppers and probers, always working the ground.",
+        "blurb": "Always working the ground",
         "emoji": "\U0001F33E",
         "art": "diggers",
         "color": "#C68958",
@@ -109,7 +109,7 @@ PACKS = {
     },
     "hunters": {
         "name": "Sky Divers",
-        "blurb": "Sharp eyes, hooked bills, and a dive you'll never hear coming.",
+        "blurb": "Sharp eyes and silent dives",
         "emoji": "\U0001F985",
         "art": "skydivers",
         "color": "#3B82C4",
@@ -121,7 +121,7 @@ PACKS = {
     },
     "water_birds": {
         "name": "Waterwings",
-        "blurb": "Paddlers, divers and dabblers.",
+        "blurb": "Paddlers, divers and dabblers",
         "emoji": "\U0001F986",
         "art": "waterwings",
         "color": "#4FB8B0",
@@ -133,7 +133,7 @@ PACKS = {
     },
     "waders": {
         "name": "Mucky Puddles",
-        "blurb": "Long legs, long bills, and a lot of standing about in mud.",
+        "blurb": "Long legs and muddy feet",
         "emoji": "\U0001FAB6",
         "art": "muckypuddles",
         "color": "#A88F3D",
@@ -146,7 +146,7 @@ PACKS = {
     },
     "sky_and_sea": {
         "name": "Wind Surfers",
-        "blurb": "Birds of the open air and the open water.",
+        "blurb": "Birds of open air and water",
         "emoji": "\U0001F30A",
         "art": "windsurfers",
         "color": "#4A5FA0",
