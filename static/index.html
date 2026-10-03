@@ -191,6 +191,7 @@
   body.scene-on .collection-count, body.scene-on .profile-section-title,
   body.scene-on .reset-note, body.scene-on .stat-empty,
   body.scene-on .flock-stats, body.scene-on .pack-tally,
+  body.scene-on .pack-more,
   body.scene-on .pack-blurb, body.scene-on .fan-caption,
   body.scene-on .challenge-strip, body.scene-on .nav-tab,
   body.scene-on .colour-label,
@@ -702,7 +703,7 @@
      Where backdrop-filter is not supported this is simply ignored and the
      behaviour is what it was before. */
   .prev-btn, .photo-btn-clear,
-  .reset-btn, .pack-arrow, .bonus-row{
+  .reset-btn, .pack-more, .bonus-row{
     backdrop-filter:brightness(0.58) saturate(0.9);
     -webkit-backdrop-filter:brightness(0.58) saturate(0.9);
   }
@@ -1672,42 +1673,30 @@
      room for the cards to be meaningfully bigger. No border on the tabs -
      the background/text color swap on .active is distinct enough on its
      own. */
-  /* One centred pack selector: arrows step through the 10 packs, the middle
-     is tappable to open the full grid. Deliberately the only horizontal
-     control on the screen that isn't the cards themselves - packs are
-     tapped, cards are swiped, so the two never compete. */
-  .pack-nav{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;}
-  .pack-arrow{
-    flex:0 0 auto;width:40px;height:40px;border:none;border-radius:50%;
-    background:rgba(255,255,255,0.16);color:#fff;font-family:'Poppins';
-    font-weight:700;font-size:20px;line-height:1;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
+  /* The pack selector is one line and one button: the pack's name, how many
+     of its ten are found, and a "..." that says tap me for the others. The
+     whole line is the target, not just the dots - a child aims at the name.
+     Packs are tapped, cards are swiped, so the two never compete. */
+  .pack-current{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin:0 auto;min-height:44px;padding:2px 6px;max-width:100%;
+    border:none;background:none;cursor:pointer;
+  }
+  /* Painted art, not type. Sized by HEIGHT and left to find its own width, so
+     "Locals" and "Little Loudmouths" sit on the same baseline. */
+  .pack-current-name{height:24px;width:auto;display:block;min-width:0;
+    max-width:calc(100vw - 150px);object-fit:contain;object-position:left center;}
+  .pack-tally{
+    flex:0 0 auto;font-family:'Poppins';font-weight:700;font-size:14px;
+    color:rgba(255,255,255,0.88);white-space:nowrap;
+  }
+  .pack-more{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:3px;
+    width:34px;height:24px;border-radius:12px;background:rgba(255,255,255,0.18);
     transition:background .15s ease, transform .12s ease;
   }
-  .pack-arrow:active{background:rgba(255,255,255,0.3);transform:scale(.92);}
-  .pack-current{
-    flex:1 1 auto;max-width:210px;min-height:44px;border:none;background:none;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
-    padding:2px 4px;
-  }
-  /* Painted art, not an emoji and not type. Both are sized by HEIGHT and
-     left to find their own width, so "Locals" and "Little Loudmouths" sit on
-     the same baseline instead of one being twice as tall as the other. */
-  .pack-current-icon{height:30px;width:auto;flex:0 0 auto;display:block;}
-  .pack-current-name{height:24px;width:auto;display:block;max-width:100%;
-    object-fit:contain;object-position:left center;}
-  .pack-tally{
-    text-align:center;font-family:'Poppins';font-weight:700;font-size:12.5px;
-    color:rgba(255,255,255,0.8);margin-top:1px;
-  }
-  /* Named -pip, not -dot: .pack-dot is already the little coloured marker
-     that sits on a bird card, and it's absolutely positioned. */
-  .pack-pips{display:flex;justify-content:center;gap:5px;margin-top:8px;}
-  .pack-pip{
-    width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.32);
-    transition:background .18s ease, transform .18s ease;
-  }
-  .pack-pip.on{background:#fff;transform:scale(1.35);}
+  .pack-more i{width:4.5px;height:4.5px;border-radius:50%;background:#fff;display:block;}
+  .pack-current:active .pack-more{background:rgba(255,255,255,0.32);transform:scale(.92);}
 
   /* Tap the pack name for all ten at once, rather than arrowing round. */
   .all-packs{
@@ -1773,14 +1762,6 @@
   .card-carousel.settling .fan-card{
     transition:transform .34s cubic-bezier(.22,.9,.3,1.05), opacity .34s ease;
   }
-  .card-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:2px;min-height:14px;}
-  .card-dot{
-    width:7px;height:7px;border-radius:50%;
-    border:1.5px solid rgba(255,255,255,0.75);background:transparent;
-    transition:transform .18s ease, background .18s ease;
-  }
-  .card-dot.found{background:#fff;}
-  .card-dot.now{transform:scale(1.55);border-color:#fff;}
   .fan-card{
     /* The frame art draws its own rounded corners (a ~4.5px radius at this
        size) and is transparent outside them, so this clip only exists to
@@ -6558,27 +6539,13 @@ function renderPackSelector() {
   const p = allPacksRaw[selectedPack];
   if (!p) return;
   row.innerHTML = `
-    <div class="pack-nav">
-      <button class="pack-arrow" id="packPrev" aria-label="Previous pack">&lsaquo;</button>
-      <button class="pack-current" id="packCurrent">
-        <img class="pack-current-icon" src="/static/pack-${p.art}-icon-v2.webp" alt="">
-        <img class="pack-current-name" src="/static/pack-${p.art}-name-v2.webp" alt="${p.name}">
-      </button>
-      <button class="pack-arrow" id="packNext" aria-label="Next pack">&rsaquo;</button>
-    </div>
-    <div class="pack-tally">${p.cards_found} / ${p.cards_total}</div>
-    <div class="pack-pips">${allPacksRaw.map((_, i) =>
-      `<span class="pack-pip ${i === selectedPack ? 'on' : ''}"></span>`).join('')}</div>`;
-  document.getElementById('packPrev').onclick = () => stepPack(-1);
-  document.getElementById('packNext').onclick = () => stepPack(1);
+    <button class="pack-current" id="packCurrent"
+            aria-label="${p.name}, ${p.cards_found} of ${p.cards_total} found. Choose another pack">
+      <img class="pack-current-name" src="/static/pack-${p.art}-name-v2.webp" alt="">
+      <span class="pack-tally">${p.cards_found}/${p.cards_total}</span>
+      <span class="pack-more" aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>`;
   document.getElementById('packCurrent').onclick = openAllPacks;
-}
-
-// Packs wrap round, so arrowing never dead-ends on the first or last one.
-function stepPack(dir) {
-  const n = allPacksRaw.length;
-  if (!n) return;
-  goToPack((selectedPack + dir + n) % n, dir);
 }
 
 function goToPack(i, dir) {
@@ -6660,22 +6627,11 @@ function renderSelectedPack() {
   el.innerHTML = `
     <div class="pack-blurb">${p.blurb}</div>
     <div class="card-carousel" id="cardCarousel">${cards}</div>
-    <div class="card-dots" id="cardDots"></div>
     <div class="fan-caption" id="fanCaption"></div>
   `;
 
   const carousel = document.getElementById('cardCarousel');
   if (carousel) wireCardCarousel(carousel, p.birds);
-}
-
-// One dot per card in the pack: filled once found, and the one you're
-// looking at sits slightly larger. Replaces the old "x of 10 cards found"
-// line, which said the same thing as the tally by the pack name.
-function renderCardDots(birds) {
-  const el = document.getElementById('cardDots');
-  if (!el) return;
-  el.innerHTML = birds.map((b, i) =>
-    `<span class="card-dot ${b.found ? 'found' : ''} ${i === selectedCard ? 'now' : ''}"></span>`).join('');
 }
 
 // Cover-flow: cards sit at fixed steps either side of the middle, scaled
@@ -6742,11 +6698,9 @@ function wireCardCarousel(carousel, birds) {
   const settle = () => {
     carousel.classList.add('settling');
     layoutCarousel(cards);
-    renderCardDots(birds);
     caption();
   };
   layoutCarousel(cards);
-  renderCardDots(birds);
   caption();
 
   let pid = null, startX = 0, startY = 0, drift = 0, dragging = false, moved = false;
