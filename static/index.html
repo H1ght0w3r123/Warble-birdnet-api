@@ -1781,7 +1781,11 @@
      everything inside them stays exactly where it was measured. */
   .card-carousel{
     position:relative;width:100%;height:242px;margin:6px 0 2px;
-    overflow:hidden;
+    /* Clip the sides only - the outer cards slide off the edges and mustn't
+       widen the page - but leave room above and below so the cards' drop
+       shadows aren't cut off in a hard line. (overflow-x:hidden can't do
+       this: it forces the other axis to clip too.) */
+    clip-path:inset(-40px 0 -70px 0);
     touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   }
   .card-carousel .fan-card{
