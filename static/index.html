@@ -1705,23 +1705,19 @@
     backdrop-filter:blur(3px);
   }
   .all-packs-sheet{
-    width:100%;max-width:340px;background:rgba(255,255,255,0.97);
+    width:100%;max-width:360px;background:rgba(255,255,255,0.97);
     border-radius:20px;padding:12px;box-shadow:0 14px 34px rgba(45,27,105,0.3);
-  }
-  .all-packs-title{
-    font-family:'Poppins';font-weight:900;font-size:14px;color:var(--dusk);
-    text-align:center;margin-bottom:10px;
   }
   .all-packs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   .all-pack{
-    display:flex;align-items:center;gap:6px;padding:7px 8px;border:none;
+    display:flex;align-items:center;gap:6px;padding:6px 7px 6px 6px;border:none;
     border-radius:12px;background:var(--parch);cursor:pointer;text-align:left;
     min-height:40px;
   }
   .all-pack.on{background:var(--goldbg,#FBF0D8);outline:2px solid var(--gold);}
   /* The round badge here rather than the loose icon: ten circles of one
      width line the grid up, where ten different silhouettes would not. */
-  .all-pack-badge{height:26px;width:26px;object-fit:contain;flex:0 0 auto;display:block;}
+  .all-pack-badge{height:36px;width:36px;object-fit:contain;flex:0 0 auto;display:block;}
   /* Name and tally share one line. On a narrow phone the longest names
      ("Little Loudmouths") don't leave room, so the tally wraps underneath
      rather than squashing the name. */
@@ -6588,7 +6584,6 @@ function openAllPacks() {
   wrap.className = 'all-packs';
   wrap.innerHTML = `
     <div class="all-packs-sheet">
-      <div class="all-packs-title">All ten packs</div>
       <div class="all-packs-grid">
         ${allPacksRaw.map((p, i) => `
           <button class="all-pack ${i === selectedPack ? 'on' : ''} ${p.complete ? 'done' : ''}" data-i="${i}">
