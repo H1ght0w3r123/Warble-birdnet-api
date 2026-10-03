@@ -1762,6 +1762,14 @@
   .card-carousel.settling .fan-card{
     transition:transform .34s cubic-bezier(.22,.9,.3,1.05), opacity .34s ease;
   }
+  .card-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:2px;min-height:14px;}
+  .card-dot{
+    width:7px;height:7px;border-radius:50%;
+    border:1.5px solid rgba(255,255,255,0.75);background:transparent;
+    transition:transform .18s ease, background .18s ease;
+  }
+  .card-dot.found{background:#fff;}
+  .card-dot.now{transform:scale(1.55);border-color:#fff;}
   .fan-card{
     /* The frame art draws its own rounded corners (a ~4.5px radius at this
        size) and is transparent outside them, so this clip only exists to
@@ -6627,11 +6635,22 @@ function renderSelectedPack() {
   el.innerHTML = `
     <div class="pack-blurb">${p.blurb}</div>
     <div class="card-carousel" id="cardCarousel">${cards}</div>
+    <div class="card-dots" id="cardDots"></div>
     <div class="fan-caption" id="fanCaption"></div>
   `;
 
   const carousel = document.getElementById('cardCarousel');
   if (carousel) wireCardCarousel(carousel, p.birds);
+}
+
+// One dot per card in the pack: filled once found, and the one you're
+// looking at sits slightly larger. Replaces the old "x of 10 cards found"
+// line, which said the same thing as the tally by the pack name.
+function renderCardDots(birds) {
+  const el = document.getElementById('cardDots');
+  if (!el) return;
+  el.innerHTML = birds.map((b, i) =>
+    `<span class="card-dot ${b.found ? 'found' : ''} ${i === selectedCard ? 'now' : ''}"></span>`).join('');
 }
 
 // Cover-flow: cards sit at fixed steps either side of the middle, scaled
@@ -6698,9 +6717,11 @@ function wireCardCarousel(carousel, birds) {
   const settle = () => {
     carousel.classList.add('settling');
     layoutCarousel(cards);
+    renderCardDots(birds);
     caption();
   };
   layoutCarousel(cards);
+  renderCardDots(birds);
   caption();
 
   let pid = null, startX = 0, startY = 0, drift = 0, dragging = false, moved = false;
