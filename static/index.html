@@ -6782,11 +6782,27 @@ function wireCardCarousel(carousel, birds) {
   caption();
 
   let pid = null, startX = 0, startY = 0, drift = 0, dragging = false, moved = false;
+  // Momentum: recent finger positions (in places) to measure the flick's
+  // speed on release, and the glide that carries on after it.
+  let trail = [], baseDrift = 0, glide = 0, caught = false;
+  const placePx = () => CARD_X[1] * 1.6;     // finger travel for one place
+  const stopGlide = () => {
+    if (!glide) return false;
+    cancelAnimationFrame(glide); glide = 0;
+    return true;
+  };
 
   carousel.addEventListener('dragstart', (e) => e.preventDefault());
   carousel.addEventListener('pointerdown', (e) => {
     pid = e.pointerId; startX = e.clientX; startY = e.clientY;
-    drift = 0; dragging = false; moved = false;
+    dragging = false; moved = false;
+    // A finger landing on a gliding deck catches it where it is, and a drag
+    // carries on from there; a plain tap just stops it (rather than opening
+    // whichever card happened to be passing the middle).
+    caught = stopGlide();
+    baseDrift = caught ? drift : 0;
+    drift = baseDrift;
+    trail = [{ t: e.timeStamp, d: drift }];
     carousel.classList.remove('settling');
     try { carousel.setPointerCapture(pid); } catch (err) { /* unsupported */ }
   });
@@ -6798,7 +6814,9 @@ function wireCardCarousel(carousel, birds) {
     if (!dragging && Math.abs(dx) < 6 && Math.abs(dx) <= Math.abs(dy)) return;
     dragging = true;
     if (Math.abs(dx) > 4) moved = true;
-    drift = -dx / (CARD_X[1] * 1.6);
+    drift = baseDrift - dx / placePx();
+    trail.push({ t: e.timeStamp, d: drift });
+    while (trail.length > 2 && e.timeStamp - trail[0].t > 100) trail.shift();
     // Resist dragging past either end so the row feels bounded.
     const limit = 0.45;
     if (selectedCard + drift < -limit) drift = -limit - selectedCard;
@@ -6811,14 +6829,34 @@ function wireCardCarousel(carousel, birds) {
     pid = null;
     try { carousel.releasePointerCapture(e.pointerId); } catch (err) { /* already */ }
     if (moved) {
-      // One card per swipe, however far the finger travelled. The threshold
+      // How fast the finger was going as it let go, in places per ms, from
+      // the last ~100ms of movement. A finger that stopped before lifting
+      // has no speed left to give.
+      const last = trail[trail.length - 1], first = trail[0];
+      let v = 0;
+      if (trail.length > 1 && e.timeStamp - last.t < 60 && last.t > first.t) {
+        v = (last.d - first.d) / (last.t - first.t);
+      }
+      // Where that speed would carry the deck if it slowed steadily to a
+      // stop (GLIDE_MS sets how far), rounded to the nearest card.
+      const pos = selectedCard + drift;
+      let target = Math.round(pos + v * GLIDE_MS);
+      // A short, slow push still turns one card, as before. The threshold
       // is a fixed 16px of finger travel, whatever the deck's spread: drift
       // is measured in places, and a place is wider on a bigger phone, so a
       // threshold in places would make the same flick count on a small phone
       // and not on a large one.
-      const swipeAt = 16 / (CARD_X[1] * 1.6);
-      const stepBy = drift > swipeAt ? 1 : drift < -swipeAt ? -1 : 0;
-      selectedCard = Math.min(cards.length - 1, Math.max(0, selectedCard + stepBy));
+      const swipeAt = 16 / placePx();
+      const nudge = drift - baseDrift;
+      if (target === selectedCard && Math.abs(nudge) > swipeAt) target += Math.sign(nudge);
+      target = Math.min(cards.length - 1, Math.max(0, target));
+      glideTo(pos, target, v);
+      return;
+    }
+    if (caught) {
+      // Tapped to stop a gliding deck: land on whichever card is nearest.
+      selectedCard = Math.min(cards.length - 1, Math.max(0, Math.round(selectedCard + drift)));
+      drift = 0;
       settle();
       return;
     }
@@ -6843,9 +6881,57 @@ function wireCardCarousel(carousel, birds) {
     selectedCard = Math.min(cards.length - 1, Math.max(0, selectedCard + step));
     settle();
   };
+  // Carry the deck from `from` to the card at `to`, starting at the finger's
+  // own speed and easing out to a stop - so a flick keeps going for a card or
+  // few after the thumb lifts. Eased with a cubic ease-out, whose starting
+  // speed is 3 x distance / time; the time is picked to match the flick, so
+  // there's no jolt as the finger hands over. Each frame re-centres on the
+  // nearest card, so the dots and the gold glint track it as it passes.
+  function glideTo(from, to, v) {
+    const dist = to - from;
+    carousel.classList.remove('settling');
+    if (!dist || reducedMotion()) {
+      selectedCard = to; drift = 0; settle(); return;
+    }
+    const sameWay = Math.sign(v) === Math.sign(dist);
+    const ms = sameWay && Math.abs(v) > 1e-4
+      ? Math.min(900, Math.max(260, 3 * Math.abs(dist) / Math.abs(v)))
+      : 300;
+    const t0 = performance.now();
+    let shown = -1;
+    const step = (now) => {
+      // Switched pack (or tab) mid-glide: this deck is gone, so leave
+      // selectedCard to the new one.
+      if (!carousel.isConnected) { glide = 0; return; }
+      const t = Math.min(1, (now - t0) / ms);
+      const pos = from + dist * (1 - Math.pow(1 - t, 3));
+      selectedCard = Math.round(pos);
+      drift = pos - selectedCard;
+      layoutCarousel(cards, drift);
+      if (selectedCard !== shown) { shown = selectedCard; renderCardDots(birds); }
+      if (t < 1) { glide = requestAnimationFrame(step); return; }
+      glide = 0;
+      selectedCard = to; drift = 0;
+      layoutCarousel(cards);
+      renderCardDots(birds);
+      caption();
+    };
+    glide = requestAnimationFrame(step);
+  }
+
   carousel.addEventListener('pointerup', release);
-  carousel.addEventListener('pointercancel', () => { pid = null; settle(); });
+  carousel.addEventListener('pointercancel', () => {
+    pid = null;
+    selectedCard = Math.min(cards.length - 1, Math.max(0, Math.round(selectedCard + drift)));
+    drift = 0;
+    settle();
+  });
 }
+
+// How far a flick carries the deck after the finger lifts: the speed at
+// release times this many ms. 220 lets a hard flick run on three or four
+// cards and a gentle one just one; raise it for a looser, longer glide.
+const GLIDE_MS = 220;
 
 // "Found 3 times! First found on 4 May 2026 in Grandma's garden."
 // The location clause is dropped entirely when we don't have a name for the
