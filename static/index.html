@@ -619,10 +619,19 @@
     background:linear-gradient(180deg,#FFE58A 0%,#F2C230 45%,#C99312 100%);
     color:#5A3B00;font-family:'Poppins';font-weight:900;font-size:5.6px;letter-spacing:.18em;
     box-shadow:0 -0.5px 0 rgba(90,59,0,.35);}
+  /* --sheen is how far the card is from the middle of the deck, in card
+     places (set by layoutCarousel, following the finger mid-drag). It slides
+     a white glint across the gold trim, the opposite way to the card, the
+     way a reflection of a fixed light would. Registered so it can ease along
+     with the card when the deck snaps to a stop. */
+  @property --sheen{syntax:'<number>';inherits:true;initial-value:0;}
   .fan-card.rare::before{
     content:'';position:absolute;inset:0;z-index:4;pointer-events:none;
-    border-radius:5px;padding:1.6px;
-    background:linear-gradient(135deg,#FFF0A8 0%,#E9B52C 30%,#B07D0E 55%,#F6D063 78%,#B88412 100%);
+    border-radius:5px;padding:1.8px;
+    background:
+      linear-gradient(110deg,transparent 36%,rgba(255,250,225,.55) 43%,#fff 48.5%,#fff 51.5%,rgba(255,250,225,.55) 57%,transparent 64%)
+        calc(50% + var(--sheen) * 40%) 0 / 300% 100% no-repeat,
+      linear-gradient(135deg,#FFF0A8 0%,#E9B52C 30%,#B07D0E 55%,#F6D063 78%,#B88412 100%);
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude;
   }
@@ -1788,7 +1797,8 @@
   .card-carousel .fan-name,
   .card-carousel .fan-badge{pointer-events:none;}
   .card-carousel.settling .fan-card{
-    transition:transform .34s cubic-bezier(.22,.9,.3,1.05), opacity .34s ease;
+    transition:transform .34s cubic-bezier(.22,.9,.3,1.05), opacity .34s ease,
+               --sheen .34s cubic-bezier(.22,.9,.3,1.05);
   }
   .card-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:2px;min-height:14px;}
   .card-dot{
@@ -6742,6 +6752,7 @@ function layoutCarousel(cards, drift = 0) {
     const scale = deckAt(CARD_SCALE, away);
     card.style.transform =
       `translate(-50%,-50%) translateX(${x.toFixed(2)}px) scale(${scale.toFixed(3)})`;
+    card.style.setProperty('--sheen', off.toFixed(3));
     // Two layers either side stay fully visible; the third fades out as it
     // tucks in behind them, rather than blinking off.
     card.style.opacity = String(Math.max(0, Math.min(1, (2.75 - away) / 0.75)).toFixed(3));
