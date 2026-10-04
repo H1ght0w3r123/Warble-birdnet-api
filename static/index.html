@@ -1747,8 +1747,20 @@
   }
   .feather-input{flex:1;margin:0;max-width:none;}
   .skip-btn{background:none;border:none;color:rgba(255,255,255,0.85);font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
-  .location-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-  .location-tag{display:flex;align-items:center;gap:4px;background:var(--rose);color:#fff;font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
+  /* Where you've heard this bird: one row per place, most-visited first. */
+  .places-body{padding:18px 18px 16px;}
+  .places-title{font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);line-height:1.2;}
+  .places-sub{font-size:12px;color:var(--mist-dk);margin-top:3px;}
+  .place-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--parch-dk);}
+  .place-row:first-of-type{margin-top:12px;}
+  .place-pin{width:34px;height:34px;flex:0 0 auto;display:block;}
+  .place-text{flex:1;min-width:0;}
+  .place-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--dusk);}
+  .place-name.unnamed{font-weight:400;font-style:italic;color:var(--mist-dk);}
+  .place-when{font-size:11.5px;color:var(--mist-dk);margin-top:1px;}
+  .place-count{flex:0 0 auto;text-align:center;font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);line-height:1;}
+  .place-count small{display:block;font-size:9.5px;font-weight:700;color:var(--mist-dk);margin-top:2px;}
+  .places-hint{text-align:center;font-size:11px;color:var(--mist-dk);margin-top:12px;}
 
   /* --- Trophies --- */
   /* Trophy carousel: slides are absolutely positioned and depth is faked with
@@ -3893,8 +3905,6 @@ function renderBirdDetail(commonName, onBack) {
   const latest = matches[0]; // list arrives newest-first
   const firstFound = matches[matches.length - 1];
   const firstDate = new Date(firstFound.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-  const locationNames = [...new Set(matches.map(m => m.location_name).filter(Boolean))];
-  const locationTags = locationNames.map(name => `<span class="location-tag">📍 ${name}</span>`).join('');
 
   stage.innerHTML = `
     <div class="detail-card" data-bird-detail>
@@ -3905,6 +3915,7 @@ function renderBirdDetail(commonName, onBack) {
         <div class="detail-photo-dots" id="detailPhotoDots"></div>
         <div class="photo-actions">
           ${latest.call_url ? `<button class="photo-icon-btn play-call-btn-icon" data-call-url="${latest.call_url}" aria-label="Hear its call"><img src="/static/btn-play-v1.webp" alt=""></button>` : ''}
+          <button class="photo-icon-btn" id="placesBtn" aria-label="Where you've heard it"><img src="/static/btn-pin-v1.webp" alt=""></button>
           <button class="photo-icon-btn" id="shareBirdBtn" aria-label="Share this bird"><img src="/static/btn-share-v1.webp" alt=""></button>
           <label class="add-photo-btn" for="birdPhotoInput" aria-label="Add a photo">+</label>
         </div>
@@ -3929,7 +3940,6 @@ function renderBirdDetail(commonName, onBack) {
             <div class="detail-stat-label">First heard</div>
           </div>
         </div>
-        ${locationTags ? `<div class="location-tags">${locationTags}</div>` : ''}
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
         ${buildConservation(latest.bird)}
@@ -3953,12 +3963,61 @@ function renderBirdDetail(commonName, onBack) {
   const migratorBtn = document.getElementById('migratorBtn');
   if (migratorBtn) migratorBtn.onclick = () => renderMigrationCard(commonName, () => renderBirdDetail(commonName, onBack));
   birdDetailBack = onBack || renderCollection;
+  document.getElementById('placesBtn').onclick = () => {
+    // Keep whatever "back" the card had (the spin into the deck, if it came
+    // from Collections) so it still works once you return from the places.
+    const cardBack = birdDetailBack;
+    renderBirdPlaces(commonName, () => {
+      renderBirdDetail(commonName, onBack);
+      birdDetailBack = cardBack;
+    });
+  };
 
   document.getElementById('birdPhotoInput').onchange = (e) => {
     if (e.target.files && e.target.files[0]) handleBirdPhotoChosen(e.target.files[0], commonName);
   };
   loadBirdPhotos(commonName);
   showDetailPack(commonName);
+}
+
+// Every place a bird has been heard, from the pin button on its card. Built
+// from the sightings already loaded for the card. A sighting saved without a
+// place name is grouped as one unnamed spot rather than dropped. Like the
+// card, a tap anywhere goes back to it.
+function renderBirdPlaces(commonName, back) {
+  const matches = allSightingsRaw.filter(s => s.common_name === commonName);
+  const places = new Map();
+  matches.forEach(m => {
+    const key = m.location_name || '';
+    const at = new Date(m.created_at);
+    const p = places.get(key) || { name: key, count: 0, first: at, last: at };
+    p.count++;
+    if (at < p.first) p.first = at;
+    if (at > p.last) p.last = at;
+    places.set(key, p);
+  });
+  const rows = [...places.values()].sort((a, b) => b.count - a.count || b.last - a.last);
+  const day = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const when = p => p.count === 1 ? `Heard on ${day(p.first)}`
+    : `First ${day(p.first)} · last ${day(p.last)}`;
+  stage.innerHTML = `
+    <div class="detail-card" data-bird-detail>
+      <div class="places-body">
+        <div class="places-title">Where you've heard the ${commonName}</div>
+        <div class="places-sub">${rows.length === 1 ? 'One place' : `${rows.length} places`} · ${matches.length === 1 ? 'once' : `${matches.length} times`} in all</div>
+        ${rows.map(p => `
+          <div class="place-row">
+            <img class="place-pin" src="/static/btn-pin-v1.webp" alt="">
+            <div class="place-text">
+              <div class="place-name ${p.name ? '' : 'unnamed'}">${p.name || 'A spot with no name'}</div>
+              <div class="place-when">${when(p)}</div>
+            </div>
+            <div class="place-count">${p.count}<small>${p.count === 1 ? 'time' : 'times'}</small></div>
+          </div>`).join('')}
+        <div class="places-hint">Tap anywhere to go back</div>
+      </div>
+    </div>`;
+  birdDetailBack = back;
 }
 
 // The bird card has no Back button: a tap anywhere that isn't something to
