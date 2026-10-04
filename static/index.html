@@ -1108,6 +1108,23 @@
     transition:transform .12s ease;
   }
   .detail-pack-btn img{width:100%; height:100%; display:block; pointer-events:none;}
+  /* A rare bird's badge is gold, like the corner marks on its card, with a
+     glint that sweeps across it every few seconds. The glint is cut to the
+     badge's own outline by masking with the same picture (--badge). */
+  .detail-pack-btn.rare{position:relative; filter:drop-shadow(0 3px 6px rgba(150,100,0,0.45));}
+  .detail-pack-btn.rare img{filter:url(#gold-filter);}
+  .detail-pack-btn.rare::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(115deg, transparent 38%, rgba(255,255,255,.25) 44%,
+      rgba(255,255,255,.9) 50%, rgba(255,255,255,.25) 56%, transparent 62%) 0 0 / 300% 100% no-repeat;
+    -webkit-mask:var(--badge) center / contain no-repeat; mask:var(--badge) center / contain no-repeat;
+    animation:badgeSheen 2.8s ease-in-out infinite;
+  }
+  @keyframes badgeSheen{
+    0%{background-position:100% 0;}
+    45%,100%{background-position:0% 0;}
+  }
+  @media (prefers-reduced-motion: reduce){ .detail-pack-btn.rare::after{animation:none; background-position:50% 0; opacity:.5;} }
   .detail-pack-btn:active{transform:scale(.9);}
   .detail-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--parch-dk);}
   .detail-stat-num{font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);}
@@ -2109,6 +2126,17 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="4" result="noise"/>
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="9"/>
       <feGaussianBlur stdDeviation="0.35"/>
+    </filter>
+    <!-- Gold: takes a painted picture's light and shade and maps it onto a
+         gold ramp (deep bronze -> gold -> pale highlight), so a wooden pack
+         badge turns gold without losing its carving. -->
+    <filter id="gold-filter" color-interpolation-filters="sRGB">
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.30 0.66 0.91 1.00 1.00"/>
+        <feFuncG type="table" tableValues="0.17 0.42 0.67 0.84 0.97"/>
+        <feFuncB type="table" tableValues="0.02 0.04 0.10 0.30 0.72"/>
+      </feComponentTransfer>
     </filter>
   </svg>
 
@@ -3967,8 +3995,10 @@ async function showDetailPack(commonName) {
   });
   if (packAt < 0) return;
   const p = allPacksRaw[packAt];
-  el.innerHTML = `<button class="detail-pack-btn" aria-label="Open the ${p.name} collection">
-      <img src="/static/pack-${p.art}-badge-v2.webp" alt=""></button>`;
+  const rare = p.birds[cardAt].rarity === 'Rare';
+  const badge = `/static/pack-${p.art}-badge-v2.webp`;
+  el.innerHTML = `<button class="detail-pack-btn ${rare ? 'rare' : ''}" style="--badge:url('${badge}')"
+      aria-label="Open the ${p.name} collection"><img src="${badge}" alt=""></button>`;
   el.querySelector('button').onclick = () => {
     selectedPack = packAt;
     selectedCard = cardAt;
