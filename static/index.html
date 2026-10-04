@@ -1217,10 +1217,23 @@
   .fact-compare{font-size:11px;color:var(--ink);margin-top:4px;line-height:1.3;}
   .habitat-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
   .habitat-tag{display:flex;align-items:center;gap:4px;background:var(--sage);color:#fff;font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
-  .status-badge{display:inline-flex;align-items:center;gap:5px;font-family:'Poppins';font-weight:700;font-size:11px;padding:4px 10px;border-radius:12px;margin-top:10px;}
-  .status-badge.status-green{background:#DFF3E6;color:var(--sage-dk);}
-  .status-badge.status-amber{background:#FDEBD3;color:var(--terra-dk);}
-  .status-badge.status-red{background:#FBDCDC;color:#A83232;}
+  /* Conservation status, as a disc in the badge row: a shield in the list's
+     own colour on the plain wooden disc. Tapping it says in a few words what
+     the colour means. */
+  .status-disc{
+    width:46px; height:46px; padding:0; border:none; cursor:pointer;
+    background:url('/static/btn-blank-v1.webp') center / contain no-repeat;
+    filter:drop-shadow(0 3px 5px rgba(45,27,105,0.28));
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s ease;
+  }
+  .status-disc svg{width:24px; height:27px; display:block;}
+  .status-disc:active{transform:scale(.9);}
+  .status-note{display:none; font-family:'Poppins'; font-weight:700; font-size:12px; margin-top:8px;}
+  .status-note.show{display:block;}
+  .status-note.status-green{color:#3F7F4C;}
+  .status-note.status-amber{color:var(--terra-dk);}
+  .status-note.status-red{color:#A83232;}
   .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
 
@@ -3942,9 +3955,12 @@ function renderBirdDetail(commonName, onBack) {
         <div class="detail-name">${latest.common_name}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
         <div class="detail-pack" id="detailPack">
+          ${conservationDisc(latest.bird)}
           <button class="heard-disc ${matches.length > 99 ? 'long' : ''}" id="heardDisc"
                   aria-label="Heard ${matches.length === 1 ? 'once' : `${matches.length} times`}. See where">${matches.length}</button>
         </div>
+        ${CONSERVATION[latest.bird?.conservation_status]
+          ? `<div class="status-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote">${CONSERVATION[latest.bird.conservation_status].note}</div>` : ''}
         ${latest.bird?.is_migratory ? `<div class="card-tags detail-tier-row" style="margin-top:10px;">
           <span class="detail-actions">
             <button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>
@@ -3975,6 +3991,8 @@ function renderBirdDetail(commonName, onBack) {
   if (migratorBtn) migratorBtn.onclick = () => renderMigrationCard(commonName, () => renderBirdDetail(commonName, onBack));
   birdDetailBack = onBack || renderCollection;
   document.getElementById('heardDisc').onclick = () => document.getElementById('placesBtn').click();
+  const statusDisc = document.getElementById('statusDisc');
+  if (statusDisc) statusDisc.onclick = () => document.getElementById('statusNote').classList.toggle('show');
   document.getElementById('placesBtn').onclick = () => {
     // Keep whatever "back" the card had (the spin into the deck, if it came
     // from Collections) so it still works once you return from the places.
@@ -4270,12 +4288,28 @@ function buildConservation(bird) {
   const tags = (bird.habitat_tags || [])
     .map(h => `<span class="habitat-tag">${HABITAT_ICONS[h] || '📍'} ${h}</span>`)
     .join('');
-  const statusClass = bird.conservation_status === 'Green' ? 'status-green'
-    : bird.conservation_status === 'Amber' ? 'status-amber' : 'status-red';
-  return `
-    ${tags ? `<div class="habitat-tags">${tags}</div>` : ''}
-    <div class="status-badge ${statusClass}">🛡️ ${bird.conservation_status} status</div>
-  `;
+  return tags ? `<div class="habitat-tags">${tags}</div>` : '';
+}
+
+// The UK conservation lists, in words a child can hold on to.
+const CONSERVATION = {
+  Green: { cls: 'status-green', fill: '#4E9E5E', dark: '#2F6B3B',
+           note: 'Green list: this bird is doing well.' },
+  Amber: { cls: 'status-amber', fill: '#E9A23B', dark: '#A8661A',
+           note: 'Amber list: there are fewer of these birds than there used to be.' },
+  Red:   { cls: 'status-red',   fill: '#CF4A40', dark: '#8E2A23',
+           note: 'Red list: this bird is in real trouble and needs our help.' },
+};
+
+function conservationDisc(bird) {
+  const c = bird && CONSERVATION[bird.conservation_status];
+  if (!c) return '';
+  return `<button class="status-disc" id="statusDisc" aria-label="${bird.conservation_status} list - what does that mean?">
+      <svg viewBox="0 0 24 27" aria-hidden="true">
+        <path d="M12 1.5 L22 5 V12.5 C22 19 17.6 23.4 12 25.5 C6.4 23.4 2 19 2 12.5 V5 Z"
+              fill="${c.fill}" stroke="${c.dark}" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M12 4.6 L19 7.1 V12.5 C19 13.4 18.9 14.2 18.7 15 L12 4.6 Z" fill="#fff" opacity=".28"/>
+      </svg></button>`;
 }
 
 function renderDone() {
