@@ -1243,8 +1243,6 @@
   .badge-note.status-amber{color:var(--terra-dk);}
   .badge-note.status-red{color:#A83232;}
   .badge-note.migrate-note{color:#2C6E8F;}
-  .note-link{border:none; background:none; padding:0; margin-left:4px; cursor:pointer;
-    font:inherit; color:var(--terra-dk); text-decoration:underline;}
   @media (prefers-reduced-motion: reduce){ .badge-note{transition:none;} }
   .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
@@ -3973,7 +3971,7 @@ function renderBirdDetail(commonName, onBack) {
         ${CONSERVATION[latest.bird?.conservation_status]
           ? `<div class="badge-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote"><div><p>${CONSERVATION[latest.bird.conservation_status].note}</p></div></div>` : ''}
         ${latest.bird?.migration
-          ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(latest.common_name, latest.bird.migration)}<button class="note-link" id="migrationMapBtn">See its journey</button></p></div></div>` : ''}
+          ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(latest.common_name, latest.bird.migration)}</p></div></div>` : ''}
         ${latest.bird?.about ? `<div class="detail-about">${latest.bird.about}</div>` : ''}
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
@@ -3996,11 +3994,6 @@ function renderBirdDetail(commonName, onBack) {
   if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
   const shareBtn = document.getElementById('shareBirdBtn');
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
-  const mapBtn = document.getElementById('migrationMapBtn');
-  if (mapBtn) mapBtn.onclick = () => {
-    const cardBack = birdDetailBack;
-    renderMigrationCard(commonName, () => { renderBirdDetail(commonName, onBack); birdDetailBack = cardBack; });
-  };
   birdDetailBack = onBack || renderCollection;
   document.getElementById('heardDisc').onclick = () => document.getElementById('placesBtn').click();
   // Each badge opens its own line and closes the other's.
