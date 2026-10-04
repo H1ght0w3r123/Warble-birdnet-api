@@ -10,6 +10,7 @@
     --dusk:#2D1B69; --dusk-mid:#3D2A85;
     --terra:#E8845C; --terra-dk:#B85A36;
     --parch:#F5EDD6; --parch-dk:#E9DDBE;
+    --disc-cream:#FBEAD1;   /* the face of the wooden play/share/pin discs */
     --gold:#F2C94C; --gold-dk:#B8901F;
     --sage:#7EC8A4; --sage-dk:#3F7C5C;
     --mist:#C4BFDF; --mist-dk:#8E87B8;
@@ -2045,6 +2046,12 @@
     width:100%; max-width:none; border:none; border-radius:var(--inner);
     box-shadow:none;
   }
+  /* The bird card (and its places list) wears the same wooden frame as the
+     My Flock cards, on the cream of the wooden button discs. */
+  .detail-card.bird-card{background:var(--disc-cream);}
+  /* The fact tiles were parchment on white; on the cream they'd all but
+     vanish, so here they go the near-white of the stats panel below them. */
+  .bird-card .fact-tile{background:#FFF9EF;}
   .trophy-hero{
     height:236px; background:var(--goldbg,#FBF0D8);
     display:flex; align-items:center; justify-content:center;
@@ -3916,7 +3923,8 @@ function renderBirdDetail(commonName, onBack) {
   const latest = matches[0]; // list arrives newest-first
 
   stage.innerHTML = `
-    <div class="detail-card" data-bird-detail>
+    <div class="woodframe detail-wood" data-bird-detail>
+    <div class="detail-card bird-card">
       <div class="detail-photo-wrap">
         <div class="detail-photo-strip" id="detailPhotoStrip">
           ${latest.image_url ? `<img class="detail-photo" ${birdImg(latest.image_url, 800)}>` : `<div class="detail-photo"></div>`}
@@ -3949,6 +3957,7 @@ function renderBirdDetail(commonName, onBack) {
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         <button class="remove-bird-btn" id="removeBirdBtn">Not this bird? Remove it</button>
       </div>
+    </div>
     </div>
   `;
   document.getElementById('removeBirdBtn').onclick = async () => {
@@ -4004,7 +4013,8 @@ function renderBirdPlaces(commonName, back) {
   const when = p => p.count === 1 ? `Heard on ${day(p.first)}`
     : `First ${day(p.first)} · last ${day(p.last)}`;
   stage.innerHTML = `
-    <div class="detail-card" data-bird-detail>
+    <div class="woodframe detail-wood" data-bird-detail>
+    <div class="detail-card bird-card">
       <div class="places-body">
         <div class="places-title">Where you've heard the ${commonName}</div>
         <div class="places-sub">${rows.length === 1 ? 'One place' : `${rows.length} places`} · ${matches.length === 1 ? 'once' : `${matches.length} times`} in all</div>
@@ -4019,6 +4029,7 @@ function renderBirdPlaces(commonName, back) {
           </div>`).join('')}
         <div class="places-hint">Tap anywhere to go back</div>
       </div>
+    </div>
     </div>`;
   birdDetailBack = back;
 }
@@ -7324,7 +7335,7 @@ async function openBirdFromPack(commonName, cardEl) {
   showDetail();
 
   // Second half: the detail card carries on turning from edge-on to face us.
-  const detail = document.querySelector('.detail-card');
+  const detail = document.querySelector('[data-bird-detail]');
   if (detail) {
     play(detail, [
       { transform: 'perspective(900px) rotateY(-90deg) scale(.94)', opacity: .5 },
@@ -7339,7 +7350,7 @@ async function openBirdFromPack(commonName, cardEl) {
 // the turn and settles into the fan it came from.
 async function closeBirdToPack() {
   const name = packFlipName;
-  const detail = document.querySelector('.detail-card');
+  const detail = document.querySelector('[data-bird-detail]');
 
   if (reducedMotion() || !detail) { await renderHabitats(); return; }
 
