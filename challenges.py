@@ -40,7 +40,7 @@ CHALLENGE_POOL = [
     {
         "id": "five_species",
         "family": "species",
-        "text": "Find 5 different birds",
+        "text": "Hear 5 different birds",
         "target": 5,
         "feathers": 8,
         "progress": lambda w: len(w["species"]),
@@ -48,7 +48,7 @@ CHALLENGE_POOL = [
     {
         "id": "eight_species",
         "family": "species",
-        "text": "Find 8 different birds",
+        "text": "Hear 8 different birds",
         "target": 8,
         "feathers": 12,
         "progress": lambda w: len(w["species"]),
@@ -63,7 +63,7 @@ CHALLENGE_POOL = [
     },
     {
         "id": "not_common",
-        "text": "Find a Visitor or Rare bird",
+        "text": "Hear a Visitor or Rare bird",
         "target": 1,
         "feathers": 9,
         "progress": lambda w: 1 if (w["tiers"] & {"Visitor", "Rare"}) else 0,

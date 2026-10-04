@@ -2277,7 +2277,7 @@ async function loadHereNowCard() {
     } else if (here.length) {
       head.textContent = `The ${nickname(here[0].common_name)} are back!`;
       sub.textContent = d.to_find
-        ? `${d.to_find} visiting bird${d.to_find === 1 ? '' : 's'} still to find`
+        ? `${d.to_find} visiting bird${d.to_find === 1 ? '' : 's'} still to hear`
         : 'See every bird visiting right now';
     } else if (arriving.length) {
       head.textContent = `The ${nickname(arriving[0].common_name)} are on their way!`;
@@ -2526,7 +2526,7 @@ async function renderJokeOfDay() {
         e.target.remove();
       };
     } else {
-      card.innerHTML = `<div class="tip-icon">🔒</div><div class="tip-text">Go find your first bird today to unlock the joke — come back after your first warble!</div>`;
+      card.innerHTML = `<div class="tip-icon">🔒</div><div class="tip-text">Go and hear your first bird today to unlock the joke — come back after your first warble!</div>`;
     }
   } catch (e) {
     document.getElementById('jokeCard').innerHTML = `<div class="tip-text">Couldn't load the joke right now.</div>`;
@@ -2549,7 +2549,7 @@ const WARBLING_TIPS = [
   { icon: '🤫', title: 'Stay still and quiet', short: 'Stand still and listen',
     text: 'Birds go quiet if they hear something moving or talking nearby. Find a spot, stop, and just listen for a minute before you start recording.' },
   { icon: '📍', title: 'Try lots of different places', short: 'New places, new birds',
-    text: "Different birds live in different spots — some like gardens, some like woods, some like water. The more places you warble, the more you'll find." },
+    text: "Different birds live in different spots — some like gardens, some like woods, some like water. The more places you warble, the more you'll hear." },
   { icon: '🎧', title: 'Get close, but not too close', short: 'Point your phone at it',
     text: "Hold your phone up and point it toward where the sound is coming from. You don't need to be right next to a bird, just close enough to hear it clearly." },
   { icon: '🌦️', title: 'Birds sing on rainy days too', short: 'Birds sing in light rain',
@@ -2574,7 +2574,7 @@ function renderTips() {
       <button class="back-btn" id="backBtn">← Back</button>
     </div>
     <div class="collection-title" style="margin-bottom:4px;">Warbling Tips</div>
-    <div class="collection-count">Get better at finding birds</div>
+    <div class="collection-count">Get better at hearing birds</div>
     ${tipCards}
   `;
   document.getElementById('backBtn').onclick = () => {
@@ -2682,7 +2682,7 @@ function renderLiveBirdStack() {
 function renderSaving() {
   stage.innerHTML = `
     <div class="stage-label">Just a moment...</div>
-    <div class="stage-sub">Saving what you found</div>
+    <div class="stage-sub">Saving what you heard</div>
   `;
 }
 
@@ -2766,7 +2766,7 @@ function renderCard() {
           <div class="card-name">${bird.common_name}</div>
           ${currentProfile.show_scientific_names !== false ? `<div class="card-sci">${bird.scientific_name}</div>` : ''}
           <div class="card-tags">
-            <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already found' : 'New!'}</span>
+            <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already heard' : 'New!'}</span>
           </div>
           ${bird.season && bird.season.state === 'away'
             ? `<div class="season-surprise">Unusual! ${bird.common_name}s have normally left by now.</div>` : ''}
@@ -3405,7 +3405,7 @@ function paintBirds() {
   const birds = visibleBirds();
   if (!birds.length) {
     if (flockQuery.trim()) {
-      flockEmpty(`<b>No birds found in your flock.</b>Nothing matches
+      flockEmpty(`<b>No matching birds in your flock.</b>Nothing matches
                   “${escapeFlock(flockQuery.trim())}”.`);
     } else {
       flockEmpty(`<b>Nothing matches those filters.</b>None of your birds fit
@@ -3432,7 +3432,7 @@ function paintHistory() {
   const rows = visibleSightings();   // already newest-first from the backend
   if (!rows.length) {
     flockEmpty(flockQuery.trim()
-      ? `<b>No birds found in your flock.</b>Nothing matches “${escapeFlock(flockQuery.trim())}”.`
+      ? `<b>No matching birds in your flock.</b>Nothing matches “${escapeFlock(flockQuery.trim())}”.`
       : `<b>Nothing matches those filters.</b>Try fewer of them.`);
     return;
   }
@@ -3682,7 +3682,7 @@ function openFilterSheet() {
   }).join('');
 
   const body = (groups || `<div style="color:var(--mist-dk);font-size:13px;">
-      There is not enough in your flock to filter yet — find a few more birds.</div>`) +
+      There is not enough in your flock to filter yet — hear a few more birds.</div>`) +
     `<div class="sheet-actions">
        <button class="sheet-reset" id="flockReset">Reset</button>
        <button class="sheet-done" id="flockDone"></button>
@@ -3839,11 +3839,11 @@ function renderBirdDetail(commonName, onBack) {
         <div class="detail-stats">
           <div>
             <div class="detail-stat-num">${matches.length}</div>
-            <div class="detail-stat-label">Time${matches.length === 1 ? '' : 's'} found</div>
+            <div class="detail-stat-label">Time${matches.length === 1 ? '' : 's'} heard</div>
           </div>
           <div>
             <div class="detail-stat-num">${firstDate}</div>
-            <div class="detail-stat-label">First found</div>
+            <div class="detail-stat-label">First heard</div>
           </div>
         </div>
         ${locationTags ? `<div class="location-tags">${locationTags}</div>` : ''}
@@ -4148,11 +4148,11 @@ function renderDone() {
 // Well-done messages. The specific ones are checked first so a genuinely
 // notable session gets a message that reflects it, rather than a generic one.
 const DONE_MESSAGES = {
-  rare:    ['Wow, a rare one!', 'Something special!', 'What a find!', 'That was rare!'],
+  rare:    ['Wow, a rare one!', 'Something special!', 'What a sound!', 'That was rare!'],
   big:     ['What a haul!', 'So many birds!', 'The birds love you!', 'A brilliant warble!'],
   allNew:  ['All new birds!', 'Every one a first!', 'What a discovery!'],
-  someNew: ['New bird alert!', 'One for the collection!', 'A great find!', 'Something new!'],
-  one:     ['One good bird!', 'Found one!', 'Nice listening!', 'Got one!'],
+  someNew: ['New bird alert!', 'One for the collection!', 'Great ears!', 'Something new!'],
+  one:     ['One good bird!', 'Heard one!', 'Nice listening!', 'Got one!'],
   general: ['Nice warble!', 'Well done!', 'Great listening!', 'Lovely warbling!',
             'Good ears!', 'Brilliant!', 'What a listener!', 'Top warbling!'],
 };
@@ -5348,7 +5348,7 @@ async function renderSettings() {
     <div class="reset-note" id="featherSetNote">For testing — sets your balance to any number.</div>
 
     <div class="profile-section-title">Developer</div>
-    <div class="reset-note">Preview the tree and bird-reveal animations without recording or finding a real bird.</div>
+    <div class="reset-note">Preview the tree and bird-reveal animations without recording or hearing a real bird.</div>
     <button class="again-btn" id="openAnimPreviewBtn">Animation preview</button>
 
     <div class="profile-section-title">Backup</div>
@@ -5534,7 +5534,7 @@ function renderAnimationPreview() {
       <div class="card-photo"></div>
       <div class="card-body">
         <div class="card-name">Preview Bird</div>
-        <div class="card-tags"><span class="tag ${isNew ? 'new' : 'dup'}">${isNew ? 'New!' : 'Already found'}</span></div>
+        <div class="card-tags"><span class="tag ${isNew ? 'new' : 'dup'}">${isNew ? 'New!' : 'Already heard'}</span></div>
       </div>`;
     old.replaceWith(card);
     return card;
@@ -6597,7 +6597,7 @@ function renderPackSelector() {
   if (!p) return;
   row.innerHTML = `
     <button class="pack-current" id="packCurrent"
-            aria-label="${p.name}, ${p.cards_found} of ${p.cards_total} found. Choose another pack">
+            aria-label="${p.name}, ${p.cards_found} of ${p.cards_total} heard. Choose another pack">
       <img class="pack-current-name" src="/static/pack-${p.art}-name-v2.webp" alt="">
       <span class="pack-tally">${p.cards_found}/${p.cards_total}</span>
       <span class="pack-more" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -6943,11 +6943,11 @@ function fanCaptionFor(b) {
   if (!b) return '';
   // Not found yet: tell them where to go looking instead.
   if (!b.found) return b.hint || '';
-  let text = b.found_count === 1 ? 'Found once!' : `Found ${b.found_count} times!`;
+  let text = b.found_count === 1 ? 'Heard once!' : `Heard ${b.found_count} times!`;
   if (b.first_found) {
     const d = new Date(b.first_found);
     if (!isNaN(d)) {
-      text += ` First found on ${d.toLocaleDateString('en-GB', {
+      text += ` First heard on ${d.toLocaleDateString('en-GB', {
         day: 'numeric', month: 'long', year: 'numeric'
       })}`;
       text += b.first_location ? ` in ${b.first_location}.` : '.';
@@ -7288,7 +7288,7 @@ function attachTrophySwipe(carousel) {
 }
 
 async function shareBird(bird) {
-  const text = `I found a ${bird.common_name} on Warble!`;
+  const text = `I heard a ${bird.common_name} on Warble!`;
   try {
     if (navigator.share) {
       await navigator.share({ title: 'Warble', text });

@@ -68,7 +68,7 @@ UNFOUND_HINTS = {
     "Reed Bunting":
         "Look in reedbeds and damp scrub, where the male's smart black head and white collar stand out against the reeds. It sings a simple, scratchy little song from a swaying reed stem.",
     "Hawfinch":
-        "A shy, hard-to-find rare finch \u2014 try old woodland with hornbeam or cherry trees in winter, scanning treetops for its huge, powerful beak built for cracking cherry stones.",
+        "A shy, hard-to-hear rare finch \u2014 try old woodland with hornbeam or cherry trees in winter, scanning treetops for its huge, powerful beak built for cracking cherry stones.",
     "Corn Bunting":
         "Search open arable farmland for a large, plain brown bunting singing from a fence post or wire \u2014 its song is often compared to jangling keys.",
     "Eurasian Blackcap":
@@ -108,7 +108,7 @@ UNFOUND_HINTS = {
     "European Green Woodpecker":
         "Check grassy parkland and woodland edges, where this green woodpecker often feeds on the ground, probing for ants. Its loud, laughing call gave it the old nickname 'yaffle'.",
     "Lesser Spotted Woodpecker":
-        "Britain's smallest and shyest woodpecker \u2014 a real challenge to find. Scan high in old broadleaf woodland for a sparrow-sized bird with black-and-white barred wings, best located by its faint, fast drumming.",
+        "Britain's smallest and shyest woodpecker \u2014 a real challenge to hear. Scan high in old broadleaf woodland for a sparrow-sized bird with black-and-white barred wings, best located by its faint, fast drumming.",
     "Common Cuckoo":
         "Listen across heathland, farmland and open woodland from April, for the unmistakable two-note 'cuck-oo' call \u2014 far easier to hear than to actually spot, since it rarely shows itself for long.",
     "Song Thrush":
@@ -150,7 +150,7 @@ UNFOUND_HINTS = {
     "Eurasian Hobby":
         "A fast, elegant falcon to look for over wetlands and heathland in summer, often hunting dragonflies and swallows on the wing with astonishing speed and agility.",
     "Long-eared Owl":
-        "One of the trickiest owls to find \u2014 check dense conifer plantations by day, where it roosts pressed tight against the trunk, and listen for a low, mournful hoot after dark.",
+        "One of the trickiest owls to hear \u2014 check dense conifer plantations by day, where it roosts pressed tight against the trunk, and listen for a low, mournful hoot after dark.",
     "Mallard":
         "Look on almost any pond, river or park lake \u2014 the male has a glossy green head and yellow bill, while the female is mottled brown. Britain's most familiar duck.",
     "Mute Swan":

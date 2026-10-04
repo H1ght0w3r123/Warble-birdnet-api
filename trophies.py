@@ -13,7 +13,7 @@ from astral.sun import sun
 # it is required - which means new challenge can be added by extending a
 # levels list rather than inventing a new idea each time.
 #
-# "unit" completes the sentence "Find/Warble ... {n} <unit>", so requirement
+# "unit" completes the sentence "Hear/Warble ... {n} <unit>", so requirement
 # text is generated rather than written out three times per trophy.
 TROPHY_DEFINITIONS = {
     "fledgling": {
@@ -47,7 +47,7 @@ TROPHY_DEFINITIONS = {
             "Twenty-five places. You really do get about.",
             "Fifty different places. That's a proper explorer.",
         ],
-        "description": "Real birdwatchers know the best way to find new birds is to go looking for them - and that's exactly what you've been doing.",
+        "description": "Real birdwatchers know the best way to hear new birds is to go out listening for them - and that's exactly what you've been doing.",
     },
     "rooster": {
         "name": "Rooster", "emoji": "\U0001F413",
@@ -62,11 +62,11 @@ TROPHY_DEFINITIONS = {
     },
     "golden_eagle": {
         "name": "Golden Eagle", "emoji": "\U0001F985",
-        "verb": "Find", "unit": "Rare birds",
+        "verb": "Hear", "unit": "Rare birds",
         "levels": [5, 15, 40],
         "citations": [
-            "You found birds that almost nobody finds here!",
-            "Fifteen rare finds. That's a seriously good ear.",
+            "You heard birds that almost nobody hears here!",
+            "Fifteen rare birds heard. That's a seriously good ear.",
             "Forty rare birds. Grown-up birdwatchers would be jealous.",
         ],
         "description": "These are the kind of sightings that make experienced birdwatchers gasp. You've got a brilliant ear.",
@@ -84,7 +84,7 @@ TROPHY_DEFINITIONS = {
     },
     "forager": {
         "name": "Forager", "emoji": "\U0001F33F",
-        "verb": "Find", "unit": "different birds",
+        "verb": "Hear", "unit": "different birds",
         "levels": [20, 40, 70],
         "citations": [
             "Twenty different birds - that's a proper collection!",
@@ -95,18 +95,18 @@ TROPHY_DEFINITIONS = {
     },
     "night_owl": {
         "name": "Night Owl", "emoji": "\U0001F989",
-        "verb": "Find", "unit": "night birds after dark",
+        "verb": "Hear", "unit": "night birds after dark",
         "levels": [5, 10, 20],
         "citations": [
             "Five night birds - you're not scared of the dark!",
             "Ten after dark. The night belongs to you.",
             "Twenty night birds. A true creature of the night.",
         ],
-        "description": "Owls, nightjars and woodcocks only come out at night. Finding them takes proper dedication.",
+        "description": "Owls, nightjars and woodcocks only come out at night. Hearing them takes proper dedication.",
     },
     "century": {
         "name": "Century", "emoji": "\U0001F4AF",
-        "verb": "Find", "unit": "birds from Warble's list",
+        "verb": "Hear", "unit": "birds from Warble's list",
         "levels": [25, 60, 100],
         "citations": [
             "A quarter of the list already!",
@@ -128,7 +128,7 @@ TROPHY_DEFINITIONS = {
     },
     "summer_squad": {
         "name": "Summer Squad", "emoji": "\u2600\uFE0F",
-        "verb": "Find every summer visitor in", "unit": "summers",
+        "verb": "Hear every summer visitor in", "unit": "summers",
         "levels": [1, 2, 3],
         "citations": [
             "Every summer bird, all in one summer - you didn't miss one!",
@@ -183,18 +183,18 @@ TROPHY_DEFINITIONS = {
     },
     "migrator": {
         "name": "Migrator", "emoji": "\U0001F5FA\uFE0F",
-        "verb": "Find", "unit": "birds in two places 5km apart",
+        "verb": "Hear", "unit": "birds in two places 5km apart",
         "levels": [1, 5, 15],
         "citations": [
-            "You found the same bird miles from where you first met it!",
+            "You heard the same bird miles from where you first met it!",
             "Five birds tracked across the miles.",
-            "Fifteen birds found far and wide. A real map-maker.",
+            "Fifteen birds heard far and wide. A real map-maker.",
         ],
         "description": "Birds move around far more than people realise, and now you've got the proof yourself.",
     },
     "skylark": {
         "name": "Skylark", "emoji": "\U0001F33E",
-        "verb": "Find", "unit": "farmland or hedgerow birds",
+        "verb": "Hear", "unit": "farmland or hedgerow birds",
         "levels": [5, 9, 14],
         "citations": [
             "Five farmland birds - you know the open fields!",
@@ -205,21 +205,21 @@ TROPHY_DEFINITIONS = {
     },
     "high_flyer": {
         "name": "High Flyer", "emoji": "\U0001F9BF",
-        "verb": "Find", "unit": "birds of prey",
+        "verb": "Hear", "unit": "birds of prey",
         "levels": [3, 6, 10],
         "citations": [
             "Three birds of prey - you've been watching the skies!",
-            "Six hunters found. Sharp eyes and sharper ears.",
+            "Six hunters heard. Sharp eyes and sharper ears.",
             "Every bird of prey on the list. Outstanding.",
         ],
         "description": "These are the hunters - the ones circling high overhead - and hearing them takes real patience.",
     },
     "still_water": {
         "name": "Still Water", "emoji": "\U0001F30A",
-        "verb": "Find", "unit": "wetland or water birds",
+        "verb": "Hear", "unit": "wetland or water birds",
         "levels": [5, 12, 20],
         "citations": [
-            "Five water birds - you found the wet and wild ones!",
+            "Five water birds - you heard the wet and wild ones!",
             "Twelve water birds. The reedbeds know you.",
             "Every water bird on the list. Astonishing.",
         ],
@@ -245,13 +245,13 @@ TROPHY_DEFINITIONS = {
             "Five birds shared. You're spreading the word.",
             "Fifteen shared. A proper ambassador for birds.",
         ],
-        "description": "Birdwatchers have always told each other what they've found, and now you're part of that too.",
+        "description": "Birdwatchers have always told each other what they've heard, and now you're part of that too.",
     },
 }
 
 
 def requirement_text(key: str, level_index: int) -> str:
-    """Generates 'Find 10 night birds after dark' from the trophy's own verb,
+    """Generates 'Hear 10 night birds after dark' from the trophy's own verb,
     threshold and unit - so the wording can't drift out of step with the
     numbers the way three hand-written strings would."""
     t = TROPHY_DEFINITIONS[key]
