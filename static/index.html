@@ -1100,7 +1100,8 @@
   .detail-pack{margin-top:8px; display:flex; align-items:center; gap:8px;}
   /* Beside the badge, a plain disc with how many times the bird has been
      heard. The number is carved into it in the buttons' wood colour; it
-     steps down a size for three digits. Tapping it opens the places list,
+     steps down a size for three digits. Tapping it reveals how many times
+     and when it was first heard; tapping that line opens the places list,
      the same as the pin. */
   .heard-disc{
     position:relative; width:46px; height:46px; padding:0; border:none; cursor:pointer;
@@ -3970,13 +3971,15 @@ function renderBirdDetail(commonName, onBack) {
           ${conservationDisc(latest.bird)}
           ${migrationDisc(latest.bird)}
           <button class="heard-disc ${matches.length > 99 ? 'long' : ''}" id="heardDisc"
-                  aria-label="Heard ${matches.length === 1 ? 'once' : `${matches.length} times`}. See where">${matches.length}</button>
+                  aria-label="Heard ${matches.length === 1 ? 'once' : `${matches.length} times`}">${matches.length}</button>
         </div>
         ${CONSERVATION[latest.bird?.conservation_status]
           ? `<div class="badge-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote"><div><p>${CONSERVATION[latest.bird.conservation_status].note}</p></div></div>` : ''}
         ${latest.bird?.migration
           ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(latest.common_name, latest.bird.migration)}</p></div></div>` : ''}
         <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
+        <div class="badge-note heard-note" id="heardNote"><div><p><button class="pack-note-go" id="heardNoteGo">
+          ${heardLine(matches)}<span aria-hidden="true"> →</span></button></p></div></div>
         ${latest.bird?.about ? `<div class="detail-about">${latest.bird.about}</div>` : ''}
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
@@ -4000,7 +4003,10 @@ function renderBirdDetail(commonName, onBack) {
   const shareBtn = document.getElementById('shareBirdBtn');
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
   birdDetailBack = onBack || renderCollection;
-  document.getElementById('heardDisc').onclick = () => document.getElementById('placesBtn').click();
+  // The number reveals how many times and since when; that line opens the
+  // places list, the same as the pin. (matches is newest first.)
+  document.getElementById('heardDisc').onclick = () => toggleBadgeNote('heardNote');
+  document.getElementById('heardNoteGo').onclick = () => document.getElementById('placesBtn').click();
   [['statusDisc', 'statusNote'], ['migrateDisc', 'migrateNote']].forEach(([discId, noteId]) => {
     const disc = document.getElementById(discId);
     if (disc) disc.onclick = () => toggleBadgeNote(noteId);
@@ -4114,6 +4120,15 @@ async function showDetailPack(commonName) {
     selectedCard = cardAt;
     renderHabitats();
   };
+}
+
+// 'Heard 8 times. First heard 27 September 2025.' - or, for a bird heard
+// just the once, 'Heard once, on 28 August 2026.' matches is newest first.
+function heardLine(matches) {
+  const first = new Date(matches[matches.length - 1].created_at)
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  return matches.length === 1 ? `Heard once, on ${first}.`
+    : `Heard ${matches.length} times. First heard ${first}.`;
 }
 
 // The badges in the bird card's top row each reveal a line underneath. Only
