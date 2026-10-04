@@ -299,16 +299,10 @@
     flex:1 1 0; min-width:0;
   }
   .nav-tab.active{color:var(--gold);}
-  /* "The Hoot-tique" is far longer than any other label. It has always
-     needed its own size, and the bigger Home button took 28px of width off
-     the other four tabs, so it needs a smaller one: measured on one line it
-     is 60.7px at 9.3px and 56.1px at 8.6px, against 56px of room on a 360px
-     phone and 62px on a 390px one. The tab padding came down from 6px to
-     3px a side to find part of that back.
-     At 320px there is only 48px per tab and this label cannot fit on one
-     line at any size worth reading - it wrapped there before any of this
-     too, and two lines is the better answer than four-point type. */
-  #navDressUp span:last-child{font-size:8.6px;}
+  /* Every label stays on one line. The Dress Up tab used to say "The
+     Hoot-tique", which needed smaller type and still wrapped on a 320px
+     phone; as "Hoot-tique" it fits at the same size as the rest. */
+  .nav-tab > span:last-child{white-space:nowrap;}
   .nav-tab .nav-icon-svg{width:39.8px; height:39.8px; color:#fff;}
   .nav-tab.active .nav-icon-svg{color:var(--terra);}
   /* The whole bar came down 20%: icons 49.8 -> 39.8, the Home badge
@@ -2121,7 +2115,7 @@
     </button>
     <button class="nav-tab" id="navDressUp" data-tab="dressup">
       <span class="nav-icon-wrap"><span id="navDressUpIcon"></span></span>
-      <span>The Hoot-tique</span>
+      <span>Hoot-tique</span>
     </button>
   </div>
 
@@ -5681,12 +5675,15 @@ function firstNameOrDefault() {
   return (!n || n === 'Explorer') ? '' : n;
 }
 
+// The same size as the other tabs' icons (.nav-icon-svg).
+const NAV_AVATAR_PX = 39.8;
+
 // Dress Up's nav icon is ALWAYS the bird avatar - it's the entry point to
 // customising that bird, so a photo there would be misleading. Only the
 // top-bar profile button reflects a chosen photo.
 function updateNavAvatarIcon() {
   const iconEl = document.getElementById('navDressUpIcon');
-  if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, 21.6, currentProfile.equipped, false, currentProfile.avatar_species);
+  if (iconEl) iconEl.innerHTML = avatarSvg(currentProfile.avatar_body, NAV_AVATAR_PX, currentProfile.equipped, false, currentProfile.avatar_species);
   updateTopProfileIcon();
 }
 
