@@ -24,7 +24,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
 - `birds.py` — everything known about each of the 100: size, weight, speed,
   population, song, brains, habitat, diet. Drives the stat tiles and the Top
   Trumps ratings. 59 of the 100 also have researched extras (wingspan,
-  conservation status, kid-friendly comparisons). Also holds seasonality.
+  conservation status, kid-friendly comparisons). All 100 have an `about`:
+  one or two child-level sentences shown under the badges on the bird card.
+  Also holds seasonality.
 - `trophies.py` — 21 trophies, each with **three levels**. Adding challenge
   means extending a `levels` list, not inventing a new trophy.
 - `accessories.py` — 40 Dress Up items on a five-band price ladder.

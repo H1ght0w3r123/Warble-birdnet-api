@@ -1142,6 +1142,8 @@
   @media (prefers-reduced-motion: reduce){ .detail-pack-btn.rare::after{animation:none; background-position:50% 0; opacity:.5;} }
   .detail-pack-btn:active{transform:scale(.9);}
   .detail-desc{font-size:13px;line-height:1.55;color:var(--ink);margin-top:14px;}
+  /* A sentence or two about the bird (birds.py ABOUT), under the badges. */
+  .detail-about{font-size:14.5px;line-height:1.5;color:var(--ink);margin-top:12px;}
 
   /* --- Self-taken photos, on the bird detail card --- */
   /* The hero photo becomes a horizontally-scrolling strip once there's more
@@ -3961,6 +3963,7 @@ function renderBirdDetail(commonName, onBack) {
         </div>
         ${CONSERVATION[latest.bird?.conservation_status]
           ? `<div class="status-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote">${CONSERVATION[latest.bird.conservation_status].note}</div>` : ''}
+        ${latest.bird?.about ? `<div class="detail-about">${latest.bird.about}</div>` : ''}
         ${latest.bird?.is_migratory ? `<div class="card-tags detail-tier-row" style="margin-top:10px;">
           <span class="detail-actions">
             <button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>
@@ -3969,7 +3972,7 @@ function renderBirdDetail(commonName, onBack) {
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
         ${buildConservation(latest.bird)}
-        ${(!latest.bird?.conservation_status && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
+        ${(!latest.bird?.about && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
         <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
         <button class="remove-bird-btn" id="removeBirdBtn">Not this bird? Remove it</button>
       </div>
