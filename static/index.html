@@ -1442,14 +1442,38 @@
 
   /* Three different things happen to the bird and each needs its own
      language, so you can tell them apart without reading anything:
-     an accessory pops on, a colour cross-fades, a different bird swaps in
-     by receding and coming back. */
+     an accessory pops on, a colour cross-fades, a different bird slides in
+     (swapAvatar, below). */
   @keyframes hootPop{0%{transform:scale(1);} 34%{transform:scale(1.07);} 100%{transform:scale(1);}}
   @keyframes hootTint{0%{opacity:1;} 42%{opacity:.5;} 100%{opacity:1;}}
-  @keyframes hootSwap{0%{transform:scale(1);opacity:1;} 42%{transform:scale(.84);opacity:.3;} 100%{transform:scale(1);opacity:1;}}
   .avatar-frame.pop{animation:hootPop .34s cubic-bezier(.34,1.56,.64,1);}
   .avatar-frame.tint{animation:hootTint .3s ease;}
-  .avatar-frame.swap{animation:hootSwap .44s ease;}
+
+  /* Swapping bird. --dir is 1 when the new bird arrives from the right
+     (the carousel was pushed left) and -1 from the left. In order:
+     1. the old bird's accessories bump up off it and vanish,
+     2. the old bird slides out the other way, fading to nothing, while the
+        new one slides in from the driving side out of nothing,
+     3. once the new bird is in place its accessories drop back on.
+     Accessories are animated through .av-acc wrappers, never the groups
+     inside them: those carry SVG transform attributes (the shoes' place on
+     the feet) that a CSS transform would replace. */
+  .swap-out{position:absolute; inset:0; z-index:1; pointer-events:none;}
+  .swap-out.leaving{animation:avSlideOut .26s cubic-bezier(.42,0,1,1) forwards;}
+  .swap-in{opacity:0;}
+  .swap-in.arriving{animation:avSlideIn .38s cubic-bezier(.2,.8,.3,1) both;}
+  @keyframes avSlideOut{to{transform:translateX(calc(var(--dir,1) * -36%)); opacity:0;}}
+  @keyframes avSlideIn{from{transform:translateX(calc(var(--dir,1) * 36%)); opacity:0;} to{transform:none; opacity:1;}}
+  .av-acc{transform-box:view-box; transform-origin:50% 40%;}
+  .swap-out.bump-off .av-acc{animation:accBumpOff .2s ease-in forwards;}
+  .swap-in.acc-wait .av-acc{opacity:0;}
+  .swap-in.acc-pop .av-acc{animation:accDropOn .34s cubic-bezier(.34,1.5,.64,1) both;}
+  @keyframes accBumpOff{
+    0%{transform:none; opacity:1;}
+    45%{transform:translateY(-5px) scale(1.06); opacity:1;}
+    100%{transform:translateY(-12px) scale(.9); opacity:0;}
+  }
+  @keyframes accDropOn{from{transform:translateY(-10px) scale(.92); opacity:0;} to{transform:none; opacity:1;}}
 
   .hoot-spark{
     position:absolute; z-index:5; pointer-events:none; font-size:15px;
@@ -1461,7 +1485,7 @@
     100%{transform:translate(-50%,-50%) translateY(-28px) scale(1.15); opacity:0;}
   }
   @media (prefers-reduced-motion: reduce){
-    .avatar-frame.pop, .avatar-frame.tint, .avatar-frame.swap{animation:none;}
+    .avatar-frame.pop, .avatar-frame.tint{animation:none;}
     .hoot-spark{display:none;}
     .category-chip{transition:none;}
   }
@@ -5160,7 +5184,7 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
     </defs>
     <g transform="${up}">
     <g transform="${protoTransform(bird)}">${of('under')}</g>
-    <g class="av-shoes" transform="${protoTransform(bird)}">${shoesLayer || ''}</g>
+    <g class="av-acc"><g class="av-shoes" transform="${protoTransform(bird)}">${shoesLayer || ''}</g></g>
     <g transform="${protoTransform(bird)}">
       <g class="av-torso">
         ${of('torso')}
@@ -5169,10 +5193,10 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
       </g>
       ${of('over')}
     </g>
-    <g class="av-face">
+    <g class="av-acc"><g class="av-face">
     ${accessoryLayers}
     <g class="av-held">${heldLayer}</g>
-    </g>
+    </g></g>
     </g>
   </svg>`;
 }
@@ -5981,14 +6005,94 @@ function setActiveSilhouette(btn) {
 // The actual selection: only called once scrolling has settled.
 function commitSpeciesSelection(id) {
   if (currentProfile.avatar_species === id) return;
+  const from = currentProfile.avatar_species;
   currentProfile.avatar_species = id;
-  renderDressUpPreview();
+  swapAvatar(from, id);
   updateNavAvatarIcon();
-  // Its own language, distinct from an accessory popping on: the bird in the
-  // frame recedes and the new one comes forward, which is the same movement
-  // the silhouette just made coming in from the side.
-  flashAvatar('swap');
   saveSpeciesSelection(id);
+}
+
+// Which way the new bird came in: the shorter way round the looping
+// carousel from the old one. 1 = from the right, -1 = from the left.
+function speciesDirection(from, to) {
+  const n = AVATAR_SPECIES.length;
+  const a = AVATAR_SPECIES.findIndex(sp => sp.id === from);
+  const b = AVATAR_SPECIES.findIndex(sp => sp.id === to);
+  if (a < 0 || b < 0) return 1;
+  let d = ((b - a) % n + n) % n;
+  if (d > n / 2) d -= n;
+  return d < 0 ? -1 : 1;
+}
+
+// Every picture a bird is drawn from, fetched before it slides in, so it
+// never arrives half-drawn. Gives up waiting after 1.5s - a slow network
+// gets a bird that finishes painting in place rather than no bird.
+function preloadBird(species) {
+  const bird = protoBird(species);
+  const files = [];
+  bird.stack.forEach(l => { files.push(l.f); if (l.wash) files.push(l.wash); });
+  const all = Promise.all(files.map(f => new Promise(res => {
+    const im = new Image();
+    im.onload = im.onerror = res;
+    im.src = bird.dir + f;
+  })));
+  return Promise.race([all, new Promise(res => setTimeout(res, 1500))]);
+}
+
+// The bird swap in the Hoot-tique (CSS and order of events under .swap-out).
+// avatarSwapGen is bumped by every swap and every plain re-render, so a step
+// from an older swap that fires late does nothing.
+let avatarSwapGen = 0;
+function swapAvatar(from, to) {
+  const el = document.getElementById('dressUpPreview');
+  if (!el) return;
+  const html = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, to);
+  const oldSvg = el.querySelector('.swap-in svg') || el.querySelector(':scope > svg');
+  const gen = ++avatarSwapGen;
+  if (!oldSvg || reducedMotion()) { el.innerHTML = html; return; }
+  const live = () => gen === avatarSwapGen && el.isConnected;
+
+  el.classList.remove('pop', 'tint');
+  el.style.setProperty('--dir', speciesDirection(from, to));
+  const out = document.createElement('div');
+  out.className = 'swap-out bump-off';
+  out.appendChild(oldSvg);
+  const inn = document.createElement('div');
+  inn.className = 'swap-in acc-wait';
+  inn.innerHTML = html;
+  el.replaceChildren(inn, out);
+
+  // The birds only move once the accessories are out of the way: timed off
+  // the bump's own end rather than a clock, because the first frame of a
+  // swap (two whole birds on screen) can be slow on a phone and a timer
+  // would let the slide start on top of the bump. A bird wearing nothing
+  // moves straight away; the 450ms is a backstop in case the end is missed.
+  const acc = out.querySelector('.av-acc .av-face image, .av-acc .av-shoes image')
+    ? out.querySelector('.av-acc') : null;
+  const bumped = new Promise(res => {
+    if (!acc) { res(); return; }
+    acc.addEventListener('animationend', res, { once: true });
+    setTimeout(res, 450);
+  });
+  bumped.then(() => { if (live()) out.classList.add('leaving'); });
+  // The new bird follows a beat behind, so the old one is already on its
+  // way out rather than being slid over.
+  const followed = bumped.then(() => new Promise(res => setTimeout(res, 90)));
+  Promise.all([followed, preloadBird(to)]).then(() => {
+    if (!live()) return;
+    inn.classList.add('arriving');
+    setTimeout(() => {
+      if (!live()) return;
+      out.remove();
+      inn.classList.replace('acc-wait', 'acc-pop');
+      // Then take the wrapper away, leaving the plain SVG as a normal
+      // render would - the next swap starts from a clean frame.
+      setTimeout(() => {
+        if (!live() || !inn.isConnected) return;
+        el.replaceChildren(inn.firstElementChild);
+      }, 360);
+    }, 380);
+  });
 }
 
 async function saveSpeciesSelection(speciesId) {
@@ -6313,7 +6417,7 @@ function playHootEntrance() {
 function flashAvatar(kind) {
   const el = document.getElementById('dressUpPreview');
   if (!el || reducedMotion()) return;
-  el.classList.remove('pop', 'tint', 'swap');
+  el.classList.remove('pop', 'tint');
   void el.offsetWidth;
   el.classList.add(kind);
 }
@@ -6389,6 +6493,7 @@ function renderDressUpPreview() {
   // Always the avatar here, regardless of any profile photo - this is the
   // bird being dressed, so the accessories have something to sit on.
   const el = document.getElementById('dressUpPreview');
+  avatarSwapGen++;   // a plain re-render ends any bird swap in progress
   if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, currentProfile.avatar_species);
 }
 
