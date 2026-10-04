@@ -3869,10 +3869,7 @@ function renderBirdDetail(commonName, onBack) {
   const locationTags = locationNames.map(name => `<span class="location-tag">📍 ${name}</span>`).join('');
 
   stage.innerHTML = `
-    <div style="width:100%;margin-bottom:14px;">
-      <button class="back-btn" id="backBtn">← Back</button>
-    </div>
-    <div class="detail-card">
+    <div class="detail-card" data-bird-detail>
       <div class="detail-photo-wrap">
         <div class="detail-photo-strip" id="detailPhotoStrip">
           ${latest.image_url ? `<img class="detail-photo" ${birdImg(latest.image_url, 800)}>` : `<div class="detail-photo"></div>`}
@@ -3927,7 +3924,7 @@ function renderBirdDetail(commonName, onBack) {
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
   const migratorBtn = document.getElementById('migratorBtn');
   if (migratorBtn) migratorBtn.onclick = () => renderMigrationCard(commonName, () => renderBirdDetail(commonName, onBack));
-  document.getElementById('backBtn').onclick = onBack || renderCollection;
+  birdDetailBack = onBack || renderCollection;
 
   document.getElementById('birdPhotoInput').onchange = (e) => {
     if (e.target.files && e.target.files[0]) handleBirdPhotoChosen(e.target.files[0], commonName);
@@ -3935,6 +3932,22 @@ function renderBirdDetail(commonName, onBack) {
   loadBirdPhotos(commonName);
   showDetailPack(commonName);
 }
+
+// The bird card has no Back button: a tap anywhere that isn't something to
+// press goes back to wherever the card was opened from (My Flock, or the
+// Collections deck with its spin). birdDetailBack is set by renderBirdDetail
+// and only acted on while a bird card is actually showing.
+let birdDetailBack = null;
+document.addEventListener('click', (e) => {
+  if (!birdDetailBack || !document.querySelector('[data-bird-detail]')) return;
+  // The tap that OPENED the card lands here too, on a tile that the new
+  // screen has since replaced - so anything no longer on the page is ignored.
+  if (!e.target.isConnected) return;
+  if (e.target.closest('button, a, label, input, select, textarea, [role="button"], .bottom-nav, .top-profile-btn')) return;
+  const back = birdDetailBack;
+  birdDetailBack = null;   // one tap, one trip back
+  back();
+});
 
 // Which collection pack a bird is in, as its badge under the name. The packs
 // are already in memory if Collections has been opened; otherwise they're
@@ -7200,10 +7213,9 @@ async function openBirdFromPack(commonName, cardEl) {
   packFlipName = commonName;
   const showDetail = () => {
     renderBirdDetail(commonName, renderHabitats);
-    // Re-point Back at the reverse spin. Only this route spins - reaching a
-    // bird from My Flock never came off the pack, so it keeps its plain Back.
-    const back = document.getElementById('backBtn');
-    if (back) back.onclick = () => closeBirdToPack();
+    // Going back runs the reverse spin. Only this route spins - reaching a
+    // bird from My Flock never came off the pack, so it goes straight back.
+    birdDetailBack = closeBirdToPack;
   };
 
   if (!cardEl || reducedMotion()) { showDetail(); return; }
