@@ -4328,7 +4328,7 @@ function buildCoreTiles(bird) {
 
 // Only the researched birds carry a conservation status and habitat tags.
 function buildConservation(bird) {
-  if (!bird || !bird.conservation_status) return '';
+  if (!bird) return '';
   const tags = (bird.habitat_tags || [])
     .map(h => `<span class="habitat-tag">${HABITAT_ICONS[h] || '📍'} ${h}</span>`)
     .join('');

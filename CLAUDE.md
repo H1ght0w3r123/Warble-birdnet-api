@@ -23,8 +23,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   knows about, which pack they're in, and how rare they are.
 - `birds.py` — everything known about each of the 100: size, weight, speed,
   population, song, brains, habitat, diet. Drives the stat tiles and the Top
-  Trumps ratings. 59 of the 100 also have researched extras (wingspan,
-  conservation status, kid-friendly comparisons). All 100 have an `about`:
+  Trumps ratings. All 100 also have researched extras (wingspan,
+  conservation status, kid-friendly comparisons); Little Owl and Canada Goose
+  have no status because they're introduced species the UK lists don't assess. All 100 have an `about`:
   one or two child-level sentences shown under the badges on the bird card.
   Also holds seasonality.
 - `trophies.py` — 21 trophies, each with **three levels**. Adding challenge
@@ -81,7 +82,6 @@ screen, not just the new feature.
 
 ## Outstanding
 
-- 41 of the 100 birds still have no researched facts
 - The 40 Dress Up accessories are placeholder-quality art
 - No logo yet (brief written)
 - Empty states are plain text, no illustration
