@@ -532,11 +532,6 @@
   .migration-credit a{color:rgba(255,255,255,0.7);}
   .migration-destination{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);text-align:center;margin-top:14px;}
   .migration-fact{font-size:13px;line-height:1.55;color:rgba(255,255,255,0.92);text-align:center;margin-top:8px;padding:0 8px;}
-  .migrator-btn{
-    font-family:'Poppins'; font-weight:700; font-size:12px; color:var(--dusk);
-    background:var(--parch-dk); border:none; border-radius:999px;
-    padding:7px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
-  }
   .challenge-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;width:100%;}
   .challenge-card.complete{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
   .challenge-card.all-bonus{background:rgba(255,255,255,0.2);}
@@ -1230,12 +1225,27 @@
     transition:transform .12s ease;
   }
   .status-disc svg{width:24px; height:27px; display:block;}
+  .status-disc.migrate svg{width:28px; height:28px;}
   .status-disc:active{transform:scale(.9);}
-  .status-note{display:none; font-family:'Poppins'; font-weight:700; font-size:12px; margin-top:8px;}
-  .status-note.show{display:block;}
-  .status-note.status-green{color:#3F7F4C;}
-  .status-note.status-amber{color:var(--terra-dk);}
-  .status-note.status-red{color:#A83232;}
+  /* The line a badge reveals. It eases open rather than popping, so the
+     card below nudges down: a grid row animating from 0fr to 1fr is the one
+     way to animate to an element's own height without measuring it. Only
+     one is open at a time. */
+  .badge-note{
+    display:grid; grid-template-rows:0fr; opacity:0;
+    transition:grid-template-rows .25s ease, opacity .25s ease;
+    font-family:'Poppins'; font-weight:700; font-size:12.5px; line-height:1.45;
+  }
+  .badge-note > div{overflow:hidden; min-height:0;}
+  .badge-note > div > p{margin:8px 0 0;}
+  .badge-note.show{grid-template-rows:1fr; opacity:1;}
+  .badge-note.status-green{color:#3F7F4C;}
+  .badge-note.status-amber{color:var(--terra-dk);}
+  .badge-note.status-red{color:#A83232;}
+  .badge-note.migrate-note{color:#2C6E8F;}
+  .note-link{border:none; background:none; padding:0; margin-left:4px; cursor:pointer;
+    font:inherit; color:var(--terra-dk); text-decoration:underline;}
+  @media (prefers-reduced-motion: reduce){ .badge-note{transition:none;} }
   .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
 
@@ -1338,8 +1348,6 @@
   }
 
   /* Sits on the tier row, pushed to the right edge of the card frame. */
-  .detail-tier-row{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;}
-  .detail-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
   .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;}
 
   /* --- Profile --- */
@@ -3958,17 +3966,15 @@ function renderBirdDetail(commonName, onBack) {
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
         <div class="detail-pack" id="detailPack">
           ${conservationDisc(latest.bird)}
+          ${migrationDisc(latest.bird)}
           <button class="heard-disc ${matches.length > 99 ? 'long' : ''}" id="heardDisc"
                   aria-label="Heard ${matches.length === 1 ? 'once' : `${matches.length} times`}. See where">${matches.length}</button>
         </div>
         ${CONSERVATION[latest.bird?.conservation_status]
-          ? `<div class="status-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote">${CONSERVATION[latest.bird.conservation_status].note}</div>` : ''}
+          ? `<div class="badge-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote"><div><p>${CONSERVATION[latest.bird.conservation_status].note}</p></div></div>` : ''}
+        ${latest.bird?.migration
+          ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(latest.common_name, latest.bird.migration)}<button class="note-link" id="migrationMapBtn">See its journey</button></p></div></div>` : ''}
         ${latest.bird?.about ? `<div class="detail-about">${latest.bird.about}</div>` : ''}
-        ${latest.bird?.is_migratory ? `<div class="card-tags detail-tier-row" style="margin-top:10px;">
-          <span class="detail-actions">
-            <button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>
-          </span>
-        </div>` : ''}
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
         ${buildConservation(latest.bird)}
@@ -3990,12 +3996,24 @@ function renderBirdDetail(commonName, onBack) {
   if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
   const shareBtn = document.getElementById('shareBirdBtn');
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
-  const migratorBtn = document.getElementById('migratorBtn');
-  if (migratorBtn) migratorBtn.onclick = () => renderMigrationCard(commonName, () => renderBirdDetail(commonName, onBack));
+  const mapBtn = document.getElementById('migrationMapBtn');
+  if (mapBtn) mapBtn.onclick = () => {
+    const cardBack = birdDetailBack;
+    renderMigrationCard(commonName, () => { renderBirdDetail(commonName, onBack); birdDetailBack = cardBack; });
+  };
   birdDetailBack = onBack || renderCollection;
   document.getElementById('heardDisc').onclick = () => document.getElementById('placesBtn').click();
-  const statusDisc = document.getElementById('statusDisc');
-  if (statusDisc) statusDisc.onclick = () => document.getElementById('statusNote').classList.toggle('show');
+  // Each badge opens its own line and closes the other's.
+  const notes = { statusDisc: 'statusNote', migrateDisc: 'migrateNote' };
+  Object.entries(notes).forEach(([discId, noteId]) => {
+    const disc = document.getElementById(discId);
+    if (!disc) return;
+    disc.onclick = () => {
+      const opening = !document.getElementById(noteId).classList.contains('show');
+      Object.values(notes).forEach(id => document.getElementById(id)?.classList.remove('show'));
+      if (opening) document.getElementById(noteId).classList.add('show');
+    };
+  });
   document.getElementById('placesBtn').onclick = () => {
     // Keep whatever "back" the card had (the spin into the deck, if it came
     // from Collections) so it still works once you return from the places.
@@ -4313,6 +4331,24 @@ function conservationDisc(bird) {
               fill="${c.fill}" stroke="${c.dark}" stroke-width="1.8" stroke-linejoin="round"/>
         <path d="M12 4.6 L19 7.1 V12.5 C19 13.4 18.9 14.2 18.7 15 L12 4.6 Z" fill="#fff" opacity=".28"/>
       </svg></button>`;
+}
+
+// Migration badge: the same plain disc, with a bird flying off along a
+// dotted trail. Only for the 14 birds that come and go.
+function migrationDisc(bird) {
+  if (!bird || !bird.migration) return '';
+  return `<button class="status-disc migrate" id="migrateDisc" aria-label="This bird migrates - when and where to?">
+      <svg viewBox="0 0 28 28" aria-hidden="true">
+        <path d="M3 25 C 6 19, 10 20.5, 12.5 15" fill="none" stroke="#C2631F"
+              stroke-width="2.2" stroke-linecap="round" stroke-dasharray="0.1 4.2"/>
+        <path d="M10 11.5 Q 14 4.5 18.3 9.4 Q 22 4.2 27 8.6 Q 21.8 8.6 18.6 14.2 Q 15.2 9.8 10 11.5 Z"
+              fill="#C2631F" stroke="#8A3F12" stroke-width="1" stroke-linejoin="round"/>
+      </svg></button>`;
+}
+
+function migrationLine(name, m) {
+  const where = m.destination.replace(/^The /, 'the ');
+  return `The ${name} migrates in ${m.month}. It flies all the way to ${where}.`;
 }
 
 function renderDone() {

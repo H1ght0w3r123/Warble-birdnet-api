@@ -973,9 +973,21 @@ SUMMER_VISITORS = [n for n, ms in SEASONAL_MONTHS.items() if 6 in ms]
 SEASONAL_ORDER = sorted(SEASONAL_MONTHS)
 
 from curated_species import pack_for_species, pack_color_for_species
+from migration_data import MIGRATION_INFO
+
+MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July",
+               "August", "September", "October", "November", "December"]
 
 for _name, _bird in BIRDS.items():
     _bird["is_migratory"] = _name in SEASONAL_MONTHS
+    # For the migration badge on the bird card: the month it leaves (the last
+    # month of its stay - the lists run in order, so this holds for Redwing
+    # wrapping the year end too) and where it goes.
+    if _name in SEASONAL_MONTHS and _name in MIGRATION_INFO:
+        _bird["migration"] = {
+            "month": MONTH_NAMES[SEASONAL_MONTHS[_name][-1] - 1],
+            "destination": MIGRATION_INFO[_name]["destination_name"],
+        }
     # Which of the 10 collector packs this species belongs to, and that
     # pack's fixed colour - the same small coloured marker every card for
     # this species shows, wherever it appears in the app.
