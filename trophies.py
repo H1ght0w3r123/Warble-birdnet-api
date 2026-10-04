@@ -15,10 +15,12 @@ from astral.sun import sun
 #
 # "unit" completes the sentence "Hear/Warble ... {n} <unit>", so requirement
 # text is generated rather than written out three times per trophy.
+# A trophy with a level of 1 also has "one": what follows the verb at that
+# level, so it reads "Go warbling once" rather than "Go warbling 1 times".
 TROPHY_DEFINITIONS = {
     "fledgling": {
         "name": "Fledgling", "emoji": "\U0001F95A",
-        "verb": "Go warbling", "unit": "times",
+        "verb": "Go warbling", "unit": "times", "one": "once",
         "levels": [1, 15, 60],
         "citations": [
             "Your very first warble - welcome to the flock!",
@@ -29,7 +31,7 @@ TROPHY_DEFINITIONS = {
     },
     "early_bird": {
         "name": "Early Bird", "emoji": "\U0001F305",
-        "verb": "Warble before sunrise", "unit": "times",
+        "verb": "Warble before sunrise", "unit": "times", "one": "once",
         "levels": [1, 5, 15],
         "citations": [
             "Up before the birds - well, almost!",
@@ -117,7 +119,7 @@ TROPHY_DEFINITIONS = {
     },
     "globetrotter": {
         "name": "Globetrotter", "emoji": "\U0001F30D",
-        "verb": "Complete", "unit": "collector packs",
+        "verb": "Complete", "unit": "collector packs", "one": "a collector pack",
         "levels": [1, 2, 3],
         "citations": [
             "A whole pack completed - every bird at every tier!",
@@ -128,7 +130,7 @@ TROPHY_DEFINITIONS = {
     },
     "summer_squad": {
         "name": "Summer Squad", "emoji": "\u2600\uFE0F",
-        "verb": "Hear every summer visitor in", "unit": "summers",
+        "verb": "Hear every summer visitor in", "unit": "summers", "one": "one summer",
         "levels": [1, 2, 3],
         "citations": [
             "Every summer bird, all in one summer - you didn't miss one!",
@@ -184,6 +186,7 @@ TROPHY_DEFINITIONS = {
     "migrator": {
         "name": "Migrator", "emoji": "\U0001F5FA\uFE0F",
         "verb": "Hear", "unit": "birds in two places 5km apart",
+        "one": "the same bird in two places 5km apart",
         "levels": [1, 5, 15],
         "citations": [
             "You heard the same bird miles from where you first met it!",
@@ -227,7 +230,7 @@ TROPHY_DEFINITIONS = {
     },
     "brooder": {
         "name": "Brooder", "emoji": "\u2614",
-        "verb": "Go warbling in the rain", "unit": "times",
+        "verb": "Go warbling in the rain", "unit": "times", "one": "once",
         "levels": [1, 5, 15],
         "citations": [
             "You went out in the rain - proper dedication!",
@@ -238,7 +241,7 @@ TROPHY_DEFINITIONS = {
     },
     "wingman": {
         "name": "Wingman", "emoji": "\U0001F91D",
-        "verb": "Share", "unit": "birds with someone",
+        "verb": "Share", "unit": "birds with someone", "one": "a bird with someone",
         "levels": [1, 5, 15],
         "citations": [
             "You shared a bird - spreading the warble!",
@@ -255,7 +258,9 @@ def requirement_text(key: str, level_index: int) -> str:
     threshold and unit - so the wording can't drift out of step with the
     numbers the way three hand-written strings would."""
     t = TROPHY_DEFINITIONS[key]
-    return f"{t['verb']} {t['levels'][level_index]} {t['unit']}".replace("  ", " ")
+    n = t['levels'][level_index]
+    rest = t['one'] if n == 1 and 'one' in t else f"{n} {t['unit']}"
+    return f"{t['verb']} {rest}".replace("  ", " ")
 
 
 # UK species that are genuinely nocturnal — used for the Night Owl trophy.
