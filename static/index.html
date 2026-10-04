@@ -1094,8 +1094,9 @@
   .detail-body{padding:18px 20px 22px;}
   .detail-name{font-family:'Poppins';font-weight:900;font-size:24px;color:var(--dusk);}
   .detail-sci{font-size:13px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
-  /* The badge of the collection pack this bird belongs to: a button that
-     opens that pack in Collections with this bird's card at the front. */
+  /* The badge of the collection pack this bird belongs to. Tapping it
+     reveals which card this is; tapping that line opens the pack in
+     Collections with this bird's card at the front. */
   .detail-pack{margin-top:8px; display:flex; align-items:center; gap:8px;}
   /* Beside the badge, a plain disc with how many times the bird has been
      heard. The number is carved into it in the buttons' wood colour; it
@@ -1243,6 +1244,9 @@
   .badge-note.status-amber{color:var(--terra-dk);}
   .badge-note.status-red{color:#A83232;}
   .badge-note.migrate-note{color:#2C6E8F;}
+  .pack-note-go{border:none; background:none; padding:0; cursor:pointer; text-align:left;
+    font:inherit; color:var(--terra-dk);}
+  .pack-note-go.rare{color:#A8760A;}
   @media (prefers-reduced-motion: reduce){ .badge-note{transition:none;} }
   .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
@@ -3972,6 +3976,7 @@ function renderBirdDetail(commonName, onBack) {
           ? `<div class="badge-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote"><div><p>${CONSERVATION[latest.bird.conservation_status].note}</p></div></div>` : ''}
         ${latest.bird?.migration
           ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(latest.common_name, latest.bird.migration)}</p></div></div>` : ''}
+        <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
         ${latest.bird?.about ? `<div class="detail-about">${latest.bird.about}</div>` : ''}
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
@@ -3996,16 +4001,9 @@ function renderBirdDetail(commonName, onBack) {
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
   birdDetailBack = onBack || renderCollection;
   document.getElementById('heardDisc').onclick = () => document.getElementById('placesBtn').click();
-  // Each badge opens its own line and closes the other's.
-  const notes = { statusDisc: 'statusNote', migrateDisc: 'migrateNote' };
-  Object.entries(notes).forEach(([discId, noteId]) => {
+  [['statusDisc', 'statusNote'], ['migrateDisc', 'migrateNote']].forEach(([discId, noteId]) => {
     const disc = document.getElementById(discId);
-    if (!disc) return;
-    disc.onclick = () => {
-      const opening = !document.getElementById(noteId).classList.contains('show');
-      Object.values(notes).forEach(id => document.getElementById(id)?.classList.remove('show'));
-      if (opening) document.getElementById(noteId).classList.add('show');
-    };
+    if (disc) disc.onclick = () => toggleBadgeNote(noteId);
   });
   document.getElementById('placesBtn').onclick = () => {
     // Keep whatever "back" the card had (the spin into the deck, if it came
@@ -4104,12 +4102,29 @@ async function showDetailPack(commonName) {
   const badge = `/static/pack-${p.art}-badge-v2.webp`;
   // The badge goes first, before the heard-count disc that's already there.
   el.insertAdjacentHTML('afterbegin', `<button class="detail-pack-btn ${rare ? 'rare' : ''}" style="--badge:url('${badge}')"
-      aria-label="Open the ${p.name} collection"><img src="${badge}" alt=""></button>`);
-  el.querySelector('.detail-pack-btn').onclick = () => {
+      aria-label="${p.name} collection - which card is this?"><img src="${badge}" alt=""></button>`);
+  // The badge reveals which collection the card belongs to; tapping that
+  // line opens the collection with this bird's card at the front.
+  const note = document.getElementById('packNote');
+  note.querySelector('p').innerHTML = `<button class="pack-note-go ${rare ? 'rare' : ''}">
+      Collection card · ${rare ? 'Rare' : 'Common'} · ${p.name}<span aria-hidden="true"> →</span></button>`;
+  el.querySelector('.detail-pack-btn').onclick = () => toggleBadgeNote('packNote');
+  note.querySelector('.pack-note-go').onclick = () => {
     selectedPack = packAt;
     selectedCard = cardAt;
     renderHabitats();
   };
+}
+
+// The badges in the bird card's top row each reveal a line underneath. Only
+// one is open at a time: opening one closes the others, and tapping the same
+// badge again closes it.
+function toggleBadgeNote(noteId) {
+  const note = document.getElementById(noteId);
+  if (!note) return;
+  const opening = !note.classList.contains('show');
+  document.querySelectorAll('.badge-note.show').forEach(n => n.classList.remove('show'));
+  if (opening) note.classList.add('show');
 }
 
 // Photos the child took themselves, appended to the hero photo strip after
