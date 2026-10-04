@@ -1098,6 +1098,17 @@
   .detail-body{padding:18px 20px 22px;}
   .detail-name{font-family:'Poppins';font-weight:900;font-size:24px;color:var(--dusk);}
   .detail-sci{font-size:13px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
+  /* The badge of the collection pack this bird belongs to: a button that
+     opens that pack in Collections with this bird's card at the front. */
+  .detail-pack:empty{display:none;}
+  .detail-pack{margin-top:8px;}
+  .detail-pack-btn{
+    display:block; width:46px; height:46px; padding:0; border:none; background:none;
+    border-radius:50%; cursor:pointer; filter:drop-shadow(0 3px 5px rgba(45,27,105,0.28));
+    transition:transform .12s ease;
+  }
+  .detail-pack-btn img{width:100%; height:100%; display:block; pointer-events:none;}
+  .detail-pack-btn:active{transform:scale(.9);}
   .detail-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--parch-dk);}
   .detail-stat-num{font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);}
   .detail-stat-label{font-size:11px;color:var(--mist-dk);}
@@ -3877,6 +3888,7 @@ function renderBirdDetail(commonName, onBack) {
       <div class="detail-body">
         <div class="detail-name">${latest.common_name}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
+        <div class="detail-pack" id="detailPack"></div>
         ${latest.bird?.is_migratory ? `<div class="card-tags detail-tier-row" style="margin-top:10px;">
           <span class="detail-actions">
             <button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>
@@ -3921,6 +3933,34 @@ function renderBirdDetail(commonName, onBack) {
     if (e.target.files && e.target.files[0]) handleBirdPhotoChosen(e.target.files[0], commonName);
   };
   loadBirdPhotos(commonName);
+  showDetailPack(commonName);
+}
+
+// Which collection pack a bird is in, as its badge under the name. The packs
+// are already in memory if Collections has been opened; otherwise they're
+// fetched once. Birds outside Warble's hundred aren't in any pack, so they
+// simply get no badge.
+async function showDetailPack(commonName) {
+  if (!allPacksRaw.length) {
+    try { allPacksRaw = (await (await fetch('/collector-packs')).json()).packs || []; }
+    catch (e) { return; }
+  }
+  const el = document.getElementById('detailPack');
+  if (!el) return;   // moved on to another screen while the packs loaded
+  let packAt = -1, cardAt = -1;
+  allPacksRaw.forEach((p, i) => {
+    const j = p.birds.findIndex(b => b.common_name === commonName);
+    if (j >= 0) { packAt = i; cardAt = j; }
+  });
+  if (packAt < 0) return;
+  const p = allPacksRaw[packAt];
+  el.innerHTML = `<button class="detail-pack-btn" aria-label="Open the ${p.name} collection">
+      <img src="/static/pack-${p.art}-badge-v2.webp" alt=""></button>`;
+  el.querySelector('button').onclick = () => {
+    selectedPack = packAt;
+    selectedCard = cardAt;
+    renderHabitats();
+  };
 }
 
 // Photos the child took themselves, appended to the hero photo strip after
