@@ -1100,8 +1100,22 @@
   .detail-sci{font-size:13px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
   /* The badge of the collection pack this bird belongs to: a button that
      opens that pack in Collections with this bird's card at the front. */
-  .detail-pack:empty{display:none;}
-  .detail-pack{margin-top:8px;}
+  .detail-pack{margin-top:8px; display:flex; align-items:center; gap:8px;}
+  /* Beside the badge, a plain disc with how many times the bird has been
+     heard. The number is carved into it in the buttons' wood colour; it
+     steps down a size for three digits. Tapping it opens the places list,
+     the same as the pin. */
+  .heard-disc{
+    position:relative; width:46px; height:46px; padding:0; border:none; cursor:pointer;
+    background:url('/static/btn-blank-v1.webp') center / contain no-repeat;
+    filter:drop-shadow(0 3px 5px rgba(45,27,105,0.28));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Poppins'; font-weight:900; font-size:21px; line-height:1; color:#B4561B;
+    text-shadow:0 1px 0 rgba(255,255,255,0.7), 0 -1px 0 rgba(90,36,5,0.25);
+    transition:transform .12s ease;
+  }
+  .heard-disc.long{font-size:16px;}
+  .heard-disc:active{transform:scale(.9);}
   .detail-pack-btn{
     display:block; width:46px; height:46px; padding:0; border:none; background:none;
     border-radius:50%; cursor:pointer; filter:drop-shadow(0 3px 5px rgba(45,27,105,0.28));
@@ -3924,7 +3938,10 @@ function renderBirdDetail(commonName, onBack) {
       <div class="detail-body">
         <div class="detail-name">${latest.common_name}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
-        <div class="detail-pack" id="detailPack"></div>
+        <div class="detail-pack" id="detailPack">
+          <button class="heard-disc ${matches.length > 99 ? 'long' : ''}" id="heardDisc"
+                  aria-label="Heard ${matches.length === 1 ? 'once' : `${matches.length} times`}. See where">${matches.length}</button>
+        </div>
         ${latest.bird?.is_migratory ? `<div class="card-tags detail-tier-row" style="margin-top:10px;">
           <span class="detail-actions">
             <button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>
@@ -3963,6 +3980,7 @@ function renderBirdDetail(commonName, onBack) {
   const migratorBtn = document.getElementById('migratorBtn');
   if (migratorBtn) migratorBtn.onclick = () => renderMigrationCard(commonName, () => renderBirdDetail(commonName, onBack));
   birdDetailBack = onBack || renderCollection;
+  document.getElementById('heardDisc').onclick = () => document.getElementById('placesBtn').click();
   document.getElementById('placesBtn').onclick = () => {
     // Keep whatever "back" the card had (the spin into the deck, if it came
     // from Collections) so it still works once you return from the places.
@@ -4056,9 +4074,10 @@ async function showDetailPack(commonName) {
   const p = allPacksRaw[packAt];
   const rare = p.birds[cardAt].rarity === 'Rare';
   const badge = `/static/pack-${p.art}-badge-v2.webp`;
-  el.innerHTML = `<button class="detail-pack-btn ${rare ? 'rare' : ''}" style="--badge:url('${badge}')"
-      aria-label="Open the ${p.name} collection"><img src="${badge}" alt=""></button>`;
-  el.querySelector('button').onclick = () => {
+  // The badge goes first, before the heard-count disc that's already there.
+  el.insertAdjacentHTML('afterbegin', `<button class="detail-pack-btn ${rare ? 'rare' : ''}" style="--badge:url('${badge}')"
+      aria-label="Open the ${p.name} collection"><img src="${badge}" alt=""></button>`);
+  el.querySelector('.detail-pack-btn').onclick = () => {
     selectedPack = packAt;
     selectedCard = cardAt;
     renderHabitats();
