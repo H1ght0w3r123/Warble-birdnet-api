@@ -1113,8 +1113,33 @@
   .detail-photo-strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
   .detail-photo-strip::-webkit-scrollbar{display:none;}
   .detail-photo-strip .detail-photo{flex-shrink:0;width:100%;scroll-snap-align:start;}
-  .add-photo-btn{
+  /* Play, share and add-a-photo sit in one row in the photo's bottom-right
+     corner, all the same size, so they read as one set of things to do
+     with this bird. */
+  .photo-actions{
     position:absolute; bottom:10px; right:10px; z-index:5;
+    display:flex; align-items:center; gap:8px;
+  }
+  .photo-icon-btn{
+    width:40px; height:40px; padding:0; border:none; border-radius:50%;
+    background:none; cursor:pointer; flex:0 0 auto;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+    transition:transform .12s ease;
+  }
+  .photo-icon-btn img{width:100%; height:100%; display:block; pointer-events:none;}
+  .photo-icon-btn:active{transform:scale(.9);}
+  /* While the call is playing the play button pulses; tapping it again
+     stops it (playBirdCall). */
+  .photo-icon-btn.playing{animation:callPulse .9s ease-in-out infinite;}
+  @keyframes callPulse{
+    0%,100%{transform:scale(1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 0 rgba(255,195,0,0));}
+    50%{transform:scale(1.1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(255,195,0,0.95));}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .photo-icon-btn.playing{animation:none; filter:drop-shadow(0 0 5px rgba(255,195,0,0.95));}
+  }
+  .add-photo-btn{
+    flex:0 0 auto;
     width:40px; height:40px; border-radius:50%; cursor:pointer;
     background:rgba(26,17,40,0.72); color:#fff; font-size:19px;
     display:flex; align-items:center; justify-content:center;
@@ -1259,9 +1284,7 @@
 
   /* Sits on the tier row, pushed to the right edge of the card frame. */
   .detail-tier-row{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;}
-  .play-call-inline{margin-top:0 !important;padding:7px 13px;font-size:11px;flex-shrink:0;}
   .detail-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-  .share-bird-btn{background:var(--dusk);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-family:'Poppins';font-size:11px;font-weight:700;cursor:pointer;line-height:1.2;white-space:nowrap;}
   .play-call-btn{display:block;margin-top:10px;background:var(--sage);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;}
 
   /* --- Profile --- */
@@ -3844,19 +3867,21 @@ function renderBirdDetail(commonName, onBack) {
           ${latest.image_url ? `<img class="detail-photo" ${birdImg(latest.image_url, 800)}>` : `<div class="detail-photo"></div>`}
         </div>
         <div class="detail-photo-dots" id="detailPhotoDots"></div>
-        <label class="add-photo-btn" for="birdPhotoInput">+</label>
+        <div class="photo-actions">
+          ${latest.call_url ? `<button class="photo-icon-btn play-call-btn-icon" data-call-url="${latest.call_url}" aria-label="Hear its call"><img src="/static/btn-play-v1.webp" alt=""></button>` : ''}
+          <button class="photo-icon-btn" id="shareBirdBtn" aria-label="Share this bird"><img src="/static/btn-share-v1.webp" alt=""></button>
+          <label class="add-photo-btn" for="birdPhotoInput" aria-label="Add a photo">+</label>
+        </div>
         <input type="file" id="birdPhotoInput" accept="image/*" style="display:none">
       </div>
       <div class="detail-body">
         <div class="detail-name">${latest.common_name}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
-        <div class="card-tags detail-tier-row" style="margin-top:10px;">
+        ${latest.bird?.is_migratory ? `<div class="card-tags detail-tier-row" style="margin-top:10px;">
           <span class="detail-actions">
-            ${latest.call_url ? `<button class="play-call-btn play-call-inline" data-call-url="${latest.call_url}">▶ Hear its call</button>` : ''}
-            <button class="share-bird-btn" id="shareBirdBtn">Share this bird</button>
-            ${latest.bird?.is_migratory ? `<button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>` : ''}
+            <button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>
           </span>
-        </div>
+        </div>` : ''}
         <div class="detail-stats">
           <div>
             <div class="detail-stat-num">${matches.length}</div>
@@ -3884,7 +3909,7 @@ function renderBirdDetail(commonName, onBack) {
       renderCollection();
     } catch (e) { alert("Couldn't remove that bird right now."); }
   };
-  const playBtn = stage.querySelector('.play-call-btn');
+  const playBtn = stage.querySelector('.play-call-btn-icon');
   if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
   const shareBtn = document.getElementById('shareBirdBtn');
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
@@ -3995,7 +4020,9 @@ function stopAnyPlayingAudio() {
     currentlyPlayingAudio.currentTime = 0;
   }
   if (currentlyPlayingBtn) {
-    currentlyPlayingBtn.textContent = currentlyPlayingLabel;
+    // A picture button shows that it's playing by pulsing, not by text.
+    if (currentlyPlayingBtn.classList.contains('photo-icon-btn')) currentlyPlayingBtn.classList.remove('playing');
+    else currentlyPlayingBtn.textContent = currentlyPlayingLabel;
     currentlyPlayingBtn.disabled = false;
   }
   currentlyPlayingAudio = null;
@@ -4014,10 +4041,14 @@ function playBirdCall(url, btnEl) {
 
   stopAnyPlayingAudio(); // only one call plays at a time
   const audio = new Audio(url);
-  currentlyPlayingLabel = btnEl.textContent;
   currentlyPlayingAudio = audio;
   currentlyPlayingBtn = btnEl;
-  btnEl.textContent = '⏸ Stop';
+  if (btnEl.classList.contains('photo-icon-btn')) {
+    btnEl.classList.add('playing');
+  } else {
+    currentlyPlayingLabel = btnEl.textContent;
+    btnEl.textContent = '⏸ Stop';
+  }
   audio.play().catch(() => stopAnyPlayingAudio());
   audio.onended = () => stopAnyPlayingAudio();
 }
