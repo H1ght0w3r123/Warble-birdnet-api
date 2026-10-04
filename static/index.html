@@ -1140,9 +1140,6 @@
   }
   @media (prefers-reduced-motion: reduce){ .detail-pack-btn.rare::after{animation:none; background-position:50% 0; opacity:.5;} }
   .detail-pack-btn:active{transform:scale(.9);}
-  .detail-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--parch-dk);}
-  .detail-stat-num{font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);}
-  .detail-stat-label{font-size:11px;color:var(--mist-dk);}
   .detail-desc{font-size:13px;line-height:1.55;color:var(--ink);margin-top:14px;}
 
   /* --- Self-taken photos, on the bird detail card --- */
@@ -3917,8 +3914,6 @@ function renderBirdDetail(commonName, onBack) {
   if (matches.length === 0) return;
 
   const latest = matches[0]; // list arrives newest-first
-  const firstFound = matches[matches.length - 1];
-  const firstDate = new Date(firstFound.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
   stage.innerHTML = `
     <div class="detail-card" data-bird-detail>
@@ -3947,16 +3942,6 @@ function renderBirdDetail(commonName, onBack) {
             <button class="migrator-btn" id="migratorBtn">✈️ Migrator</button>
           </span>
         </div>` : ''}
-        <div class="detail-stats">
-          <div>
-            <div class="detail-stat-num">${matches.length}</div>
-            <div class="detail-stat-label">Time${matches.length === 1 ? '' : 's'} heard</div>
-          </div>
-          <div>
-            <div class="detail-stat-num">${firstDate}</div>
-            <div class="detail-stat-label">First heard</div>
-          </div>
-        </div>
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
         ${buildConservation(latest.bird)}
