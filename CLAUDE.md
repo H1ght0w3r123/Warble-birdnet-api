@@ -30,7 +30,8 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   Also holds seasonality.
 - `trophies.py` — 21 trophies, each with **three levels**. Adding challenge
   means extending a `levels` list, not inventing a new trophy.
-- `accessories.py` — 40 Dress Up items on a five-band price ladder.
+- `accessories.py` — 70 Dress Up items on a five-band price ladder. Hats are
+  fitted per bird (see its docstring).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
 
 `tools/build_pack_art.py` rebuilds the ten packs' icon/badge/wordmark webps

@@ -5157,7 +5157,8 @@ async function loadAccessoryCache() {
   try {
     const res = await fetch('/accessories');
     const data = await res.json();
-    (data.accessories || []).forEach(a => { accessorySvgCache[a.id] = a.svg; accessoryLiftCache[a.id] = a.lift || 0; });
+    (data.accessories || []).forEach(a => { accessorySvgCache[a.id] = a.svg; accessoryLiftCache[a.id] = a.lift || 0;
+      accessoryFitCache[a.id] = a.fitted ? { art: a.fitted, crest: !!a.crest_mask } : null; });
     updateNavAvatarIcon(); // re-render now the equipped item's SVG is actually available
   } catch (e) { /* avatars just show without an accessory if this fails */ }
 }
@@ -5289,6 +5290,10 @@ let accessorySvgCache = {};
 // units - only skates have one: their wheels and blade go under the boot, so
 // the bird rises onto them rather than sinking them through the floor.
 let accessoryLiftCache = {};
+// Hats drawn separately for each bird (static/accessories/hats/<bird>/<art>.webp,
+// on the bird's own 1000px canvas): which picture, and whether the bird's
+// crest is hidden under it.
+let accessoryFitCache = {};
 
 // --- Layered prototype (Classic v1) -----------------------------------------
 // The new artwork is four complete layers - body, two wings, head - each drawn
@@ -5444,7 +5449,7 @@ function protoWashFilter(id, hex) {
     </filter>`;
 }
 
-function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer, lift) {
+function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer, lift, crest) {
   const bird = protoBird(species);
   const d = bird.dir;
   // Every instance gets its own ids: the nav icon and the big preview are both
@@ -5458,8 +5463,12 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
   // The plain layer, then a washed copy of the same layer laid over it through
   // the mask - so the fixed parts show the original paint, only the plumage
   // takes the colour, and the mask's own soft edge blends the two.
-  const draw = (lay, i) => img(lay.f) +
+  const plain = (lay, i) => img(lay.f) +
     (lay.wash ? `<g mask="url(#${maskId(i)})">${img(lay.f, ` filter="url(#${u}f)"`)}</g>` : '');
+  // Under most hats the head and face are cut by the bird's crest mask, so
+  // the crest doesn't show through the hat. Body, wings and feet never are.
+  const draw = (lay, i) => (crest && (lay.f === 'head.webp' || lay.f === 'face.webp'))
+    ? `<g mask="url(#${u}crest)">${plain(lay, i)}</g>` : plain(lay, i);
   const of = grp => bird.stack.map((lay, i) => lay.grp === grp ? draw(lay, i) : '').join('');
 
   const masks = bird.stack.map((lay, i) => lay.wash
@@ -5474,6 +5483,7 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
     <defs>
       ${protoWashFilter(u + 'f', hex)}
       ${masks}
+      ${crest ? `<mask id="${u}crest" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><image xlink:href="${crest}" href="${crest}" x="0" y="0" width="100" height="100" preserveAspectRatio="none"/></mask>` : ''}
     </defs>
     <g transform="${up}">
     <g transform="${protoTransform(bird)}">${of('under')}</g>
@@ -5518,9 +5528,19 @@ function avatarSvg(body, size, equipped, dancing, species) {
   // Note for the legacy renderer below: these coordinates are bird-art
   // coordinates, so shoes would sit wrong on the old birds.
   if (PROTO_ONLY) {
-    const rest = ACCESSORY_LAYER_ORDER.filter(cat => cat !== 'held' && cat !== 'shoes').map(layer).join('');
+    // The hats are fitted to each bird separately, on the bird's own art
+    // canvas, so they go inside the bird's shift-and-scale like the shoes do.
+    // Most also come with a mask that hides the bird's crest or tuft, which
+    // would otherwise poke up through the hat.
+    const birdKey = PROTO_BIRDS[species] ? species : 'classic';
+    const fit = equipped.hats && accessoryFitCache[equipped.hats];
+    const hatLayer = cat => (cat === 'hats' && fit)
+      ? `<g transform="${protoTransform(protoBird(species))}"><image xlink:href="/static/accessories/hats/${birdKey}/${fit.art}.webp" href="/static/accessories/hats/${birdKey}/${fit.art}.webp" x="0" y="0" width="100" height="100"/></g>`
+      : layer(cat);
+    const rest = ACCESSORY_LAYER_ORDER.filter(cat => cat !== 'held' && cat !== 'shoes').map(hatLayer).join('');
     const lift = (equipped.shoes && accessoryLiftCache[equipped.shoes]) || 0;
-    return protoAvatarSvg(body, size, equipped, dancing, rest, heldLayer, species, layer('shoes'), lift);
+    const crest = fit && fit.crest ? `/static/accessories/hats/crest-${birdKey}.webp` : null;
+    return protoAvatarSvg(body, size, equipped, dancing, rest, heldLayer, species, layer('shoes'), lift, crest);
   }
 
   // Real illustrated art (Warble art pass 04), replacing the old flat
@@ -6538,7 +6558,8 @@ async function renderDressUp() {
     const featherData = await featherRes.json();
     currentFeatherTotal = featherData.total_feathers;
 
-    accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; accessoryLiftCache[a.id] = a.lift || 0; });
+    accessoryCatalog.forEach(a => { accessorySvgCache[a.id] = a.svg; accessoryLiftCache[a.id] = a.lift || 0;
+      accessoryFitCache[a.id] = a.fitted ? { art: a.fitted, crest: !!a.crest_mask } : null; });
 
     initDressUpAvatarPicker();
     renderCategoryRow();
