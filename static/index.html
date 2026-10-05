@@ -1451,6 +1451,8 @@
     text-shadow:0 2px 12px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.95);
   }
   @media (max-width:360px){ .hoot-greet{font-size:17px;} }
+  /* Catches a tap to skip the entrance - over the tab, never the nav. */
+  .hoot-skip{position:fixed; left:0; right:0; top:0; bottom:var(--nav-h, 70px); z-index:902; cursor:pointer;}
   /* The flying sign. Laid out with left/top rather than a centring
      transform, because the animation below owns `transform` outright and
      anything already in there would be thrown away on the first keyframe. */
@@ -6582,9 +6584,14 @@ const HOOT_ENTRANCE = {
   appear: 180,     // fade up from small
   bump1:  240,     // a small one
   spin:   520,     // one clockwise turn
+  read:  2100,     // sign holds still with the tagline under it, long enough
+                   // for a child (or the grown-up reading it out) to get
+                   // through it - the line is fully up for about 1.8s of this
   bump2:  300,     // then a bigger one
   travel: 740,     // fly up onto the shop
 };
+// It plays on every visit, so a tap anywhere above the nav skips straight
+// to the finished shop rather than making a child sit through it again.
 
 // Leaving the tab part-way through has to take the entrance with it,
 // otherwise the greeting hangs over whatever screen you went to until its
@@ -6597,7 +6604,7 @@ const HOOT_ENTRANCE = {
 // entrance removes nodes that are already detached and toggles a class on a
 // wrapper that is no longer on the page. It cannot reach into a later one.
 function endHootEntrance() {
-  document.querySelectorAll('.hoot-greet, .hoot-flyer').forEach(el => el.remove());
+  document.querySelectorAll('.hoot-greet, .hoot-flyer, .hoot-skip').forEach(el => el.remove());
 }
 
 function playHootEntrance() {
@@ -6645,13 +6652,14 @@ function playHootEntrance() {
   const k = target.width / bigW;
 
   const t = HOOT_ENTRANCE;
-  const total = t.appear + t.bump1 + t.spin + t.bump2 + t.travel;
+  const total = t.appear + t.bump1 + t.spin + t.read + t.bump2 + t.travel;
   const at = ms => ms / total;   // keyframe offsets are fractions of the whole
 
   const tAppear = t.appear;
   const tBump1 = tAppear + t.bump1;
   const tSpin = tBump1 + t.spin;
-  const tBump2 = tSpin + t.bump2;
+  const tRead = tSpin + t.read;
+  const tBump2 = tRead + t.bump2;
 
   // A small bump, a clockwise turn, then a bigger bump, then it leaves.
   // rotate() in the plane of the screen rather than rotateY: a wide wordmark
@@ -6659,13 +6667,18 @@ function playHootEntrance() {
   // unreadable, where a flat spin stays legible the whole way round.
   // The rotation stays at 360deg from there on, which is the identity, so it
   // has no effect on the bump or the travel that follow it.
-  flyer.animate([
+  const flyerAnim = flyer.animate([
     { offset: 0,            opacity: 0, transform: 'translate(0px,0px) scale(0.8) rotate(0deg)', easing: 'ease-out' },
     { offset: at(tAppear),  opacity: 1, transform: 'translate(0px,0px) scale(1) rotate(0deg)', easing: 'ease-out' },
     { offset: at(tAppear + t.bump1 * 0.42), opacity: 1, transform: 'translate(0px,0px) scale(1.07) rotate(0deg)', easing: 'ease-in-out' },
     { offset: at(tBump1),   opacity: 1, transform: 'translate(0px,0px) scale(1) rotate(0deg)', easing: 'cubic-bezier(.5,0,.5,1)' },
-    { offset: at(tSpin),    opacity: 1, transform: 'translate(0px,0px) scale(1) rotate(360deg)', easing: 'ease-out' },
-    { offset: at(tSpin + t.bump2 * 0.42),   opacity: 1, transform: 'translate(0px,0px) scale(1.17) rotate(360deg)', easing: 'ease-in-out' },
+    { offset: at(tSpin),    opacity: 1, transform: 'translate(0px,0px) scale(1) rotate(360deg)', easing: 'ease-in-out' },
+    // While the tagline is up the sign doesn't freeze: one slow, small
+    // breath, so the screen still feels alive without pulling the eye off
+    // the words.
+    { offset: at(tSpin + t.read * 0.5), opacity: 1, transform: 'translate(0px,0px) scale(1.03) rotate(360deg)', easing: 'ease-in-out' },
+    { offset: at(tRead),    opacity: 1, transform: 'translate(0px,0px) scale(1) rotate(360deg)', easing: 'ease-out' },
+    { offset: at(tRead + t.bump2 * 0.42),   opacity: 1, transform: 'translate(0px,0px) scale(1.17) rotate(360deg)', easing: 'ease-in-out' },
     { offset: at(tBump2),   opacity: 1, transform: 'translate(0px,0px) scale(1) rotate(360deg)', easing: 'cubic-bezier(.55,0,.25,1)' },
     { offset: 1,            opacity: 1, transform: `translate(${dx}px,${dy}px) scale(${k}) rotate(360deg)` },
   ], { duration: total, fill: 'both' });
@@ -6676,14 +6689,14 @@ function playHootEntrance() {
   // standing still - so any line close enough underneath to read as its
   // subtitle gets swept straight through. Rather than push the line 90px
   // clear and leave it stranded, it arrives once the sign is level again,
-  // holds through the bump, and is gone before the shop behind it is solid
-  // enough for the two to read as one crowded screen.
-  greet.animate([
+  // stays up for the whole read, and is gone by the time the sign has
+  // finished its last bump - before the sign leaves and the shop arrives.
+  const greetAnim = greet.animate([
     { offset: 0, opacity: 0 },
-    { offset: at(tSpin), opacity: 0 },
-    { offset: at(tSpin + 110), opacity: 1 },
-    { offset: at(tBump2 + t.travel * 0.35), opacity: 1 },
-    { offset: at(tBump2 + t.travel * 0.65), opacity: 0 },
+    { offset: at(tSpin), opacity: 0, transform: 'translateY(6px)', easing: 'ease-out' },
+    { offset: at(tSpin + 260), opacity: 1, transform: 'translateY(0)' },
+    { offset: at(tRead), opacity: 1 },
+    { offset: at(tBump2), opacity: 0 },
     { offset: 1, opacity: 0 },
   ], { duration: total, easing: 'linear', fill: 'both' });
 
@@ -6692,20 +6705,36 @@ function playHootEntrance() {
   // and the sign would be handing over to a wrapper still mid-bump, which
   // would put the real one a pixel or two off where the flyer stopped.
   reveal();
-  body.animate([
+  const bodyAnim = body.animate([
     { opacity: 0, transform: 'scale(0.93)' },
     { opacity: 1, transform: 'scale(1.035)', offset: 0.74 },
     { opacity: 1, transform: 'scale(1)' },
   ], { duration: t.travel, delay: tBump2, easing: 'cubic-bezier(.3,.8,.4,1)', fill: 'backwards' });
 
+  // A clear layer over the tab (not the nav) catches a tap to skip. It also
+  // stops that tap landing on a swatch or button in the still-invisible
+  // shop underneath.
+  const skip = document.createElement('div');
+  skip.className = 'hoot-skip';
+  document.body.appendChild(skip);
+
   // Hand over: the real sign appears exactly where the flyer stopped, and
-  // the flyer and the greeting are taken back out of the page.
+  // the flyer and the greeting are taken back out of the page. Runs once,
+  // whether the entrance ran its course or was tapped through.
   sign.style.visibility = 'hidden';
-  setTimeout(() => {
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    [flyerAnim, greetAnim, bodyAnim].forEach(a => { try { a.finish(); } catch (e) { /* gone */ } });
     sign.style.visibility = '';
     flyer.remove();
     greet.remove();
-  }, total);
+    skip.remove();
+  };
+  skip.addEventListener('pointerdown', finish);
+  const timer = setTimeout(finish, total);
 }
 
 // One helper for all three, so they cannot fight: re-adding a class that is
