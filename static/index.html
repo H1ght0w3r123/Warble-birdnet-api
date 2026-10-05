@@ -1209,6 +1209,11 @@
   .tt-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--dusk);width:24px;text-align:right;flex-shrink:0;}
   .fact-num-sm{font-size:11px !important;line-height:1.25;}
   .facts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  /* The three measurements share a row; where it lives and what it eats
+     keep the wider pair below, since they're words rather than numbers. */
+  .facts-grid.measures{grid-template-columns:repeat(3, 1fr);}
+  .facts-grid.measures .fact-tile{padding:10px 9px;}
+  .facts-grid.measures + .facts-grid{margin-top:10px;}
   .fact-tile{background:var(--parch);border-radius:12px;padding:10px 12px;}
   .fact-icon{font-size:20px;}
   .fact-num{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--dusk);margin-top:2px;}
@@ -4312,18 +4317,23 @@ function buildCoreTiles(bird) {
   if (!bird) return '';
   const weight = bird.weight_g >= 1000
     ? `${(bird.weight_g / 1000).toFixed(1)}kg` : `${bird.weight_g}g`;
-  const tiles = [
+  const measures = [
     ['⚖️', weight, 'Weight'],
     ['📏', `${bird.length_cm}cm`, 'Length'],
+  ];
+  // Wingspan: tip to tip with the wings stretched out.
+  if (bird.wingspan_cm) measures.push(['↔️', `${bird.wingspan_cm}cm`, 'Wingspan']);
+  const words = [
     ['🏞️', bird.habitat, 'Where it lives'],
     ['🍽️', bird.diet, 'What it eats'],
   ];
-  return `<div class="facts-grid">${tiles.map(([icon, num, label]) => `
+  const grid = (cls, tiles) => `<div class="facts-grid ${cls}">${tiles.map(([icon, num, label]) => `
     <div class="fact-tile">
       <div class="fact-icon">${icon}</div>
       <div class="fact-num ${String(num).length > 8 ? 'fact-num-sm' : ''}">${num}</div>
       <div class="fact-label">${label}</div>
     </div>`).join('')}</div>`;
+  return grid(measures.length === 3 ? 'measures' : '', measures) + grid('', words);
 }
 
 // Only the researched birds carry a conservation status and habitat tags.
