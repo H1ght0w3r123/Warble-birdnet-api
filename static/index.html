@@ -4200,7 +4200,7 @@ async function showDetailPack(commonName) {
   note.querySelector('.pack-note-go').onclick = () => {
     selectedPack = packAt;
     selectedCard = cardAt;
-    renderHabitats();
+    renderHabitats({ keepCard: true });
   };
 }
 
@@ -7111,13 +7111,18 @@ let trophyIndex = 0;
 
 let allPacksRaw = [], selectedPack = 0, selectedCard = 0;
 
-async function loadCollectorPacks(open = true) {
+// The card a deck opens on: the middle of the pack, so there are cards to
+// both sides - for ten, the fifth.
+const middleCard = (p) => Math.floor(Math.max(0, ((p && p.birds.length) || 1) - 1) / 2);
+
+async function loadCollectorPacks(open = true, keepCard = false) {
   const el = document.getElementById('packList');
   if (!el) return;
   try {
     const res = await fetch('/collector-packs');
     const d = await res.json();
     allPacksRaw = d.packs || [];
+    if (!keepCard) selectedCard = middleCard(allPacksRaw[selectedPack]);
     renderPackSelector();
     // Arriving on the tab, the pack's deck opens out from a pile.
     const animate = open && !reducedMotion();
@@ -7154,7 +7159,7 @@ async function goToPack(i) {
     if (!closed) return;            // another pack was picked mid-way
   }
   selectedPack = i;
-  selectedCard = 0;
+  selectedCard = middleCard(allPacksRaw[i]);
   renderPackSelector();
   if (reducedMotion()) { stopDeckAnimation(1); renderSelectedPack(); return; }
   stopDeckAnimation(0);
@@ -7606,7 +7611,7 @@ async function openBirdFromPack(commonName, cardEl) {
 
   packFlipName = commonName;
   const showDetail = () => {
-    renderBirdDetail(commonName, renderHabitats);
+    renderBirdDetail(commonName, () => renderHabitats({ keepCard: true }));
     // Going back runs the reverse spin. Only this route spins - reaching a
     // bird from My Flock never came off the pack, so it goes straight back.
     setDetailBack(closeBirdToPack);
@@ -7642,14 +7647,14 @@ async function closeBirdToPack() {
   const name = packFlipName;
   const detail = document.querySelector('[data-bird-detail]');
 
-  if (reducedMotion() || !detail) { await renderHabitats(); return; }
+  if (reducedMotion() || !detail) { await renderHabitats({ keepCard: true }); return; }
 
   await play(detail, [
     { transform: 'perspective(900px) rotateY(0deg) scale(1)', opacity: 1 },
     { transform: 'perspective(900px) rotateY(-90deg) scale(.94)', opacity: .5 },
   ], { duration: FLIP_MS, easing: 'cubic-bezier(.4,0,.7,.35)' });
 
-  await renderHabitats({ alreadyOpen: true });   // awaits the fan, so the card is there to land on
+  await renderHabitats({ alreadyOpen: true, keepCard: true });   // awaits the fan, so the card is there to land on
 
   const card = Array.from(document.querySelectorAll('.fan-card'))
     .find(c => c.dataset.name === name);
@@ -7673,9 +7678,11 @@ async function renderHabitats(opts) {
   `;
   // Awaited so callers can rely on the fan actually being on screen - the
   // spin back from a bird's details needs its card to exist to land on, so
-  // that one asks for the deck already open. (renderHabitats is also the nav
-  // button's click handler, so opts may be a click event.)
-  await loadCollectorPacks(!(opts && opts.alreadyOpen));
+  // that one asks for the deck already open. The deck opens on the middle
+  // card, except when coming back from a bird's card (keepCard), when it
+  // opens on that bird. (renderHabitats is also the nav button's click
+  // handler, so opts may be a click event.)
+  await loadCollectorPacks(!(opts && opts.alreadyOpen), !!(opts && opts.keepCard));
 }
 
 async function renderTrophies(focusKey) {
