@@ -7111,7 +7111,7 @@ let trophyIndex = 0;
 
 let allPacksRaw = [], selectedPack = 0, selectedCard = 0;
 
-async function loadCollectorPacks() {
+async function loadCollectorPacks(open = true) {
   const el = document.getElementById('packList');
   if (!el) return;
   try {
@@ -7119,7 +7119,11 @@ async function loadCollectorPacks() {
     const d = await res.json();
     allPacksRaw = d.packs || [];
     renderPackSelector();
+    // Arriving on the tab, the pack's deck opens out from a pile.
+    const animate = open && !reducedMotion();
+    stopDeckAnimation(animate ? 0 : 1);
     renderSelectedPack();
+    if (animate) animateDeck(1, DECK_OPEN_MS, deckOpenEase);
   } catch (e) {
     el.innerHTML = `<div class="collection-empty">Couldn't load packs right now.</div>`;
   }
@@ -7140,21 +7144,57 @@ function renderPackSelector() {
   document.getElementById('packCurrent').onclick = openAllPacks;
 }
 
-function goToPack(i, dir) {
+// Changing pack: the deck on screen gathers itself into a pile, the new
+// pack's cards take its place as a pile, and that pile fans out again.
+async function goToPack(i) {
   if (i === selectedPack) return;
-  const from = selectedPack;
+  const hasDeck = document.querySelector('#cardCarousel .fan-card');
+  if (!reducedMotion() && hasDeck) {
+    const closed = await animateDeck(0, DECK_CLOSE_MS, t => t * t);
+    if (!closed) return;            // another pack was picked mid-way
+  }
   selectedPack = i;
   selectedCard = 0;
   renderPackSelector();
+  if (reducedMotion()) { stopDeckAnimation(1); renderSelectedPack(); return; }
+  stopDeckAnimation(0);
   renderSelectedPack();
-  if (reducedMotion()) return;
-  // Short slide in the direction of travel, so which way you moved is
-  // obvious even though the cards themselves also move horizontally.
-  const way = dir || (i > from ? 1 : -1);
-  const el = document.getElementById('packList');
-  if (el) el.animate(
-    [{ transform: `translateX(${way * 26}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }],
-    { duration: 220, easing: 'cubic-bezier(.25,.8,.35,1)' });
+  animateDeck(1, DECK_OPEN_MS, deckOpenEase);
+}
+
+const DECK_CLOSE_MS = 200;
+const DECK_OPEN_MS = 520;
+// Out quickly, then a slight overshoot as the cards settle into place.
+const deckOpenEase = t => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2);
+
+// Animate deckSpread to `to` over `ms`. Resolves true once it gets there,
+// false if it was interrupted (a newer animation, a finger on the deck, or
+// the deck leaving the page).
+function animateDeck(to, ms, ease) {
+  const token = ++deckAnimToken;
+  const from = deckSpread;
+  const t0 = performance.now();
+  return new Promise(resolve => {
+    const step = (now) => {
+      if (token !== deckAnimToken) { resolve(false); return; }
+      const carousel = document.getElementById('cardCarousel');
+      const cards = carousel ? Array.from(carousel.querySelectorAll('.fan-card')) : [];
+      if (!cards.length) { deckSpread = 1; resolve(false); return; }
+      const t = Math.min(1, (now - t0) / ms);
+      deckSpread = from + (to - from) * ease(t);
+      carousel.classList.remove('settling');
+      layoutCarousel(cards);
+      if (t < 1) requestAnimationFrame(step);
+      else { deckSpread = to; layoutCarousel(cards); resolve(true); }
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+// End any deck animation where it stands and set the spread outright.
+function stopDeckAnimation(spread) {
+  deckAnimToken++;
+  deckSpread = spread;
 }
 
 function openAllPacks() {
@@ -7177,7 +7217,7 @@ function openAllPacks() {
   const close = () => wrap.remove();
   wrap.onclick = (e) => { if (e.target === wrap) close(); };
   wrap.querySelectorAll('.all-pack').forEach(btn => {
-    btn.onclick = () => { const i = +btn.dataset.i; close(); goToPack(i, i > selectedPack ? 1 : -1); };
+    btn.onclick = () => { const i = +btn.dataset.i; close(); goToPack(i); };
   });
   document.body.appendChild(wrap);
   if (!reducedMotion()) wrap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140 });
@@ -7284,14 +7324,23 @@ function deckAt(table, away) {
   return i >= table.length - 1 ? table[i] : table[i] + (table[i + 1] - table[i]) * f;
 }
 
+// How far the deck is fanned out: 1 is the normal spread, 0 is collapsed -
+// every card stacked in a neat pile behind the front one, each a touch
+// smaller and a few pixels further back. Animated by animateDeck when a
+// pack opens or closes.
+let deckSpread = 1;
+let deckAnimToken = 0;
+
 function layoutCarousel(cards, drift = 0) {
   const box = cards[0] && cards[0].parentElement;
   if (box && box.clientWidth) CARD_X = deckOffsets(box.clientWidth);
+  const k = deckSpread;
   cards.forEach((card, i) => {
     const off = i - selectedCard - drift;
     const away = Math.abs(off);
-    const x = Math.sign(off) * deckAt(CARD_X, away);
-    const scale = deckAt(CARD_SCALE, away);
+    const pile = Math.min(away, 3);
+    const x = Math.sign(off) * (deckAt(CARD_X, away) * k + pile * 3 * (1 - k));
+    const scale = deckAt(CARD_SCALE, away) * k + (CARD_HERO - pile * 0.06) * (1 - k);
     card.style.transform =
       `translate(-50%,-50%) translateX(${x.toFixed(2)}px) scale(${scale.toFixed(3)})`;
     card.style.setProperty('--sheen', off.toFixed(3));
@@ -7334,6 +7383,8 @@ function wireCardCarousel(carousel, birds) {
   carousel.addEventListener('pointerdown', (e) => {
     pid = e.pointerId; startX = e.clientX; startY = e.clientY;
     dragging = false; moved = false;
+    // A finger on the deck while it's opening snaps it fully open.
+    if (deckSpread !== 1) { stopDeckAnimation(1); layoutCarousel(cards); }
     // A finger landing on a gliding deck catches it where it is, and a drag
     // carries on from there; a plain tap just stops it (rather than opening
     // whichever card happened to be passing the middle).
@@ -7598,7 +7649,7 @@ async function closeBirdToPack() {
     { transform: 'perspective(900px) rotateY(-90deg) scale(.94)', opacity: .5 },
   ], { duration: FLIP_MS, easing: 'cubic-bezier(.4,0,.7,.35)' });
 
-  await renderHabitats();   // awaits the fan, so the card is there to land on
+  await renderHabitats({ alreadyOpen: true });   // awaits the fan, so the card is there to land on
 
   const card = Array.from(document.querySelectorAll('.fan-card'))
     .find(c => c.dataset.name === name);
@@ -7612,7 +7663,7 @@ async function closeBirdToPack() {
   card.style.visibility = '';
 }
 
-async function renderHabitats() {
+async function renderHabitats(opts) {
   setActiveTab('habitats');
   stage.classList.add('top-aligned');
   stage.innerHTML = `
@@ -7621,8 +7672,10 @@ async function renderHabitats() {
     <div id="packList" style="width:100%;"></div>
   `;
   // Awaited so callers can rely on the fan actually being on screen - the
-  // spin back from a bird's details needs its card to exist to land on.
-  await loadCollectorPacks();
+  // spin back from a bird's details needs its card to exist to land on, so
+  // that one asks for the deck already open. (renderHabitats is also the nav
+  // button's click handler, so opts may be a click event.)
+  await loadCollectorPacks(!(opts && opts.alreadyOpen));
 }
 
 async function renderTrophies(focusKey) {
