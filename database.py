@@ -921,8 +921,11 @@ def count_owned_accessories() -> int:
 
 
 def distinct_seasons_warbled() -> int:
-    """How many of the four seasons have had at least one session - Evergreen.
-    Meteorological seasons (Dec-Feb winter, etc), from UTC timestamps."""
+    """How many different seasons have had at least one session - Evergreen.
+    Each season of each year counts once (spring 2026 and spring 2027 are
+    two), so the trophy can keep levelling up past the first four.
+    Meteorological seasons (Dec-Feb winter, etc), from UTC timestamps; a
+    December belongs to the winter of the year it runs into."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
@@ -930,7 +933,9 @@ def distinct_seasons_warbled() -> int:
     seasons = set()
     for (created,) in rows:
         if created:
-            seasons.add((created.month % 12) // 3)   # 0 winter, 1 spring, 2 summer, 3 autumn
+            season = (created.month % 12) // 3   # 0 winter, 1 spring, 2 summer, 3 autumn
+            year = created.year + (1 if created.month == 12 else 0)
+            seasons.add((year, season))
     return len(seasons)
 
 

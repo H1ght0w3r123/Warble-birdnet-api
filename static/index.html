@@ -4056,7 +4056,7 @@ function renderBirdDetail(commonName, onBack) {
   if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
   const shareBtn = document.getElementById('shareBirdBtn');
   if (shareBtn) shareBtn.onclick = () => shareBird(latest);
-  birdDetailBack = onBack || renderCollection;
+  setDetailBack(onBack || renderCollection);
   // The number reveals how many times and since when; that line opens the
   // places list, the same as the pin. (matches is newest first.)
   document.getElementById('heardDisc').onclick = () => toggleBadgeNote('heardNote');
@@ -4071,7 +4071,7 @@ function renderBirdDetail(commonName, onBack) {
     const cardBack = birdDetailBack;
     renderBirdPlaces(commonName, () => {
       renderBirdDetail(commonName, onBack);
-      birdDetailBack = cardBack;
+      setDetailBack(cardBack);
     });
   };
 
@@ -4121,19 +4121,29 @@ function renderBirdPlaces(commonName, back) {
       </div>
     </div>
     </div>`;
-  birdDetailBack = back;
+  setDetailBack(back);
 }
 
 // The bird card has no Back button: a tap anywhere that isn't something to
 // press goes back to wherever the card was opened from (My Flock, or the
-// Collections deck with its spin). birdDetailBack is set by renderBirdDetail
+// Collections deck with its spin). The trophy card and the places list use
+// the same mechanism - anything marked data-bird-detail. birdDetailBack is set by renderBirdDetail
 // and only acted on while a bird card is actually showing.
-let birdDetailBack = null;
+let birdDetailBack = null, detailShownAt = 0;
+function setDetailBack(fn) {
+  birdDetailBack = fn;
+  detailShownAt = performance.now();
+}
 document.addEventListener('click', (e) => {
   if (!birdDetailBack || !document.querySelector('[data-bird-detail]')) return;
-  // The tap that OPENED the card lands here too, on a tile that the new
-  // screen has since replaced - so anything no longer on the page is ignored.
+  // The tap that OPENED the card lands here too. With a mouse it arrives on
+  // the tile the new screen has since replaced, so anything no longer on the
+  // page is ignored. On a phone, though, a screen opened from pointerup (the
+  // trophy row) is already showing when the tap's click is sent, and the
+  // click lands on it - so a click in the first moment after a card opens is
+  // ignored too. Nobody taps to leave within half a second of arriving.
   if (!e.target.isConnected) return;
+  if (performance.now() - detailShownAt < 450) return;
   if (e.target.closest('button, a, label, input, select, textarea, [role="button"], .bottom-nav, .top-profile-btn')) return;
   const back = birdDetailBack;
   birdDetailBack = null;   // one tap, one trip back
@@ -7050,12 +7060,11 @@ document.getElementById('navDressUp').onclick = renderDressUp;
 let allTrophiesRaw = [];
 
 
-// Little stars on the plinth showing how many of the three levels are held -
-// so the carousel communicates progress at a glance, not just earned/not.
-// The tier used to be a row of pips under a drawn cup. It is now the number
-// of leaves sitting in the three carved sockets on the trophy's base, which
-// is a property of the artwork - so the level picks the picture and there is
-// nothing to draw. Four pictures: none, one, two, three.
+// The level shows on the trophy's base, so the carousel communicates
+// progress at a glance, not just earned/not: the leaves sitting in its three
+// carved sockets, and then how many of them have turned gold. It is a
+// property of the artwork - the level picks the picture and there is
+// nothing to draw (TROPHY_PICTURE, below).
 // Measured at the sizes the carousel actually draws (130, 101 and 73px), the
 // leaves stay separable at every one of them - a blob count of the green
 // comes back as exactly 1, 2 and 3. Under simulated deuteranopia the filled
@@ -7065,11 +7074,17 @@ let allTrophiesRaw = [];
 // All twenty-one emblems are carved art now, one file per trophy key, so
 // there is no fallback left to keep. The drawn SVG set that used to live
 // here is gone with it.
+// Seven levels now, on the same carved base: level 1 shows the three sockets
+// empty (trophy-l0), levels 2-4 fill them with green leaves (l1-l3), and
+// levels 5-7 turn the leaves gold one at a time (l5-l7, made from l3 by
+// recolouring each leaf through a gold ramp so the carving shows through).
+// A trophy not yet earned also uses l0, greyed out by the carousel.
+const TROPHY_PICTURE = ['l0', 'l0', 'l1', 'l2', 'l3', 'l5', 'l6', 'l7'];
 function trophyArt(trophy) {
-  const level = Math.max(0, Math.min(3, trophy.level || 0));
+  const level = Math.max(0, Math.min(7, trophy.level || 0));
   const dim = trophy.earned ? '' : ' style="opacity:.45"';
   return `<div class="trophy-art">
-    <img class="trophy-svg" src="/static/trophy-l${level}-v1.webp" alt="">
+    <img class="trophy-svg" src="/static/trophy-${TROPHY_PICTURE[level]}-v1.webp" alt="">
     <img class="trophy-emblem" src="/static/emblem-${trophy.key}-v1.webp" alt=""${dim}>
   </div>`;
 }
@@ -7525,7 +7540,7 @@ async function openBirdFromPack(commonName, cardEl) {
     renderBirdDetail(commonName, renderHabitats);
     // Going back runs the reverse spin. Only this route spins - reaching a
     // bird from My Flock never came off the pack, so it goes straight back.
-    birdDetailBack = closeBirdToPack;
+    setDetailBack(closeBirdToPack);
   };
 
   if (!cardEl || reducedMotion()) { showDetail(); return; }
@@ -7592,7 +7607,7 @@ async function renderHabitats() {
   await loadCollectorPacks();
 }
 
-async function renderTrophies() {
+async function renderTrophies(focusKey) {
   setActiveTab('trophies');
   // Top-aligned, like Collections and My Flock, for two reasons: the header
   // then sits at the same height as theirs, and the carousel stops moving.
@@ -7613,13 +7628,16 @@ async function renderTrophies() {
     allTrophiesRaw = data.trophies || [];
     // Levels earned, not trophies started - 20 trophies x 3 levels
     const levelsGot = allTrophiesRaw.reduce((n, t) => n + (t.level || 0), 0);
-    const levelsTotal = allTrophiesRaw.reduce((n, t) => n + (t.level_count || 3), 0);
+    const levelsTotal = allTrophiesRaw.reduce((n, t) => n + (t.level_count || 7), 0);
     document.getElementById('trophyCount').textContent = `${levelsGot} of ${levelsTotal} levels earned`;
 
-    // Start on the first unearned trophy if there is one - it's the most
-    // useful thing to be looking at.
+    // Coming back from a trophy's card, that trophy goes back to the front.
+    // Otherwise start on the first unearned one - the most useful thing to
+    // be looking at. (renderTrophies is also the nav button's click handler,
+    // so focusKey can be a click event; only a string counts.)
+    const focused = typeof focusKey === 'string' ? allTrophiesRaw.findIndex(t => t.key === focusKey) : -1;
     const firstLocked = allTrophiesRaw.findIndex(t => !t.earned);
-    trophyIndex = firstLocked === -1 ? 0 : firstLocked;
+    trophyIndex = focused >= 0 ? focused : (firstLocked === -1 ? 0 : firstLocked);
 
     const carousel = document.getElementById('trophyCarousel');
     carousel.innerHTML = allTrophiesRaw.map((t, i) => `
@@ -7681,7 +7699,7 @@ function renderTrophyCaption() {
   const caption = document.getElementById('trophyCaption');
   if (t && caption) {
     const progressLine = t.maxed
-      ? 'All three levels complete!'
+      ? 'All seven levels complete!'
       : `${t.requirement} &nbsp;·&nbsp; ${Math.min(t.progress, t.next_target)}/${t.next_target}`;
     caption.innerHTML = `
       <div class="trophy-caption-name">
@@ -7827,11 +7845,10 @@ function renderTrophyDetail(trophyKey) {
   const trophy = allTrophiesRaw.find(t => t.key === trophyKey);
   if (!trophy || !trophy.earned) return;
 
+  // No Back button: like the bird card, a tap anywhere goes back - to the
+  // trophy row, with this trophy still at the front.
   stage.innerHTML = `
-    <div style="width:100%;margin-bottom:14px;">
-      <button class="back-btn" id="backBtn">← Back</button>
-    </div>
-    <div class="woodframe detail-wood">
+    <div class="woodframe detail-wood" data-bird-detail>
     <div class="detail-card" style="--tier-color:var(--gold);">
       <div class="trophy-hero">
         <div class="trophy-hero-art">${trophyArt(trophy)}</div>
@@ -7844,7 +7861,7 @@ function renderTrophyDetail(trophyKey) {
     </div>
     </div>
   `;
-  document.getElementById('backBtn').onclick = renderTrophies;
+  setDetailBack(() => renderTrophies(trophyKey));
 }
 </script>
 

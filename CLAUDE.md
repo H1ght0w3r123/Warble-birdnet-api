@@ -28,8 +28,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   have no status because they're introduced species the UK lists don't assess. All 100 have an `about`:
   one or two child-level sentences shown under the badges on the bird card.
   Also holds seasonality.
-- `trophies.py` — 21 trophies, each with **three levels**. Adding challenge
-  means extending a `levels` list, not inventing a new trophy.
+- `trophies.py` — 21 trophies, each with **seven levels** (shown as empty
+  sockets, then 1-3 green leaves, then the leaves turning gold). Adding
+  challenge means extending a `levels` list, not inventing a new trophy.
 - `accessories.py` — 70 Dress Up items on a five-band price ladder. Hats are
   fitted per bird (see its docstring).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
