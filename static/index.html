@@ -7128,7 +7128,7 @@ async function loadCollectorPacks(open = true, keepCard = false) {
     const animate = open && !reducedMotion();
     stopDeckAnimation(animate ? 0 : 1);
     renderSelectedPack();
-    if (animate) animateDeck(1, DECK_OPEN_MS, deckOpenEase);
+    if (animate) animateDeck(1, DECK_OPEN_MS);
   } catch (e) {
     el.innerHTML = `<div class="collection-empty">Couldn't load packs right now.</div>`;
   }
@@ -7155,7 +7155,7 @@ async function goToPack(i) {
   if (i === selectedPack) return;
   const hasDeck = document.querySelector('#cardCarousel .fan-card');
   if (!reducedMotion() && hasDeck) {
-    const closed = await animateDeck(0, DECK_CLOSE_MS, t => t * t);
+    const closed = await animateDeck(0, DECK_CLOSE_MS);
     if (!closed) return;            // another pack was picked mid-way
   }
   selectedPack = i;
@@ -7164,42 +7164,60 @@ async function goToPack(i) {
   if (reducedMotion()) { stopDeckAnimation(1); renderSelectedPack(); return; }
   stopDeckAnimation(0);
   renderSelectedPack();
-  animateDeck(1, DECK_OPEN_MS, deckOpenEase);
+  animateDeck(1, DECK_OPEN_MS);
 }
 
 const DECK_CLOSE_MS = 200;
 const DECK_OPEN_MS = 520;
-// Out quickly, then a slight overshoot as the cards settle into place.
+// The two moves share each window: closing spends the first half on size,
+// the second on position; opening spends DECK_OPEN_SPLIT of it on position,
+// the rest on size.
+const DECK_OPEN_SPLIT = 0.55;
+const easeInOut = t => t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+const easeOut = t => 1 - (1 - t) * (1 - t);
+// Out quickly, then a slight overshoot as the cards land in their places.
 const deckOpenEase = t => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2);
 
-// Animate deckSpread to `to` over `ms`. Resolves true once it gets there,
-// false if it was interrupted (a newer animation, a finger on the deck, or
-// the deck leaving the page).
-function animateDeck(to, ms, ease) {
+// Animate the deck closed (to 0) or open (to 1) over `ms`, as two separate
+// movements. Closing: the cards first grow to the front card's size where
+// they stand, then slide in behind it into a pile. Opening: the pile first
+// slides out into the deck's places at that full size, then the cards
+// shrink back to their own sizes. Resolves true once done, false if it was
+// interrupted (a newer animation, a finger on the deck, or the deck
+// leaving the page).
+function animateDeck(to, ms) {
   const token = ++deckAnimToken;
-  const from = deckSpread;
   const t0 = performance.now();
+  // phase(t, a, b): how far through the stretch of time from a to b we are
+  const phase = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
   return new Promise(resolve => {
     const step = (now) => {
       if (token !== deckAnimToken) { resolve(false); return; }
       const carousel = document.getElementById('cardCarousel');
       const cards = carousel ? Array.from(carousel.querySelectorAll('.fan-card')) : [];
-      if (!cards.length) { deckSpread = 1; resolve(false); return; }
+      if (!cards.length) { deckPos = deckSize = 1; resolve(false); return; }
       const t = Math.min(1, (now - t0) / ms);
-      deckSpread = from + (to - from) * ease(t);
+      if (to === 0) {
+        deckSize = 1 - easeInOut(phase(t, 0, 0.5));
+        deckPos = 1 - easeInOut(phase(t, 0.5, 1));
+      } else {
+        deckPos = deckOpenEase(phase(t, 0, DECK_OPEN_SPLIT));
+        deckSize = easeOut(phase(t, DECK_OPEN_SPLIT, 1));
+      }
       carousel.classList.remove('settling');
       layoutCarousel(cards);
       if (t < 1) requestAnimationFrame(step);
-      else { deckSpread = to; layoutCarousel(cards); resolve(true); }
+      else { deckPos = deckSize = to; layoutCarousel(cards); resolve(true); }
     };
     requestAnimationFrame(step);
   });
 }
 
-// End any deck animation where it stands and set the spread outright.
+// End any deck animation where it stands and set the deck outright:
+// 1 fanned out, 0 a pile.
 function stopDeckAnimation(spread) {
   deckAnimToken++;
-  deckSpread = spread;
+  deckPos = deckSize = spread;
 }
 
 function openAllPacks() {
@@ -7329,23 +7347,24 @@ function deckAt(table, away) {
   return i >= table.length - 1 ? table[i] : table[i] + (table[i + 1] - table[i]) * f;
 }
 
-// How far the deck is fanned out: 1 is the normal spread, 0 is collapsed -
-// every card stacked in a neat pile behind the front one, each a touch
-// smaller and a few pixels further back. Animated by animateDeck when a
-// pack opens or closes.
-let deckSpread = 1;
+// How far the deck is fanned out, as two numbers so the cards' positions
+// and their sizes can move separately: 1 is the normal deck, 0 is collapsed
+// - every card stacked in a neat pile behind the front one, at nearly its
+// size and a few pixels further back. Animated by animateDeck when a pack
+// opens or closes.
+let deckPos = 1, deckSize = 1;
 let deckAnimToken = 0;
 
 function layoutCarousel(cards, drift = 0) {
   const box = cards[0] && cards[0].parentElement;
   if (box && box.clientWidth) CARD_X = deckOffsets(box.clientWidth);
-  const k = deckSpread;
+  const kp = deckPos, ks = deckSize;
   cards.forEach((card, i) => {
     const off = i - selectedCard - drift;
     const away = Math.abs(off);
     const pile = Math.min(away, 3);
-    const x = Math.sign(off) * (deckAt(CARD_X, away) * k + pile * 3 * (1 - k));
-    const scale = deckAt(CARD_SCALE, away) * k + (CARD_HERO - pile * 0.06) * (1 - k);
+    const x = Math.sign(off) * (deckAt(CARD_X, away) * kp + pile * 3 * (1 - kp));
+    const scale = deckAt(CARD_SCALE, away) * ks + (CARD_HERO - pile * 0.06) * (1 - ks);
     card.style.transform =
       `translate(-50%,-50%) translateX(${x.toFixed(2)}px) scale(${scale.toFixed(3)})`;
     card.style.setProperty('--sheen', off.toFixed(3));
@@ -7389,7 +7408,7 @@ function wireCardCarousel(carousel, birds) {
     pid = e.pointerId; startX = e.clientX; startY = e.clientY;
     dragging = false; moved = false;
     // A finger on the deck while it's opening snaps it fully open.
-    if (deckSpread !== 1) { stopDeckAnimation(1); layoutCarousel(cards); }
+    if (deckPos !== 1 || deckSize !== 1) { stopDeckAnimation(1); layoutCarousel(cards); }
     // A finger landing on a gliding deck catches it where it is, and a drag
     // carries on from there; a plain tap just stops it (rather than opening
     // whichever card happened to be passing the middle).
