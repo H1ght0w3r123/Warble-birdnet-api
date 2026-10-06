@@ -2128,6 +2128,11 @@
      shadow so white type survives a bright sky - and text-shadow inherits.
      Dark text on a gold pill was getting all four, which read as badly out
      of focus. */
+  /* On the trophy card: which of the seven levels this is, beside the name. */
+  .trophy-card-title{display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px;}
+  .trophy-card-level{display:inline-block; background:var(--gold); color:var(--ink);
+    font-family:'Poppins'; font-size:12px; font-weight:900; padding:3px 10px; border-radius:12px;
+    white-space:nowrap;}
   .trophy-level{display:inline-block;background:var(--gold);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;text-shadow:none;}
   .trophy-caption-next{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:5px;}
   .trophy-caption-tap{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
@@ -7854,7 +7859,8 @@ function renderTrophyDetail(trophyKey) {
         <div class="trophy-hero-art">${trophyArt(trophy)}</div>
       </div>
       <div class="detail-body">
-        <div class="detail-name">${trophy.name}</div>
+        <div class="detail-name trophy-card-title">${trophy.name}
+          <span class="trophy-card-level">Level ${trophy.level} of ${trophy.level_count || 7}</span></div>
         <div class="detail-sci" style="font-style:normal;color:var(--gold-dk);font-weight:700;">${trophy.citation}</div>
         <div class="detail-desc">${trophy.description}</div>
       </div>
