@@ -2084,6 +2084,13 @@
   }
   .trophy-slide.locked .trophy-art{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 3px 5px rgba(0,0,0,0.28));}
   .trophy-slide.front .trophy-art{filter:drop-shadow(0 5px 9px rgba(0,0,0,0.38));}
+  /* The front trophy breathes, slowly and only a little, to say it can be
+     tapped - but only an earned one, since a locked trophy has no card to
+     open. It stops while the row is being dragged or is gliding. */
+  .trophy-slide.front.earned .trophy-art{animation:trophyInvite 2.4s ease-in-out infinite; transform-origin:50% 70%;}
+  .trophy-carousel.live .trophy-art{animation:none;}
+  @keyframes trophyInvite{0%,100%{transform:scale(1);} 50%{transform:scale(1.045);}}
+  @media (prefers-reduced-motion: reduce){ .trophy-slide.front.earned .trophy-art{animation:none;} }
   .trophy-slide.front.locked .trophy-art{filter:grayscale(0.9) brightness(0.72) drop-shadow(0 4px 7px rgba(0,0,0,0.34));}
   /* --- The trophy detail card ------------------------------------------
      Three things this does NOT reuse from the bird card, each for a reason.
@@ -2120,7 +2127,13 @@
   @media (prefers-reduced-motion: reduce){
     .trophy-hero-art .trophy-art{animation:none;}
   }
-  .trophy-caption{width:100%;max-width:300px;text-align:center;margin-top:6px;min-height:64px;}
+  .trophy-caption{width:100%;max-width:300px;text-align:center;margin-top:6px;min-height:44px;}
+  /* The front trophy's name and level, above the row. It takes 42px of the
+     gap above the row (12px margin + 30px), and the row's own margin gives
+     the same back, so the trophies stay level with the Collections cards. */
+  .trophy-title{display:flex;align-items:center;justify-content:center;gap:2px;
+    height:30px;margin-top:12px;width:100%;}
+  .trophy-title + .trophy-carousel{margin-top:13px;}
   .trophy-caption-name{font-family:'Poppins';font-weight:900;font-size:19px;color:#fff;}
   .trophy-caption-req{font-size:12.5px;color:rgba(255,255,255,0.88);margin-top:4px;line-height:1.4;}
   /* text-shadow:none is load-bearing. The pill sits inside
@@ -7623,6 +7636,7 @@ async function renderTrophies(focusKey) {
   stage.innerHTML = `
     <div class="collection-header"><div class="collection-title"><img src="/static/title-awards-v2.webp" alt="Awards" style="height:30px;width:auto;display:block;"></div></div>
     <div class="collection-count" id="trophyCount">Loading...</div>
+    <div class="trophy-title" id="trophyTitle"></div>
     <div class="trophy-carousel" id="trophyCarousel"></div>
     <div class="trophy-caption" id="trophyCaption"></div>
   `;
@@ -7702,15 +7716,18 @@ function renderTrophyCaption() {
   trophyCaptionFor = trophyIndex;
   const t = allTrophiesRaw[trophyIndex];
   const caption = document.getElementById('trophyCaption');
+  const title = document.getElementById('trophyTitle');
+  // The name and level sit above the row, the trophy's citation and what
+  // the next level needs below it.
+  if (t && title) {
+    title.innerHTML = `<span class="trophy-caption-name">${t.earned ? t.name : '???'}</span>
+      ${t.earned ? `<span class="trophy-level">Level ${t.level}</span>` : ''}`;
+  }
   if (t && caption) {
     const progressLine = t.maxed
       ? 'All seven levels complete!'
       : `${t.requirement} &nbsp;·&nbsp; ${Math.min(t.progress, t.next_target)}/${t.next_target}`;
     caption.innerHTML = `
-      <div class="trophy-caption-name">
-        ${t.earned ? t.name : '???'}
-        ${t.earned ? `<span class="trophy-level">Level ${t.level}</span>` : ''}
-      </div>
       ${t.earned && t.citation ? `<div class="trophy-caption-req">${t.citation}</div>` : ''}
       <div class="trophy-caption-next">${progressLine}</div>
       ${t.earned ? '<div class="trophy-caption-tap">Tap for more</div>' : ''}
@@ -7860,7 +7877,7 @@ function renderTrophyDetail(trophyKey) {
       </div>
       <div class="detail-body">
         <div class="detail-name trophy-card-title">${trophy.name}
-          <span class="trophy-card-level">Level ${trophy.level} of ${trophy.level_count || 7}</span></div>
+          <span class="trophy-card-level">Level ${trophy.level}</span></div>
         <div class="detail-sci" style="font-style:normal;color:var(--gold-dk);font-weight:700;">${trophy.citation}</div>
         <div class="detail-desc">${trophy.description}</div>
       </div>
