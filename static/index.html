@@ -1784,6 +1784,7 @@
   .stat-empty{font-size:12px;color:rgba(255,255,255,0.85);text-align:center;padding:10px 0;}
   .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
   .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Poppins';}
+  .location-spots{font-size:11px;font-weight:700;color:var(--mist-dk);font-family:'Poppins';margin-left:6px;white-space:nowrap;}
   .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
   .profile-section-title{font-family:'Poppins';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-top:24px;margin-bottom:4px;width:100%;text-align:left;}
   .location-input{
@@ -1791,6 +1792,14 @@
     font-family:'Poppins';font-size:15px;text-align:center;
   }
   .feather-input{flex:1;margin:0;max-width:none;}
+  .nearby-places{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;margin-top:12px;}
+  .nearby-place{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:#fff;border:none;border-radius:14px;padding:13px 16px;cursor:pointer;
+    box-shadow:0 4px 12px rgba(26,17,40,0.18);text-align:left;}
+  .nearby-place:active{transform:scale(.97);}
+  .nearby-place-name{font-family:'Poppins';font-weight:700;font-size:15px;color:var(--dusk);}
+  .nearby-place-dist{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--mist-dk);white-space:nowrap;}
+  .nearby-or{margin-top:18px;}
   .skip-btn{background:none;border:none;color:rgba(255,255,255,0.85);font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
   /* Where you've heard this bird: one row per place, most-visited first. */
   .places-body{padding:18px 18px 16px;}
@@ -3152,16 +3161,38 @@ function dismissCard(cardEl, isNew, onDone) {
   }, FOLD);
 }
 
+// How far away a nearby place is, in words a child can picture.
+function placeDistance(m) {
+  if (m < 100) return 'very close';
+  if (m < 1000) return `${Math.round(m / 10) * 10}m away`;
+  return `${(m / 1000).toFixed(1)}km away`;
+}
+
+// A spot the app doesn't know yet. If places the child has already named
+// are nearby, they come first as one-tap answers - this is probably the
+// other end of the same field - with a new name as the alternative. Either
+// way the spot is saved through /name-location: an existing name adds the
+// spot to that place, a new name starts one.
 function renderNameLocation(onDone) {
+  const nearby = sessionNearbyPlaces || [];
   stage.innerHTML = `
     <div class="stage-label">New spot!</div>
-    <div class="stage-sub">What do you call this place?</div>
+    ${nearby.length ? `
+      <div class="stage-sub">Are you somewhere you've been before?</div>
+      <div class="nearby-places">
+        ${nearby.map((p, i) => `
+          <button class="nearby-place" data-i="${i}">
+            <span class="nearby-place-name">📍 ${escapeFlock(p.name)}</span>
+            <span class="nearby-place-dist">${placeDistance(p.distance_m)}</span>
+          </button>`).join('')}
+      </div>
+      <div class="stage-sub nearby-or">Or give this place a new name:</div>` : `
+      <div class="stage-sub">What do you call this place?</div>`}
     <input type="text" id="locationInput" class="location-input" placeholder="e.g. Back Garden" maxlength="40">
     <button class="again-btn" id="saveLocationBtn">Save</button>
     <button class="skip-btn" id="skipLocationBtn">Skip for now</button>
   `;
-  document.getElementById('saveLocationBtn').onclick = async () => {
-    const name = document.getElementById('locationInput').value.trim();
+  const save = async (name) => {
     if (name && sessionLat !== null && sessionLng !== null) {
       try {
         const formData = new FormData();
@@ -3172,8 +3203,14 @@ function renderNameLocation(onDone) {
       } catch (e) { /* not critical if this fails, just move on */ }
     }
     needsLocationName = false;
+    sessionNearbyPlaces = [];
     onDone();
   };
+  stage.querySelectorAll('.nearby-place').forEach(btn => {
+    btn.onclick = () => save(nearby[+btn.dataset.i].name);
+  });
+  document.getElementById('saveLocationBtn').onclick = () =>
+    save(document.getElementById('locationInput').value.trim());
   document.getElementById('skipLocationBtn').onclick = () => onDone();
 }
 
@@ -4537,6 +4574,8 @@ let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
 let lastMicSettings = null;
 let currentProfile = { name: 'Explorer', avatar_id: 'robin' };
 let needsLocationName = false, sessionLat = null, sessionLng = null, sessionLocationName = null;
+// Places already named that have a spot near this new one (from /record).
+let sessionNearbyPlaces = [];
 
 function requestGpsPosition() {
   // Fire-and-forget — recording shouldn't wait on this. If it fails or
@@ -4982,6 +5021,7 @@ function stopRecording() {
       sessionFeatherTotal = data.total_feathers_this_session || 0;
       newlyEarnedTrophies = data.newly_earned_trophies || [];
       needsLocationName = data.needs_location_name || false;
+      sessionNearbyPlaces = data.nearby_places || [];
       sessionLocationName = data.location_name || null;
       sessionLat = data.lat;
       sessionLng = data.lng;
@@ -6468,7 +6508,7 @@ async function loadProfileLocations() {
       <div class="location-row" data-id="${loc.id}">
         <a class="location-row-name location-map-link"
            href="https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lng}#map=16/${loc.lat}/${loc.lng}"
-           target="_blank" rel="noopener">📍 ${loc.name}</a>
+           target="_blank" rel="noopener">📍 ${loc.name}</a>${loc.spots > 1 ? `<span class="location-spots">${loc.spots} spots</span>` : ''}
         <span class="location-row-actions">
           <button class="location-edit-btn" data-id="${loc.id}">Edit</button>
           <button class="location-delete-btn" data-id="${loc.id}" aria-label="Delete ${loc.name}">✕</button>

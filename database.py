@@ -5,6 +5,7 @@ bird ever found) and player_stats (a single running feather total, for
 now — no accounts yet, so there's just one shared total).
 """
 import os
+import math
 import datetime
 
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text, UniqueConstraint
@@ -90,8 +91,15 @@ class EarnedTrophy(Base):
 
 
 class Location(Base):
-    """A named place — created the first time a session happens somewhere
-    new. lat/lng are stored already rounded to LOCATION_PRECISION."""
+    """One spot belonging to a named place. lat/lng are stored already
+    rounded to LOCATION_PRECISION (a cell about 110m across).
+
+    A PLACE is all the rows that share a name. A field, a park or a big
+    garden is wider than one cell, so the same place can be made of several
+    spots - added by choosing an existing place when the app asks about a
+    spot it doesn't know, rather than having to give the far end of the
+    field a name of its own. Renaming or forgetting a place does it to every
+    spot that carries that name."""
     __tablename__ = "locations"
 
     id = Column(Integer, primary_key=True)
@@ -508,6 +516,7 @@ def get_week_stats():
         sightings = session.query(
             Sighting.common_name, Sighting.tier,
         ).filter(Sighting.created_at >= start).all()
+        named = _places_by_cell(session)
 
     if not rows and not sightings:
         return blank
@@ -515,8 +524,7 @@ def get_week_stats():
     return {
         "sessions": len(rows),
         "days": len({r.created_at.date() for r in rows if r.created_at}),
-        "locations": len({(round(r.lat, LOCATION_PRECISION), round(r.lng, LOCATION_PRECISION))
-                          for r in rows if r.lat is not None}),
+        "locations": len({_place_key(r.lat, r.lng, named) for r in rows if r.lat is not None}),
         "species": {s.common_name for s in sightings},
         "best_session_birds": max((r.bird_count or 0 for r in rows), default=0),
         "tiers": {s.tier for s in sightings},
@@ -665,9 +673,9 @@ def count_distinct_locations(precision: int = 3) -> int:
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
+        named = _places_by_cell(session)
         rows = session.query(RecordingSession.lat, RecordingSession.lng).all()
-        rounded = {(round(lat, precision), round(lng, precision)) for lat, lng in rows}
-        return len(rounded)
+        return len({_place_key(lat, lng, named) for lat, lng in rows if lat is not None})
 
 
 def max_sessions_at_one_location(precision: int = 3) -> int:
@@ -676,10 +684,13 @@ def max_sessions_at_one_location(precision: int = 3) -> int:
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
+        named = _places_by_cell(session)
         rows = session.query(RecordingSession.lat, RecordingSession.lng).all()
         counts = {}
         for lat, lng in rows:
-            key = (round(lat, precision), round(lng, precision))
+            if lat is None:
+                continue
+            key = _place_key(lat, lng, named)
             counts[key] = counts.get(key, 0) + 1
         return max(counts.values()) if counts else 0
 
@@ -748,6 +759,55 @@ def award_trophy(trophy_key: str, level: int = 1) -> bool:
         return True
 
 
+def _km(a, b):
+    """Great-circle distance between two (lat, lng) points, in km."""
+    p1, p2 = math.radians(a[0]), math.radians(b[0])
+    dp, dl = p2 - p1, math.radians(b[1] - a[1])
+    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(h))
+
+
+def _places_by_cell(session):
+    """{(rounded lat, rounded lng): place name} for every named spot."""
+    return {(l.lat, l.lng): l.name for l in session.query(Location).all()}
+
+
+def _place_key(lat, lng, named):
+    """What counts as 'the same place' for trophies and challenges: the
+    place's name if the spot belongs to one - so every spot in a named field
+    counts as one place - or else the rounded spot itself."""
+    cell = (round(lat, LOCATION_PRECISION), round(lng, LOCATION_PRECISION))
+    return ("place", named[cell]) if cell in named else cell
+
+
+def _existing_place_name(session, name: str):
+    """The stored spelling of a place whose name matches this one ignoring
+    case and surrounding spaces, so 'back garden' joins 'Back Garden'
+    rather than starting a second place. None if there isn't one."""
+    wanted = name.strip().lower()
+    for (stored,) in session.query(Location.name).distinct():
+        if stored.strip().lower() == wanted:
+            return stored
+    return None
+
+
+def get_nearby_places(lat: float, lng: float, max_km: float = 1.5, limit: int = 4):
+    """Named places with a spot within max_km of here, nearest first - offered
+    when the app finds itself somewhere it doesn't know, so the child can say
+    'this is still the big field' instead of naming it again."""
+    if SessionLocal is None:
+        return []
+    with SessionLocal() as session:
+        best = {}
+        for loc in session.query(Location).all():
+            d = _km((lat, lng), (loc.lat, loc.lng))
+            if loc.name not in best or d < best[loc.name][0]:
+                best[loc.name] = (d, loc.id)
+    near = sorted((d, name, lid) for name, (d, lid) in best.items() if d <= max_km)
+    return [{"id": lid, "name": name, "distance_m": int(round(d * 1000))}
+            for d, name, lid in near[:limit]]
+
+
 def get_location_name(lat: float, lng: float):
     """Returns the name for this location if one's been saved, else None."""
     if SessionLocal is None:
@@ -759,12 +819,15 @@ def get_location_name(lat: float, lng: float):
 
 
 def save_location_name(lat: float, lng: float, name: str):
-    """Names a location, creating it if new or renaming it if it
-    already existed (in case someone wants to correct a typo later)."""
+    """Puts this spot into the place called `name`. If a place by that name
+    already exists (ignoring case), the spot is added to it - that is how a
+    second corner of the same field joins the first. Otherwise it starts a
+    new place. A spot that was already named is moved to this place."""
     if SessionLocal is None:
         return
     rlat, rlng = round(lat, LOCATION_PRECISION), round(lng, LOCATION_PRECISION)
     with SessionLocal() as session:
+        name = _existing_place_name(session, name) or name.strip()
         existing = session.query(Location).filter_by(lat=rlat, lng=rlng).first()
         if existing:
             existing.name = name
@@ -1152,15 +1215,16 @@ def get_detection_stats():
 
 
 def delete_location(location_id: int):
-    """Removes a saved location name. The recording sessions that happened
-    there are untouched - this only forgets the label, so the spot simply
-    becomes unnamed again and can be renamed on a future visit."""
+    """Forgets a place: every spot carrying the same name as this one. The
+    recording sessions that happened there are untouched - this only forgets
+    the label, so the spots become unnamed again and can be named on a
+    future visit."""
     if SessionLocal is None:
         return
     with SessionLocal() as session:
         loc = session.query(Location).filter_by(id=location_id).first()
         if loc:
-            session.delete(loc)
+            session.query(Location).filter_by(name=loc.name).delete()
             session.commit()
 
 
@@ -1209,18 +1273,36 @@ def set_equipped_item(category: str, accessory_id):
 
 
 def get_all_locations():
+    """One entry per place, newest first: its first spot's id and position
+    (for the map link, and as the handle for rename/forget) and how many
+    spots it is made of."""
     if SessionLocal is None:
         return []
     with SessionLocal() as session:
-        rows = session.query(Location).order_by(Location.created_at.desc()).all()
-        return [{"id": l.id, "name": l.name, "lat": l.lat, "lng": l.lng} for l in rows]
+        rows = session.query(Location).order_by(Location.created_at.asc(), Location.id.asc()).all()
+    places = {}
+    for l in rows:
+        p = places.get(l.name)
+        if p is None:
+            places[l.name] = {"id": l.id, "name": l.name, "lat": l.lat, "lng": l.lng,
+                              "spots": 1, "_newest": l.created_at}
+        else:
+            p["spots"] += 1
+            p["_newest"] = max(p["_newest"] or l.created_at, l.created_at or p["_newest"])
+    out = sorted(places.values(), key=lambda p: p["_newest"] or datetime.datetime.min, reverse=True)
+    for p in out:
+        p.pop("_newest")
+    return out
 
 
 def rename_location(location_id: int, new_name: str):
+    """Renames a place - every spot carrying this one's name. Renaming it to
+    the name of another place joins the two together."""
     if SessionLocal is None:
         return
     with SessionLocal() as session:
         loc = session.query(Location).filter_by(id=location_id).first()
         if loc:
-            loc.name = new_name
+            target = _existing_place_name(session, new_name) or new_name.strip()
+            session.query(Location).filter_by(name=loc.name).update({"name": target})
             session.commit()

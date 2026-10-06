@@ -187,7 +187,7 @@ from database import (
     add_feathers, get_all_sightings, get_total_feathers,
     record_session, count_distinct_locations,
     get_earned_trophy_keys, award_trophy,
-    get_location_name, save_location_name,
+    get_location_name, save_location_name, get_nearby_places,
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location, delete_location, get_detection_stats,
     set_session_bird_count, count_successful_sessions_this_week,
@@ -488,6 +488,10 @@ async def analyze_session(
 
     existing_location_name = get_location_name(lat, lng)
     needs_location_name = existing_location_name is None
+    # A spot we don't know yet may still be part of a place the child has
+    # already named - the far side of the same field. Offer those, nearest
+    # first, so they can add this spot to one instead of inventing a new name.
+    nearby_places = get_nearby_places(lat, lng) if needs_location_name else []
 
     for detection in detections:
         common_name = detection["common_name"]
@@ -580,6 +584,7 @@ async def analyze_session(
         "total_feathers": new_total,
         "newly_earned_trophies": newly_earned_trophies,
         "needs_location_name": needs_location_name,
+        "nearby_places": nearby_places,
         "location_name": existing_location_name,
         "lat": lat,
         "lng": lng,
@@ -588,7 +593,9 @@ async def analyze_session(
 
 @app.post("/name-location")
 async def name_location(lat: float = Form(...), lng: float = Form(...), name: str = Form(...)):
-    """Saves a free-text name for wherever (lat, lng) rounds to."""
+    """Puts the spot (lat, lng) rounds to into the place called `name`:
+    an existing place of that name (ignoring case) gains this spot, or a new
+    place is started."""
     save_location_name(lat, lng, name)
     return {"status": "ok"}
 
