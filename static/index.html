@@ -7635,16 +7635,24 @@ async function renderTrophies() {
   }
 }
 
-// Where the trophies sit, worked out from the row's width the same way as
-// the deck's cards (deckOffsets), so the two screens match on any phone.
-let TROPHY_X = deckOffsets(390);
+// Where the trophies sit: the deck's card positions (deckOffsets), spread a
+// little wider. A trophy is wider for its height than a card, so at the
+// cards' spacing the ones behind crowd the front one. The first layer moves
+// out by a third; the second as far as it can while staying on screen.
+let TROPHY_X = trophyOffsets(390);
+function trophyOffsets(width) {
+  const d = deckOffsets(width);
+  const x1 = d[1] * 1.35;
+  const x2 = Math.min(d[2] * 1.15, width / 2 - CARD_HALF * CARD_SCALE[2]);
+  return [0, x1, x2, x2 + 18];
+}
 
 // `drift` is how far the row has been dragged (or is gliding), in places, so
 // the trophies can sit part-way between two positions.
 function layoutTrophyCarousel(drift = 0) {
   const slides = document.querySelectorAll('.trophy-slide');
   const row = document.getElementById('trophyCarousel');
-  if (row && row.clientWidth) TROPHY_X = deckOffsets(row.clientWidth);
+  if (row && row.clientWidth) TROPHY_X = trophyOffsets(row.clientWidth);
   slides.forEach((el, i) => {
     const offset = i - trophyIndex - drift;
     const abs = Math.abs(offset);
