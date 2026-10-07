@@ -532,16 +532,17 @@
   .sg-note{font-size:13px; color:#fff; text-align:center; margin-top:16px; line-height:1.4;}
   /* Stars: gold when earned, an empty outline-ish dim star when not. On the
      end screen they pop in one after another (--d staggers them). */
-  .sg-stars{display:inline-flex; gap:2px; line-height:1;}
-  .sg-star{color:rgba(245,237,214,0.28); font-size:20px;}
-  .sg-star.on{color:var(--gold); text-shadow:0 0 6px rgba(242,201,76,0.55), 0 1px 0 var(--gold-dk);}
+  .sg-stars{display:inline-flex; align-items:center; gap:3px; line-height:1;}
+  .sg-star{width:30px; height:30px; display:block; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3));}
+  /* A star not won yet gets the app's usual "not yet": grey and dimmed. */
+  .sg-star:not(.on){filter:grayscale(1) brightness(.8); opacity:.5;}
   .sg-level-stars{margin-left:auto; flex:0 0 auto;}
-  .sg-end-stars{gap:8px; margin:4px 0 6px;}
-  .sg-end-stars .sg-star{font-size:54px; color:rgba(255,255,255,0.22);}
-  .sg-end-stars .sg-star.on{color:var(--gold); animation:sgStarIn .5s cubic-bezier(.3,1.6,.5,1) both;
-    animation-delay:var(--d);}
-  .sg-end-stars .sg-star:nth-child(2){transform:translateY(-10px);}
-  .sg-end-stars .sg-star.on:nth-child(2){--lift:-10px;}
+  .sg-end-stars{gap:10px; margin:10px 0 8px;}
+  .sg-end-stars .sg-star{width:68px; height:68px;}
+  .sg-end-stars .sg-star.on{animation:sgStarIn .5s cubic-bezier(.3,1.6,.5,1) both; animation-delay:var(--d);
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(242,201,76,0.45));}
+  .sg-end-stars .sg-star:nth-child(2){transform:translateY(-12px);}
+  .sg-end-stars .sg-star.on:nth-child(2){--lift:-12px;}
   @keyframes sgStarIn{from{transform:translateY(var(--lift,0px)) scale(0); opacity:0;}
     to{transform:translateY(var(--lift,0px)) scale(1); opacity:1;}}
   .sg-message{font-family:'Poppins'; font-weight:700; font-size:14px; color:#fff; margin-top:4px; text-align:center;}
@@ -2945,7 +2946,7 @@ function songGameBirdsNeeded(l) {
 
 function songGameStars(n, cls) {
   return `<span class="sg-stars ${cls}" aria-label="${n} star${n === 1 ? '' : 's'}">${
-    [0, 1, 2].map(i => `<span class="sg-star ${i < n ? 'on' : ''}" style="--d:${i * 220}ms">★</span>`).join('')}</span>`;
+    [0, 1, 2].map(i => `<img class="sg-star ${i < n ? 'on' : ''}" style="--d:${i * 220}ms" src="/static/star-v1.webp" alt="">`).join('')}</span>`;
 }
 
 function startSongGameLevel(data, level) {
