@@ -582,9 +582,19 @@
   /* The ten seconds, drained left to right once the song has finished. */
   .sg-timer{width:100%; max-width:300px; height:8px; border-radius:4px;
     background:rgba(255,255,255,0.18); overflow:hidden; margin-bottom:14px;}
-  .sg-timer-fill{height:100%; width:100%; background:var(--gold); border-radius:4px;
+  .sg-timer-fill{height:100%; width:100%; background:var(--sage); border-radius:4px;
     transform-origin:left center; transform:scaleX(1);}
-  .sg-timer-fill.running{transition:transform linear; transform:scaleX(0);}
+  .sg-timer-fill.running{transition:transform linear; transform:scaleX(0);
+    animation:sgTimerColour linear forwards;}
+  /* Green while there's plenty of time, through gold and orange, to red at
+     the end. Runs for the same thirty seconds as the drain (the duration is
+     set on both in startSongGameTimer). */
+  @keyframes sgTimerColour{
+    0%{background:var(--sage);}
+    45%{background:var(--gold);}
+    72%{background:#F08A3C;}
+    100%{background:#E5483B;}
+  }
   .sg-grid{display:grid; gap:10px; width:100%; max-width:360px; justify-content:center;}
   .sg-grid.cols2{grid-template-columns:repeat(2, minmax(0, 160px));}
   .sg-grid.cols3{grid-template-columns:repeat(3, minmax(0, 1fr));}
@@ -3114,7 +3124,7 @@ function startSongGameTimer() {
   const fill = document.getElementById('sgTimer');
   if (!g || !fill) return;
   void fill.offsetWidth;   // let the full bar paint before it starts draining
-  fill.style.transitionDuration = SONG_GAME_ANSWER_MS + 'ms';
+  fill.style.transitionDuration = fill.style.animationDuration = SONG_GAME_ANSWER_MS + 'ms';
   fill.classList.add('running');
   g.timer = setTimeout(() => { if (songGame === g) answerSongGame(null); }, SONG_GAME_ANSWER_MS);
 }
@@ -3135,9 +3145,11 @@ function answerSongGame(picked) {
   // Freeze the bar where it got to, rather than letting it finish draining.
   const fill = document.getElementById('sgTimer');
   if (fill) {
-    const now = getComputedStyle(fill).transform;
+    const now = getComputedStyle(fill);
+    const transform = now.transform, colour = now.backgroundColor;
     fill.classList.remove('running');
-    fill.style.transform = now === 'none' ? '' : now;
+    fill.style.transform = transform === 'none' ? '' : transform;
+    fill.style.background = colour;   // and keep the colour it had reached
   }
   const btn = document.getElementById('sgPlay');
   if (btn) btn.classList.remove('playing', 'invite');
