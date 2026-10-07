@@ -582,6 +582,14 @@
   /* The ten seconds, drained left to right once the song has finished. */
   .sg-timer{width:100%; max-width:300px; height:8px; border-radius:4px;
     background:rgba(255,255,255,0.18); overflow:hidden; margin-bottom:14px;}
+  /* The last five seconds: the whole bar throbs, twice a second, with a
+     red glow. The track pulses rather than the fill, because the fill's
+     transform is already busy draining it. */
+  .sg-timer.urgent{animation:sgTimerUrgent .5s ease-in-out infinite;}
+  @keyframes sgTimerUrgent{
+    0%,100%{transform:scaleY(1); box-shadow:0 0 0 0 rgba(229,72,59,0);}
+    50%{transform:scaleY(1.75); box-shadow:0 0 12px 3px rgba(229,72,59,0.75);}
+  }
   .sg-timer-fill{height:100%; width:100%; background:var(--sage); border-radius:4px;
     transform-origin:left center; transform:scaleX(1);}
   .sg-timer-fill.running{transition:transform linear; transform:scaleX(0);
@@ -638,6 +646,7 @@
     50%{transform:scale(1.04); box-shadow:0 3px 8px rgba(26,17,40,0.28), 0 0 0 3px rgba(255,255,255,0.75), 0 0 22px 6px rgba(242,201,76,0.75);}
   }
   @media (prefers-reduced-motion: reduce){
+    .sg-timer.urgent{animation:none; box-shadow:0 0 10px 2px rgba(229,72,59,0.75);}
     .sg-play.invite, .sg-level.invite, .sg-btn.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on{animation:none;}
     .sg-burst{display:none;}
   }
@@ -2883,6 +2892,7 @@ async function renderJokeOfDay() {
 // server works the stars out and keeps the best (/song-game/result).
 const SONG_GAME_FIRST_UNLOCK = 10;   // mirrors SONG_GAME_LEVELS in main.py
 const SONG_GAME_ANSWER_MS = 30000;   // from when the song starts playing
+const SONG_GAME_URGENT_MS = 5000;    // the bar pulses for this last stretch
 const SONG_GAME_CLIP_MS = 9000;      // xeno-canto recordings can run for minutes
 let songGame = null;                 // the level being played, or null
 // Leaving the game by any route - a nav tab, the mic - ends the level, so a
@@ -2916,6 +2926,7 @@ function songGameShuffle(list) {
 function stopSongGame() {
   if (!songGame) return;
   clearTimeout(songGame.timer);
+  clearTimeout(songGame.urgentTimer);
   clearTimeout(songGame.clipTimer);
   if (songGame.audio) { songGame.audio.onended = songGame.audio.onerror = null; songGame.audio.pause(); }
   songGame = null;
@@ -3026,7 +3037,7 @@ function renderSongGameRound() {
   g.answered = false;
   g.started = false;
   g.playing = false;
-  clearTimeout(g.timer);
+  clearTimeout(g.timer); clearTimeout(g.urgentTimer);
   g.timer = null;   // this round's thirty seconds start on its first play
   const n = g.choices.length;
   root.innerHTML = `
@@ -3102,7 +3113,7 @@ function songGameNoSong(bird) {
   if (!g || g.answered || g.answers[g.round] !== bird) return;
   if (g.audio) { g.audio.onended = g.audio.onerror = null; g.audio.pause(); }
   clearTimeout(g.clipTimer);
-  clearTimeout(g.timer);
+  clearTimeout(g.timer); clearTimeout(g.urgentTimer);
   g.noSong.add(bird.common_name);
   const left = g.data.birds.filter(b => b.call_url && !g.noSong.has(b.common_name));
   if (!left.length) {
@@ -3127,6 +3138,10 @@ function startSongGameTimer() {
   fill.style.transitionDuration = fill.style.animationDuration = SONG_GAME_ANSWER_MS + 'ms';
   fill.classList.add('running');
   g.timer = setTimeout(() => { if (songGame === g) answerSongGame(null); }, SONG_GAME_ANSWER_MS);
+  // The last five seconds: the bar starts to throb.
+  g.urgentTimer = setTimeout(() => {
+    if (songGame === g && !g.answered) fill.parentElement.classList.add('urgent');
+  }, SONG_GAME_ANSWER_MS - SONG_GAME_URGENT_MS);
 }
 
 // `picked` is null when the ten seconds ran out.
@@ -3134,7 +3149,7 @@ function answerSongGame(picked) {
   const g = songGame;
   if (!g || g.answered || !g.started) return;
   g.answered = true;
-  clearTimeout(g.timer);
+  clearTimeout(g.timer); clearTimeout(g.urgentTimer);
   clearTimeout(g.clipTimer);
   if (g.audio) { g.audio.onended = g.audio.onerror = null; g.audio.pause(); }
   g.playing = false;
@@ -3148,6 +3163,7 @@ function answerSongGame(picked) {
     const now = getComputedStyle(fill);
     const transform = now.transform, colour = now.backgroundColor;
     fill.classList.remove('running');
+    fill.parentElement.classList.remove('urgent');
     fill.style.transform = transform === 'none' ? '' : transform;
     fill.style.background = colour;   // and keep the colour it had reached
   }
