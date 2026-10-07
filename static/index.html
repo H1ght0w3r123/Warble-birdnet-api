@@ -554,7 +554,7 @@
   .sg-end-stars .sg-star.on:nth-child(2){--lift:-12px;}
   @keyframes sgStarIn{from{transform:translateY(var(--lift,0px)) scale(0); opacity:0;}
     to{transform:translateY(var(--lift,0px)) scale(1); opacity:1;}}
-  .sg-message{font-family:'Poppins'; font-weight:700; font-size:14px; color:#fff; margin-top:4px; text-align:center;}
+  .sg-message{font-family:'Poppins'; font-weight:700; font-size:14px; color:#fff; margin:4px 0 22px; text-align:center;}
 
   .sg-round{width:100%; display:flex; flex-direction:column; align-items:center;}
   .sg-head{
@@ -599,9 +599,6 @@
   @keyframes sgWrong{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
   .sg-result{font-family:'Poppins'; font-weight:900; font-size:16px; color:#fff;
     min-height:24px; margin-top:12px; text-align:center;}
-  .sg-dots{display:flex; gap:7px; justify-content:center; margin:14px 0 18px;}
-  .sg-dot{width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.22);}
-  .sg-dot.yes{background:var(--sage); box-shadow:0 0 0 2px rgba(255,255,255,0.6);}
   .sg-buttons{display:flex; flex-direction:column; gap:9px; width:100%; max-width:300px; margin:0 auto;}
   .sg-btn{border:none; cursor:pointer; border-radius:16px; padding:12px; font-family:'Poppins';
     font-weight:900; font-size:15px; background:var(--gold); color:var(--ink);
@@ -3156,7 +3153,7 @@ async function renderSongGameEnd() {
   const got = g.results.filter(Boolean).length;
   const before = data.levels;
   stopSongGame();
-  root.innerHTML = `<div class="sg-head">Level ${level.level} done!</div>`;
+  root.innerHTML = `<div class="sg-head">Level ${level.level}</div>`;
 
   // The server decides the stars and whether anything new has opened. If it
   // can't be reached, show the stars for this go anyway - only saving them
@@ -3187,11 +3184,10 @@ async function renderSongGameEnd() {
   const waiting = stars > 0 && next && !next.unlocked
     ? `<div class="sg-note">Hear ${next.to_go} more bird${next.to_go === 1 ? '' : 's'} to open Level ${next.level}</div>` : '';
   root.innerHTML = `
-    <div class="sg-head">Level ${level.level} done!</div>
+    <div class="sg-head">Level ${level.level}${stars > 0 ? ' done!' : ''}</div>
     ${songGameStars(stars, 'sg-end-stars')}
     <div class="collection-title">You got ${got} of ${g.results.length}</div>
     <div class="sg-message">${message}</div>
-    <div class="sg-dots">${g.results.map(r => `<span class="sg-dot ${r ? 'yes' : ''}"></span>`).join('')}</div>
     <div class="sg-buttons">
       ${next && next.unlocked ? `<button class="sg-btn" id="sgNext">Level ${next.level}</button>` : ''}
       <button class="sg-btn ${next && next.unlocked ? 'plain' : ''}" id="sgAgain">Play again</button>
