@@ -488,18 +488,10 @@
   .mini-icon-img{width:30px; height:30px; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3));}
   .mini-icon-img img{width:100%; height:100%; display:block;}
   .mini-text{display:flex; flex-direction:column; gap:1px; min-width:0;}
-  .mini-label{
-    font-family:'Poppins'; font-weight:900; font-size:9.5px; letter-spacing:.07em;
-    text-transform:uppercase; color:rgba(245,237,214,0.7);
-  }
-  /* A card with just a name and no call to action: Joke Of The Day. */
+  /* Each card is just its name, with no call to action. */
   .mini-title{
     font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1.2;
     color:var(--parch);
-  }
-  .mini-body{
-    font-family:'Poppins'; font-weight:700; font-size:12px; line-height:1.25;
-    color:var(--parch); overflow-wrap:anywhere;
   }
   /* Narrow phones: the joke drops under the tip rather than squeezing both. */
   .mini-game{flex:0 0 auto; padding-right:16px;}
@@ -2556,8 +2548,7 @@ function renderIdle() {
       <button class="mini-card mini-game" id="gameMini">
         <span class="mini-icon mini-icon-img"><img src="/static/song-game-icon-v1.webp" alt=""></span>
         <span class="mini-text">
-          <span class="mini-label">Guess the song</span>
-          <span class="mini-body" id="gameMiniBody">Play!</span>
+          <span class="mini-title">Guess The Song</span>
         </span>
       </button>
     </div>
@@ -2912,12 +2903,11 @@ async function loadSongGameTile() {
     const res = await fetch('/curated-progress');
     const data = await res.json();
     const tile = document.getElementById('gameMini');
-    const body = document.getElementById('gameMiniBody');
-    if (!tile || !body) return;
-    const toGo = SONG_GAME_FIRST_UNLOCK - data.found;
-    tile.classList.toggle('locked', toGo > 0);
-    body.textContent = toGo > 0 ? `Hear ${toGo} more bird${toGo === 1 ? '' : 's'}` : 'Play!';
-  } catch (e) { /* the tile still opens the game, which says the same */ }
+    if (!tile) return;
+    // Greyed until 10 birds have been heard. Tapping it anyway opens the
+    // game, whose level list says how many more are needed.
+    tile.classList.toggle('locked', data.found < SONG_GAME_FIRST_UNLOCK);
+  } catch (e) { /* the tile still opens the game */ }
 }
 
 function songGameShuffle(list) {
