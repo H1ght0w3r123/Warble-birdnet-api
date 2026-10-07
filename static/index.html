@@ -598,6 +598,7 @@
     font-weight:900; font-size:15px; background:var(--gold); color:var(--ink);
     box-shadow:0 3px 8px rgba(26,17,40,0.28);}
   .sg-btn.plain{background:#7E4B29; color:var(--parch);}
+  .sg-btn.sg-back{font-size:13px; padding:9px 20px; margin-top:16px;}
   .sg-btn:active{transform:scale(.97);}
   @media (prefers-reduced-motion: reduce){
     .sg-play.invite, .sg-level.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on{animation:none;}
@@ -2957,14 +2958,19 @@ function startSongGameLevel(data, level) {
   songGame = { data, level, answers: answers.slice(0, data.rounds), round: 0,
                results: [], noSong: new Set() };
   stage.classList.add('top-aligned');
-  stage.innerHTML = `
-    <div style="width:100%;margin-bottom:14px;">
-      <button class="back-btn" id="backBtn">← Levels</button>
-    </div>
-    <div class="sg-round" id="sgRound"></div>
-  `;
-  document.getElementById('backBtn').onclick = () => renderSongGame(data);
+  stage.innerHTML = `<div class="sg-round" id="sgRound"></div>`;
   renderSongGameRound();
+}
+
+// Under the bird tiles rather than at the top of the screen: it's the way
+// out of a level part-way through, and down here it's out of the way of the
+// play button.
+function songGameBackButton() {
+  return `<button class="sg-btn plain sg-back" id="sgBack">Back to levels</button>`;
+}
+
+function bindSongGameBack(data) {
+  document.getElementById('sgBack').onclick = () => renderSongGame(data);
 }
 
 function renderSongGameRound() {
@@ -2999,7 +3005,9 @@ function renderSongGameRound() {
         </button>`).join('')}
     </div>
     <div class="sg-result" id="sgResult"></div>
+    ${songGameBackButton()}
   `;
+  bindSongGameBack(g.data);
   document.getElementById('sgPlay').onclick = playSongGameClip;
   root.querySelectorAll('.sg-tile').forEach(t => {
     t.onclick = () => answerSongGame(g.choices[+t.dataset.i]);
@@ -3057,7 +3065,9 @@ function songGameNoSong(bird) {
   const left = g.data.birds.filter(b => b.call_url && !g.noSong.has(b.common_name));
   if (!left.length) {
     document.getElementById('sgRound').innerHTML =
-      `<div class="sg-note">Warble couldn't play any of the songs just now. Try again later!</div>`;
+      `<div class="sg-note">Warble couldn't play any of the songs just now. Try again later!</div>
+       ${songGameBackButton()}`;
+    bindSongGameBack(g.data);
     stopSongGame();
     return;
   }
