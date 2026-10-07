@@ -2888,18 +2888,12 @@ async function renderSongGame(data) {
   stopSongGame();
   setActiveTab('home');
   stage.classList.add('top-aligned');
+  // No back button: the Home tab is the way out.
   stage.innerHTML = `
-    <div style="width:100%;margin-bottom:14px;">
-      <button class="back-btn" id="backBtn">← Back</button>
-    </div>
     <div class="collection-title">Guess the Song</div>
     <div class="sg-sub">Hear a song, then tap the bird that sang it.<br>Get 6 right for a star - a star opens the next level.</div>
     <div class="sg-levels" id="sgLevels"><div class="sg-note">Loading…</div></div>
   `;
-  document.getElementById('backBtn').onclick = () => {
-    stage.classList.remove('top-aligned');
-    renderIdle();
-  };
   if (!data) {
     try { data = await (await fetch('/song-game')).json(); }
     catch (e) {
