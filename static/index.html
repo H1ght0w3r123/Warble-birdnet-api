@@ -2872,7 +2872,7 @@ async function renderJokeOfDay() {
 // 8 three - and a level only opens once the one before has a star. The
 // server works the stars out and keeps the best (/song-game/result).
 const SONG_GAME_FIRST_UNLOCK = 10;   // mirrors SONG_GAME_LEVELS in main.py
-const SONG_GAME_ANSWER_MS = 10000;   // after the song ends
+const SONG_GAME_ANSWER_MS = 30000;   // from when the song starts playing
 const SONG_GAME_CLIP_MS = 9000;      // xeno-canto recordings can run for minutes
 let songGame = null;                 // the level being played, or null
 // Leaving the game by any route - a nav tab, the mic - ends the level, so a
@@ -3016,6 +3016,8 @@ function renderSongGameRound() {
   g.answered = false;
   g.started = false;
   g.playing = false;
+  clearTimeout(g.timer);
+  g.timer = null;   // this round's thirty seconds start on its first play
   const n = g.choices.length;
   root.innerHTML = `
     <div class="sg-head">Level ${g.level.level} · Round ${g.round + 1} of ${g.data.rounds}</div>
@@ -3044,14 +3046,13 @@ function renderSongGameRound() {
   });
 }
 
-// Replays are allowed: tapping play again stops the countdown, plays the song
-// from the start and starts a fresh ten seconds when it ends.
+// The thirty seconds start the moment the song first starts playing, and
+// listening is part of that time. Replays are allowed but don't reset the
+// clock, so a round can't be stretched out forever by replaying it.
 function playSongGameClip() {
   const g = songGame;
   if (!g || g.answered || g.playing) return;
   const answer = g.answers[g.round];
-  clearTimeout(g.timer);
-  resetSongGameTimer();
   const btn = document.getElementById('sgPlay');
   btn.classList.remove('invite');
   btn.classList.add('playing');
@@ -3075,12 +3076,12 @@ function playSongGameClip() {
     if (g.answered) return;
     btn.classList.remove('playing');
     document.getElementById('sgPrompt').textContent = 'Which bird sang that?';
-    startSongGameTimer();
   };
   audio.onended = ended;
   audio.onerror = () => songGameNoSong(answer);
   audio.play().then(() => {
     g.clipTimer = setTimeout(ended, SONG_GAME_CLIP_MS);
+    if (!g.timer && songGame === g && !g.answered) startSongGameTimer();
   }).catch(() => songGameNoSong(answer));
 }
 
@@ -3091,6 +3092,7 @@ function songGameNoSong(bird) {
   if (!g || g.answered || g.answers[g.round] !== bird) return;
   if (g.audio) { g.audio.onended = g.audio.onerror = null; g.audio.pause(); }
   clearTimeout(g.clipTimer);
+  clearTimeout(g.timer);
   g.noSong.add(bird.common_name);
   const left = g.data.birds.filter(b => b.call_url && !g.noSong.has(b.common_name));
   if (!left.length) {
@@ -3105,13 +3107,6 @@ function songGameNoSong(bird) {
     if (g.noSong.has(g.answers[i].common_name)) g.answers[i] = left[Math.floor(Math.random() * left.length)];
   }
   renderSongGameRound();
-}
-
-function resetSongGameTimer() {
-  const fill = document.getElementById('sgTimer');
-  if (!fill) return;
-  fill.classList.remove('running');
-  fill.style.transitionDuration = '';
 }
 
 function startSongGameTimer() {
@@ -3217,7 +3212,7 @@ async function renderSongGameEnd() {
   const waiting = stars > 0 && next && !next.unlocked
     ? `<div class="sg-note">Hear ${next.to_go} more bird${next.to_go === 1 ? '' : 's'} to open Level ${next.level}</div>` : '';
   root.innerHTML = `
-    <div class="sg-head">Level ${level.level}${stars > 0 ? ' complete' : ''}</div>
+    <div class="sg-head">Level ${level.level}${stars > 0 ? ' complete!' : ''}</div>
     ${songGameEndStars(stars)}
     <div class="collection-title">You got ${got} of ${g.results.length}</div>
     <div class="sg-message">${message}</div>
