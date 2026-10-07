@@ -546,14 +546,28 @@
   /* A star not won yet gets the app's usual "not yet": grey and dimmed. */
   .sg-star:not(.on){filter:grayscale(1) brightness(.8); opacity:.5;}
   .sg-level-stars{margin-left:auto; flex:0 0 auto;}
+  /* End screen: three grey sockets, and each star won drops into its socket
+     in turn - overshooting, settling, with a gold ring bursting out behind
+     it. --d staggers them. */
   .sg-end-stars{gap:10px; margin:10px 0 8px;}
+  .sg-slot{position:relative; width:68px; height:68px;}
+  .sg-slot:nth-child(2){transform:translateY(-12px);}
   .sg-end-stars .sg-star{width:68px; height:68px;}
-  .sg-end-stars .sg-star.on{animation:sgStarIn .5s cubic-bezier(.3,1.6,.5,1) both; animation-delay:var(--d);
-    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(242,201,76,0.45));}
-  .sg-end-stars .sg-star:nth-child(2){transform:translateY(-12px);}
-  .sg-end-stars .sg-star.on:nth-child(2){--lift:-12px;}
-  @keyframes sgStarIn{from{transform:translateY(var(--lift,0px)) scale(0); opacity:0;}
-    to{transform:translateY(var(--lift,0px)) scale(1); opacity:1;}}
+  .sg-end-stars .sg-star.on{position:absolute; inset:0; z-index:2;
+    animation:sgStarPop .65s cubic-bezier(.25,1.5,.5,1) both; animation-delay:var(--d);
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(242,201,76,0.5));}
+  @keyframes sgStarPop{
+    0%{transform:scale(2.2) rotate(-25deg); opacity:0;}
+    55%{transform:scale(.88) rotate(6deg); opacity:1;}
+    100%{transform:scale(1) rotate(0); opacity:1;}
+  }
+  .sg-burst{position:absolute; inset:-6px; z-index:1; border-radius:50%; pointer-events:none;
+    border:4px solid var(--gold); opacity:0;
+    animation:sgBurst .7s ease-out forwards; animation-delay:calc(var(--d) + .3s);}
+  @keyframes sgBurst{
+    0%{transform:scale(.6); opacity:.95;}
+    100%{transform:scale(1.7); opacity:0; border-width:1px;}
+  }
   .sg-message{font-family:'Poppins'; font-weight:700; font-size:14px; color:#fff; margin:4px 0 22px; text-align:center;}
 
   .sg-round{width:100%; display:flex; flex-direction:column; align-items:center;}
@@ -606,8 +620,16 @@
   .sg-btn.plain{background:#7E4B29; color:var(--parch);}
   .sg-btn.sg-back{font-size:13px; padding:9px 20px; margin-top:16px;}
   .sg-btn:active{transform:scale(.97);}
+  /* The next level's button breathes and glows, like the level to play
+     next on the levels page. */
+  .sg-btn.invite{animation:sgBtnInvite 1.6s ease-in-out infinite; animation-delay:1.4s;}
+  @keyframes sgBtnInvite{
+    0%,100%{transform:scale(1); box-shadow:0 3px 8px rgba(26,17,40,0.28), 0 0 0 0 rgba(242,201,76,0);}
+    50%{transform:scale(1.04); box-shadow:0 3px 8px rgba(26,17,40,0.28), 0 0 0 3px rgba(255,255,255,0.75), 0 0 22px 6px rgba(242,201,76,0.75);}
+  }
   @media (prefers-reduced-motion: reduce){
-    .sg-play.invite, .sg-level.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on{animation:none;}
+    .sg-play.invite, .sg-level.invite, .sg-btn.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on{animation:none;}
+    .sg-burst{display:none;}
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -3145,6 +3167,17 @@ function answerSongGame(picked) {
   }, right ? 1700 : 2400);
 }
 
+// The end screen's stars: a grey socket for each, with the ones won dropping
+// in on top a moment after the screen appears, one after another.
+function songGameEndStars(n) {
+  const src = '/static/star-v1.webp';
+  return `<span class="sg-stars sg-end-stars" aria-label="${n} star${n === 1 ? '' : 's'}">${
+    [0, 1, 2].map(i => `<span class="sg-slot" style="--d:${350 + i * 450}ms">
+      <img class="sg-star" src="${src}" alt="">
+      ${i < n ? `<span class="sg-burst"></span><img class="sg-star on" src="${src}" alt="">` : ''}
+    </span>`).join('')}</span>`;
+}
+
 async function renderSongGameEnd() {
   const g = songGame;
   const root = document.getElementById('sgRound');
@@ -3176,7 +3209,7 @@ async function renderSongGameEnd() {
 
   const next = levels.find(l => l.level === level.level + 1);
   const opened = next && next.unlocked && !before.find(l => l.level === next.level).unlocked;
-  const message = opened ? `Level ${next.level} is open!`
+  const message = opened ? `Level ${next.level} unlocked!`
     : stars === 3 ? 'Every single one!'
     : stars > 0 ? 'Well done!'
     : `Get ${g.results.length - 2} right to earn a star`;
@@ -3184,12 +3217,12 @@ async function renderSongGameEnd() {
   const waiting = stars > 0 && next && !next.unlocked
     ? `<div class="sg-note">Hear ${next.to_go} more bird${next.to_go === 1 ? '' : 's'} to open Level ${next.level}</div>` : '';
   root.innerHTML = `
-    <div class="sg-head">Level ${level.level}${stars > 0 ? ' done!' : ''}</div>
-    ${songGameStars(stars, 'sg-end-stars')}
+    <div class="sg-head">Level ${level.level}${stars > 0 ? ' complete' : ''}</div>
+    ${songGameEndStars(stars)}
     <div class="collection-title">You got ${got} of ${g.results.length}</div>
     <div class="sg-message">${message}</div>
     <div class="sg-buttons">
-      ${next && next.unlocked ? `<button class="sg-btn" id="sgNext">Level ${next.level}</button>` : ''}
+      ${next && next.unlocked ? `<button class="sg-btn invite" id="sgNext">Level ${next.level}</button>` : ''}
       <button class="sg-btn ${next && next.unlocked ? 'plain' : ''}" id="sgAgain">Play again</button>
       <button class="sg-btn plain" id="sgLevelsBtn">All levels</button>
     </div>
