@@ -492,6 +492,11 @@
     font-family:'Poppins'; font-weight:900; font-size:9.5px; letter-spacing:.07em;
     text-transform:uppercase; color:rgba(245,237,214,0.7);
   }
+  /* A card with just a name and no call to action: Joke Of The Day. */
+  .mini-title{
+    font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1.2;
+    color:var(--parch);
+  }
   .mini-body{
     font-family:'Poppins'; font-weight:700; font-size:12px; line-height:1.25;
     color:var(--parch); overflow-wrap:anywhere;
@@ -2543,10 +2548,9 @@ function renderIdle() {
 
     <div class="home-minis">
       <button class="mini-card mini-joke" id="jokeMini">
-        <span class="mini-icon" id="jokeMiniIcon">😄</span>
+        <span class="mini-icon mini-icon-img"><img src="/static/joke-icon-v1.webp" alt=""></span>
         <span class="mini-text">
-          <span class="mini-label">Bird joke</span>
-          <span class="mini-body" id="jokeMiniBody">Tap me!</span>
+          <span class="mini-title">Joke Of The Day</span>
         </span>
       </button>
       <button class="mini-card mini-game" id="gameMini">
@@ -2838,14 +2842,12 @@ async function loadJokeTileStatus() {
   try {
     const res = await fetch('/joke-of-the-day');
     const data = await res.json();
-    const iconEl = document.getElementById('jokeMiniIcon');
-    if (!iconEl) return; // already navigated away before this resolved
-    iconEl.textContent = data.unlocked ? '😄' : '🔒';
-    // A padlock on its own is a dead end. The joke unlocks after a listen,
-    // which is the thing we want them doing anyway.
-    const bodyEl = document.getElementById('jokeMiniBody');
-    if (bodyEl) bodyEl.textContent = data.unlocked ? 'Tap me!' : 'Listen first';
-  } catch (e) { /* leave the loading text if this fails */ }
+    const tile = document.getElementById('jokeMini');
+    if (!tile) return; // already navigated away before this resolved
+    // Still locked (nothing heard today): greyed like the other "not yet"
+    // things. Tapping it anyway opens the joke screen, which says why.
+    tile.classList.toggle('locked', !data.unlocked);
+  } catch (e) { /* the card still opens the joke screen */ }
 }
 
 async function renderJokeOfDay() {
