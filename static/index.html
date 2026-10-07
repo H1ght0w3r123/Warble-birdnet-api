@@ -518,8 +518,15 @@
     display:flex; align-items:center; justify-content:center;
     font-family:'Poppins'; font-weight:900; font-size:18px;
   }
-  .sg-level-name{font-family:'Poppins'; font-weight:900; font-size:15px; display:block;}
-  .sg-level-info{font-family:'Poppins'; font-weight:700; font-size:12px; color:rgba(245,237,214,0.75); display:block;}
+  .sg-level-name{font-family:'Poppins'; font-weight:900; font-size:18px;}
+  /* The level to play next breathes and glows gold, like the front trophy. */
+  .sg-level.invite{animation:sgLevelInvite 1.6s ease-in-out infinite;}
+  @keyframes sgLevelInvite{
+    0%,100%{transform:scale(1);
+      box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 3px 8px rgba(26,17,40,0.28), 0 0 0 0 rgba(242,201,76,0);}
+    50%{transform:scale(1.035);
+      box-shadow:inset 0 0 0 2px rgba(242,201,76,0.85), 0 3px 8px rgba(26,17,40,0.28), 0 0 18px 4px rgba(242,201,76,0.6);}
+  }
   .sg-note{font-size:13px; color:#fff; text-align:center; margin-top:16px; line-height:1.4;}
   /* Stars: gold when earned, an empty outline-ish dim star when not. On the
      end screen they pop in one after another (--d staggers them). */
@@ -590,7 +597,7 @@
   .sg-btn.plain{background:#7E4B29; color:var(--parch);}
   .sg-btn:active{transform:scale(.97);}
   @media (prefers-reduced-motion: reduce){
-    .sg-play.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on{animation:none;}
+    .sg-play.invite, .sg-level.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on{animation:none;}
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -2901,14 +2908,16 @@ async function renderSongGame(data) {
   const box = document.getElementById('sgLevels');
   if (!box) return;   // navigated away while loading
   const playable = data.birds.filter(b => b.call_url).length;
+  // The one to play next pulses: the highest open level still short of
+  // three stars. Usually that's the newest level, with none yet; once every
+  // open level has a star, it's the highest one with stars still to win.
+  const invite = playable === 0 ? null
+    : data.levels.filter(l => l.unlocked && l.stars < 3).pop();
   box.innerHTML = data.levels.map(l => `
-    <button class="sg-level ${l.unlocked ? '' : 'locked'}" data-level="${l.level}">
+    <button class="sg-level ${l.unlocked ? '' : 'locked'} ${l === invite ? 'invite' : ''}" data-level="${l.level}">
       <span class="sg-level-num">${l.unlocked ? l.level : '🔒'}</span>
-      <span>
-        <span class="sg-level-name">Level ${l.level}</span>
-        <span class="sg-level-info">${l.unlocked ? `${l.choices} birds to choose from` : songGameLockedText(l)}</span>
-      </span>
-      ${l.unlocked ? songGameStars(l.stars, 'sg-level-stars') : ''}
+      <span class="sg-level-name">Level ${l.level}</span>
+      ${songGameStars(l.stars, 'sg-level-stars')}
     </button>`).join('') + (data.found < SONG_GAME_FIRST_UNLOCK
       ? `<div class="sg-note">You've heard ${data.found} of the ${SONG_GAME_FIRST_UNLOCK} birds you need. Go and listen for some more!</div>`
       : playable === 0
@@ -2919,16 +2928,6 @@ async function renderSongGame(data) {
     if (!level.unlocked || playable === 0) return;
     btn.onclick = () => startSongGameLevel(data, level);
   });
-}
-
-// What a locked level is waiting for: more birds, a star on the level
-// before, or both.
-function songGameLockedText(l) {
-  const birds = `${l.to_go} more bird${l.to_go === 1 ? '' : 's'}`;
-  const star = `a star on Level ${l.level - 1}`;
-  if (l.to_go > 0 && l.needs_star) return `Hear ${birds}, and get ${star}`;
-  if (l.to_go > 0) return `Hear ${birds} to unlock`;
-  return `Get ${star} to unlock`;
 }
 
 function songGameStars(n, cls) {
