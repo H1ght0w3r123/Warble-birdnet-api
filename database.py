@@ -723,6 +723,57 @@ def count_curated_species_found(curated_set: set) -> int:
         return len(found & curated_set)
 
 
+def get_found_curated_species(curated_set: set) -> list:
+    """The same overlap count_curated_species_found counts, as a list - for
+    the song game, which needs a picture and a recording for each bird.
+
+    Each field comes from the newest sighting that has it, rather than simply
+    the newest sighting: a later sighting can be missing a photo or call that
+    an earlier one found. own_photo_id is the newest photo the child took
+    themselves, if any, so the game can show their own picture first."""
+    if SessionLocal is None:
+        return []
+    with SessionLocal() as session:
+        birds = {}
+        rows = (session.query(Sighting)
+                .filter(Sighting.common_name.in_(curated_set))
+                .order_by(Sighting.created_at.desc(), Sighting.id.desc()).all())
+        for r in rows:
+            b = birds.setdefault(r.common_name, {
+                "common_name": r.common_name, "scientific_name": r.scientific_name,
+                "image_url": None, "call_url": None, "own_photo_id": None,
+            })
+            b["image_url"] = b["image_url"] or r.image_url
+            b["call_url"] = b["call_url"] or r.call_url
+        for p in (session.query(BirdPhoto.id, BirdPhoto.common_name)
+                  .filter(BirdPhoto.common_name.in_(list(birds)))
+                  .order_by(BirdPhoto.created_at.asc()).all()):
+            birds[p.common_name]["own_photo_id"] = p.id   # newest wins
+        return list(birds.values())
+
+
+def save_call_url(common_name: str, call_url: str):
+    """Stores a recording found later on every sighting of the species that
+    lacks one, so get_cached_call_url finds it next time and xeno-canto is
+    only ever asked once per bird."""
+    if SessionLocal is None or not call_url:
+        return
+    with SessionLocal() as session:
+        (session.query(Sighting)
+         .filter(Sighting.common_name == common_name, Sighting.call_url.is_(None))
+         .update({Sighting.call_url: call_url}, synchronize_session=False))
+        session.commit()
+
+
+def get_bird_photo_data(photo_id: int):
+    """One self-taken photo's data URL, or None."""
+    if SessionLocal is None:
+        return None
+    with SessionLocal() as session:
+        p = session.get(BirdPhoto, photo_id)
+        return p.photo_data if p else None
+
+
 def get_earned_trophy_keys() -> set:
     """Keys of every trophy earned at any level."""
     if SessionLocal is None:

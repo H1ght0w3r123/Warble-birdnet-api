@@ -7,7 +7,7 @@ from pathlib import Path
 
 import requests
 from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydub import AudioSegment
 
@@ -197,7 +197,8 @@ from database import (
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
     has_session_today,
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
-    count_curated_species_found,
+    count_curated_species_found, get_found_curated_species, save_call_url,
+    get_bird_photo_data,
     set_total_feathers,
     add_bird_photo, get_bird_photos, delete_bird_photo,
 )
@@ -914,6 +915,68 @@ def curated_progress():
         "found": count_curated_species_found(ALL_CURATED_SPECIES),
         "total": len(ALL_CURATED_SPECIES),
     }
+
+
+# Guess the Song: hear a song, pick the bird from 2-6 of your own finds.
+# (level, choices per round, distinct curated species needed to unlock it)
+SONG_GAME_LEVELS = [(1, 2, 10), (2, 3, 15), (3, 4, 20), (4, 5, 25), (5, 6, 30)]
+SONG_GAME_ROUNDS = 8
+
+# Birds xeno-canto had nothing for when asked during this run of the server,
+# so a bird with no recording costs one lookup per deploy rather than one
+# every time the game opens.
+_no_recording = set()
+
+
+@app.get("/song-game")
+def song_game():
+    """Everything the song game needs in one go: which levels are open, and
+    every one of Warble's 100 the child has heard, with a picture and a song.
+
+    The pool is always every bird heard so far, at every level - the levels
+    differ only in how many choices are shown. A bird with no recording can
+    still be a wrong answer (its picture is all that needs) but the game
+    never asks about it."""
+    birds = get_found_curated_species(ALL_CURATED_SPECIES)
+    missing = [b for b in birds
+               if not b["call_url"] and b["common_name"] not in _no_recording]
+    if missing and XENO_CANTO_API_KEY:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            urls = list(pool.map(lambda b: get_bird_call_url(b["scientific_name"]), missing))
+        for b, url in zip(missing, urls):
+            if url:
+                b["call_url"] = url
+                save_call_url(b["common_name"], url)
+            else:
+                _no_recording.add(b["common_name"])
+    found = len(birds)
+    return {
+        "found": found,
+        "rounds": SONG_GAME_ROUNDS,
+        "levels": [{"level": n, "choices": c, "unlock_at": need,
+                    "unlocked": found >= need, "to_go": max(0, need - found)}
+                   for n, c, need in SONG_GAME_LEVELS],
+        "birds": [{"common_name": b["common_name"],
+                   "image_url": (f"/bird-photos/{b['own_photo_id']}" if b["own_photo_id"]
+                                 else b["image_url"]),
+                   "own_photo": bool(b["own_photo_id"]),
+                   "call_url": b["call_url"]} for b in birds],
+    }
+
+
+@app.get("/bird-photos/{photo_id}")
+def bird_photo_image(photo_id: int):
+    """A self-taken photo as an ordinary image, so it can sit in an <img>
+    without sending every photo's data inside one big JSON reply."""
+    import base64
+    data = get_bird_photo_data(photo_id)
+    if not data or "," not in data:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    head, b64 = data.split(",", 1)
+    media = head[5:].split(";")[0] if head.startswith("data:") else "image/jpeg"
+    return Response(base64.b64decode(b64), media_type=media or "image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/feathers")

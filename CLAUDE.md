@@ -34,6 +34,11 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
 - `accessories.py` — 70 Dress Up items on a five-band price ladder. Hats are
   fitted per bird (see its docstring).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
+- **Guess the Song** (Home → mini card) — hear a song, tap the bird. 5 levels
+  of 8 rounds, 2–6 choices, unlocking at 10/15/20/25/30 of the 100 heard
+  (`SONG_GAME_LEVELS` in `main.py`, served by `/song-game`). Every level draws
+  from *all* birds heard so far; a bird with no recording can be a wrong
+  choice but is never asked about. No scoring yet — deliberately a later pass.
 
 `tools/build_pack_art.py` rebuilds the ten packs' icon/badge/wordmark webps
 from a folder of delivered PNGs. Read its docstring before re-exporting pack

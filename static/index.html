@@ -467,7 +467,7 @@
      where a child actually needs it, the one that says nothing was heard.
      Centred and only as wide as it needs to be, so a lone pill does not read
      as half of a row with something missing from it. */
-  .home-minis{display:flex; gap:9px; width:100%; margin-top:12px;
+  .home-minis{display:flex; flex-wrap:wrap; gap:9px; width:100%; margin-top:12px;
     align-items:stretch; justify-content:center;}
   .mini-card{
     border:none; cursor:pointer; text-align:left; border-radius:16px;
@@ -493,6 +493,90 @@
     color:var(--parch); overflow-wrap:anywhere;
   }
   /* Narrow phones: the joke drops under the tip rather than squeezing both. */
+  .mini-game{flex:0 0 auto; padding-right:16px;}
+  /* "Not yet" looks the same here as an unheard collector card. */
+  .mini-card.locked{filter:grayscale(1) brightness(.9);}
+
+  /* --- Guess the Song ----------------------------------------------------
+     Deliberately plain: a readout, one big play button, a grid of the
+     child's own birds. Tiles are the My Flock wood frame, made square. */
+  .sg-sub{font-size:13px; color:rgba(255,255,255,0.85); margin:2px 0 16px; text-align:center;}
+  .sg-levels{display:flex; flex-direction:column; gap:9px; width:100%; max-width:360px; margin:0 auto;}
+  .sg-level{
+    border:none; cursor:pointer; text-align:left; border-radius:16px; width:100%;
+    background:#7E4B29; color:var(--parch);
+    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 3px 8px rgba(26,17,40,0.28);
+    padding:11px 14px; display:flex; align-items:center; gap:12px;
+    transition:transform .12s ease;
+  }
+  .sg-level:active{transform:scale(.97);}
+  .sg-level.locked{filter:grayscale(1) brightness(.9); cursor:default;}
+  .sg-level.locked:active{transform:none;}
+  .sg-level-num{
+    width:38px; height:38px; border-radius:50%; flex:0 0 auto;
+    background:var(--disc-cream); color:var(--wood-edge);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Poppins'; font-weight:900; font-size:18px;
+  }
+  .sg-level-name{font-family:'Poppins'; font-weight:900; font-size:15px; display:block;}
+  .sg-level-info{font-family:'Poppins'; font-weight:700; font-size:12px; color:rgba(245,237,214,0.75); display:block;}
+  .sg-note{font-size:13px; color:#fff; text-align:center; margin-top:16px; line-height:1.4;}
+
+  .sg-round{width:100%; display:flex; flex-direction:column; align-items:center;}
+  .sg-head{
+    font-family:'Poppins'; font-weight:900; font-size:13px; letter-spacing:.06em;
+    text-transform:uppercase; color:#fff; margin-bottom:12px;
+  }
+  .photo-icon-btn.sg-play{width:88px; height:88px;}
+  .photo-icon-btn.sg-play.invite{animation:trophyInvite 1.6s ease-in-out infinite;}
+  .sg-prompt{font-family:'Poppins'; font-weight:700; font-size:14px; color:#fff;
+    margin:10px 0 8px; min-height:20px; text-align:center;}
+  /* The ten seconds, drained left to right once the song has finished. */
+  .sg-timer{width:100%; max-width:300px; height:8px; border-radius:4px;
+    background:rgba(255,255,255,0.18); overflow:hidden; margin-bottom:14px;}
+  .sg-timer-fill{height:100%; width:100%; background:var(--gold); border-radius:4px;
+    transform-origin:left center; transform:scaleX(1);}
+  .sg-timer-fill.running{transition:transform linear; transform:scaleX(0);}
+  .sg-grid{display:grid; gap:10px; width:100%; max-width:360px; justify-content:center;}
+  .sg-grid.cols2{grid-template-columns:repeat(2, minmax(0, 160px));}
+  .sg-grid.cols3{grid-template-columns:repeat(3, minmax(0, 1fr));}
+  .sg-tile{--frame:4px; --inner:9px; border:none; cursor:pointer; text-align:center;
+    display:flex; flex-direction:column; transition:transform .12s ease, opacity .25s ease, filter .25s ease;}
+  .sg-tile:disabled{cursor:default;}
+  .sg-tile.waiting{opacity:.6;}
+  .sg-tile:not(:disabled):active{transform:scale(.95);}
+  .sg-tile img, .sg-tile .sg-blank{
+    width:100%; aspect-ratio:1; object-fit:cover; object-position:var(--bird-crop);
+    display:block; background:var(--parch-dk); border-radius:var(--inner) var(--inner) 0 0;
+  }
+  .sg-tile img.stock{filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
+  .sg-blank{display:flex; align-items:center; justify-content:center; font-size:30px;}
+  .sg-name{font-family:'Poppins'; font-size:11.5px; font-weight:700; padding:6px 4px; color:var(--ink);
+    line-height:1.2; background:var(--parch); border-radius:0 0 var(--inner) var(--inner);
+    flex:1; display:flex; align-items:center; justify-content:center; overflow-wrap:anywhere;}
+  .sg-own{position:absolute; top:calc(var(--frame) + 4px); left:calc(var(--frame) + 4px); z-index:3;
+    font-size:12px; line-height:1; background:rgba(26,17,40,0.55); border-radius:8px; padding:3px 4px;}
+  /* Feedback: the right bird glows green, a wrong pick shakes and fades. */
+  .sg-tile.right{box-shadow:0 0 0 3px var(--sage), 0 0 18px 4px rgba(126,200,164,0.85);
+    animation:sgRight .5s ease;}
+  .sg-tile.wrong{animation:sgWrong .4s ease; filter:grayscale(.8) brightness(.8);}
+  .sg-tile.out{opacity:.45;}
+  @keyframes sgRight{0%{transform:scale(1);} 45%{transform:scale(1.07);} 100%{transform:scale(1);}}
+  @keyframes sgWrong{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
+  .sg-result{font-family:'Poppins'; font-weight:900; font-size:16px; color:#fff;
+    min-height:24px; margin-top:12px; text-align:center;}
+  .sg-dots{display:flex; gap:7px; justify-content:center; margin:14px 0 18px;}
+  .sg-dot{width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.22);}
+  .sg-dot.yes{background:var(--sage); box-shadow:0 0 0 2px rgba(255,255,255,0.6);}
+  .sg-buttons{display:flex; flex-direction:column; gap:9px; width:100%; max-width:300px; margin:0 auto;}
+  .sg-btn{border:none; cursor:pointer; border-radius:16px; padding:12px; font-family:'Poppins';
+    font-weight:900; font-size:15px; background:var(--gold); color:var(--ink);
+    box-shadow:0 3px 8px rgba(26,17,40,0.28);}
+  .sg-btn.plain{background:#7E4B29; color:var(--parch);}
+  .sg-btn:active{transform:scale(.97);}
+  @media (prefers-reduced-motion: reduce){
+    .sg-play.invite, .sg-tile.right, .sg-tile.wrong{animation:none;}
+  }
 
   @media (prefers-reduced-motion: reduce){
     .mic-alive .mic-icon,
@@ -2388,6 +2472,13 @@ function renderIdle() {
           <span class="mini-body" id="jokeMiniBody">Tap me!</span>
         </span>
       </button>
+      <button class="mini-card mini-game" id="gameMini">
+        <span class="mini-icon">🎵</span>
+        <span class="mini-text">
+          <span class="mini-label">Guess the song</span>
+          <span class="mini-body" id="gameMiniBody">Play!</span>
+        </span>
+      </button>
     </div>
   `;
 
@@ -2401,9 +2492,11 @@ function renderIdle() {
 
   document.getElementById('challengeCard').onclick = renderChallenges;
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
+  document.getElementById('gameMini').onclick = () => renderSongGame();
   setSceneFocus(true);
   loadChallengeCard();
   loadJokeTileStatus();
+  loadSongGameTile();
 }
 
 // Three birds in the corner of the Here Now card. Drawn rather than an
@@ -2714,6 +2807,310 @@ async function renderJokeOfDay() {
   } catch (e) {
     document.getElementById('jokeCard').innerHTML = `<div class="tip-text">Couldn't load the joke right now.</div>`;
   }
+}
+
+// --- Guess the Song --------------------------------------------------------
+// Hear a song, tap the bird that sang it. Every bird in it is one the child
+// has heard themselves (/song-game), so the game unlocks at 10 of Warble's
+// 100 and each level after needs 5 more. Every level draws from all the birds
+// heard so far; a level only changes how many choices are shown.
+// No points yet - a round is right or wrong and that is all. Scoring is a
+// deliberate later pass.
+const SONG_GAME_FIRST_UNLOCK = 10;   // mirrors SONG_GAME_LEVELS in main.py
+const SONG_GAME_ANSWER_MS = 10000;   // after the song ends
+const SONG_GAME_CLIP_MS = 9000;      // xeno-canto recordings can run for minutes
+let songGame = null;                 // the level being played, or null
+// Leaving the game by any route - a nav tab, the mic - ends the level, so a
+// countdown can't run out on a screen that has gone.
+new MutationObserver(() => {
+  if (songGame && !document.getElementById('sgRound')) stopSongGame();
+}).observe(stage, { childList: true });
+
+async function loadSongGameTile() {
+  try {
+    const res = await fetch('/curated-progress');
+    const data = await res.json();
+    const tile = document.getElementById('gameMini');
+    const body = document.getElementById('gameMiniBody');
+    if (!tile || !body) return;
+    const toGo = SONG_GAME_FIRST_UNLOCK - data.found;
+    tile.classList.toggle('locked', toGo > 0);
+    body.textContent = toGo > 0 ? `Hear ${toGo} more bird${toGo === 1 ? '' : 's'}` : 'Play!';
+  } catch (e) { /* the tile still opens the game, which says the same */ }
+}
+
+function songGameShuffle(list) {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function stopSongGame() {
+  if (!songGame) return;
+  clearTimeout(songGame.timer);
+  clearTimeout(songGame.clipTimer);
+  if (songGame.audio) { songGame.audio.onended = songGame.audio.onerror = null; songGame.audio.pause(); }
+  songGame = null;
+}
+
+// The level list. `data` is passed back in from the end of a level so playing
+// on doesn't wait on the server again.
+async function renderSongGame(data) {
+  stopSongGame();
+  setActiveTab('home');
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:14px;">
+      <button class="back-btn" id="backBtn">← Back</button>
+    </div>
+    <div class="collection-title">Guess the Song</div>
+    <div class="sg-sub">Hear a song, then tap the bird that sang it.</div>
+    <div class="sg-levels" id="sgLevels"><div class="sg-note">Loading…</div></div>
+  `;
+  document.getElementById('backBtn').onclick = () => {
+    stage.classList.remove('top-aligned');
+    renderIdle();
+  };
+  if (!data) {
+    try { data = await (await fetch('/song-game')).json(); }
+    catch (e) {
+      const el = document.getElementById('sgLevels');
+      if (el) el.innerHTML = `<div class="sg-note">Couldn't load the game right now.</div>`;
+      return;
+    }
+  }
+  const box = document.getElementById('sgLevels');
+  if (!box) return;   // navigated away while loading
+  const playable = data.birds.filter(b => b.call_url).length;
+  box.innerHTML = data.levels.map(l => `
+    <button class="sg-level ${l.unlocked ? '' : 'locked'}" data-level="${l.level}">
+      <span class="sg-level-num">${l.unlocked ? l.level : '🔒'}</span>
+      <span>
+        <span class="sg-level-name">Level ${l.level}</span>
+        <span class="sg-level-info">${l.unlocked
+          ? `${l.choices} birds to choose from`
+          : `Hear ${l.to_go} more bird${l.to_go === 1 ? '' : 's'} to unlock`}</span>
+      </span>
+    </button>`).join('') + (data.found < SONG_GAME_FIRST_UNLOCK
+      ? `<div class="sg-note">You've heard ${data.found} of the ${SONG_GAME_FIRST_UNLOCK} birds you need. Go and listen for some more!</div>`
+      : playable === 0
+        ? `<div class="sg-note">Warble couldn't find songs for your birds yet. Try again later!</div>`
+        : '');
+  box.querySelectorAll('.sg-level').forEach(btn => {
+    const level = data.levels.find(l => l.level === +btn.dataset.level);
+    if (!level.unlocked || playable === 0) return;
+    btn.onclick = () => startSongGameLevel(data, level);
+  });
+}
+
+function startSongGameLevel(data, level) {
+  stopSongGame();
+  const playable = data.birds.filter(b => b.call_url);
+  // Eight different birds to ask about where there are eight with songs;
+  // fewer than that and some come round again, never twice in a row.
+  let answers = songGameShuffle(playable);
+  while (answers.length < data.rounds) {
+    let more = songGameShuffle(playable);
+    if (more.length > 1 && more[0] === answers[answers.length - 1]) more.push(more.shift());
+    answers = answers.concat(more);
+  }
+  songGame = { data, level, answers: answers.slice(0, data.rounds), round: 0,
+               results: [], noSong: new Set() };
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:14px;">
+      <button class="back-btn" id="backBtn">← Levels</button>
+    </div>
+    <div class="sg-round" id="sgRound"></div>
+  `;
+  document.getElementById('backBtn').onclick = () => renderSongGame(data);
+  renderSongGameRound();
+}
+
+function renderSongGameRound() {
+  const g = songGame;
+  const root = document.getElementById('sgRound');
+  if (!g || !root) return stopSongGame();
+  const answer = g.answers[g.round];
+  // The wrong choices come from every bird heard, songs or not - a picture
+  // is all a wrong choice needs.
+  const others = songGameShuffle(g.data.birds.filter(b => b !== answer))
+    .slice(0, g.level.choices - 1);
+  g.choices = songGameShuffle([answer, ...others]);
+  g.answered = false;
+  g.started = false;
+  g.playing = false;
+  const n = g.choices.length;
+  root.innerHTML = `
+    <div class="sg-head">Level ${g.level.level} · Round ${g.round + 1} of ${g.data.rounds}</div>
+    <button class="photo-icon-btn sg-play invite" id="sgPlay" aria-label="Play the song">
+      <img src="/static/btn-play-v1.webp" alt="">
+    </button>
+    <div class="sg-prompt" id="sgPrompt">Tap play to hear the song</div>
+    <div class="sg-timer"><div class="sg-timer-fill" id="sgTimer"></div></div>
+    <div class="sg-grid ${n === 2 || n === 4 ? 'cols2' : 'cols3'}" id="sgGrid">
+      ${g.choices.map((b, i) => `
+        <button class="sg-tile woodframe waiting" data-i="${i}" disabled>
+          ${b.own_photo ? '<span class="sg-own" aria-label="Your photo">📷</span>' : ''}
+          ${b.image_url
+            ? `<img ${b.own_photo ? `src="${escapeFlock(b.image_url)}"` : `class="stock" ${birdImg(b.image_url, 260)}`} alt="">`
+            : '<div class="sg-blank">🐦</div>'}
+          <span class="sg-name">${escapeFlock(b.common_name)}</span>
+        </button>`).join('')}
+    </div>
+    <div class="sg-result" id="sgResult"></div>
+  `;
+  document.getElementById('sgPlay').onclick = playSongGameClip;
+  root.querySelectorAll('.sg-tile').forEach(t => {
+    t.onclick = () => answerSongGame(g.choices[+t.dataset.i]);
+  });
+}
+
+// Replays are allowed: tapping play again stops the countdown, plays the song
+// from the start and starts a fresh ten seconds when it ends.
+function playSongGameClip() {
+  const g = songGame;
+  if (!g || g.answered || g.playing) return;
+  const answer = g.answers[g.round];
+  clearTimeout(g.timer);
+  resetSongGameTimer();
+  const btn = document.getElementById('sgPlay');
+  btn.classList.remove('invite');
+  btn.classList.add('playing');
+  document.getElementById('sgPrompt').textContent = 'Listen…';
+  if (!g.started) {
+    g.started = true;
+    document.querySelectorAll('.sg-tile').forEach(t => { t.disabled = false; t.classList.remove('waiting'); });
+  }
+  g.playing = true;
+  const audio = new Audio(answer.call_url);
+  g.audio = audio;
+  // Registered as the app's playing audio, so leaving the screen stops it
+  // the same way it stops a call playing on a bird card.
+  stopAnyPlayingAudio();
+  currentlyPlayingAudio = audio;
+  const ended = () => {
+    if (songGame !== g || g.audio !== audio) return;
+    clearTimeout(g.clipTimer);
+    audio.pause();
+    g.playing = false;
+    if (g.answered) return;
+    btn.classList.remove('playing');
+    document.getElementById('sgPrompt').textContent = 'Which bird sang that?';
+    startSongGameTimer();
+  };
+  audio.onended = ended;
+  audio.onerror = () => songGameNoSong(answer);
+  audio.play().then(() => {
+    g.clipTimer = setTimeout(ended, SONG_GAME_CLIP_MS);
+  }).catch(() => songGameNoSong(answer));
+}
+
+// A recording that won't play: that bird stops being asked about for the
+// rest of this level, and the round starts again with a different one.
+function songGameNoSong(bird) {
+  const g = songGame;
+  if (!g || g.answered || g.answers[g.round] !== bird) return;
+  if (g.audio) { g.audio.onended = g.audio.onerror = null; g.audio.pause(); }
+  clearTimeout(g.clipTimer);
+  g.noSong.add(bird.common_name);
+  const left = g.data.birds.filter(b => b.call_url && !g.noSong.has(b.common_name));
+  if (!left.length) {
+    document.getElementById('sgRound').innerHTML =
+      `<div class="sg-note">Warble couldn't play any of the songs just now. Try again later!</div>`;
+    stopSongGame();
+    return;
+  }
+  for (let i = g.round; i < g.answers.length; i++) {
+    if (g.noSong.has(g.answers[i].common_name)) g.answers[i] = left[Math.floor(Math.random() * left.length)];
+  }
+  renderSongGameRound();
+}
+
+function resetSongGameTimer() {
+  const fill = document.getElementById('sgTimer');
+  if (!fill) return;
+  fill.classList.remove('running');
+  fill.style.transitionDuration = '';
+}
+
+function startSongGameTimer() {
+  const g = songGame;
+  const fill = document.getElementById('sgTimer');
+  if (!g || !fill) return;
+  void fill.offsetWidth;   // let the full bar paint before it starts draining
+  fill.style.transitionDuration = SONG_GAME_ANSWER_MS + 'ms';
+  fill.classList.add('running');
+  g.timer = setTimeout(() => { if (songGame === g) answerSongGame(null); }, SONG_GAME_ANSWER_MS);
+}
+
+// `picked` is null when the ten seconds ran out.
+function answerSongGame(picked) {
+  const g = songGame;
+  if (!g || g.answered || !g.started) return;
+  g.answered = true;
+  clearTimeout(g.timer);
+  clearTimeout(g.clipTimer);
+  if (g.audio) { g.audio.onended = g.audio.onerror = null; g.audio.pause(); }
+  g.playing = false;
+  const answer = g.answers[g.round];
+  const right = picked === answer;
+  g.results.push(right);
+
+  // Freeze the bar where it got to, rather than letting it finish draining.
+  const fill = document.getElementById('sgTimer');
+  if (fill) {
+    const now = getComputedStyle(fill).transform;
+    fill.classList.remove('running');
+    fill.style.transform = now === 'none' ? '' : now;
+  }
+  const btn = document.getElementById('sgPlay');
+  if (btn) btn.classList.remove('playing', 'invite');
+  document.querySelectorAll('.sg-tile').forEach(t => {
+    const b = g.choices[+t.dataset.i];
+    t.disabled = true;
+    if (b === answer) t.classList.add('right');
+    else if (b === picked) t.classList.add('wrong');
+    else t.classList.add('out');
+  });
+  document.getElementById('sgPrompt').textContent = '';
+  document.getElementById('sgResult').textContent = right
+    ? `Yes! That was a ${answer.common_name}!`
+    : picked ? `Not quite - that was a ${answer.common_name}`
+             : `Time's up! That was a ${answer.common_name}`;
+
+  setTimeout(() => {
+    if (songGame !== g || !document.getElementById('sgRound')) return;
+    g.round++;
+    if (g.round < g.answers.length) renderSongGameRound();
+    else renderSongGameEnd();
+  }, right ? 1700 : 2400);
+}
+
+function renderSongGameEnd() {
+  const g = songGame;
+  const root = document.getElementById('sgRound');
+  if (!g || !root) return;
+  const got = g.results.filter(Boolean).length;
+  const next = g.data.levels.find(l => l.level === g.level.level + 1);
+  root.innerHTML = `
+    <div class="sg-head">Level ${g.level.level} done!</div>
+    <div class="collection-title">You got ${got} of ${g.results.length}</div>
+    <div class="sg-dots">${g.results.map(r => `<span class="sg-dot ${r ? 'yes' : ''}"></span>`).join('')}</div>
+    <div class="sg-buttons">
+      ${next && next.unlocked ? `<button class="sg-btn" id="sgNext">Level ${next.level}</button>` : ''}
+      <button class="sg-btn ${next && next.unlocked ? 'plain' : ''}" id="sgAgain">Play again</button>
+      <button class="sg-btn plain" id="sgLevelsBtn">All levels</button>
+    </div>
+  `;
+  const { data, level } = g;
+  stopSongGame();
+  if (next && next.unlocked) document.getElementById('sgNext').onclick = () => startSongGameLevel(data, next);
+  document.getElementById('sgAgain').onclick = () => startSongGameLevel(data, level);
+  document.getElementById('sgLevelsBtn').onclick = () => renderSongGame(data);
 }
 
 // `short` is the one-line version for the strip on Home. Keep them to 26
