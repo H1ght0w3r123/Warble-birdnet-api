@@ -36,9 +36,12 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
 - **Guess the Song** (Home → mini card) — hear a song, tap the bird. 5 levels
   of 8 rounds, 2–6 choices, unlocking at 10/15/20/25/30 of the 100 heard
-  (`SONG_GAME_LEVELS` in `main.py`, served by `/song-game`). Every level draws
-  from *all* birds heard so far; a bird with no recording can be a wrong
-  choice but is never asked about. No scoring yet — deliberately a later pass.
+  (`SONG_GAME_LEVELS` in `main.py`, served by `/song-game`) *and* at least one
+  star on the level before. Stars: 6/8 = 1, 7/8 = 2, 8/8 = 3, worked out
+  server-side by `/song-game/result`; the best per level is kept in
+  `song_game_levels`. Every level draws from *all* birds heard so far; a bird
+  with no recording can be a wrong choice but is never asked about. No
+  feathers or trophies from it yet.
 
 `tools/build_pack_art.py` rebuilds the ten packs' icon/badge/wordmark webps
 from a folder of delivered PNGs. Read its docstring before re-exporting pack

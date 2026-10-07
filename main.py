@@ -198,7 +198,7 @@ from database import (
     has_session_today,
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
     count_curated_species_found, get_found_curated_species, save_call_url,
-    get_bird_photo_data,
+    get_bird_photo_data, get_song_game_stars, record_song_game_result,
     set_total_feathers,
     add_bird_photo, get_bird_photos, delete_bird_photo,
 )
@@ -919,8 +919,28 @@ def curated_progress():
 
 # Guess the Song: hear a song, pick the bird from 2-6 of your own finds.
 # (level, choices per round, distinct curated species needed to unlock it)
+# A level also needs at least one star on the level before it.
 SONG_GAME_LEVELS = [(1, 2, 10), (2, 3, 15), (3, 4, 20), (4, 5, 25), (5, 6, 30)]
 SONG_GAME_ROUNDS = 8
+
+
+def song_game_stars_for(correct: int) -> int:
+    """8 of 8 is three stars, 7 is two, 6 is one, anything less none."""
+    return max(0, 3 - (SONG_GAME_ROUNDS - correct))
+
+
+def song_game_levels(found: int) -> list:
+    """Each level with whether it's open, and if not, what's missing: more
+    birds heard (to_go), a star on the level before (needs_star), or both."""
+    stars = get_song_game_stars()
+    out = []
+    for n, c, need in SONG_GAME_LEVELS:
+        needs_star = n > 1 and stars.get(n - 1, 0) < 1
+        out.append({"level": n, "choices": c, "unlock_at": need,
+                    "to_go": max(0, need - found), "needs_star": needs_star,
+                    "unlocked": found >= need and not needs_star,
+                    "stars": stars.get(n, 0)})
+    return out
 
 # Birds xeno-canto had nothing for when asked during this run of the server,
 # so a bird with no recording costs one lookup per deploy rather than one
@@ -954,15 +974,30 @@ def song_game():
     return {
         "found": found,
         "rounds": SONG_GAME_ROUNDS,
-        "levels": [{"level": n, "choices": c, "unlock_at": need,
-                    "unlocked": found >= need, "to_go": max(0, need - found)}
-                   for n, c, need in SONG_GAME_LEVELS],
+        "levels": song_game_levels(found),
         "birds": [{"common_name": b["common_name"],
                    "image_url": (f"/bird-photos/{b['own_photo_id']}" if b["own_photo_id"]
                                  else b["image_url"]),
                    "own_photo": bool(b["own_photo_id"]),
                    "call_url": b["call_url"]} for b in birds],
     }
+
+
+@app.post("/song-game/result")
+async def song_game_result(level: int = Form(...), correct: int = Form(...)):
+    """A finished level. Stars are worked out here rather than trusted from
+    the app, and only a level that is actually open can earn them. Returns
+    the stars for this go, the best so far, and the levels as they now
+    stand - so the end screen can say a new level has opened."""
+    found = count_curated_species_found(ALL_CURATED_SPECIES)
+    levels = song_game_levels(found)
+    this = next((l for l in levels if l["level"] == level), None)
+    if this is None or not this["unlocked"]:
+        return JSONResponse({"error": "level not open"}, status_code=400)
+    correct = max(0, min(SONG_GAME_ROUNDS, correct))
+    stars = song_game_stars_for(correct)
+    best = record_song_game_result(level, correct, stars)
+    return {"stars": stars, "best_stars": best, "levels": song_game_levels(found)}
 
 
 @app.get("/bird-photos/{photo_id}")

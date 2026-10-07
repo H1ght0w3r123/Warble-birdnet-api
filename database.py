@@ -170,6 +170,18 @@ class BirdPhoto(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class SongGameLevel(Base):
+    """The best a child has done on each Guess the Song level. One row per
+    level played, keeping the best result only - a worse go never takes a
+    star away, and a star on a level is what opens the next one."""
+    __tablename__ = "song_game_levels"
+
+    level = Column(Integer, primary_key=True)
+    best_correct = Column(Integer, nullable=False, default=0)
+    best_stars = Column(Integer, nullable=False, default=0)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
 def init_db():
     """Create tables if they don't exist yet, and seed one PlayerStats row."""
     if engine is None:
@@ -752,6 +764,32 @@ def get_found_curated_species(curated_set: set) -> list:
         return list(birds.values())
 
 
+def get_song_game_stars() -> dict:
+    """Best stars per Guess the Song level, e.g. {1: 3, 2: 1}."""
+    if SessionLocal is None:
+        return {}
+    with SessionLocal() as session:
+        return {r.level: r.best_stars for r in session.query(SongGameLevel).all()}
+
+
+def record_song_game_result(level: int, correct: int, stars: int) -> int:
+    """Keeps a level's result if it beats the best so far. Returns the best
+    stars for that level afterwards."""
+    if SessionLocal is None:
+        return stars
+    with SessionLocal() as session:
+        row = session.get(SongGameLevel, level)
+        if row is None:
+            row = SongGameLevel(level=level, best_correct=0, best_stars=0)
+            session.add(row)
+        if correct > row.best_correct:
+            row.best_correct = correct
+            row.best_stars = max(row.best_stars, stars)
+            row.updated_at = datetime.datetime.utcnow()
+        session.commit()
+        return row.best_stars
+
+
 def save_call_url(common_name: str, call_url: str):
     """Stores a recording found later on every sighting of the species that
     lacks one, so get_cached_call_url finds it next time and xeno-canto is
@@ -1134,6 +1172,8 @@ def export_everything():
                           for l in session.query(Location).all()],
             "accessories": [a.accessory_id for a in session.query(OwnedAccessory).all()],
             "bonuses": [b.key for b in session.query(AwardedBonus).all()],
+            "song_game": {r.level: {"best_correct": r.best_correct, "best_stars": r.best_stars}
+                          for r in session.query(SongGameLevel).all()},
             "bird_photos": [
                 {"common_name": p.common_name, "photo_data": p.photo_data,
                  "created_at": p.created_at.isoformat() if p.created_at else None}
@@ -1191,6 +1231,9 @@ def reset_sightings():
         session.query(AwardedBonus).delete()
         session.query(Location).delete()
         session.query(BirdPhoto).delete()
+        # Stars too: they're earned from the birds, and a level opened by
+        # birds that are no longer there shouldn't stay open.
+        session.query(SongGameLevel).delete()
         session.commit()
 
 
