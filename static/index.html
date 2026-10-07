@@ -502,32 +502,41 @@
      child's own birds. Tiles are the My Flock wood frame, made square. */
   .sg-sub{font-size:13px; color:rgba(255,255,255,0.85); margin:2px 0 16px; text-align:center;}
   .sg-levels{display:flex; flex-direction:column; gap:9px; width:100%; max-width:360px; margin:0 auto;}
+  /* Each level is a card like the rest of the app: the My Flock wooden
+     frame round a panel in the cream of the wooden discs. */
   .sg-level{
-    border:none; cursor:pointer; text-align:left; border-radius:16px; width:100%;
-    background:#7E4B29; color:var(--parch);
-    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 3px 8px rgba(26,17,40,0.28);
-    padding:11px 14px; display:flex; align-items:center; gap:12px;
-    transition:transform .12s ease;
+    --frame:5px; --inner:12px; border:none; cursor:pointer; text-align:left;
+    width:100%; display:block; font:inherit; transition:transform .12s ease;
+  }
+  .sg-level-inner{
+    position:relative; display:flex; align-items:center; gap:12px;
+    background:var(--disc-cream); border-radius:var(--inner); padding:9px 12px 9px 10px;
   }
   .sg-level:active{transform:scale(.97);}
+  /* Locked: the same grey "not yet" as an unheard collector card. */
   .sg-level.locked{filter:grayscale(1) brightness(.9); cursor:default;}
   .sg-level.locked:active{transform:none;}
+  /* The level number is carved into the plain wooden disc, exactly like
+     the times-heard disc on the bird card (.heard-disc). */
   .sg-level-num{
-    width:38px; height:38px; border-radius:50%; flex:0 0 auto;
-    background:var(--disc-cream); color:var(--wood-edge);
+    position:relative; width:46px; height:46px; flex:0 0 auto;
+    background:url('/static/btn-blank-v1.webp') center / contain no-repeat;
+    filter:drop-shadow(0 3px 5px rgba(45,27,105,0.28));
     display:flex; align-items:center; justify-content:center;
-    font-family:'Poppins'; font-weight:900; font-size:18px;
+    font-family:'Poppins'; font-weight:900; font-size:21px; line-height:1; color:#B4561B;
+    text-shadow:0 1px 0 rgba(255,255,255,0.7), 0 -1px 0 rgba(90,36,5,0.25);
   }
-  .sg-level-name{font-family:'Poppins'; font-weight:900; font-size:18px; display:block;}
+  .sg-level-lock{position:absolute; right:-4px; bottom:-3px; font-size:15px; line-height:1;}
+  .sg-level-name{font-family:'Poppins'; font-weight:900; font-size:18px; display:block; color:var(--wood-edge);}
   .sg-level-need{font-family:'Poppins'; font-weight:700; font-size:12px; display:block;
-    color:rgba(245,237,214,0.8);}
+    color:var(--wood-dk);}
   /* The level to play next breathes and glows gold, like the front trophy. */
   .sg-level.invite{animation:sgLevelInvite 1.6s ease-in-out infinite;}
   @keyframes sgLevelInvite{
     0%,100%{transform:scale(1);
-      box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 3px 8px rgba(26,17,40,0.28), 0 0 0 0 rgba(242,201,76,0);}
+      box-shadow:0 2px 5px rgba(26,17,40,0.3), 0 0 0 0 rgba(242,201,76,0);}
     50%{transform:scale(1.035);
-      box-shadow:inset 0 0 0 2px rgba(242,201,76,0.85), 0 3px 8px rgba(26,17,40,0.28), 0 0 18px 4px rgba(242,201,76,0.6);}
+      box-shadow:0 2px 5px rgba(26,17,40,0.3), 0 0 0 2px rgba(242,201,76,0.9), 0 0 20px 5px rgba(242,201,76,0.65);}
   }
   .sg-note{font-size:13px; color:#fff; text-align:center; margin-top:16px; line-height:1.4;}
   /* Stars: gold when earned, an empty outline-ish dim star when not. On the
@@ -2912,13 +2921,15 @@ async function renderSongGame(data) {
   const invite = playable === 0 ? null
     : data.levels.filter(l => l.unlocked && l.stars < 3).pop();
   box.innerHTML = data.levels.map(l => `
-    <button class="sg-level ${l.unlocked ? '' : 'locked'} ${l === invite ? 'invite' : ''}" data-level="${l.level}">
-      <span class="sg-level-num">${l.unlocked ? l.level : '🔒'}</span>
-      <span>
-        <span class="sg-level-name">Level ${l.level}</span>
-        ${songGameBirdsNeeded(l)}
+    <button class="sg-level woodframe ${l.unlocked ? '' : 'locked'} ${l === invite ? 'invite' : ''}" data-level="${l.level}">
+      <span class="sg-level-inner">
+        <span class="sg-level-num">${l.level}${l.unlocked ? '' : '<span class="sg-level-lock">🔒</span>'}</span>
+        <span>
+          <span class="sg-level-name">Level ${l.level}</span>
+          ${songGameBirdsNeeded(l)}
+        </span>
+        ${songGameStars(l.stars, 'sg-level-stars')}
       </span>
-      ${songGameStars(l.stars, 'sg-level-stars')}
     </button>`).join('') + (data.found < SONG_GAME_FIRST_UNLOCK
       ? `<div class="sg-note">You've heard ${data.found} of the ${SONG_GAME_FIRST_UNLOCK} birds you need. Go and listen for some more!</div>`
       : playable === 0
