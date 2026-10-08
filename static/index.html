@@ -680,9 +680,10 @@
   .challenge-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
   .challenge-text{font-family:'Poppins';font-weight:800;font-size:13.5px;line-height:1.25;
     color:var(--wood-edge);display:flex;align-items:center;gap:8px;}
-  .challenge-tick{flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--sage);
-    color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 1px 2px rgba(26,17,40,0.3);}
+  /* Bigger than the line it sits on, so it overhangs a little rather than
+     making a finished card taller - all six still fit without scrolling. */
+  .challenge-tick{flex:0 0 auto;width:24px;height:24px;display:block;margin:-4px 0;
+    filter:drop-shadow(0 1px 2px rgba(26,17,40,0.35));}
   .challenge-feathers{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--wood-dk);flex-shrink:0;
     display:flex;align-items:center;gap:3px;}
   .challenge-meter{display:flex;align-items:center;gap:9px;margin-top:6px;}
@@ -2830,7 +2831,7 @@ async function renderChallenges() {
     <div class="challenge-card woodframe ${complete ? 'complete' : ''} ${extra}">
       <div class="challenge-inner">
         <div class="challenge-top">
-          <span class="challenge-text">${complete ? '<span class="challenge-tick">✓</span>' : ''}<span>${text}</span></span>
+          <span class="challenge-text">${complete ? '<img class="challenge-tick" src="/static/tick-v1.webp" alt="Done">' : ''}<span>${text}</span></span>
           ${feathers ? `<span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${feathers}</span>` : ''}
         </div>
         ${body}
