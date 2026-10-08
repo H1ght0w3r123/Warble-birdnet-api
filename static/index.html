@@ -2876,17 +2876,11 @@ async function loadJokeTileStatus() {
 
 async function renderJokeOfDay() {
   stage.classList.add('top-aligned');
+  // No back button: the Home tab is the way out.
   stage.innerHTML = `
-    <div style="width:100%;margin-bottom:14px;">
-      <button class="back-btn" id="backBtn">← Back</button>
-    </div>
     <div class="collection-title">Joke of the Day</div>
     <div class="joke-stage" id="jokeCard"><div class="joke-locked">Loading…</div></div>
   `;
-  document.getElementById('backBtn').onclick = () => {
-    stage.classList.remove('top-aligned');
-    renderIdle();
-  };
   const box = () => document.getElementById('jokeCard');
   try {
     const data = await (await fetch('/joke-of-the-day')).json();
