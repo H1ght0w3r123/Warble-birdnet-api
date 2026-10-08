@@ -194,7 +194,7 @@
   body.scene-on .flock-stats, body.scene-on .pack-tally,
   body.scene-on .pack-more,
   body.scene-on .pack-blurb, body.scene-on .fan-caption,
-  body.scene-on .challenge-strip, body.scene-on .nav-tab,
+  body.scene-on .hub-label, body.scene-on .nav-tab,
   body.scene-on .colour-label,
   body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
     /* Four stacked shadows, not one. A single soft shadow reads as a shadow
@@ -417,42 +417,6 @@
   .challenge-card{background:var(--parch); color:var(--dusk); padding:14px 16px 15px;}
   .challenge-card .home-card-eyebrow{color:var(--mist-dk);}
 
-  /* --- The weekly challenge on Home, reduced to a line ------------------
-     It used to be a full cream card: an eyebrow, the challenge, a progress
-     bar and a "3 more to go" note. Four pieces of furniture around one
-     number, on a screen whose job is to get a child outside. What is left is
-     the icon, what the challenge is, and how far along it is.
-     Losing the card means losing the background the type was sitting on, so
-     it now sits directly on the scene - which is why .challenge-strip is in
-     the body.scene-on shadow list with every other run of naked text.
-     text-shadow inherits, so the one rule covers the title and the tally. */
-  .challenge-strip{
-    display:flex; align-items:center; gap:10px;
-    width:100%; margin-top:18px; padding:2px 2px;
-    background:none; border:none; cursor:pointer; text-align:left;
-    color:#fff; font-family:'Poppins';
-    transition:transform .12s ease;
-  }
-  .challenge-strip:active{transform:scale(.985);}
-  /* Sized as a box rather than by font size. That was so the emoji standing
-     in for the carved icon could be swapped for it without anything moving,
-     and it is worth keeping for the next time. The rings survive the shrink:
-     measured across the middle at 30px, the art still shows 9 light/dark
-     alternations over a contrast range of 182, which is what the alternating
-     maple and brown bands buy. */
-  .challenge-strip-icon{
-    flex:0 0 auto; width:30px; height:30px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:22px; line-height:1;
-  }
-  .challenge-strip-icon img{width:100%; height:100%; object-fit:contain; display:block;}
-  .challenge-strip-text{
-    flex:1 1 auto; min-width:0;
-    font-weight:700; font-size:13.5px; line-height:1.3; overflow-wrap:anywhere;
-  }
-  .challenge-strip-tally{
-    flex:0 0 auto; font-weight:900; font-size:14.5px; color:var(--gold);
-  }
   .challenge-text{
     font-family:'Poppins'; font-weight:700; font-size:15px; color:var(--ink);
     line-height:1.25; margin:8px 0 10px; overflow-wrap:anywhere;
@@ -463,40 +427,54 @@
   }
 
   /* Tip and joke: a light strip, deliberately not a third and fourth card. */
-  /* Just the joke lives here now - the listening tip moved to the screen
-     where a child actually needs it, the one that says nothing was heard.
-     Centred and only as wide as it needs to be, so a lone pill does not read
-     as half of a row with something missing from it. */
-  .home-minis{display:flex; flex-wrap:wrap; gap:9px; width:100%; margin-top:12px;
-    align-items:stretch; justify-content:center;}
-  .mini-card{
-    border:none; cursor:pointer; text-align:left; border-radius:16px;
-    /* Solid, not translucent. The Home background runs from deep purple at
-       the top to warm orange at the bottom, and a white wash over that comes
-       out a different colour at every scroll position - the same reason the
-       My Flock pills ended up solid wood. */
-    background:#7E4B29; color:var(--parch);
-    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 3px 8px rgba(26,17,40,0.28);
-    padding:10px 12px; display:flex; align-items:center; gap:9px;
-    transition:transform .12s ease;
+  /* --- Home: the mic and the three things round it ---------------------
+     Joke Of The Day, Weekly Challenges and Guess The Song get an equal
+     share: the same disc, the same size, just a name under it and no box.
+     They sit on a circle round the mic's centre - lower left, straight
+     below, lower right - so together they make a U that follows its curve.
+     --R is that circle's radius, measured to the middle of each disc; the
+     side two sit 58 degrees either side of straight down, which works out
+     at (98.4px, 61.5px) from the centre. */
+  .home-greeting{margin-top:0;}
+  .home-hub{
+    position:relative; width:100%; margin-top:20px;
+    --mic:108px; --disc:68px; --R:116px; --side-x:98.4px; --side-y:61.5px;
+    /* top of the mic to the bottom of the lowest name */
+    height:calc(var(--mic) / 2 + var(--R) + var(--disc) / 2 + 42px);
   }
-  .mini-card:active{transform:scale(.97);}
-  .mini-joke{flex:0 0 auto; padding-right:16px;}
-  .mini-icon{font-size:19px; line-height:1; flex:0 0 auto;}
-  /* A painted disc rather than an emoji - the Guess the Song question mark.
-     The same size as the challenge strip's target just above it. */
-  .mini-icon-img{width:30px; height:30px; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3));}
-  .mini-icon-img img{width:100%; height:100%; display:block;}
-  .mini-text{display:flex; flex-direction:column; gap:1px; min-width:0;}
-  /* Each card is just its name, with no call to action. */
-  .mini-title{
-    font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1.2;
-    color:var(--parch);
+  .home-hub .mic-wrap{position:absolute; left:50%; top:0; transform:translateX(-50%);}
+  .hub-item{
+    position:absolute; width:100px; padding:0; border:none; background:none; cursor:pointer;
+    left:calc(50% + var(--x) - 50px);
+    top:calc(var(--mic) / 2 + var(--y) - var(--disc) / 2);
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    font-family:'Poppins'; color:#fff; -webkit-tap-highlight-color:transparent;
   }
-  /* Narrow phones: the joke drops under the tip rather than squeezing both. */
-  .mini-game{flex:0 0 auto; padding-right:16px;}
-  /* "Not yet" looks the same here as an unheard collector card. */
-  .mini-card.locked{filter:grayscale(1) brightness(.9);}
+  .hub-left{--x:calc(-1 * var(--side-x)); --y:var(--side-y);}
+  /* The middle one is under the mic, with nothing either side of its name,
+     so "Weekly Challenges" gets room to stay on one line. */
+  .hub-mid{--x:0px; --y:var(--R); width:150px; margin-left:-25px;}
+  .hub-right{--x:var(--side-x); --y:var(--side-y);}
+  .hub-icon{
+    position:relative; width:var(--disc); height:var(--disc); display:block;
+    filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)); transition:transform .12s ease;
+  }
+  .hub-icon img{width:100%; height:100%; display:block;}
+  .hub-item:active .hub-icon{transform:scale(.92);}
+  .hub-label{font-weight:900; font-size:13px; line-height:1.15; text-align:center;}
+  /* "Not yet" (the joke before today's first listen, the game before ten
+     birds): the disc goes the same grey as an unheard collector card. */
+  .hub-item.locked .hub-icon{filter:grayscale(1) brightness(.85) drop-shadow(0 3px 5px rgba(0,0,0,0.35));}
+  .hub-item.locked .hub-label{opacity:.75;}
+  /* How many of this week's challenges are done, on the disc's shoulder. */
+  .hub-badge{
+    position:absolute; top:-4px; right:-12px; min-width:30px; padding:3px 6px;
+    border-radius:11px; background:var(--gold); color:var(--ink);
+    font-weight:900; font-size:12px; line-height:1; text-align:center;
+    box-shadow:0 2px 4px rgba(26,17,40,0.35); text-shadow:none;
+  }
+  .hub-badge:empty{display:none;}
+  .hub-badge.done{background:var(--sage);}
 
   /* --- Guess the Song ----------------------------------------------------
      Deliberately plain: a readout, one big play button, a grid of the
@@ -2516,10 +2494,9 @@ function renderIdle() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="home-wordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;margin:0 auto;"></div>
-    <div class="mic-wrap mic-alive" id="micWrap">
-      <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic-v2.webp" alt="Record"></button>
-    </div>
-    <div class="stage-label">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
+    <!-- The greeting sits above the mic now: straight below it is where the
+         bottom of the U of three discs goes. -->
+    <div class="stage-label home-greeting">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
     <div class="stage-sub">Hear some birds? Then tap the mic!</div>
 
     <!-- The "Here Now" card sat here and is parked, not deleted: Home was
@@ -2532,24 +2509,21 @@ function renderIdle() {
              loadHereNowCard();
          Note that this card was the ONLY way into renderWhatsHere, so that
          screen is currently unreachable rather than merely hidden. -->
-    <button class="challenge-strip" id="challengeCard">
-      <span class="challenge-strip-icon" id="challengeIcon"><img src="/static/challenge-icon-v1.webp" alt=""></span>
-      <span class="challenge-strip-text" id="challengeText">Loading…</span>
-      <span class="challenge-strip-tally" id="challengeTally"></span>
-    </button>
-
-    <div class="home-minis">
-      <button class="mini-card mini-joke" id="jokeMini">
-        <span class="mini-icon mini-icon-img"><img src="/static/joke-icon-v1.webp" alt=""></span>
-        <span class="mini-text">
-          <span class="mini-title">Joke Of The Day</span>
-        </span>
+    <div class="home-hub">
+      <div class="mic-wrap mic-alive" id="micWrap">
+        <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic-v2.webp" alt="Record"></button>
+      </div>
+      <button class="hub-item hub-left" id="jokeMini">
+        <span class="hub-icon"><img src="/static/joke-icon-v1.webp" alt=""></span>
+        <span class="hub-label">Joke Of The Day</span>
       </button>
-      <button class="mini-card mini-game" id="gameMini">
-        <span class="mini-icon mini-icon-img"><img src="/static/song-game-icon-v1.webp" alt=""></span>
-        <span class="mini-text">
-          <span class="mini-title">Guess The Song</span>
-        </span>
+      <button class="hub-item hub-mid" id="challengeCard">
+        <span class="hub-icon"><img src="/static/challenge-icon-v1.webp" alt=""><span class="hub-badge" id="challengeTally"></span></span>
+        <span class="hub-label">Weekly Challenges</span>
+      </button>
+      <button class="hub-item hub-right" id="gameMini">
+        <span class="hub-icon"><img src="/static/song-game-icon-v1.webp" alt=""></span>
+        <span class="hub-label">Guess The Song</span>
       </button>
     </div>
   `;
@@ -2641,35 +2615,17 @@ async function loadHereNowCard() {
 // ("3 more to go!") and the bar both went with the card - the tally says the
 // same thing in less room, and the Challenges screen still has all of it.
 async function loadChallengeCard() {
-  const text = document.getElementById('challengeText');
-  if (!text) return;
-  const tally = document.getElementById('challengeTally');
+  // Home shows how many of this week's challenges are done, as a badge on
+  // the challenges disc - "2/5", turning green when they all are.
+  const badge = document.getElementById('challengeTally');
+  if (!badge) return;
   try {
-    const res = await fetch('/weekly-challenges');
-    const d = await res.json();
+    const d = await (await fetch('/weekly-challenges')).json();
     const all = d.challenges || [];
-    // The one being worked on: furthest along of the unfinished ones, so it
-    // shows progress a child can nearly finish rather than a fresh zero.
-    const open = all.filter(c => !c.complete)
-      .sort((a, b) => (b.progress / b.target) - (a.progress / a.target));
-
-    if (!all.length) {
-      text.textContent = 'New challenges every Monday';
-      tally.textContent = '';
-      return;
-    }
-    if (!open.length) {
-      text.textContent = 'Every challenge done this week!';
-      tally.textContent = `${all.length}/${all.length}`;
-      return;
-    }
-    const c = open[0];
-    text.textContent = c.text;
-    tally.textContent = `${c.progress}/${c.target}`;
-  } catch (e) {
-    text.textContent = "This week's challenges";
-    tally.textContent = '';
-  }
+    const done = all.filter(c => c.complete).length;
+    badge.textContent = all.length ? `${done}/${all.length}` : '';
+    badge.classList.toggle('done', all.length > 0 && done === all.length);
+  } catch (e) { badge.textContent = ''; }
 }
 
 async function renderWhatsHere() {
