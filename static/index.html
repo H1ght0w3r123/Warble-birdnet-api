@@ -621,11 +621,15 @@
   .sg-result{font-family:'Poppins'; font-weight:900; font-size:16px; color:#fff;
     min-height:24px; margin-top:12px; text-align:center;}
   .sg-buttons{display:flex; flex-direction:column; gap:9px; width:100%; max-width:300px; margin:0 auto;}
-  .sg-btn{border:none; cursor:pointer; border-radius:16px; padding:12px; font-family:'Poppins';
-    font-weight:900; font-size:15px; background:var(--gold); color:var(--ink);
-    box-shadow:0 3px 8px rgba(26,17,40,0.28);}
-  .sg-btn.plain{background:#7E4B29; color:var(--parch);}
-  .sg-btn.sg-back{font-size:13px; padding:9px 20px; margin-top:16px;}
+  /* The game's buttons are the same as its level cards and the rest of the
+     app: the wooden frame (.woodframe) round a panel in the discs' cream,
+     the label carved in dark wood. */
+  .sg-btn{--frame:4px; --inner:12px; border:none; cursor:pointer; display:block; width:100%;
+    font-family:'Poppins'; font-weight:900; font-size:15px; transition:transform .12s ease;}
+  .sg-btn-inner{display:block; background:var(--disc-cream); color:var(--wood-edge);
+    border-radius:var(--inner); padding:11px 12px;}
+  .sg-btn.sg-back{width:auto; margin:16px auto 0; font-size:13px;}
+  .sg-btn.sg-back .sg-btn-inner{padding:7px 20px;}
   .sg-btn:active{transform:scale(.97);}
   /* The next level's button breathes and glows, like the level to play
      next on the levels page. */
@@ -2978,8 +2982,12 @@ function startSongGameLevel(data, level) {
 // Under the bird tiles rather than at the top of the screen: it's the way
 // out of a level part-way through, and down here it's out of the way of the
 // play button.
+function songGameButton(id, label, cls = '') {
+  return `<button class="sg-btn woodframe ${cls}" id="${id}"><span class="sg-btn-inner">${label}</span></button>`;
+}
+
 function songGameBackButton() {
-  return `<button class="sg-btn plain sg-back" id="sgBack">Back to levels</button>`;
+  return songGameButton('sgBack', 'Back to levels', 'sg-back');
 }
 
 function bindSongGameBack(data) {
@@ -3207,9 +3215,9 @@ async function renderSongGameEnd() {
     <div class="collection-title">You got ${got} of ${g.results.length}</div>
     <div class="sg-message">${message}</div>
     <div class="sg-buttons">
-      ${next && next.unlocked ? `<button class="sg-btn invite" id="sgNext">Level ${next.level}</button>` : ''}
-      <button class="sg-btn ${next && next.unlocked ? 'plain' : ''}" id="sgAgain">Play again</button>
-      <button class="sg-btn plain" id="sgLevelsBtn">All levels</button>
+      ${next && next.unlocked ? songGameButton('sgNext', `Level ${next.level}`, 'invite') : ''}
+      ${songGameButton('sgAgain', 'Play again')}
+      ${songGameButton('sgLevelsBtn', 'All levels')}
     </div>
     ${waiting}
   `;
