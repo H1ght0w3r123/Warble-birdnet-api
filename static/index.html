@@ -434,19 +434,29 @@
      below, lower right - so together they make a U that follows its curve.
      --R is that circle's radius, measured to the middle of each disc; the
      side two sit 58 degrees either side of straight down, which works out
-     at (98.4px, 61.5px) from the centre. */
+     at (105.2px, 65.7px) from the centre.
+
+     The hub stretches to fill the screen down to the nav bar, and the U
+     drops into whatever room that leaves (--drop): 60% of the spare height,
+     up to 160px. On a tall phone it sits well down the screen; on a short
+     one, where there's no spare room, it stays snug under the mic. */
   .home-greeting{margin-top:0;}
   .home-hub{
     position:relative; width:100%; margin-top:20px;
-    --mic:108px; --disc:68px; --R:116px; --side-x:98.4px; --side-y:61.5px;
-    /* top of the mic to the bottom of the lowest name */
-    height:calc(var(--mic) / 2 + var(--R) + var(--disc) / 2 + 42px);
+    --mic:130px; --disc:68px; --R:124px; --side-x:105.2px; --side-y:65.7px;
+    /* top of the mic to the bottom of the lowest name, with no drop */
+    --hub-min:calc(var(--mic) / 2 + var(--R) + var(--disc) / 2 + 42px);
+    flex:1 0 auto; min-height:var(--hub-min);
   }
   .home-hub .mic-wrap{position:absolute; left:50%; top:0; transform:translateX(-50%);}
+  /* The Home mic only, 20% bigger than the shared .mic-btn size. */
+  .home-hub .mic-btn{width:var(--mic); height:var(--mic);}
   .hub-item{
     position:absolute; width:100px; padding:0; border:none; background:none; cursor:pointer;
     left:calc(50% + var(--x) - 50px);
-    top:calc(var(--mic) / 2 + var(--y) - var(--disc) / 2);
+    /* % here is the hub's height, so the drop grows with the free space */
+    --drop:clamp(0px, (100% - var(--hub-min)) * 0.6, 160px);
+    top:calc(var(--mic) / 2 + var(--y) - var(--disc) / 2 + var(--drop));
     display:flex; flex-direction:column; align-items:center; gap:5px;
     font-family:'Poppins'; color:#fff; -webkit-tap-highlight-color:transparent;
   }
