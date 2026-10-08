@@ -583,8 +583,18 @@
     100%{background:#E5483B;}
   }
   .sg-grid{display:grid; gap:10px; width:100%; max-width:360px; justify-content:center;}
-  .sg-grid.cols2{grid-template-columns:repeat(2, minmax(0, 160px));}
-  .sg-grid.cols3{grid-template-columns:repeat(3, minmax(0, 1fr));}
+  /* Small phones (set by fitSongGameGrid): less room round the cards. */
+  .sg-round.tight .sg-head{margin-bottom:6px;}
+  .sg-round.tight .photo-icon-btn.sg-play{width:64px; height:64px;}
+  .sg-round.tight .sg-prompt{margin:6px 0 5px;}
+  .sg-round.tight .sg-timer{margin-bottom:9px;}
+  .sg-round.tight .sg-grid{gap:7px;}
+  .sg-round.tight .sg-result{margin-top:6px;}
+  .sg-round.tight .sg-btn.sg-back{margin-top:6px;}
+  /* --tile-max is set by fitSongGameGrid when the round doesn't fit the
+     screen, shrinking the cards just enough; unset, they take their room. */
+  .sg-grid.cols2{grid-template-columns:repeat(2, minmax(0, var(--tile-max, 160px)));}
+  .sg-grid.cols3{grid-template-columns:repeat(3, minmax(0, var(--tile-max, 1fr)));}
   .sg-tile{--frame:4px; --inner:9px; border:none; cursor:pointer; text-align:center;
     display:flex; flex-direction:column; transition:transform .12s ease, opacity .25s ease, filter .25s ease;}
   .sg-tile:disabled{cursor:default;}
@@ -598,7 +608,10 @@
   .sg-blank{display:flex; align-items:center; justify-content:center; font-size:30px;}
   .sg-name{font-family:'Poppins'; font-size:11.5px; font-weight:700; padding:6px 4px; color:var(--ink);
     line-height:1.2; background:var(--parch); border-radius:0 0 var(--inner) var(--inner);
-    flex:1; display:flex; align-items:center; justify-content:center; overflow-wrap:anywhere;}
+    flex:1; display:flex; align-items:center; justify-content:center;
+    /* In a small card a long name breaks with a hyphen ("Yellow-hammer")
+       rather than wherever it runs out of room. */
+    overflow-wrap:break-word; -webkit-hyphens:auto; hyphens:auto;}
   .sg-own{position:absolute; top:calc(var(--frame) + 4px); left:calc(var(--frame) + 4px); z-index:3;
     font-size:12px; line-height:1; background:rgba(26,17,40,0.55); border-radius:8px; padding:3px 4px;}
   /* Feedback: the right bird glows green, a wrong pick shakes and fades. */
@@ -3104,6 +3117,64 @@ function bindSongGameBack(data) {
   document.getElementById('sgBack').onclick = () => renderSongGame(data);
 }
 
+// Shrinks the bird cards until the whole round - play button, cards, the
+// answer line and Back to levels - fits on the screen without scrolling.
+// Measured rather than guessed, because names wrap differently in narrow
+// cards. A level keeps the smallest size it has needed (g.tileMax), so the
+// cards don't change size from one round to the next.
+// Cards shrink to 80px first; only if the tighter layout still can't fit
+// them do they go down to 64px, where long names start to need hyphens.
+const SONG_GAME_SMALL_TILE = 80;
+const SONG_GAME_MIN_TILE = 64;
+function fitSongGameGrid() {
+  const g = songGame;
+  const grid = document.getElementById('sgGrid');
+  const sc = document.getElementById('scroller');
+  if (!g || !grid || !sc) return;
+  if (g.tileMax) grid.style.setProperty('--tile-max', g.tileMax + 'px');
+  else grid.style.removeProperty('--tile-max');
+  const root = document.getElementById('sgRound');
+  root.classList.toggle('tight', !!g.tight);
+  // Measure with the longest answer line this round could show already in
+  // place, so a two-line "Not quite - that was a ..." can't tip it over.
+  const result = document.getElementById('sgResult');
+  const longest = g.choices.reduce((a, b) => b.common_name.length > a.length ? b.common_name : a, '');
+  if (result) result.textContent = `Not quite - that was a ${longest}`;
+  try { fitSongGameGridNow(g, grid, sc, root); }
+  finally { if (result && !g.answered) result.textContent = ''; }
+}
+
+function fitSongGameGridNow(g, grid, sc, root) {
+  const rows = Math.ceil(g.choices.length / (grid.classList.contains('cols3') ? 3 : 2));
+  const shrink = (min) => {
+    for (let i = 0; i < 4; i++) {
+      const over = sc.scrollHeight - sc.clientHeight;
+      if (over <= 0) return true;
+      const now = grid.querySelector('.sg-tile').getBoundingClientRect().width;
+      const next = Math.max(min, Math.floor(now - over / rows - 1));
+      if (next >= now) return false;   // as small as they go
+      g.tileMax = next;
+      grid.style.setProperty('--tile-max', next + 'px');
+    }
+    return sc.scrollHeight <= sc.clientHeight;
+  };
+  // Still too tall with the smallest cards (a small phone): tighten the rest
+  // of the round - a smaller play button, less space between things - and
+  // size the cards again from the top, since they may now get some back.
+  if (shrink(SONG_GAME_SMALL_TILE)) return;
+  if (!g.tight) {
+    g.tight = true;
+    root.classList.add('tight');
+    g.tileMax = 0;
+    grid.style.removeProperty('--tile-max');
+    if (shrink(SONG_GAME_SMALL_TILE)) return;
+  }
+  shrink(SONG_GAME_MIN_TILE);
+}
+window.addEventListener('resize', () => {
+  if (songGame && !songGame.answered) { songGame.tileMax = 0; songGame.tight = false; fitSongGameGrid(); }
+});
+
 function renderSongGameRound() {
   const g = songGame;
   const root = document.getElementById('sgRound');
@@ -3143,6 +3214,7 @@ function renderSongGameRound() {
     ${songGameBackButton()}
   `;
   bindSongGameBack(g.data);
+  fitSongGameGrid();
   document.getElementById('sgPlay').onclick = playSongGameClip;
   root.querySelectorAll('.sg-tile').forEach(t => {
     t.onclick = () => answerSongGame(g.choices[+t.dataset.i]);
