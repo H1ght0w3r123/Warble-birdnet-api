@@ -558,16 +558,13 @@ async def analyze_session(
         # at 2/day so it can't be farmed by tapping record repeatedly.
         # Weekly challenges. The old standalone "3 warbles a week" bonus is now
         # just one of these, so there's a single weekly mechanic rather than two
-        # competing ones.
-        for ch, done, _ in evaluate_week_challenges():
-            if done and award_bonus_once(f"challenge:{current_week_key()}:{ch['id']}"):
-                session_feathers += ch["feathers"]
-                bonuses.append({"label": ch["text"], "feathers": ch["feathers"]})
-
-        if all(done for _, done, _ in evaluate_week_challenges()):
+        # competing ones. They pay out once, for the whole week: nothing for
+        # each challenge on its own, ALL_COMPLETE_BONUS when the last is done.
+        week = evaluate_week_challenges()
+        if week and all(done for _, done, _ in week):
             if award_bonus_once(f"challenge:{current_week_key()}:ALL"):
                 session_feathers += ALL_COMPLETE_BONUS
-                bonuses.append({"label": "All 5 challenges done!", "feathers": ALL_COMPLETE_BONUS})
+                bonuses.append({"label": f"All {len(week)} challenges done!", "feathers": ALL_COMPLETE_BONUS})
 
         # Completing a pack is a real milestone worth paying for
         for key, pack in PACKS.items():
@@ -656,12 +653,12 @@ def evaluate_week_challenges():
 
 @app.get("/weekly-challenges")
 def weekly_challenges():
-    """This week's challenges and progress, for the Home lozenge."""
+    """This week's challenges and progress. all_bonus is the week's only
+    reward - feathers for finishing all of them."""
     items = []
     for ch, done, progress in evaluate_week_challenges():
         items.append({
             "id": ch["id"], "text": ch["text"], "target": ch["target"],
-            "feathers": ch["feathers"],
             "progress": min(progress, ch["target"]), "complete": done,
         })
     return {

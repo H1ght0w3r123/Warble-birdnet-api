@@ -1,6 +1,8 @@
 """
-Weekly challenges: five per week, drawn from a pool, each worth feathers,
-with a bonus for completing all five.
+Weekly challenges: five per week, drawn from a pool. Feathers come only from
+finishing the whole week - all five done is ALL_COMPLETE_BONUS, and a
+challenge on its own pays nothing. One clear prize for the week, rather than a
+trickle that makes the last few challenges feel optional.
 
 The five are chosen deterministically from the ISO week number, so they're
 stable across reloads and devices without needing to be stored anywhere -
@@ -12,21 +14,19 @@ means adding a "progress" function here and nothing else.
 import datetime
 import random
 
-# Each: id, text shown to the child, target, feathers, and how to measure it.
+# Each: id, text shown to the child, target, and how to measure it.
 # "progress" takes the week-stats dict and returns a number to compare to target.
 CHALLENGE_POOL = [
     {
         "id": "warble_3",
         "text": "Go warbling 3 times",
         "target": 3,
-        "feathers": 8,
         "progress": lambda w: w["sessions"],
     },
     {
         "id": "two_days",
         "text": "Warble on 2 different days",
         "target": 2,
-        "feathers": 5,
         "progress": lambda w: w["days"],
     },
     {
@@ -34,7 +34,6 @@ CHALLENGE_POOL = [
         "family": "places",
         "text": "Warble in 2 different places",
         "target": 2,
-        "feathers": 6,
         "progress": lambda w: w["locations"],
     },
     {
@@ -42,7 +41,6 @@ CHALLENGE_POOL = [
         "family": "species",
         "text": "Hear 5 different birds",
         "target": 5,
-        "feathers": 8,
         "progress": lambda w: len(w["species"]),
     },
     {
@@ -50,7 +48,6 @@ CHALLENGE_POOL = [
         "family": "species",
         "text": "Hear 8 different birds",
         "target": 8,
-        "feathers": 12,
         "progress": lambda w: len(w["species"]),
     },
     {
@@ -58,21 +55,18 @@ CHALLENGE_POOL = [
         "family": "one_session",
         "text": "Hear 3 birds in a single warble",
         "target": 3,
-        "feathers": 6,
         "progress": lambda w: w["best_session_birds"],
     },
     {
         "id": "not_common",
         "text": "Hear a Visitor or Rare bird",
         "target": 1,
-        "feathers": 9,
         "progress": lambda w: 1 if (w["tiers"] & {"Visitor", "Rare"}) else 0,
     },
     {
         "id": "early_start",
         "text": "Go warbling before 9am",
         "target": 1,
-        "feathers": 6,
         "progress": lambda w: 1 if (w["earliest_hour"] is not None and w["earliest_hour"] < 9) else 0,
     },
     {
@@ -80,7 +74,6 @@ CHALLENGE_POOL = [
         "family": "places",
         "text": "Warble in 3 different places",
         "target": 3,
-        "feathers": 10,
         "progress": lambda w: w["locations"],
     },
     {
@@ -88,12 +81,11 @@ CHALLENGE_POOL = [
         "family": "one_session",
         "text": "Hear 5 birds in a single warble",
         "target": 5,
-        "feathers": 10,
         "progress": lambda w: w["best_session_birds"],
     },
 ]
 
-ALL_COMPLETE_BONUS = 20
+ALL_COMPLETE_BONUS = 25   # the only feathers the challenges pay
 
 # Always included, so the weekly rhythm the reward structure is built around
 # is never absent - the other four rotate around it.

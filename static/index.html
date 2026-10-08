@@ -686,6 +686,11 @@
   .challenge-bar{height:8px;background:rgba(116,50,6,0.14);border-radius:4px;overflow:hidden;margin-top:9px;}
   .challenge-bar-fill{height:100%;background:var(--sage);border-radius:4px;transition:width .5s ease;}
   .challenge-progress{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-dk);margin-top:6px;}
+  /* The prize card: the week's only feathers, so it leads and stands out a
+     little - a gold edge inside the frame and a bigger feather count. */
+  .challenge-card.all-bonus{margin-bottom:16px;}
+  .challenge-card.all-bonus .challenge-inner{box-shadow:inset 0 0 0 2px var(--gold);}
+  .challenge-card.all-bonus .challenge-feathers{font-size:17px;}
   /* The four shortcuts sit on an arc beneath the mic rather than as four
      full-width stacked tiles, which dominated the screen. Positions are set
      per-button with --x/--y so the arc is defined in one place. */
@@ -2822,7 +2827,7 @@ async function renderChallenges() {
       <div class="challenge-inner">
         <div class="challenge-top">
           <span class="challenge-text">${complete ? '<span class="challenge-tick">✓</span>' : ''}<span>${text}</span></span>
-          <span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${feathers}</span>
+          ${feathers ? `<span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${feathers}</span>` : ''}
         </div>
         ${body}
       </div>
@@ -2832,13 +2837,18 @@ async function renderChallenges() {
     const d = await res.json();
     const items = d.challenges || [];
     const allDone = items.length && items.every(i => i.complete);
-    list.innerHTML = items.map(i => {
-      const pct = Math.round((i.progress / i.target) * 100);
-      return card(i.complete, '', i.text, i.feathers, `
-        <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${pct}%"></div></div>
-        <div class="challenge-progress">${i.progress} of ${i.target}</div>`);
-    }).join('') + card(allDone, 'all-bonus', `Finish all ${items.length}`, d.all_bonus,
-      `<div class="challenge-progress">${d.completed} of ${items.length} challenges done</div>`);
+    // The week's one prize goes first, so it's clear what the challenges are
+    // for: feathers only for finishing all of them, none for each on its own.
+    const prizePct = items.length ? Math.round((d.completed / items.length) * 100) : 0;
+    list.innerHTML = card(allDone, 'all-bonus', `Finish all ${items.length} to win`, d.all_bonus, `
+        <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${prizePct}%"></div></div>
+        <div class="challenge-progress">${d.completed} of ${items.length} challenges done</div>`) +
+      items.map(i => {
+        const pct = Math.round((i.progress / i.target) * 100);
+        return card(i.complete, '', i.text, 0, `
+          <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${pct}%"></div></div>
+          <div class="challenge-progress">${i.progress} of ${i.target}</div>`);
+      }).join('');
   } catch (e) {
     list.innerHTML = `<div class="collection-empty">Couldn't load challenges right now.</div>`;
   }
