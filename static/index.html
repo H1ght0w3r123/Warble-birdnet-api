@@ -349,9 +349,11 @@
     cursor:pointer; transition:transform .1s; position:relative; z-index:1;
   }
   .mic-btn:active{transform:translateY(4px);}
-  /* Matches the 84px 'go again' mic button, not the larger 120px Home mic. */
-  .mic-btn.recording{width:84px;height:84px;font-size:26px;background:var(--visitor);border-radius:50%;box-shadow:0 6px 0 var(--visitor-dk);margin-top:16px;}
-  .mic-btn.recording:active{transform:translateY(4px); box-shadow:0 2px 0 var(--visitor-dk);}
+  /* The stop button on the listening screen: the painted stop disc, a touch
+     bigger than the old blue circle because its wooden rim takes some of it. */
+  .mic-btn.recording{width:92px;height:92px;margin-top:16px;
+    filter:drop-shadow(0 4px 6px rgba(26,17,40,0.35));}
+  .mic-btn.recording:active{transform:scale(.92);}
   /* The new mic asset is a complete circular badge (its own wood-ring
      border and 3D bevel baked into the artwork) rather than a small glyph
      that rides on a coloured button - so the button itself goes background:
@@ -602,7 +604,24 @@
   /* Feedback: the right bird glows green, a wrong pick shakes and fades. */
   .sg-tile.right{box-shadow:0 0 0 3px var(--sage), 0 0 18px 4px rgba(126,200,164,0.85);
     animation:sgRight .5s ease;}
-  .sg-tile.wrong{animation:sgWrong .4s ease; filter:grayscale(.8) brightness(.8);}
+  /* A wrong pick greys its photo and name, not the whole tile, so the
+     cross that lands on it stays red. */
+  .sg-tile.wrong{animation:sgWrong .4s ease;}
+  .sg-tile.wrong .sg-photo > img:not(.sg-mark), .sg-tile.wrong .sg-blank, .sg-tile.wrong .sg-name{
+    filter:grayscale(.8) brightness(.8);}
+  .sg-photo{position:relative; display:block;}
+  /* The tick or cross, big in the middle of the photo, bouncing in. */
+  .sg-tile .sg-photo img.sg-mark{
+    position:absolute; left:50%; top:50%; width:54%; height:auto; aspect-ratio:1;
+    max-width:84px; border-radius:50%; background:none; object-fit:contain; filter:drop-shadow(0 3px 6px rgba(0,0,0,0.45));
+    transform:translate(-50%,-50%); z-index:4;
+    animation:sgMarkIn .45s cubic-bezier(.25,1.6,.5,1) both;
+  }
+  .sg-tile .sg-photo img.sg-mark.tick{animation-delay:.08s;}
+  @keyframes sgMarkIn{
+    from{transform:translate(-50%,-50%) scale(0) rotate(-25deg); opacity:0;}
+    to{transform:translate(-50%,-50%) scale(1) rotate(0); opacity:1;}
+  }
   .sg-tile.out{opacity:.45;}
   @keyframes sgRight{0%{transform:scale(1);} 45%{transform:scale(1.07);} 100%{transform:scale(1);}}
   @keyframes sgWrong{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
@@ -628,7 +647,8 @@
   }
   @media (prefers-reduced-motion: reduce){
     .sg-timer.urgent{animation:none; box-shadow:0 0 10px 2px rgba(229,72,59,0.75);}
-    .sg-play.invite, .sg-level.invite, .sg-btn.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on{animation:none;}
+    .sg-play.invite, .sg-level.invite, .sg-btn.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on,
+    .sg-tile .sg-photo img.sg-mark{animation:none;}
     .sg-burst{display:none;}
   }
 
@@ -3108,10 +3128,12 @@ function renderSongGameRound() {
     <div class="sg-grid ${n === 2 || n === 4 ? 'cols2' : 'cols3'}" id="sgGrid">
       ${g.choices.map((b, i) => `
         <button class="sg-tile woodframe waiting" data-i="${i}" disabled>
-          ${b.own_photo ? '<span class="sg-own" aria-label="Your photo">📷</span>' : ''}
-          ${b.image_url
-            ? `<img ${b.own_photo ? `src="${escapeFlock(b.image_url)}"` : `class="stock" ${birdImg(b.image_url, 260)}`} alt="">`
-            : '<div class="sg-blank">🐦</div>'}
+          <span class="sg-photo">
+            ${b.own_photo ? '<span class="sg-own" aria-label="Your photo">📷</span>' : ''}
+            ${b.image_url
+              ? `<img ${b.own_photo ? `src="${escapeFlock(b.image_url)}"` : `class="stock" ${birdImg(b.image_url, 260)}`} alt="">`
+              : '<div class="sg-blank">🐦</div>'}
+          </span>
           <span class="sg-name">${escapeFlock(b.common_name)}</span>
         </button>`).join('')}
     </div>
@@ -3233,6 +3255,10 @@ function answerSongGame(picked) {
     if (b === answer) t.classList.add('right');
     else if (b === picked) t.classList.add('wrong');
     else t.classList.add('out');
+    // The painted tick on the bird that sang, and a cross on a wrong pick.
+    const mark = b === answer ? 'tick' : b === picked ? 'cross' : null;
+    if (mark) t.querySelector('.sg-photo').insertAdjacentHTML('beforeend',
+      `<img class="sg-mark ${mark}" src="/static/${mark}-v1.webp" alt="${mark === 'tick' ? 'Right' : 'Wrong'}">`);
   });
   document.getElementById('sgPrompt').textContent = '';
   document.getElementById('sgResult').textContent = right
@@ -3393,7 +3419,7 @@ function renderRecording() {
       <div class="live-bird-stack" id="liveBirdStack"></div>
       ${treeSvgMarkup()}
       <div class="rec-location" id="recLocation"></div>
-      <button class="mic-btn recording" id="stopBtn">■</button>
+      <button class="mic-btn recording" id="stopBtn" aria-label="Stop"><img class="mic-icon" src="/static/stop-v1.webp" alt=""></button>
       <div class="timer" id="timer">0:00</div>
     </div>
   `;
