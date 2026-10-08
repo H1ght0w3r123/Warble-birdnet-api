@@ -194,7 +194,7 @@
   body.scene-on .flock-stats, body.scene-on .pack-tally,
   body.scene-on .pack-more,
   body.scene-on .pack-blurb, body.scene-on .fan-caption,
-  body.scene-on .hub-label, body.scene-on .nav-tab,
+  body.scene-on .hub-label, body.scene-on .nav-tab, body.scene-on .sg-navbtn,
   body.scene-on .joke-setup, body.scene-on .joke-punch, body.scene-on .joke-locked,
   body.scene-on .colour-label,
   body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
@@ -640,7 +640,6 @@
   @keyframes sgWrong{0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}}
   .sg-result{font-family:'Poppins'; font-weight:900; font-size:16px; color:#fff;
     min-height:24px; margin-top:12px; text-align:center;}
-  .sg-buttons{display:flex; flex-direction:column; gap:9px; width:100%; max-width:300px; margin:0 auto;}
   /* The game's buttons are the same as its level cards and the rest of the
      app: the wooden frame (.woodframe) round a panel in the discs' cream,
      the label carved in dark wood. */
@@ -651,16 +650,29 @@
   .sg-btn.sg-back{width:auto; margin:16px auto 0; font-size:13px;}
   .sg-btn.sg-back .sg-btn-inner{padding:7px 20px;}
   .sg-btn:active{transform:scale(.97);}
-  /* The next level's button breathes and glows, like the level to play
-     next on the levels page. */
-  .sg-btn.invite{animation:sgBtnInvite 1.6s ease-in-out infinite; animation-delay:1.4s;}
-  @keyframes sgBtnInvite{
-    0%,100%{transform:scale(1); box-shadow:0 3px 8px rgba(26,17,40,0.28), 0 0 0 0 rgba(242,201,76,0);}
-    50%{transform:scale(1.04); box-shadow:0 3px 8px rgba(26,17,40,0.28), 0 0 0 3px rgba(255,255,255,0.75), 0 0 22px 6px rgba(242,201,76,0.75);}
+  /* End of a level: three painted discs in a row - back to levels, retry,
+     next level - each with its name underneath. */
+  .sg-endnav{display:flex; justify-content:center; align-items:flex-start; gap:18px; margin-top:4px;}
+  .sg-navbtn{border:none; background:none; padding:0; cursor:pointer; width:88px;
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1.15; color:#fff; text-align:center;}
+  .sg-navbtn img{width:72px; height:72px; display:block; transition:transform .12s ease;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));}
+  .sg-navbtn:active img{transform:scale(.92);}
+  /* Next level not open yet: the same grey "not yet" as everywhere else. */
+  .sg-navbtn.locked{cursor:default; opacity:.75;}
+  .sg-navbtn.locked img{filter:grayscale(1) brightness(.85) drop-shadow(0 3px 6px rgba(0,0,0,0.35));}
+  .sg-navbtn.locked:active img{transform:none;}
+  /* Next level open: it breathes and glows gold once the stars have landed,
+     like the level to play next on the levels page. */
+  .sg-navbtn.invite img{animation:sgNavInvite 1.6s ease-in-out 1.4s infinite;}
+  @keyframes sgNavInvite{
+    0%,100%{transform:scale(1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));}
+    50%{transform:scale(1.1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(242,201,76,0.95));}
   }
   @media (prefers-reduced-motion: reduce){
     .sg-timer.urgent{animation:none; box-shadow:0 0 10px 2px rgba(229,72,59,0.75);}
-    .sg-play.invite, .sg-level.invite, .sg-btn.invite, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on,
+    .sg-play.invite, .sg-level.invite, .sg-navbtn.invite img, .sg-tile.right, .sg-tile.wrong, .sg-end-stars .sg-star.on,
     .sg-tile .sg-photo img.sg-mark{animation:none;}
     .sg-burst{display:none;}
   }
@@ -3109,6 +3121,11 @@ function songGameButton(id, label, cls = '') {
   return `<button class="sg-btn woodframe ${cls}" id="${id}"><span class="sg-btn-inner">${label}</span></button>`;
 }
 
+function songGameNavButton(id, art, label, cls = '') {
+  return `<button class="sg-navbtn ${cls}" id="${id}" ${cls === 'locked' ? 'disabled' : ''}>
+    <img src="/static/${art}.webp" alt=""><span>${label}</span></button>`;
+}
+
 function songGameBackButton() {
   return songGameButton('sgBack', 'Back to levels', 'sg-back');
 }
@@ -3402,10 +3419,10 @@ async function renderSongGameEnd() {
     ${songGameEndStars(stars)}
     <div class="collection-title">You got ${got} of ${g.results.length}</div>
     <div class="sg-message">${message}</div>
-    <div class="sg-buttons">
-      ${next && next.unlocked ? songGameButton('sgNext', `Level ${next.level}`, 'invite') : ''}
-      ${songGameButton('sgAgain', 'Play again')}
-      ${songGameButton('sgLevelsBtn', 'All levels')}
+    <div class="sg-endnav">
+      ${songGameNavButton('sgLevelsBtn', 'btn-levels-v1', 'Back to levels')}
+      ${songGameNavButton('sgAgain', 'btn-retry-v1', 'Retry level')}
+      ${next ? songGameNavButton('sgNext', 'btn-next-v1', 'Next level', next.unlocked ? 'invite' : 'locked') : ''}
     </div>
     ${waiting}
   `;
