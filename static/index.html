@@ -414,19 +414,6 @@
   .herenow-birds .b2{animation:drift 9s ease-in-out infinite .8s;}
   .herenow-birds .b3{animation:drift 8s ease-in-out infinite 1.6s;}
 
-  /* Challenge: parchment, because this one is about keeping score. */
-  .challenge-card{background:var(--parch); color:var(--dusk); padding:14px 16px 15px;}
-  .challenge-card .home-card-eyebrow{color:var(--mist-dk);}
-
-  .challenge-text{
-    font-family:'Poppins'; font-weight:700; font-size:15px; color:var(--ink);
-    line-height:1.25; margin:8px 0 10px; overflow-wrap:anywhere;
-  }
-  .challenge-bar{
-    height:14px; border-radius:7px; background:#fff; overflow:hidden;
-    box-shadow:inset 0 1px 3px rgba(26,17,40,0.16);
-  }
-
   /* Tip and joke: a light strip, deliberately not a third and fourth card. */
   /* --- Home: the mic and the three things round it ---------------------
      Joke Of The Day, Weekly Challenges and Guess The Song get an equal
@@ -683,19 +670,22 @@
   .migration-credit a{color:rgba(255,255,255,0.7);}
   .migration-destination{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);text-align:center;margin-top:14px;}
   .migration-fact{font-size:13px;line-height:1.55;color:rgba(255,255,255,0.92);text-align:center;margin-top:8px;padding:0 8px;}
-  .challenge-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;width:100%;}
-  .challenge-card.complete{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
-  .challenge-card.all-bonus{background:rgba(255,255,255,0.2);}
-  .challenge-card.all-bonus.complete{background:var(--goldbg,#FBF0D8);}
-  .challenge-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
-  .challenge-text{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);}
-  .challenge-card.all-bonus .challenge-text{color:#fff;}
-  .challenge-card.all-bonus.complete .challenge-text{color:var(--dusk);}
-  .challenge-feathers{font-family:'Poppins';font-weight:900;font-size:12px;color:var(--gold-dk);flex-shrink:0;}
-  .challenge-bar{height:6px;background:var(--parch-dk);border-radius:3px;overflow:hidden;margin-top:8px;}
-  .challenge-bar-fill{height:100%;background:var(--sage);border-radius:3px;transition:width .5s ease;}
-  .challenge-progress{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--mist-dk);margin-top:6px;}
-  .challenge-card.all-bonus .challenge-progress{color:rgba(255,255,255,0.85);}
+  /* Weekly Challenges: each one is a card like the rest of the app - the
+     My Flock wooden frame round a panel in the discs' cream. A finished one
+     gets a green tick and a full green bar. */
+  .challenge-card{--frame:5px; --inner:12px; width:100%; margin-bottom:10px;}
+  .challenge-inner{background:var(--disc-cream); border-radius:var(--inner); padding:12px 14px 11px;}
+  .challenge-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .challenge-text{font-family:'Poppins';font-weight:800;font-size:14px;line-height:1.3;
+    color:var(--wood-edge);display:flex;align-items:center;gap:8px;}
+  .challenge-tick{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--sage);
+    color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 2px rgba(26,17,40,0.3);}
+  .challenge-feathers{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--wood-dk);flex-shrink:0;
+    display:flex;align-items:center;gap:3px;}
+  .challenge-bar{height:8px;background:rgba(116,50,6,0.14);border-radius:4px;overflow:hidden;margin-top:9px;}
+  .challenge-bar-fill{height:100%;background:var(--sage);border-radius:4px;transition:width .5s ease;}
+  .challenge-progress{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-dk);margin-top:6px;}
   /* The four shortcuts sit on an arc beneath the mic rather than as four
      full-width stacked tiles, which dominated the screen. Positions are set
      per-button with --x/--y so the arc is defined in one place. */
@@ -2819,20 +2809,24 @@ async function renderMigrationCard(commonName, onBack) {
 
 async function renderChallenges() {
   stage.classList.add('top-aligned');
+  // No back button: the Home tab is the way out, as on the joke and game.
   stage.innerHTML = `
-    <div style="width:100%;margin-bottom:14px;">
-      <button class="back-btn" id="backBtn">← Back</button>
-    </div>
     <div class="collection-title" style="margin-bottom:4px;">Weekly Challenges</div>
     <div class="collection-count">New challenges every Monday</div>
     <div id="challengeList" style="width:100%;"></div>
   `;
-  document.getElementById('backBtn').onclick = () => {
-    stage.classList.remove('top-aligned');
-    renderIdle();
-  };
 
   const list = document.getElementById('challengeList');
+  const card = (complete, extra, text, feathers, body) => `
+    <div class="challenge-card woodframe ${complete ? 'complete' : ''} ${extra}">
+      <div class="challenge-inner">
+        <div class="challenge-top">
+          <span class="challenge-text">${complete ? '<span class="challenge-tick">✓</span>' : ''}<span>${text}</span></span>
+          <span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${feathers}</span>
+        </div>
+        ${body}
+      </div>
+    </div>`;
   try {
     const res = await fetch('/weekly-challenges');
     const d = await res.json();
@@ -2840,23 +2834,11 @@ async function renderChallenges() {
     const allDone = items.length && items.every(i => i.complete);
     list.innerHTML = items.map(i => {
       const pct = Math.round((i.progress / i.target) * 100);
-      return `
-        <div class="challenge-card ${i.complete ? 'complete' : ''}">
-          <div class="challenge-top">
-            <span class="challenge-text">${i.complete ? '✓ ' : ''}${i.text}</span>
-            <span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${i.feathers}</span>
-          </div>
-          <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${pct}%"></div></div>
-          <div class="challenge-progress">${i.progress} of ${i.target}</div>
-        </div>`;
-    }).join('') + `
-      <div class="challenge-card all-bonus ${allDone ? 'complete' : ''}">
-        <div class="challenge-top">
-          <span class="challenge-text">${allDone ? '✓ ' : ''}Finish all 5</span>
-          <span class="challenge-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${d.all_bonus}</span>
-        </div>
-        <div class="challenge-progress">${d.completed} of ${items.length} challenges done</div>
-      </div>`;
+      return card(i.complete, '', i.text, i.feathers, `
+        <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${pct}%"></div></div>
+        <div class="challenge-progress">${i.progress} of ${i.target}</div>`);
+    }).join('') + card(allDone, 'all-bonus', `Finish all ${items.length}`, d.all_bonus,
+      `<div class="challenge-progress">${d.completed} of ${items.length} challenges done</div>`);
   } catch (e) {
     list.innerHTML = `<div class="collection-empty">Couldn't load challenges right now.</div>`;
   }
