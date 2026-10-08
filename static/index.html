@@ -673,22 +673,26 @@
   /* Weekly Challenges: each one is a card like the rest of the app - the
      My Flock wooden frame round a panel in the discs' cream. A finished one
      gets a green tick and a full green bar. */
-  .challenge-card{--frame:5px; --inner:12px; width:100%; margin-bottom:10px;}
-  .challenge-inner{background:var(--disc-cream); border-radius:var(--inner); padding:12px 14px 11px;}
+  /* Compact enough that all six cards fit on a phone screen without
+     scrolling: one line for the challenge, one for its bar and count. */
+  .challenge-card{--frame:4px; --inner:10px; width:100%; margin-bottom:8px;}
+  .challenge-inner{background:var(--disc-cream); border-radius:var(--inner); padding:8px 12px 9px;}
   .challenge-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
-  .challenge-text{font-family:'Poppins';font-weight:800;font-size:14px;line-height:1.3;
+  .challenge-text{font-family:'Poppins';font-weight:800;font-size:13.5px;line-height:1.25;
     color:var(--wood-edge);display:flex;align-items:center;gap:8px;}
-  .challenge-tick{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--sage);
+  .challenge-tick{flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--sage);
     color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;
     box-shadow:0 1px 2px rgba(26,17,40,0.3);}
   .challenge-feathers{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--wood-dk);flex-shrink:0;
     display:flex;align-items:center;gap:3px;}
-  .challenge-bar{height:8px;background:rgba(116,50,6,0.14);border-radius:4px;overflow:hidden;margin-top:9px;}
+  .challenge-meter{display:flex;align-items:center;gap:9px;margin-top:6px;}
+  .challenge-bar{flex:1;height:7px;background:rgba(116,50,6,0.14);border-radius:4px;overflow:hidden;}
   .challenge-bar-fill{height:100%;background:var(--sage);border-radius:4px;transition:width .5s ease;}
-  .challenge-progress{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-dk);margin-top:6px;}
+  .challenge-progress{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-dk);
+    flex:0 0 auto;white-space:nowrap;}
   /* The prize card: the week's only feathers, so it leads and stands out a
      little - a gold edge inside the frame and a bigger feather count. */
-  .challenge-card.all-bonus{margin-bottom:16px;}
+  .challenge-card.all-bonus{margin-bottom:12px;}
   .challenge-card.all-bonus .challenge-inner{box-shadow:inset 0 0 0 2px var(--gold);}
   .challenge-card.all-bonus .challenge-feathers{font-size:17px;}
   /* The four shortcuts sit on an arc beneath the mic rather than as four
@@ -2840,15 +2844,15 @@ async function renderChallenges() {
     // The week's one prize goes first, so it's clear what the challenges are
     // for: feathers only for finishing all of them, none for each on its own.
     const prizePct = items.length ? Math.round((d.completed / items.length) * 100) : 0;
-    list.innerHTML = card(allDone, 'all-bonus', `Finish all ${items.length} to win`, d.all_bonus, `
-        <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${prizePct}%"></div></div>
-        <div class="challenge-progress">${d.completed} of ${items.length} challenges done</div>`) +
-      items.map(i => {
-        const pct = Math.round((i.progress / i.target) * 100);
-        return card(i.complete, '', i.text, 0, `
-          <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${pct}%"></div></div>
-          <div class="challenge-progress">${i.progress} of ${i.target}</div>`);
-      }).join('');
+    const meter = (pct, label) => `
+      <div class="challenge-meter">
+        <div class="challenge-bar"><div class="challenge-bar-fill" style="width:${pct}%"></div></div>
+        <span class="challenge-progress">${label}</span>
+      </div>`;
+    list.innerHTML = card(allDone, 'all-bonus', `Finish all ${items.length} to win`, d.all_bonus,
+        meter(prizePct, `${d.completed} of ${items.length} done`)) +
+      items.map(i => card(i.complete, '', i.text, 0,
+        meter(Math.round((i.progress / i.target) * 100), `${i.progress} of ${i.target}`))).join('');
   } catch (e) {
     list.innerHTML = `<div class="collection-empty">Couldn't load challenges right now.</div>`;
   }
