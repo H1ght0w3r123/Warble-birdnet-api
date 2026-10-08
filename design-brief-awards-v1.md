@@ -18,8 +18,8 @@ of new art are needed**:
 2. **The hanging sign** — blank.
 
 The mockup also has a carved plaque at the bottom, a bird on the trophy,
-leaves in the corners and a "Tap for more" button. **None of those are
-wanted.** The text under the trophies sits straight on the background.
+leaves in the corners, a "Tap for more" button and a wooden nav bar.
+**None of those are wanted.** The text under the trophies sits straight on the background.
 
 ## What already exists — do NOT redraw these
 
@@ -137,11 +137,10 @@ The wooden plank hanging from two ropes, with vines and a few leaves,
 mockup, stand a trophy on the podium anchor, and check it looks like the
 mockup. If it doesn't, don't send it.
 
-## Open questions
+## Decided
 
-1. **Time of day.** The rest of the app's scenes change with the real time
-   (dawn, day, dusk, night). The mockup is night. One room for all times is
-   simplest; the alternative is four versions of the background with the
-   forest outside the archway changing. Suggest starting with night only.
-2. **The wooden nav bar** in the mockup is on every screen, not just Awards,
-   so it's left out of this brief. It can be a separate brief if wanted.
+1. **Night only.** One background, always night, whatever the real time of
+   day. No dawn, day or dusk versions.
+2. **No nav bar.** The app keeps its own bottom bar; don't draw the wooden
+   one from the mockup.
+3. **No bird.** Not on the trophy, not anywhere in the scene.
