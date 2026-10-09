@@ -140,6 +140,10 @@
     filter:blur(16px) saturate(1.45);
     transform:scale(1.22);
   }
+  /* Awards: the scene shows through the treehouse arch, so it is only just
+     out of focus there - enough to sit behind the trophies, not enough to
+     lose the hills. The scale stays, so the picture doesn't jump. */
+  body.awards-on.scene-blurred #sceneBg::before{filter:blur(3px) saturate(1.45);}
   /* The scrim is what makes the white type survive a bright midday sky, and
      its shape is measured rather than judged by eye. "Get out there" and the
      line under it sit at 42-47% down the screen, which is where the first
