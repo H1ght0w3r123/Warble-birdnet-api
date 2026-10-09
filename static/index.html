@@ -2402,6 +2402,16 @@
     z-index:-1; pointer-events:none;
     background:url('/static/awards-scene-v3.webp') no-repeat 0 0 / 100% 100%;
   }
+  /* The trophy card over the treehouse: the scene dims a touch and the card
+     floats up in front of it with a deep shadow. */
+  .awards-veil{position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:rgba(26,17,40,0.38); animation:awardsVeilIn .3s ease both;}
+  @keyframes awardsVeilIn{from{opacity:0;}}
+  .trophy-card-hover{position:relative; z-index:2;
+    box-shadow:0 18px 40px rgba(10,6,20,0.55), 0 4px 10px rgba(10,6,20,0.35);
+    animation:trophyCardHover .38s cubic-bezier(.2,1.25,.45,1) both;}
+  @keyframes trophyCardHover{from{transform:translateY(26px) scale(.94); opacity:0;}}
+  @media (prefers-reduced-motion: reduce){ .trophy-card-hover, .awards-veil{animation:none;} }
   .awards-sign-text{position:fixed; margin:0; height:auto; gap:8px; z-index:1;
     flex-wrap:nowrap; white-space:nowrap;}
   /* --sign-font is set by fitAwardsSign, which shrinks a long name until it
@@ -8586,6 +8596,7 @@ const AWARDS_BG = {
   standX: 470, standY: 1085, faceY: 1175, top: 200, floor: 1430,
 };
 let awardsGeom = null;
+let awardsSceneBox = null;   // where the scene was last drawn, for the trophy card
 
 // Full width where the phone has the height for it - a touch wider than
 // the screen, so the cut-off edges stay off it. On a shorter phone it
@@ -8606,7 +8617,8 @@ function layoutAwardsScene() {
   const w = B.w * sc, h = B.h * sc;
   const left = (vw - w) / 2;
   const top = navTop - 4 - B.floor * sc;   // the floor sits on the nav bar
-  Object.assign(bg.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
+  awardsSceneBox = { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' };
+  Object.assign(bg.style, awardsSceneBox);
   const at = (x, y) => ({ x: left + x * sc, y: top + y * sc });
   awardsGeom = { standY: at(0, B.standY).y, faceY: at(0, B.faceY).y };
 
@@ -8785,8 +8797,12 @@ function renderTrophyDetail(trophyKey) {
 
   // No Back button: like the bird card, a tap anywhere goes back - to the
   // trophy row, with this trophy still at the front.
+  // The treehouse stays where it was, dimmed a little, and the card hovers
+  // in front of it.
   stage.innerHTML = `
-    <div class="woodframe detail-wood" data-bird-detail>
+    <div class="awards-bg" id="awardsBg"></div>
+    <div class="awards-veil"></div>
+    <div class="woodframe detail-wood trophy-card-hover" data-bird-detail>
     <div class="detail-card" style="--tier-color:var(--gold);">
       <div class="trophy-hero">
         <div class="trophy-hero-art">${trophyArt(trophy)}</div>
@@ -8800,6 +8816,7 @@ function renderTrophyDetail(trophyKey) {
     </div>
     </div>
   `;
+  if (awardsSceneBox) Object.assign(document.getElementById('awardsBg').style, awardsSceneBox);
   setDetailBack(() => renderTrophies(trophyKey));
 }
 </script>
