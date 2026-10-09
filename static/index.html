@@ -2389,24 +2389,18 @@
   .trophy-title{display:flex;align-items:center;justify-content:center;gap:2px;
     height:30px;margin-top:12px;width:100%;}
   /* --- Awards: the treehouse -------------------------------------------
-     A fixed layer of its own, inside the Awards screen's markup, so it
-     covers the usual scene and goes the moment the screen does. Sized and
-     placed by layoutAwardsScene so the stump lands under the trophies. */
+     A see-through painting - the arch, its hanging sign and the stump -
+     on a fixed layer of its own inside the Awards screen's markup. It sits
+     in front of the app's blurred scene, which shows through the arch, and
+     behind the trophies. layoutAwardsScene sizes and places it, and pins
+     the trophy name to the painted sign. */
   .awards-bg{
-    position:fixed; left:0; right:0; top:0; height:100vh; height:100lvh;
+    position:fixed; left:0; top:0; width:0; height:0;
     z-index:-1; pointer-events:none;
-    background:url('/static/awards-bg-v1.webp') no-repeat center bottom / cover;
+    background:url('/static/awards-scene-v2.webp') no-repeat 0 0 / 100% 100%;
   }
-  /* The hanging sign, with the trophy's name and level written on its
-     plank. The ropes fade out towards the top rather than stopping dead. */
-  .trophy-sign{position:relative; width:min(310px, 82%); margin:4px auto 0;}
-  .trophy-sign-art{width:100%; display:block;
-    -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 32%);
-            mask-image:linear-gradient(to bottom, transparent 0, #000 32%);}
-  .trophy-sign .trophy-title{position:absolute; left:9%; right:9%; top:40%; bottom:11%;
-    height:auto; margin:0; gap:8px;}
-  .trophy-sign .trophy-caption-name{font-size:21px;}
-  .trophy-sign + .trophy-carousel{margin-top:0;}
+  .awards-sign-text{position:fixed; margin:0; height:auto; gap:8px; z-index:1;}
+  .awards-sign-text .trophy-caption-name{font-size:21px;}
   /* The painting is bright in places, so the type on it always carries the
      same dark collar the scene screens give their text. */
   body.awards-on .collection-count, body.awards-on .trophy-caption,
@@ -8450,10 +8444,7 @@ async function renderTrophies(focusKey) {
     <div class="awards-bg" id="awardsBg"></div>
     <div class="collection-header"><div class="collection-title"><img src="/static/title-awards-v2.webp" alt="Awards" style="height:30px;width:auto;display:block;"></div></div>
     <div class="collection-count" id="trophyCount">Loading...</div>
-    <div class="trophy-sign">
-      <img class="trophy-sign-art" src="/static/awards-sign-v1.webp" alt="">
-      <div class="trophy-title" id="trophyTitle"></div>
-    </div>
+    <div class="trophy-title awards-sign-text" id="trophyTitle"></div>
     <div class="trophy-carousel" id="trophyCarousel"></div>
     <div class="trophy-caption" id="trophyCaption"></div>
   `;
@@ -8555,37 +8546,54 @@ function renderTrophyCaption() {
 }
 
 // --- The treehouse ---------------------------------------------------------
-// The Awards background is one painting with the tree-stump podium in it,
-// so the trophies have to be stood on the stump wherever it lands on this
-// particular screen. Measured on the 852 x 1495 picture: the middle of the
-// stump's top, where the front trophy stands, and the line where its base
-// meets the floor.
-const AWARDS_BG = { w: 852, h: 1495, standX: 432, standY: 975, baseY: 1262 };
+// The Awards scene is one see-through painting: the arch, the sign hanging
+// from it, and the tree-stump podium. Measured on the 941 x 1672 picture:
+//   sign     - the plank's writing area, where the trophy's name goes
+//   standX/Y - the middle of the stump's top, where the front trophy stands
+//   faceY    - a little way down the stump's face, where the caption starts
+//   top      - just above the plank (the ropes fade out above it)
+//   floor    - the bottom of the floor under the stump
+const AWARDS_BG = {
+  w: 941, h: 1672,
+  sign: { l: 230, t: 320, r: 730, b: 455 },
+  standX: 470, standY: 1165, faceY: 1262, top: 290, floor: 1545,
+};
 let awardsGeom = null;
-const SIGN_GAP = 26;   // between the bottom of the sign and the top of the trophy
 
-// The picture fills the screen's height (it's wider than a phone in
-// proportion), slides sideways to keep the stump in the middle, and the
-// trophy row moves up or down so the front trophy's base is on the stump.
+// Full width where the phone has the height for it - a touch wider than
+// the screen, so the cut-off edges stay off it. On a shorter phone it
+// shrinks just enough to fit between the levels count and the nav bar; its
+// edges are painted to fade out, so the narrower scene melts into the
+// background either side rather than stopping at a hard line.
 function layoutAwardsScene() {
   const bg = document.getElementById('awardsBg');
   const row = document.getElementById('trophyCarousel');
-  if (!bg || !row) { awardsGeom = null; return; }
-  const vw = bg.clientWidth, vh = bg.clientHeight;
-  const sc = Math.max(vw / AWARDS_BG.w, vh / AWARDS_BG.h);
-  const rw = AWARDS_BG.w * sc, rh = AWARDS_BG.h * sc;
-  const ox = Math.min(0, Math.max(vw - rw, vw / 2 - AWARDS_BG.standX * sc));
-  const oy = vh - rh;   // pinned to the bottom, so the floor is never lost
-  bg.style.backgroundSize = `${rw}px ${rh}px`;
-  bg.style.backgroundPosition = `${ox}px ${oy}px`;
-  const top = bg.getBoundingClientRect().top;
-  awardsGeom = { standY: top + oy + AWARDS_BG.standY * sc, baseY: top + oy + AWARDS_BG.baseY * sc };
+  const pane = document.getElementById('scroller');
+  const count = document.getElementById('trophyCount');
+  if (!bg || !row || !pane || !count) { awardsGeom = null; return; }
+  const B = AWARDS_BG;
+  const vw = window.innerWidth;
+  const navTop = pane.getBoundingClientRect().bottom;
+  const room = navTop - 4 - (count.getBoundingClientRect().bottom + 6);
+  const sc = Math.min(vw * 1.04 / B.w, room / (B.floor - B.top));
+  const w = B.w * sc, h = B.h * sc;
+  const left = (vw - w) / 2;
+  const top = navTop - 4 - B.floor * sc;   // the floor sits on the nav bar
+  Object.assign(bg.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
+  const at = (x, y) => ({ x: left + x * sc, y: top + y * sc });
+  awardsGeom = { standY: at(0, B.standY).y, faceY: at(0, B.faceY).y };
 
-  // Where the front trophy's base is now: the middle of the row, plus half
-  // the trophy's height at the front's size. Worked out from its width and
-  // the art's fixed 369 x 390 shape rather than measured, because this runs
-  // before the pictures have loaded (when they're 0px tall), and widths
-  // ignore the slides' transforms so no animation in flight can skew it.
+  // The trophy's name on the painted sign.
+  const title = document.getElementById('trophyTitle');
+  if (title) {
+    const p = at(B.sign.l, B.sign.t), q = at(B.sign.r, B.sign.b);
+    Object.assign(title.style, { left: p.x + 'px', top: p.y + 'px', width: (q.x - p.x) + 'px', height: (q.y - p.y) + 'px' });
+  }
+
+  // Stand the front trophy on the stump: move the row so the trophy's base
+  // (the row's middle plus half the trophy's height at the front's size)
+  // lands on standY. Its height comes from its width and the art's fixed
+  // 369 x 390 shape, because this runs before the pictures have loaded.
   const art = row.querySelector('.trophy-art');
   if (!art) return;
   row.style.marginTop = '';
@@ -8593,27 +8601,13 @@ function layoutAwardsScene() {
   const artH = art.offsetWidth * 390 / 369;
   const base = r.top + row.clientHeight / 2 + artH * CARD_SCALE[0] / 2;
   const margin = parseFloat(getComputedStyle(row).marginTop) || 0;
-  let rowMargin = margin + awardsGeom.standY - base;
-
-  // Lower the sign into any spare room, so it hangs just above the trophy
-  // rather than up under the title. The row comes after it on the page, so
-  // whatever the sign moves down, the row's margin gives back.
-  const sign = document.querySelector('.trophy-sign');
-  if (sign) {
-    sign.style.marginTop = '';
-    const trophyTop = awardsGeom.standY - artH * CARD_SCALE[0];
-    const spare = trophyTop - SIGN_GAP - sign.getBoundingClientRect().bottom;
-    if (spare > 0) {
-      sign.style.marginTop = ((parseFloat(getComputedStyle(sign).marginTop) || 0) + spare) + 'px';
-      rowMargin -= spare;
-    }
-  }
-  row.style.marginTop = rowMargin + 'px';
+  row.style.marginTop = (margin + awardsGeom.standY - base) + 'px';
   placeAwardsCaption();
 }
 
-// The description and progress go on the floor just in front of the stump,
-// or as near to it as fits above the nav bar on a short phone.
+// The description and progress go on the stump's face, under the trophy -
+// dark wood that white type reads well against - or as near as fits above
+// the nav bar.
 function placeAwardsCaption() {
   const caption = document.getElementById('trophyCaption');
   const sc = document.getElementById('scroller');
@@ -8624,7 +8618,7 @@ function placeAwardsCaption() {
   // 20px is the scroll pane's own bottom padding: any lower and the page
   // would scroll by those few pixels.
   const floor = sc.getBoundingClientRect().bottom - 20 - caption.offsetHeight;
-  const want = Math.min(awardsGeom.baseY + 2, floor);
+  const want = Math.min(awardsGeom.faceY, floor);
   caption.style.marginTop = (margin + want - now) + 'px';
 }
 window.addEventListener('resize', () => { if (document.getElementById('awardsBg')) layoutAwardsScene(); });
