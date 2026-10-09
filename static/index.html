@@ -2400,10 +2400,14 @@
   .awards-bg{
     position:fixed; left:0; top:0; width:0; height:0;
     z-index:-1; pointer-events:none;
-    background:url('/static/awards-scene-v2.webp') no-repeat 0 0 / 100% 100%;
+    background:url('/static/awards-scene-v3.webp') no-repeat 0 0 / 100% 100%;
   }
-  .awards-sign-text{position:fixed; margin:0; height:auto; gap:8px; z-index:1;}
-  .awards-sign-text .trophy-caption-name{font-size:21px;}
+  .awards-sign-text{position:fixed; margin:0; height:auto; gap:8px; z-index:1;
+    flex-wrap:nowrap; white-space:nowrap;}
+  /* --sign-font is set by fitAwardsSign, which shrinks a long name until it
+     and its Level pill fit the plank on one line. */
+  .awards-sign-text .trophy-caption-name{font-size:var(--sign-font, 21px); white-space:nowrap;}
+  .awards-sign-text .trophy-level{flex:0 0 auto; white-space:nowrap;}
   /* The painting is bright in places, so the type on it always carries the
      same dark collar the scene screens give their text. */
   body.awards-on .collection-count, body.awards-on .trophy-caption,
@@ -8546,20 +8550,36 @@ function renderTrophyCaption() {
     `;
   }
   placeAwardsCaption();
+  fitAwardsSign();
+}
+
+// Every trophy's name, with its Level pill, on one line of the plank: a
+// long name steps the type down a pixel at a time until it fits.
+function fitAwardsSign() {
+  const title = document.getElementById('trophyTitle');
+  if (!title || !title.classList.contains('awards-sign-text')) return;
+  title.style.removeProperty('--sign-font');
+  const content = () => [...title.children].reduce((w, el) => w + el.offsetWidth, 0)
+    + parseFloat(getComputedStyle(title).columnGap || 0) * Math.max(0, title.children.length - 1);
+  for (let px = 21; px > 12 && content() > title.clientWidth - 8; px--) {
+    title.style.setProperty('--sign-font', (px - 1) + 'px');
+  }
 }
 
 // --- The treehouse ---------------------------------------------------------
 // The Awards scene is one see-through painting: the arch, the sign hanging
-// from it, and the tree-stump podium. Measured on the 941 x 1672 picture:
+// from it, the tree-stump podium and the floor. Measured on the 942 x 1669
+// picture:
 //   sign     - the plank's writing area, where the trophy's name goes
 //   standX/Y - the middle of the stump's top, where the front trophy stands
 //   faceY    - a little way down the stump's face, where the caption starts
 //   top      - just above the plank (the ropes fade out above it)
-//   floor    - the bottom of the floor under the stump
+//   floor    - just below the stones round the stump's foot. The floor
+//              boards carry on below that and simply pass behind the nav bar.
 const AWARDS_BG = {
-  w: 941, h: 1672,
-  sign: { l: 230, t: 320, r: 730, b: 455 },
-  standX: 470, standY: 1165, faceY: 1262, top: 290, floor: 1545,
+  w: 942, h: 1669,
+  sign: { l: 205, t: 232, r: 745, b: 385 },
+  standX: 470, standY: 1085, faceY: 1175, top: 200, floor: 1430,
 };
 let awardsGeom = null;
 
@@ -8591,6 +8611,7 @@ function layoutAwardsScene() {
   if (title) {
     const p = at(B.sign.l, B.sign.t), q = at(B.sign.r, B.sign.b);
     Object.assign(title.style, { left: p.x + 'px', top: p.y + 'px', width: (q.x - p.x) + 'px', height: (q.y - p.y) + 'px' });
+    fitAwardsSign();
   }
 
   // Stand the front trophy on the stump: move the row so the trophy's base
