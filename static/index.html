@@ -2942,6 +2942,7 @@ async function loadJokeTileStatus() {
 }
 
 async function renderJokeOfDay() {
+  setSceneFocus(false);   // the same light blur as the other screens
   stage.classList.add('top-aligned');
   // No back button: the Home tab is the way out.
   stage.innerHTML = `
