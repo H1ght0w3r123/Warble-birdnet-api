@@ -136,14 +136,13 @@
      against a 16px blur, which is 2.7 standard deviations, so the edge you
      can actually see is 99.6% opaque. It doubles as the small push-in a
      real lens gives you when it racks out of focus. */
+  /* Only just out of focus (3px, down from 16px): enough to sit the screen's
+     content in front of the scene, not enough to lose the hills. The scrim
+     and the text shadows below carry the legibility. */
   body.scene-blurred #sceneBg::before{
-    filter:blur(16px) saturate(1.45);
+    filter:blur(3px) saturate(1.45);
     transform:scale(1.22);
   }
-  /* Awards: the scene shows through the treehouse arch, so it is only just
-     out of focus there - enough to sit behind the trophies, not enough to
-     lose the hills. The scale stays, so the picture doesn't jump. */
-  body.awards-on.scene-blurred #sceneBg::before{filter:blur(3px) saturate(1.45);}
   /* The scrim is what makes the white type survive a bright midday sky, and
      its shape is measured rather than judged by eye. "Get out there" and the
      line under it sit at 42-47% down the screen, which is where the first
