@@ -2887,6 +2887,7 @@ async function renderMigrationCard(commonName, onBack) {
 }
 
 async function renderChallenges() {
+  setSceneFocus(false);   // the same light blur as the other screens
   stage.classList.add('top-aligned');
   // No back button: the Home tab is the way out, as on the joke and game.
   stage.innerHTML = `
@@ -3060,6 +3061,7 @@ function stopSongGame() {
 async function renderSongGame(data) {
   stopSongGame();
   setActiveTab('home');
+  setSceneFocus(false);   // the same light blur as the other screens
   stage.classList.add('top-aligned');
   // No back button: the Home tab is the way out.
   stage.innerHTML = `
@@ -3120,6 +3122,7 @@ function songGameStars(n, cls) {
 
 function startSongGameLevel(data, level) {
   stopSongGame();
+  setSceneFocus(false);
   const playable = data.birds.filter(b => b.call_url);
   // Eight different birds to ask about where there are eight with songs;
   // fewer than that and some come round again, never twice in a row.
