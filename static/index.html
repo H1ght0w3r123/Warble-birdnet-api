@@ -3558,13 +3558,16 @@ function treeSvgMarkup() {
 const LISTEN_PATH = { w: 1127, h: 1396, pathX: 563, pathY: 975 };
 const LISTEN_TREE = { w: 380, h: 452, rootX: 196, rootY: 410, canopy: 374, top: 33 };
 const TREE_SPAN = 0.86;
+const LISTEN_SLIP = 0.16;
 
 // Everything is placed from the bottom up: the path picture's foot rests on
 // the nav bar, the stop button stands on the path just clear of the raised
 // Home button, the tree at the path's far end, and above the tree, top
-// down: the place name, the timer, then the bird badges. On a
-// short phone the whole scene shrinks until the badges fit under the top
-// bar; its painted edges fade, so a narrower scene melts into the sky.
+// down: the place name, the timer, then the bird badges.
+// It is always full width. When the screen is short, the foot of the path
+// slides down behind the nav bar to make room above the tree, up to
+// LISTEN_SLIP of the picture's height. Only a very short phone, where even
+// that isn't enough, makes the scene shrink.
 function layoutListening() {
   const scene = document.getElementById('recScene');
   const pane = document.getElementById('scroller');
@@ -3576,9 +3579,15 @@ function layoutListening() {
   const k = TREE_SPAN * P.w / T.canopy;              // tree units -> path units
   const treeTopY = P.pathY - (T.rootY - T.top) * k;  // canopy top, in path units
   const above = 20 + 30 + 56 + 10;                    // place, timer, badges, gap - px
-  const sc = Math.min(vw * 1.06 / P.w, (navTop - topBar - above) / (P.h - treeTopY));
+  const full = vw * 1.06 / P.w;
+  const fits = (navTop - topBar - above) / (P.h * (1 - LISTEN_SLIP) - treeTopY);
+  const sc = Math.min(full, fits);
   const w = P.w * sc, h = P.h * sc;
-  const left = (vw - w) / 2, top = navTop - h;
+  const left = (vw - w) / 2;
+  // Bottom on the nav bar, unless that leaves too little room above: then
+  // down, by just enough, behind it.
+  const short = topBar + above - (navTop - h + treeTopY * sc);
+  const top = navTop - h + Math.max(0, short);
   Object.assign(scene.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
 
   const tw = T.w * k * sc, th = T.h * k * sc;
