@@ -1526,6 +1526,20 @@
      layered assets - width/height updated to the same aspect ratio,
      keeping a similar on-screen footprint to before. */
   .rec-tree{width:190px;height:226px;position:relative;z-index:1;display:block;margin:0 auto;}
+  /* The listening scene: the path picture, with the tree behind it at the
+     far end, all placed by layoutListening. The tree fills its wrapper, so
+     the leaf particles (drawn in the tree's own units) scale with it. */
+  .rec-scene{position:fixed; z-index:0; pointer-events:none;}
+  .rec-tree-wrap{position:absolute; z-index:0;}
+  .rec-tree-wrap .rec-tree{width:100%; height:100%; margin:0;}
+  .rec-path{position:absolute; inset:0; width:100%; height:100%; z-index:1; display:block;}
+  .rec-column .live-bird-stack, .rec-column .rec-location{position:fixed; left:0; right:0; margin:0; z-index:2;}
+  .rec-column .live-bird-stack{height:56px;}
+  .rec-column .rec-location{min-height:0;}
+  .rec-column .mic-btn.recording, .rec-column .timer{position:fixed; left:50%; margin:0; z-index:2;
+    transform:translateX(-50%);}
+  .rec-column .mic-btn.recording:active{transform:translateX(-50%) scale(.92);}
+  .rec-column .timer{margin:0; font-size:20px; text-shadow:0 0 2px rgba(26,17,40,0.95), 0 0 4px rgba(26,17,40,0.85), 0 1px 3px rgba(26,17,40,0.92);}
 
   /* --- Live bird detection badges: persist and stack for the whole recording --- */
   /* Fixed-height void so the tree and everything below it don't shift
@@ -3534,19 +3548,78 @@ function treeSvgMarkup() {
       </svg>`;
 }
 
+// --- The listening scene -----------------------------------------------------
+// A see-through foreground - a garden path between fences, 1127 x 1396 - with
+// the singing tree standing at the far end of the path, behind it. Measured
+// on the path picture: pathX/pathY is where the path meets the grass at the
+// back, which is where the tree's roots go. The tree is drawn on its own
+// 380 x 452 canvas: its roots meet the ground at (196, 410), and its canopy
+// is 374 wide, which is made TREE_SPAN of the path picture's width.
+const LISTEN_PATH = { w: 1127, h: 1396, pathX: 563, pathY: 975 };
+const LISTEN_TREE = { w: 380, h: 452, rootX: 196, rootY: 410, canopy: 374, top: 33 };
+const TREE_SPAN = 0.86;
+
+// Everything is placed from the bottom up: the path picture's foot rests on
+// the nav bar, the stop button stands on the path just clear of the raised
+// Home button, the tree at the path's far end, and above the tree, top
+// down: the place name, the timer, then the bird badges. On a
+// short phone the whole scene shrinks until the badges fit under the top
+// bar; its painted edges fade, so a narrower scene melts into the sky.
+function layoutListening() {
+  const scene = document.getElementById('recScene');
+  const pane = document.getElementById('scroller');
+  if (!scene || !pane) return;
+  const P = LISTEN_PATH, T = LISTEN_TREE;
+  const vw = window.innerWidth;
+  const navTop = pane.getBoundingClientRect().bottom;
+  const topBar = (document.querySelector('.top')?.getBoundingClientRect().bottom || 60) + 6;
+  const k = TREE_SPAN * P.w / T.canopy;              // tree units -> path units
+  const treeTopY = P.pathY - (T.rootY - T.top) * k;  // canopy top, in path units
+  const above = 20 + 30 + 56 + 10;                    // place, timer, badges, gap - px
+  const sc = Math.min(vw * 1.06 / P.w, (navTop - topBar - above) / (P.h - treeTopY));
+  const w = P.w * sc, h = P.h * sc;
+  const left = (vw - w) / 2, top = navTop - h;
+  Object.assign(scene.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
+
+  const tw = T.w * k * sc, th = T.h * k * sc;
+  Object.assign(document.getElementById('recTreeWrap').style, {
+    left: (P.pathX * sc - T.rootX * k * sc) + 'px', top: (P.pathY * sc - T.rootY * k * sc) + 'px',
+    width: tw + 'px', height: th + 'px',
+  });
+
+  const canopyTop = top + treeTopY * sc;
+  const stack = document.getElementById('liveBirdStack');
+  if (stack) stack.style.top = (canopyTop - 10 - 56) + 'px';
+  const timer = document.getElementById('timer');
+  if (timer) timer.style.top = (canopyTop - 10 - 56 - 30) + 'px';
+  const where = document.getElementById('recLocation');
+  if (where) where.style.top = (canopyTop - 10 - 56 - 30 - 20) + 'px';
+
+  // The Home button rises above the nav bar, so measure its top.
+  const home = document.querySelector('.home-tab');
+  const floor = Math.min(navTop, home ? home.getBoundingClientRect().top : navTop) - 8;
+  const stop = document.getElementById('stopBtn');
+  if (stop) stop.style.top = (floor - stop.offsetHeight) + 'px';
+}
+window.addEventListener('resize', () => { if (document.getElementById('recScene')) layoutListening(); });
+
 function renderRecording() {
   liveDetectedBirds = [];
   liveBadgedSpecies = new Set();
   stage.innerHTML = `
     <div class="rec-column">
       <div class="live-bird-stack" id="liveBirdStack"></div>
-      ${treeSvgMarkup()}
+      <div class="rec-scene" id="recScene">
+        <div class="rec-tree-wrap" id="recTreeWrap">${treeSvgMarkup()}</div>
+        <img class="rec-path" src="/static/listen-path-v1.webp" alt="">
+      </div>
       <div class="rec-location" id="recLocation"></div>
       <button class="mic-btn recording" id="stopBtn" aria-label="Stop"><img class="mic-icon" src="/static/stop-v1.webp" alt=""></button>
       <div class="timer" id="timer">0:00</div>
     </div>
   `;
   document.getElementById('stopBtn').onclick = stopRecording;
+  layoutListening();
   loadRecordingLocation();
 }
 
