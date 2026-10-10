@@ -199,7 +199,6 @@
   body.scene-on .pack-blurb, body.scene-on .fan-caption,
   body.scene-on .hub-label, body.scene-on .nav-tab, body.scene-on .sg-navbtn,
   body.scene-on .joke-setup, body.scene-on .joke-punch, body.scene-on .joke-locked,
-  body.scene-on .colour-label,
   body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
     /* Four stacked shadows, not one. A single soft shadow reads as a shadow
        but does almost nothing for legibility - measured, it moved the worst
@@ -1734,15 +1733,6 @@
     filter:drop-shadow(0 10px 26px rgba(0,0,0,0.55));
   }
 
-  /* The one label on the stage. The swatches arc over the frame's own top
-     edge, so there is nowhere above them to put it without pushing the bird
-     down - it sits under the arc instead, on the frame's shoulder. */
-  .colour-label{
-    font-family:'Poppins'; font-weight:700; font-size:10px; letter-spacing:.09em;
-    text-transform:uppercase; color:rgba(255,255,255,0.82); text-align:center;
-    margin:-11px 0 1px;
-  }
-
   /* Selected colour: a terracotta ring, a lift and a tick, not a dark
      border. The ring is a box-shadow and the lift a transform, so neither
      changes the swatch's layout box - picking a colour must not shuffle the
@@ -1758,29 +1748,29 @@
     font-size:13px; font-weight:900; line-height:1;
   }
 
-  /* Category chips. These were 62px-tall white cards with labels under the
-     icons; they are 46px circles now, which is the single biggest saving on
-     the screen. The label went with them - the icons are pictorial (hat,
-     glasses, bow, held, shoe) and the carousel underneath shows what you
-     picked immediately - but every chip keeps an aria-label so it is still
-     announced. Selection is shape and elevation, not colour alone: the
-     active chip lifts, grows and fills terracotta. */
+  /* Category icons: no circles, just the white pictograms, spread across
+     exactly the width the nine visible colour swatches take (the same sum
+     .color-wheel uses, without its padding) so the first and last icons
+     line up with the first and last swatches. Each button is as wide as its
+     icon for that reason; it's tall enough to tap. The chosen one lifts
+     and glows gold over a gold dot - no growing, which would push it past
+     the swatches' edge - and the rest dim. */
   .category-chip{
-    width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
-    background:rgba(255,255,255,0.15); padding:0; flex:0 0 auto;
+    width:32px; height:44px; border:none; cursor:pointer; background:none;
+    padding:0; flex:0 0 auto; position:relative;
     display:flex; align-items:center; justify-content:center;
-    transition:transform .18s cubic-bezier(.34,1.56,.64,1),
-               background .18s ease, box-shadow .18s ease;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1);
   }
   .category-chip img{
-    width:26px; height:26px; object-fit:contain; display:block;
-    filter:brightness(0) invert(1) opacity(.82);
+    width:32px; height:32px; object-fit:contain; display:block;
+    filter:brightness(0) invert(1) drop-shadow(0 2px 3px rgba(0,0,0,0.45)); opacity:.55;
+    transition:opacity .18s ease, filter .18s ease;
   }
-  .category-chip.active{
-    background:var(--terra); transform:translateY(-5px) scale(1.12);
-    box-shadow:0 7px 16px rgba(0,0,0,0.38), inset 0 2px 0 rgba(255,255,255,0.28);
-  }
-  .category-chip.active img{filter:brightness(0) invert(1);}
+  .category-chip.active{transform:translateY(-3px);}
+  .category-chip.active img{opacity:1;
+    filter:brightness(0) invert(1) drop-shadow(0 0 6px rgba(242,201,76,0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.45));}
+  .category-chip.active::after{content:''; position:absolute; left:50%; bottom:0; width:6px; height:6px;
+    margin-left:-3px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px rgba(242,201,76,0.9);}
 
   /* Reset and Randomise, as the secondary utilities they are rather than
      the widest button on the screen, which is what Reset used to be. */
@@ -1856,7 +1846,9 @@
   }
 
   /* --- Dress Up: categories + carousel --- */
-  .category-row{display:flex;gap:11px;justify-content:center;width:100%;margin-top:8px;}
+  .category-row{--sw:24px; --sw-gap:clamp(4px, 1.7vw, 8px);
+    display:flex; gap:0; justify-content:space-between; margin:8px auto 0;
+    width:calc(9 * var(--sw) + 8 * var(--sw-gap)); max-width:100%;}
   /* No longer a frame in any visual sense - the room art is the frame now.
      The class name stays because it is what the pop/tint/swap animations and
      the drag-the-bird-to-scroll bridge are bound to. A grounding shadow
@@ -1901,23 +1893,23 @@
     .room-chevron{transition:none;}
   }
 
-  .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:14px 4px 4px;margin-top:2px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
+  .carousel-wrap{width:100%;overflow-x:auto;overflow-y:visible;display:flex;gap:10px;padding:14px 4px 14px;margin-top:2px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
   .carousel-wrap::-webkit-scrollbar{display:none;}
   .carousel-panel{width:100%;max-width:100%;overflow-x:hidden;overflow-y:visible;}
+  /* Item cards: the cream of the wooden discs in a wooden frame, like the
+     level cards and challenges. An item you haven't bought is a darker
+     cream with its picture faded; the one being worn has a gold frame that
+     glows. */
   .carousel-item{
-    flex:0 0 auto; width:78px; background:#fff; border-radius:12px; padding:8px 5px;
+    flex:0 0 auto; width:78px; background:var(--disc-cream); border-radius:14px; padding:8px 5px 10px;
     display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
-    border:2px solid transparent; scroll-snap-align:start; position:relative;
+    border:4px solid #D87A38; scroll-snap-align:start; position:relative;
+    box-shadow:inset 0 0 0 1px rgba(116,50,6,0.35), 0 3px 6px rgba(0,0,0,0.3);
   }
-  .carousel-item{transition:transform .25s cubic-bezier(.34,1.4,.64,1), box-shadow .25s ease, width .25s ease;}
-  /* Ownership/selection read entirely from the frame: a thin green border
-     means owned, a thicker darker-green one means currently worn. Unowned
-     items get a neutral border and a greyed-out icon instead of a text
-     label, so the frame carries the status without spending any vertical
-     space on it. */
-  .carousel-item.owned{border-color:var(--sage);}
-  .carousel-item.equipped{border-color:var(--sage-dk); border-width:3px; padding:7px 4px;}
-  .carousel-item.unowned{background:#EDEBF5; border-color:var(--mist);}
+  .carousel-item{transition:transform .25s cubic-bezier(.34,1.4,.64,1), box-shadow .25s ease, width .25s ease, border-color .2s ease;}
+  .carousel-item.unowned{background:#EBDCC2;}
+  .carousel-item.equipped{border-color:var(--gold);
+    box-shadow:inset 0 0 0 1px rgba(116,50,6,0.35), 0 0 12px 2px rgba(242,201,76,0.8);}
   /* Tapping an unowned item lifts it out of the row and makes room for Buy */
   .carousel-item.expanded{
     width:96px; transform:translateY(-10px) scale(1.06); z-index:5;
@@ -1931,10 +1923,10 @@
   .item-buy-btn.cant-afford{background:var(--mist-dk); box-shadow:0 2px 0 var(--dusk-mid); font-size:8.5px;}
   .carousel-item .item-icon-wrap{width:60px;height:60px;line-height:1;}
   .carousel-item.expanded .item-icon-wrap{width:76px;height:76px;}
-  .carousel-item.unowned .item-icon-wrap{opacity:0.5;filter:grayscale(0.4);}
+  .carousel-item.unowned .item-icon-wrap{opacity:0.55;filter:grayscale(0.4);}
   /* Corner badge for unowned items only - owned items show no price at all */
   .carousel-item-price-badge{
-    position:absolute; top:4px; right:4px; display:flex; align-items:center; gap:2px;
+    position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); white-space:nowrap; display:flex; align-items:center; gap:2px;
     background:#fff; border-radius:8px; padding:2px 5px 2px 4px;
     font-family:'Poppins'; font-weight:700; font-size:8.6px; line-height:1.2;
     box-shadow:0 1px 4px rgba(0,0,0,0.25);
@@ -7466,7 +7458,6 @@ async function renderDressUp() {
       </div>
       <img class="hoot-sign" id="hootSign" src="/static/title-hoottique-v3.webp" alt="The Hoot-tique">
     </div>
-    <div class="colour-label">Feather colour</div>
     <div class="color-wheel" id="colorWheel"></div>
     <div class="category-row" id="categoryRow"></div>
     <div class="carousel-panel"><div class="carousel-wrap" id="carouselWrap"></div></div>
@@ -7823,7 +7814,7 @@ function renderCarousel() {
     const canAfford = currentFeatherTotal >= a.cost;
     const isOpen = expandedItemId === a.id;
     // Ownership/selection now read entirely from the frame colour (see
-    // .carousel-item.owned / .equipped below), so owned items carry no
+    // .carousel-item.unowned / .equipped), so owned items carry no
     // price badge at all - only unowned ones, tucked in a corner instead
     // of taking a full text row.
     const priceBadge = a.owned
