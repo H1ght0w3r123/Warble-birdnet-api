@@ -2414,8 +2414,33 @@
   .awards-bg{
     position:fixed; left:0; top:0; width:0; height:0;
     z-index:-1; pointer-events:none;
-    background:url('/static/awards-scene-v3.webp') no-repeat 0 0 / 100% 100%;
+    background:url('/static/awards-scene-v4.webp') no-repeat 0 0 / 100% 100%;
   }
+  /* The spotlight. Its beam and the lights-off version of the lamp and
+     stump top are layers of the scene; .lights-off swaps one for the other.
+     Coming on, the beam flickers like a bulb warming up. */
+  .awards-beam, .awards-off{position:absolute; inset:0; pointer-events:none;
+    background:no-repeat 0 0 / 100% 100%; transition:opacity .35s ease;}
+  .awards-beam{background-image:url('/static/awards-beam-v1.webp'); animation:awardsBeamOn .6s ease-out both;}
+  .awards-off{background-image:url('/static/awards-lightsoff-v1.webp'); opacity:0;}
+  .awards-bg.lights-off .awards-beam{opacity:0; animation:none;}
+  .awards-bg.lights-off .awards-off{opacity:1;}
+  @keyframes awardsBeamOn{0%{opacity:0;} 12%{opacity:.85;} 22%{opacity:.25;} 34%{opacity:1;} 46%{opacity:.6;} 60%,100%{opacity:1;}}
+  /* The front trophy under the beam: lit warmly from above, and casting a
+     shadow straight down on the stump. Off for a trophy not yet won, which
+     stands in the dark. */
+  .trophy-shadow, .trophy-light{display:none; position:absolute; pointer-events:none;}
+  body.awards-on .trophy-slide .trophy-shadow, body.awards-on .trophy-slide .trophy-light{display:block;
+    opacity:0; transition:opacity .35s ease;}
+  .trophy-shadow{left:-16%; right:-16%; bottom:-10%; height:20%; z-index:-1;
+    background:radial-gradient(ellipse at 50% 42%, rgba(40,18,4,0.85) 0%, rgba(40,18,4,0.6) 30%, rgba(40,18,4,0.22) 55%, rgba(40,18,4,0) 72%);}
+  .trophy-light{inset:0; z-index:3; mix-blend-mode:screen;
+    -webkit-mask:var(--cup) center / 100% 100% no-repeat; mask:var(--cup) center / 100% 100% no-repeat;
+    background:radial-gradient(ellipse 70% 55% at 50% 0%, rgba(255,232,160,0.72) 0%, rgba(255,214,140,0.32) 45%, rgba(255,214,140,0) 80%);}
+  body.awards-on .trophy-slide.front.earned .trophy-shadow,
+  body.awards-on .trophy-slide.front.earned .trophy-light{opacity:1;}
+  /* The rest stand outside the beam, with just a soft contact shadow. */
+  body.awards-on .trophy-slide:not(.front) .trophy-shadow{opacity:.35;}
   /* The trophy card over the treehouse: the scene dims a touch and the card
      floats up in front of it with a deep shadow. */
   .awards-veil{position:fixed; inset:0; z-index:-1; pointer-events:none;
@@ -7928,12 +7953,17 @@ let allTrophiesRaw = [];
 // recolouring each leaf through a gold ramp so the carving shows through).
 // A trophy not yet earned also uses l0, greyed out by the carousel.
 const TROPHY_PICTURE = ['l0', 'l0', 'l1', 'l2', 'l3', 'l5', 'l6', 'l7'];
+// The shadow and the light are only shown on the Awards stump, under the
+// spotlight (see .trophy-lit); the light is masked to the cup's own shape.
 function trophyArt(trophy) {
   const level = Math.max(0, Math.min(7, trophy.level || 0));
   const dim = trophy.earned ? '' : ' style="opacity:.45"';
-  return `<div class="trophy-art">
-    <img class="trophy-svg" src="/static/trophy-${TROPHY_PICTURE[level]}-v1.webp" alt="">
+  const cup = `/static/trophy-${TROPHY_PICTURE[level]}-v1.webp`;
+  return `<div class="trophy-art" style="--cup:url('${cup}')">
+    <span class="trophy-shadow"></span>
+    <img class="trophy-svg" src="${cup}" alt="">
     <img class="trophy-emblem" src="/static/emblem-${trophy.key}-v1.webp" alt=""${dim}>
+    <span class="trophy-light"></span>
   </div>`;
 }
 
@@ -8544,7 +8574,7 @@ async function renderTrophies(focusKey) {
   // picture shifted depending on how much text happened to be below it.
   stage.classList.add('top-aligned');
   stage.innerHTML = `
-    <div class="awards-bg" id="awardsBg"></div>
+    <div class="awards-bg" id="awardsBg"><div class="awards-beam"></div><div class="awards-off"></div></div>
     <div class="collection-header"><div class="collection-title"><img src="/static/title-awards-v2.webp" alt="Awards" style="height:30px;width:auto;display:block;"></div></div>
     <div class="collection-count" id="trophyCount">Loading...</div>
     <div class="trophy-title awards-sign-text" id="trophyTitle"></div>
@@ -8631,6 +8661,10 @@ function renderTrophyCaption() {
   const title = document.getElementById('trophyTitle');
   // The name and level sit above the row, the trophy's citation and what
   // the next level needs below it.
+  // The spotlight is on for a trophy that's been won, and goes out for one
+  // that hasn't.
+  const scene = document.getElementById('awardsBg');
+  if (t && scene) scene.classList.toggle('lights-off', !t.earned);
   if (t && title) {
     title.innerHTML = `<span class="trophy-caption-name">${t.earned ? t.name : '???'}</span>
       ${t.earned ? `<span class="trophy-level">Level ${t.level}</span>` : ''}`;
@@ -8674,8 +8708,8 @@ function fitAwardsSign() {
 //              boards carry on below that and simply pass behind the nav bar.
 const AWARDS_BG = {
   w: 942, h: 1669,
-  sign: { l: 205, t: 232, r: 745, b: 385 },
-  standX: 470, standY: 1085, faceY: 1175, top: 200, floor: 1430,
+  sign: { l: 200, t: 150, r: 740, b: 292 },
+  standX: 471, standY: 1040, faceY: 1130, top: 110, floor: 1420,
 };
 let awardsGeom = null;
 let awardsSceneBox = null;   // where the scene was last drawn, for the trophy card
@@ -8694,11 +8728,15 @@ function layoutAwardsScene() {
   const B = AWARDS_BG;
   const vw = window.innerWidth;
   const navTop = pane.getBoundingClientRect().bottom;
-  const room = navTop - 4 - (count.getBoundingClientRect().bottom + 6);
-  const sc = Math.min(vw * 1.04 / B.w, room / (B.floor - B.top));
+  // Always full width. When the screen is short, the floor slides down
+  // behind the nav bar (up to 160 picture units) rather than the scene
+  // shrinking; only a very short phone makes it shrink.
+  const ceiling = count.getBoundingClientRect().bottom + 6;
+  const room = navTop - 4 - ceiling;
+  const sc = Math.min(vw * 1.04 / B.w, room / (B.floor - 160 - B.top));
   const w = B.w * sc, h = B.h * sc;
   const left = (vw - w) / 2;
-  const top = navTop - 4 - B.floor * sc;   // the floor sits on the nav bar
+  const top = Math.max(navTop - 4 - B.floor * sc, ceiling - B.top * sc);
   awardsSceneBox = { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' };
   Object.assign(bg.style, awardsSceneBox);
   const at = (x, y) => ({ x: left + x * sc, y: top + y * sc });
@@ -8882,7 +8920,7 @@ function renderTrophyDetail(trophyKey) {
   // The treehouse stays where it was, dimmed a little, and the card hovers
   // in front of it.
   stage.innerHTML = `
-    <div class="awards-bg" id="awardsBg"></div>
+    <div class="awards-bg" id="awardsBg"><div class="awards-beam"></div><div class="awards-off"></div></div>
     <div class="awards-veil"></div>
     <div class="woodframe detail-wood trophy-card-hover" data-bird-detail>
     <div class="detail-card" style="--tier-color:var(--gold);">
