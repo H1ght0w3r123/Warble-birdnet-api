@@ -1,5 +1,9 @@
 # Design Brief: High Five trophy emblem (v1)
 
+> **Delivered** - the open hand with three rays. In the app as
+> `static/emblem-high_five-v1.webp` (haze cleared, made fully opaque,
+> trimmed to the art, 235 x 256).
+
 ## What this is
 
 Warble has a new trophy, **High Five**. A child wins it by finishing all
