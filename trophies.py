@@ -174,21 +174,6 @@ TROPHY_DEFINITIONS = {
         ],
         "description": "A bird everyone sees at home can be a special sight somewhere else. You had to travel to learn that.",
     },
-    "summer_squad": {
-        "name": "Summer Squad", "emoji": "\u2600\uFE0F",
-        "verb": "Hear every summer visitor in", "unit": "summers", "one": "one summer",
-        "levels": [1, 2, 3, 4, 5, 6, 7],
-        "citations": [
-            "Every summer bird, all in one summer - you didn't miss one!",
-            "Two summers running. You know when they arrive now.",
-            "Three summers complete. The migrants can't slip past you.",
-            "Four summers. You're the swallows' best friend.",
-            "Five summers! You always know when they're back.",
-            "Six summers of every visitor. Amazing!",
-            "Seven summers. You're part of their journey now!",
-        ],
-        "description": "Thirteen birds fly thousands of miles to spend the summer here, and every one of them leaves again. Catching all of them in a single season means being out there at the right time, again and again.",
-    },
     "empty_nester": {
         "name": "Empty Nester", "emoji": "\U0001FAB9",
         "verb": "Go warbling", "unit": "times without hearing a bird",
@@ -377,3 +362,22 @@ def is_before_sunrise(lat: float, lng: float, moment_utc: datetime.datetime) -> 
         # rather than incorrectly awarding the trophy.
         print(f"Warning: sunrise calculation failed for ({lat}, {lng}): {e}")
         return False
+
+
+# Birder rank: what all the trophies add up to. Every trophy level is a leaf,
+# and the leaves together give the child a title - shown on Home and on the
+# Awards page. Thresholds are total leaves (140 in all).
+BIRDER_RANKS = [
+    (0, "Hatchling"), (5, "Spotter"), (12, "Tracker"), (25, "Scout"),
+    (40, "Ranger"), (60, "Warden"), (85, "Expert"), (115, "Master Birder"),
+]
+
+
+def birder_rank(leaves: int) -> dict:
+    """The rank for a number of leaves, and how far it is to the next."""
+    i = max(k for k, (need, _) in enumerate(BIRDER_RANKS) if leaves >= need)
+    nxt = BIRDER_RANKS[i + 1] if i + 1 < len(BIRDER_RANKS) else None
+    return {"name": BIRDER_RANKS[i][1], "index": i, "leaves": leaves,
+            "next_name": nxt[1] if nxt else None,
+            "next_at": nxt[0] if nxt else None,
+            "to_go": (nxt[0] - leaves) if nxt else 0}

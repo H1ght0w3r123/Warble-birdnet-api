@@ -430,6 +430,14 @@
      up to 160px. On a tall phone it sits well down the screen; on a short
      one, where there's no spare room, it stays snug under the mic. */
   .home-greeting{margin-top:0;}
+  /* Birder rank, from every trophy leaf won: a small wooden tag over the
+     greeting. Tapping it goes to Awards, where the leaves come from. */
+  .home-wordmark + .home-rank{margin-top:-14px;}
+  .home-rank{display:inline-flex; align-items:center; gap:5px; margin:0 0 6px; padding:3px 12px 3px 8px;
+    border:none; border-radius:14px; cursor:pointer; background:var(--disc-cream);
+    box-shadow:0 0 0 2px var(--wood), 0 2px 4px rgba(0,0,0,0.25);
+    font-family:'Poppins'; font-weight:900; font-size:13px; color:var(--wood-edge);}
+  .home-rank img{width:16px; height:16px; transform:rotate(-30deg);}
   .home-hub{
     position:relative; width:100%; margin-top:20px;
     --mic:130px; --disc:68px; --R:124px; --side-x:105.2px; --side-y:65.7px;
@@ -548,6 +556,16 @@
     background:var(--disc-cream); box-shadow:0 0 0 3px var(--wood), 0 3px 6px rgba(0,0,0,0.3);
     transition:transform .12s ease, box-shadow .12s ease; overflow:hidden;}
   .welcome-bird-btn.on{transform:scale(1.08); box-shadow:0 0 0 3px var(--gold), 0 0 14px 4px rgba(242,201,76,0.7);}
+  /* A bird still to find: its shape, dark, with a question mark - found by
+     hearing the real thing outside. */
+  .welcome-bird-btn{position:relative;}
+  .welcome-bird-btn.locked svg{filter:brightness(0) opacity(.45);}
+  .welcome-bird-btn.locked{background:#E9DCC4; cursor:default;}
+  .bird-lock{position:absolute; right:6%; bottom:6%; width:22px; height:22px; border-radius:50%; z-index:1;
+    display:grid; place-items:center; background:var(--wood); color:#fff; border:2px solid var(--disc-cream);
+    font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1;}
+  .welcome-bird-btn.nudge{animation:birdNudge .35s ease;}
+  @keyframes birdNudge{25%{transform:translateX(-4px);} 75%{transform:translateX(4px);}}
   .welcome-swatches{display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; width:100%; max-width:300px;}
   .welcome-swatch{aspect-ratio:1; border-radius:50%; border:3px solid rgba(255,255,255,0.85); background:var(--sw);
     cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.35); transition:transform .12s ease;}
@@ -1832,6 +1850,10 @@
      room still works, because that is this track scrolling. */
   .species-silhouette-btn{visibility:hidden;}
   .species-silhouette-btn img{height:100%; width:auto; display:block;}
+  .avatar-frame.locked-bird{position:relative;}
+  .avatar-frame.locked-bird svg{filter:brightness(0) opacity(.42);}
+  .bird-lock.big{right:auto; left:50%; top:50%; bottom:auto; transform:translate(-50%,-50%);
+    width:56px; height:56px; font-size:32px; border-width:3px;}
 
   /* --- Hoot-tique: the header arrives big, then gets out of the way ----
      The shop sign is the best thing on this screen and also the most
@@ -2642,6 +2664,9 @@
   .done-feathers-slot .go-again-content.visible{opacity:1; pointer-events:auto;}
   .done-feathers{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;transition:opacity .3s ease;}
   .done-feathers.collected{opacity:0; pointer-events:none;}
+  /* It shares its grid cell with what comes next, which is taller - keep
+     the glowing pill its own size rather than stretched to fill it. */
+  .done-feathers{align-self:start; justify-self:center;}
   .go-again-ask{font-family:'Poppins';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
   /* What next, once the feathers are in: go again, and - when the feathers
      now buy something new - the Hoot-tique, each a disc with its word under. */
@@ -2717,6 +2742,10 @@
   .trophy-banner-text{text-align:left;}
   .trophy-banner-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--dusk);}
   .trophy-banner-citation{font-size:11px;color:var(--mist-dk);}
+  .avatar-banner{display:block; font:inherit; cursor:pointer;}
+  .avatar-banner-bird{width:56px; height:56px; border-radius:50%; overflow:hidden; flex:0 0 auto;
+    background:var(--disc-cream); box-shadow:0 0 0 2px var(--wood);}
+  .rank-banner-leaf{width:30px; height:30px; transform:rotate(-30deg);}
 </style>
 </head>
 <body>
@@ -2862,6 +2891,9 @@ function renderIdle() {
     <div class="home-wordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;margin:0 auto;"></div>
     <!-- The greeting sits above the mic now: straight below it is where the
          bottom of the U of three discs goes. -->
+    <button class="home-rank" id="homeRank" hidden aria-label="Your birder rank - see your awards">
+      <img src="/static/tree-leaf1-v2.webp" alt=""><span class="home-rank-name"></span>
+    </button>
     <div class="stage-label home-greeting">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
     <div class="stage-sub">Hear some birds? Then tap the mic!</div>
 
@@ -2903,6 +2935,9 @@ function renderIdle() {
   mic.onclick = () => { wrap.classList.remove('mic-alive'); beginWarble(); };
 
   document.getElementById('challengeCard').onclick = renderChallenges;
+  document.getElementById('homeRank').onclick = () => renderTrophies();
+  paintHomeRank();
+  refreshRank();
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
   document.getElementById('gameMini').onclick = () => renderSongGame();
   setSceneFocus(true);
@@ -3649,7 +3684,7 @@ async function renderSongGameEnd() {
   // (and so opening the next level) has to wait.
   let stars = Math.max(0, 3 - (g.results.length - got));
   let levels = before;
-  let prize = 0, newStars = 0, trophies = [];   // what this go won
+  let prize = 0, newStars = 0, trophies = [], rankUp = null;   // what this go won
   try {
     const form = new FormData();
     form.append('level', level.level);
@@ -3663,6 +3698,7 @@ async function renderSongGameEnd() {
       prize = out.feathers || 0;
       newStars = out.new_stars || 0;
       trophies = out.newly_earned_trophies || [];
+      rankUp = out.rank_up || null;
       markSeen('game');   // a level it opens is announced right here
     }
   } catch (e) { /* keep the local stars */ }
@@ -3693,12 +3729,12 @@ async function renderSongGameEnd() {
   document.getElementById('sgAgain').onclick = () => startSongGameLevel(data, levels.find(l => l.level === level.level));
   document.getElementById('sgLevelsBtn').onclick = () => renderSongGame(data);
   // Once the stars have popped in: each new star pays, then any trophy.
-  if (prize || trophies.length) setTimeout(() => {
+  if (prize || trophies.length || rankUp) setTimeout(() => {
     // Over the score line, so the stars that were just won stay in view.
     const scoreEl = root.querySelector('.collection-title');
     if (!document.getElementById('sgRound')) return;
     celebrateFeathers(prize, newStars === 1 ? 'A new star!' : `${newStars} new stars!`, scoreEl);
-    celebrateTrophies(trophies, scoreEl);
+    celebrateTrophies(trophies, scoreEl, rankUp);
   }, reducedMotion() ? 200 : 1400);
 }
 
@@ -4096,14 +4132,17 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
 // up and pops. Several in a row queue up rather than landing at once.
 // The server has already banked the feathers; this is only the showing.
 let featherMoments = Promise.resolve();
-function celebrateFeathers(amount, label, fromEl) {
-  if (!amount) return featherMoments;
+// The same chip with no feathers on it - for a new rank, which is news
+// rather than a payout.
+function celebrateMoment(label, fromEl) { return celebrateFeathers(0, label, fromEl, true); }
+function celebrateFeathers(amount, label, fromEl, wordsOnly = false) {
+  if (!amount && !wordsOnly) return featherMoments;
   featherMoments = featherMoments.then(() => new Promise(resolve => {
     const chip = document.createElement('div');
     chip.className = 'feather-chip woodframe';
     chip.innerHTML = `<div class="feather-chip-inner">
       <span class="feather-chip-label">${escapeFlock(label)}</span>
-      <span class="feather-chip-amount"><img class="feather-icon" src="/static/feather.webp" alt=""> +${amount}</span>
+      ${wordsOnly ? '' : `<span class="feather-chip-amount"><img class="feather-icon" src="/static/feather.webp" alt=""> +${amount}</span>`}
     </div>`;
     document.body.appendChild(chip);
     // Over the thing that won it, or the middle of the screen.
@@ -4115,7 +4154,7 @@ function celebrateFeathers(amount, label, fromEl) {
     chip.style.top = `${Math.max(60, Math.min(innerHeight - 140 - h, cy - h / 2))}px`;
     const hold = reducedMotion() ? 600 : 1100;
     setTimeout(() => {
-      flyFeathersToCounter(chip, amount, () => {});
+      if (amount) flyFeathersToCounter(chip, amount, () => {});
       chip.classList.add('leaving');
       setTimeout(() => { chip.remove(); resolve(); }, 450);
     }, hold);
@@ -4125,10 +4164,40 @@ function celebrateFeathers(amount, label, fromEl) {
 
 // Trophy levels won away from a recording (a purchase, a share, a game):
 // one feather moment each, and Awards lights up.
-function celebrateTrophies(list, fromEl) {
+function celebrateTrophies(list, fromEl, rankUp) {
   (list || []).forEach(t => celebrateFeathers(t.feathers || 0,
     `${t.name} trophy, level ${t.level}!`, fromEl));
+  if (rankUp) {
+    celebrateMoment(`You're a ${rankUp.name} now!`, fromEl);
+    if (currentProfile) currentProfile.rank = rankUp;
+  }
   if ((list || []).length) refreshWhatsNew();
+}
+
+// --- Avatar birds you have to find, and the birder rank -------------------
+// Which birds are still to find comes from the server (/profile "avatars"):
+// a lockable bird opens the first time its real counterpart is heard.
+function avatarLock(id) {
+  const st = currentProfile && currentProfile.avatars && currentProfile.avatars[id];
+  return st && !st.unlocked ? st : null;
+}
+
+// Home's rank pill and the Awards line both read currentProfile.rank; this
+// brings it (and the bird locks) up to date after anything that can change them.
+async function refreshRank() {
+  try {
+    const d = await (await fetch('/profile')).json();
+    currentProfile.rank = d.rank;
+    currentProfile.avatars = d.avatars;
+    paintHomeRank();
+  } catch (e) { /* keep what we had */ }
+}
+function paintHomeRank() {
+  const el = document.getElementById('homeRank');
+  const r = currentProfile && currentProfile.rank;
+  if (!el || !r) return;
+  el.querySelector('.home-rank-name').textContent = r.name;
+  el.hidden = false;
 }
 
 // --- Animation 2: card shrinks away into the My Birds tab
@@ -4393,6 +4462,8 @@ function renderNoBirds() {
   newlyEarnedTrophies = [];
   sessionBonuses = [];
   sessionFeatherTotal = 0;
+  sessionRankUp = null;
+  sessionNewAvatars = [];
   document.getElementById('againBtn').onclick = () => {
     // Location naming still has to happen first if it's pending, but once
     // that's done, go straight into recording rather than back to Home.
@@ -5600,7 +5671,34 @@ function sessionBonusRowsHtml() {
   `).join('');
 }
 function sessionTrophyBannersHtml() {
-  return newlyEarnedTrophies.map(t => `
+  // A new bird to be, then a new rank, then the trophies themselves.
+  const avatars = sessionNewAvatars.map(a => {
+    const sp = AVATAR_SPECIES.find(x => x.id === a.id);
+    return `
+    <button class="trophy-banner avatar-banner" data-go="dressup">
+      <div class="trophy-banner-title">New bird to be!</div>
+      <div class="trophy-banner-row">
+        <div class="avatar-banner-bird">${avatarSvg(currentProfile.avatar_body, 56, null, false, a.id)}</div>
+        <div class="trophy-banner-text">
+          <div class="trophy-banner-name">You can be ${/^[aeiou]/i.test(sp ? sp.name : '') ? 'an' : 'a'} ${sp ? sp.name : a.id} now!</div>
+          <div class="trophy-banner-citation">${a.heard ? `Because you heard a ${escapeFlock(birdName(a.heard))}.` : ''}</div>
+        </div>
+      </div>
+      <div class="trophy-banner-tap">Tap to try it on</div>
+    </button>`;
+  }).join('');
+  const rank = sessionRankUp ? `
+    <div class="trophy-banner rank-banner">
+      <div class="trophy-banner-title">New birder rank!</div>
+      <div class="trophy-banner-row">
+        <img class="rank-banner-leaf" src="/static/tree-leaf1-v2.webp" alt="">
+        <div class="trophy-banner-text">
+          <div class="trophy-banner-name">You're a ${sessionRankUp.name} now!</div>
+          <div class="trophy-banner-citation">${sessionRankUp.leaves} trophy leaves${sessionRankUp.next_name ? ` · ${sessionRankUp.to_go} more to ${sessionRankUp.next_name}` : ''}</div>
+        </div>
+      </div>
+    </div>` : '';
+  return avatars + rank + newlyEarnedTrophies.map(t => `
     <div class="trophy-banner done-trophy">
       <div class="trophy-banner-title">\u{1F3C6} Trophy earned!</div>
       <div class="trophy-banner-row">
@@ -5660,6 +5758,7 @@ function renderDone() {
   stage.querySelectorAll('.done-trophy').forEach(el => {
     el.onclick = () => { el.onclick = null; celebrateTrophy(el); };
   });
+  stage.querySelectorAll('.avatar-banner').forEach(el => { el.onclick = renderDressUp; });
 
   scheduleDoneLeafBurst(stage.querySelector('.done-avatar'));
 
@@ -5690,6 +5789,8 @@ function renderDone() {
 
   newlyEarnedTrophies = [];
   sessionBonuses = [];
+  sessionRankUp = null;
+  sessionNewAvatars = [];
 }
 
 // After the feathers are in: name a new spot first, if there is one, then
@@ -5780,6 +5881,7 @@ function flyElementTo(el, target) {
 }
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
+let sessionRankUp = null, sessionNewAvatars = [];   // also won by the last recording
 // What the device actually granted for the mic. Constraints are requests,
 // not guarantees, so this is worth being able to see without a USB cable.
 let lastMicSettings = null;
@@ -6294,6 +6396,11 @@ function stopRecording() {
       sessionBonuses = data.bonuses || [];
       sessionFeatherTotal = data.total_feathers_this_session || 0;
       newlyEarnedTrophies = data.newly_earned_trophies || [];
+      sessionRankUp = data.rank_up || null;
+      sessionNewAvatars = data.new_avatars || [];
+      sessionNewAvatars.forEach(a => {
+        if (currentProfile.avatars && currentProfile.avatars[a.id]) currentProfile.avatars[a.id].unlocked = true;
+      });
       needsLocationName = data.needs_location_name || false;
       sessionNearbyPlaces = data.nearby_places || [];
       sessionLocationName = data.location_name || null;
@@ -6790,11 +6897,16 @@ function renderWelcome(step = 0) {
   setSceneFocus(false);
   stage.classList.add('top-aligned');
   const picker = step === 0
-    ? `<div class="welcome-birds" role="radiogroup" aria-label="Birds">${AVATAR_SPECIES.map(sp => `
-        <button class="welcome-bird-btn ${sp.id === d.species ? 'on' : ''}" data-species="${sp.id}"
-                role="radio" aria-checked="${sp.id === d.species}" aria-label="${sp.name}">
+    ? `<div class="welcome-birds" role="radiogroup" aria-label="Birds">${AVATAR_SPECIES.map(sp => {
+        const lock = avatarLock(sp.id);
+        return `
+        <button class="welcome-bird-btn ${sp.id === d.species ? 'on' : ''} ${lock ? 'locked' : ''}" data-species="${sp.id}"
+                role="radio" aria-checked="${sp.id === d.species}" aria-disabled="${!!lock}"
+                aria-label="${sp.name}${lock ? ' - ' + lock.hint : ''}">
           ${avatarSvg(d.body, 58, null, false, sp.id)}
-        </button>`).join('')}</div>`
+          ${lock ? '<span class="bird-lock" aria-hidden="true">?</span>' : ''}
+        </button>`; }).join('')}</div>
+       <div class="welcome-hint" id="welcomeLockHint">Four to start, four to find!</div>`
     : step === 1
     ? `<div class="welcome-swatches" role="radiogroup" aria-label="Colours">${AVATAR_SWATCHES.map(c => `
         <button class="welcome-swatch ${c.hex.toUpperCase() === d.body.toUpperCase() ? 'on' : ''}" data-hex="${c.hex}"
@@ -6825,6 +6937,15 @@ function renderWelcome(step = 0) {
   const me = () => document.getElementById('welcomeMe');
   const redraw = () => { me().innerHTML = avatarSvg(d.body, 150, null, true, d.species); };
   stage.querySelectorAll('.welcome-bird-btn').forEach(b => b.onclick = () => {
+    const lock = avatarLock(b.dataset.species);
+    if (lock) {
+      // Still to find: say how, and keep the bird they had.
+      const sp = AVATAR_SPECIES.find(x => x.id === b.dataset.species);
+      const hint = document.getElementById('welcomeLockHint');
+      if (hint) hint.textContent = `${lock.hint.replace(/ to unlock$/, '')} to become ${/^[aeiou]/i.test(sp.name) ? 'an' : 'a'} ${sp.name}!`;
+      b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge');
+      return;
+    }
     d.species = b.dataset.species;
     stage.querySelectorAll('.welcome-bird-btn').forEach(x => {
       x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b);
@@ -8047,6 +8168,26 @@ function setActiveSilhouette(btn) {
 
 // The actual selection: only called once scrolling has settled.
 function commitSpeciesSelection(id) {
+  const lock = avatarLock(id);
+  const el = document.getElementById('dressUpPreview');
+  if (lock) {
+    // A bird still to find: shown as its dark shape with how to find it.
+    // Nothing is saved - the bird they were wearing stays theirs.
+    const sp = AVATAR_SPECIES.find(x => x.id === id);
+    if (el) {
+      el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, id) +
+        '<span class="bird-lock big" aria-hidden="true">?</span>';
+      el.classList.add('locked-bird');
+    }
+    setDressUpHint(`${lock.hint.replace(/ to unlock$/, '')} to become ${/^[aeiou]/i.test(sp.name) ? 'an' : 'a'} ${sp.name}!`);
+    return;
+  }
+  if (el && el.classList.contains('locked-bird')) {
+    el.classList.remove('locked-bird');
+    setDressUpHint('');
+    if (currentProfile.avatar_species === id) { renderDressUpPreview(); return; }
+    el.innerHTML = '';
+  }
   if (currentProfile.avatar_species === id) return;
   const from = currentProfile.avatar_species;
   currentProfile.avatar_species = id;
@@ -8693,7 +8834,7 @@ async function buyAccessory(accessoryId, category, cost, name) {
       expandedItemId = null;
       setDressUpHint(`Bought ${name} — tap it to wear it`);
       renderCarousel();
-      celebrateTrophies(data.newly_earned_trophies, document.getElementById('dressUpPreview'));
+      celebrateTrophies(data.newly_earned_trophies, document.getElementById('dressUpPreview'), data.rank_up);
     } else {
       setDressUpHint("That didn't work — try again");
     }
@@ -9394,7 +9535,12 @@ async function renderTrophies(focusKey) {
     // Levels earned, not trophies started - 20 trophies x 3 levels
     const levelsGot = allTrophiesRaw.reduce((n, t) => n + (t.level || 0), 0);
     const levelsTotal = allTrophiesRaw.reduce((n, t) => n + (t.level_count || 7), 0);
-    document.getElementById('trophyCount').textContent = `${levelsGot} of ${levelsTotal} levels earned`;
+    // The rank from all the leaves together, and how far to the next one.
+    const r = data.rank;
+    document.getElementById('trophyCount').textContent = r
+      ? `${r.name} · ${levelsGot} of ${levelsTotal} leaves` + (r.next_name ? ` · ${r.to_go} more to ${r.next_name}` : '')
+      : `${levelsGot} of ${levelsTotal} levels earned`;
+    if (r && currentProfile) currentProfile.rank = r;
 
     // Coming back from a trophy's card, that trophy goes back to the front.
     // Otherwise start on the first unearned one - the most useful thing to
@@ -9711,7 +9857,7 @@ async function shareBird(bird) {
   try {
     const res = await fetch('/trophies/wingman', { method: 'POST' });
     const data = await res.json();
-    celebrateTrophies(data.newly_earned_trophies, document.getElementById('shareBirdBtn'));
+    celebrateTrophies(data.newly_earned_trophies, document.getElementById('shareBirdBtn'), data.rank_up);
   } catch (e) { /* sharing worked; the trophy can wait */ }
 }
 

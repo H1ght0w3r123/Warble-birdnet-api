@@ -28,11 +28,15 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   have no status because they're introduced species the UK lists don't assess. All 100 have an `about`:
   one or two child-level sentences shown under the badges on the bird card.
   Also holds seasonality.
-- `trophies.py` — 21 trophies, each with **seven levels** (shown as empty
+- `trophies.py` — 20 trophies, each with **seven levels** (shown as empty
   sockets, then 1-3 green leaves, then the leaves turning gold). Adding
   challenge means extending a `levels` list, not inventing a new trophy.
   Every level won pays `TROPHY_LEVEL_FEATHERS` (5); levels won before that
-  was introduced were deliberately not back-paid.
+  was introduced were deliberately not back-paid. Every level is a leaf, and
+  the leaves together give a **birder rank** (`BIRDER_RANKS`: Hatchling at 0
+  up to Master Birder at 115 of the 140), shown on Home and Awards and
+  celebrated when it goes up. Summer Squad was removed: its first level
+  needed all 13 summer visitors in one summer.
 - `accessories.py` — 70 Dress Up items priced 5, 10, 15, 20, 30, 40, 50 or 75
   (1,880 for the lot). Hats are
   fitted per bird (see its docstring).
@@ -94,6 +98,14 @@ gets `renderMicBlocked`, written for the child with a line for the grown-up.
 On the Done screen, "New spot!" comes *after* the feathers are collected,
 and a Hoot-tique disc sits beside "Go again?" only when the feathers now
 buy something new (`whatsNew.dressup`).
+
+**Avatar birds: four to start, four to find.** Classic, Cardinal, Parrot and
+Penguin are free. Duckling, Woodpecker, Owl and Kingfisher unlock the first
+time their real counterpart is heard (`AVATAR_UNLOCKS` in `main.py`: any
+duck/goose/swan, any woodpecker, any owl, a Kingfisher). Not trophies - an
+avatar is who the child is, so it comes from the birds. The bird a family
+was using when this arrived is kept (`avatar:kept` seen mark). The server
+refuses a locked bird on `POST /profile`.
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. The whole ladder is at the top of the reward section of `main.py`:

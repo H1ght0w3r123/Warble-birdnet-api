@@ -178,7 +178,6 @@ async def identify(
 
 from database import (
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
-    count_complete_summers,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_sightings_of, count_species_found_far_apart,
     get_share_count, increment_share_count, count_all_sessions,
@@ -199,12 +198,13 @@ from database import (
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
     count_curated_species_found, get_found_curated_species, save_call_url,
     get_bird_photo_data, get_song_game_stars, record_song_game_result,
-    set_total_feathers, get_seen_marks, set_seen_mark, reset_tutorials,
+    set_total_feathers, get_seen_marks, set_seen_mark, reset_tutorials, get_heard_species,
     add_bird_photo, get_bird_photos, delete_bird_photo,
 )
 from birds import (bird_data, STAT_LABELS, HABITAT_ICONS,
-                   season_state, is_seasonal, SUMMER_VISITORS, SEASONAL_ORDER)
-from trophies import TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, requirement_text
+                   season_state, is_seasonal, SEASONAL_ORDER)
+from trophies import (TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, requirement_text,
+                      birder_rank)
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
 from curated_species import (
@@ -276,7 +276,6 @@ def measure_all_trophies():
         "still_water":   count_species_found_in(pack_species("water_birds")),
         "brooder":       count_rainy_sessions(),
         "wingman":       get_share_count(),
-        "summer_squad":  count_complete_summers(SUMMER_VISITORS),
     }
 
 
@@ -403,17 +402,71 @@ TROPHY_LEVEL_FEATHERS = 5
 SONG_GAME_STAR_FEATHERS = 5
 
 
+def total_leaves() -> int:
+    """Every trophy level held - the leaves on all the cups together."""
+    return sum(lvl for key, lvl in get_trophy_levels().items() if key in TROPHY_DEFINITIONS)
+
+
+def rank_up_between(before: int, after: int):
+    """The new rank if `after` leaves crosses into one `before` didn't have."""
+    a, b = birder_rank(before), birder_rank(after)
+    return b if b["index"] > a["index"] else None
+
+
 def award_trophy_levels():
     """Checks every trophy and pays TROPHY_LEVEL_FEATHERS for each level just
     won. For anything other than a recording, which folds the same pay into
-    its own total and bonus list. Returns (newly_won, feathers)."""
+    its own total and bonus list. Returns (newly_won, feathers, rank_up)."""
+    before = total_leaves()
     newly = check_all_trophies()
     for t in newly:
         t["feathers"] = TROPHY_LEVEL_FEATHERS
     feathers = TROPHY_LEVEL_FEATHERS * len(newly)
     if feathers:
         add_feathers(feathers)
-    return newly, feathers
+    return newly, feathers, rank_up_between(before, before + len(newly))
+
+
+# --- Avatar birds ------------------------------------------------------------
+# Four birds to start, four to find. The four that live in the UK unlock the
+# first time the child hears the real thing, so each one is a souvenir of a
+# find. The bird a family was already using when this arrived stays theirs
+# ("avatar:kept", recorded once), whether or not they've heard it.
+AVATAR_STARTERS = {"classic", "default", "cardinal", "parrot", "penguin"}
+AVATAR_UNLOCKS = {
+    "duckling":   {"hint": "Hear a duck, goose or swan to unlock",
+                   "species": {"Mallard", "Canada Goose", "Greylag Goose", "Mute Swan", "Common Eider"}},
+    "woodpecker": {"hint": "Hear a woodpecker to unlock",
+                   "species": {"Great Spotted Woodpecker", "European Green Woodpecker",
+                               "Lesser Spotted Woodpecker"}},
+    "owl":        {"hint": "Hear an owl to unlock",
+                   "species": {"Tawny Owl", "Barn Owl", "Little Owl", "Long-eared Owl"}},
+    "kingfisher": {"hint": "Hear a Kingfisher to unlock", "species": {"Common Kingfisher"}},
+}
+for _rule in AVATAR_UNLOCKS.values():
+    assert _rule["species"] <= ALL_CURATED_SPECIES, _rule["species"] - ALL_CURATED_SPECIES
+
+
+def avatar_states(heard: set = None) -> dict:
+    """Each lockable bird: unlocked or not, what unlocks it, and (once heard)
+    which bird did. Starters aren't listed - they're always open."""
+    heard = get_heard_species() if heard is None else heard
+    kept = get_seen_marks().get("avatar:kept")
+    if kept is None:
+        kept = get_profile().get("avatar_species") or ""
+        set_seen_mark("avatar:kept", kept)
+    out = {}
+    for sp, rule in AVATAR_UNLOCKS.items():
+        by = sorted(rule["species"] & heard)
+        out[sp] = {"unlocked": bool(by) or sp == kept, "hint": rule["hint"],
+                   "heard": by[0] if by else None}
+    return out
+
+
+def avatar_is_open(species: str, states: dict = None) -> bool:
+    if species in AVATAR_STARTERS or species not in AVATAR_UNLOCKS:
+        return True
+    return (states or avatar_states())[species]["unlocked"]
 
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
@@ -489,6 +542,7 @@ async def analyze_session(
     # first, so they can add this spot to one instead of inventing a new name.
     nearby_places = get_nearby_places(lat, lng) if needs_location_name else []
 
+    avatars_before = avatar_states()   # to spot a bird that becomes an avatar
     for detection in detections:
         common_name = detection["common_name"]
         scientific_name = detection["scientific_name"]
@@ -544,7 +598,13 @@ async def analyze_session(
     # Bird count has to be stored before trophies are measured - several of
     # them count sessions that found something.
     set_session_bird_count(session_id, len(results))
+    leaves_before = total_leaves()
     newly_earned_trophies = check_all_trophies()
+    rank_up = rank_up_between(leaves_before, leaves_before + len(newly_earned_trophies))
+    # Birds that became avatars with this recording
+    avatars_after = avatar_states()
+    new_avatars = [sp for sp, st in avatars_after.items()
+                   if st["unlocked"] and not avatars_before[sp]["unlocked"]]
 
     session_feathers = sum(r["feathers"] for r in results)
     bonuses = []
@@ -585,6 +645,8 @@ async def analyze_session(
         "bonuses": bonuses,
         "total_feathers": new_total,
         "newly_earned_trophies": newly_earned_trophies,
+        "rank_up": rank_up,
+        "new_avatars": [{"id": sp, "heard": avatars_after[sp]["heard"]} for sp in new_avatars],
         "needs_location_name": needs_location_name,
         "nearby_places": nearby_places,
         "location_name": existing_location_name,
@@ -641,9 +703,9 @@ def award_wingman():
     rather than inferred, since there's no reliable way to detect that a share
     actually completed."""
     increment_share_count()
-    newly, feathers = award_trophy_levels()
+    newly, feathers, rank_up = award_trophy_levels()
     return {"newly_earned_trophies": newly, "feathers": feathers,
-            "total_feathers": get_total_feathers()}
+            "total_feathers": get_total_feathers(), "rank_up": rank_up}
 
 
 def evaluate_week_challenges():
@@ -849,7 +911,7 @@ async def rename_location_endpoint(location_id: int, name: str = Form(...)):
 
 @app.get("/profile")
 def profile():
-    return get_profile()
+    return {**get_profile(), "avatars": avatar_states(), "rank": birder_rank(total_leaves())}
 
 
 @app.post("/profile")
@@ -864,6 +926,9 @@ async def update_profile_endpoint(
     avatar_photo: str = Form(None),
     home_scene: str = Form(None),
 ):
+    # A bird still to be found can't be chosen, whatever the page sends.
+    if avatar_species and not avatar_is_open(avatar_species):
+        avatar_species = None
     update_profile(
         first_name=first_name, last_name=last_name,
         avatar_body=avatar_body, avatar_face=avatar_face, avatar_beak=avatar_beak,
@@ -901,7 +966,8 @@ def list_trophies():
             "requirement": requirement_text(key, next_i),
             "citation": t["citations"][level - 1] if level > 0 else None,
         })
-    return {"trophies": out}
+    leaves = sum(t["level"] for t in out)
+    return {"trophies": out, "rank": birder_rank(leaves)}
 
 
 @app.get("/sightings")
@@ -1045,11 +1111,11 @@ async def song_game_result(level: int = Form(...), correct: int = Form(...)):
     feathers = SONG_GAME_STAR_FEATHERS * new_stars
     if feathers:
         add_feathers(feathers)
-    trophies, trophy_feathers = award_trophy_levels()
+    trophies, trophy_feathers, rank_up = award_trophy_levels()
     return {"stars": stars, "best_stars": best, "levels": song_game_levels(found),
             "new_stars": new_stars, "feathers": feathers,
             "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers,
-            "total_feathers": get_total_feathers()}
+            "rank_up": rank_up, "total_feathers": get_total_feathers()}
 
 
 @app.get("/bird-photos/{photo_id}")
@@ -1120,8 +1186,10 @@ def whats_new_items() -> dict:
         "habitats": heard & ALL_CURATED_SPECIES,
         "trophies": {f"{k}:{lv}" for k, top in get_trophy_levels().items()
                      for lv in range(1, top + 1)},
+        # Something new to wear, or a new bird to be
         "dressup": {aid for aid, a in ACCESSORIES.items()
-                    if aid not in owned and a["cost"] <= feathers},
+                    if aid not in owned and a["cost"] <= feathers}
+                   | {f"avatar:{sp}" for sp, st in avatar_states(heard).items() if st["unlocked"]},
         # Things on Home (Home itself never lights up)
         # A new week's set counts as new, as does each challenge finished
         "challenges": {f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done}
@@ -1194,9 +1262,10 @@ async def purchase_accessory_endpoint(accessory_id: str):
     success = purchase_accessory(accessory_id, item["cost"], item["category"])
     # Buying can win a trophy (Preener), and it should arrive now, not at
     # the next recording.
-    trophies, trophy_feathers = award_trophy_levels() if success else ([], 0)
+    trophies, trophy_feathers, rank_up = award_trophy_levels() if success else ([], 0, None)
     return {"status": "ok" if success else "failed", "new_total": get_total_feathers(),
-            "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers}
+            "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers,
+            "rank_up": rank_up}
 
 
 @app.post("/accessories/equip")

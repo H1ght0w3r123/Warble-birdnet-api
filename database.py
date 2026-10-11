@@ -726,6 +726,14 @@ def count_rare_sightings() -> int:
         return session.query(Sighting).filter_by(tier="Rare").count()
 
 
+def get_heard_species() -> set:
+    """Every species heard at least once."""
+    if SessionLocal is None:
+        return set()
+    with SessionLocal() as session:
+        return {n for (n,) in session.query(Sighting.common_name).distinct()}
+
+
 def count_distinct_species() -> int:
     """How many different species found in total — used for Forager."""
     if SessionLocal is None:
