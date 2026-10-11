@@ -491,29 +491,30 @@
     0%,100%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(242,201,76,0.45));}
     50%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(242,201,76,0.75));}
   }
-  /* The leaf (the tree's own falling-leaf sprite). Its stem is at the top
-     left of the picture, so that's the pivot: it hangs from the shoulder
-     and flicks about the stem. --flip mirrors it for the left shoulder. */
+  /* The leaf (the tree's own falling-leaf sprite) stands up off the
+     icon's top-right rim like a sprout. In the picture the stem is at the
+     top left (31% 26%) and the leaf runs down to the right, so it's turned
+     about the stem until the tip points up and a little outward; the stem
+     is then planted on the rim. It holds still, then flicks. */
   .nav-tab.has-new .nav-icon-wrap::after, .hub-item.has-new .hub-icon::after{
-    content:''; position:absolute; width:22px; height:22px; top:-7px; right:-10px;
+    content:''; position:absolute; width:34px; height:34px; left:22px; top:-4px; z-index:1;
     background:url('/static/tree-leaf1-v2.webp') center / contain no-repeat;
     filter:drop-shadow(0 1px 2px rgba(26,17,40,0.45));
-    transform-origin:30% 20%; --flip:1; transform:scaleX(var(--flip));
-    animation:leafTwitch 3.4s ease-in-out infinite;
+    transform-origin:31% 26%; --stand:-118deg; transform:rotate(var(--stand));
+    animation:leafTwitch 2.6s ease-in-out infinite;
   }
-  /* Bigger on Home's discs, still on the right shoulder like the nav. */
-  .hub-item.has-new .hub-icon::after{width:30px; height:30px; top:-7px; right:-10px;}
-  /* The challenges disc wears its tally there, so its leaf hangs off the
-     tally's far end instead of covering it. */
-  #challengeCard.has-new .hub-icon::after{right:-34px; top:-4px; z-index:1;}
+  .hub-item.has-new .hub-icon::after{width:42px; height:42px; left:43px; top:-3px;}
+  /* The challenges disc wears its tally on that shoulder, so its leaf
+     sprouts from the tally's far end instead of covering the count. */
+  #challengeCard.has-new .hub-icon::after{left:61px; top:-13px;}
   /* Still for most of the cycle, then a quick flick and settle - like a
      leaf catching a breath of wind. */
   @keyframes leafTwitch{
-    0%,78%,100%{transform:scaleX(var(--flip)) rotate(0deg);}
-    82%{transform:scaleX(var(--flip)) rotate(-20deg);}
-    86%{transform:scaleX(var(--flip)) rotate(14deg);}
-    90%{transform:scaleX(var(--flip)) rotate(-8deg);}
-    94%{transform:scaleX(var(--flip)) rotate(4deg);}
+    0%,70%,100%{transform:rotate(var(--stand));}
+    75%{transform:rotate(calc(var(--stand) - 22deg));}
+    80%{transform:rotate(calc(var(--stand) + 16deg));}
+    85%{transform:rotate(calc(var(--stand) - 9deg));}
+    90%{transform:rotate(calc(var(--stand) + 4deg));}
   }
 
   /* --- Tutorial bubbles ----------------------------------------------
