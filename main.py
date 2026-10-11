@@ -199,7 +199,7 @@ from database import (
     get_owned_accessory_ids, purchase_accessory, set_equipped_item,
     count_curated_species_found, get_found_curated_species, save_call_url,
     get_bird_photo_data, get_song_game_stars, record_song_game_result,
-    set_total_feathers,
+    set_total_feathers, get_seen_marks, set_seen_mark, reset_tutorials,
     add_bird_photo, get_bird_photos, delete_bird_photo,
 )
 from birds import (bird_data, STAT_LABELS, HABITAT_ICONS,
@@ -677,6 +677,7 @@ async def reset_data(scope: str):
     call can't wipe more than intended."""
     actions = {
         "dressup": reset_dress_up,
+        "tutorials": reset_tutorials,
         "feathers": reset_feathers,
         "sightings": reset_sightings,
         "everything": reset_everything,
@@ -1051,6 +1052,75 @@ def joke_of_the_day():
         "setup": joke["setup"],
         "punchline": joke["punchline"],
     }
+
+
+# --- What's new, and what's been explained ---------------------------------
+# Each area the nav bar can light up, as the set of things in it right now.
+# Visiting the area stores that set ("seen:<area>"); anything in the set
+# since then is new, and lights the area up. Sets rather than counts, so a
+# bird removed as a misidentification and another one found still reads as
+# new, and a reset can't leave a stale high count that hides new finds.
+def whats_new_items() -> dict:
+    sightings = get_all_sightings()
+    heard = {s["common_name"] for s in sightings}
+    found_curated = len(heard & ALL_CURATED_SPECIES)
+    feathers = get_total_feathers()
+    owned = get_owned_accessory_ids()
+    week = current_week_key()
+    return {
+        # Tabs
+        "collection": heard,
+        "habitats": heard & ALL_CURATED_SPECIES,
+        "trophies": {f"{k}:{lv}" for k, top in get_trophy_levels().items()
+                     for lv in range(1, top + 1)},
+        "dressup": {aid for aid, a in ACCESSORIES.items()
+                    if aid not in owned and a["cost"] <= feathers},
+        # Things on Home (Home itself never lights up)
+        "challenges": {f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done},
+        "joke": {datetime.datetime.utcnow().date().isoformat()} if has_session_today() else set(),
+        "game": {str(l["level"]) for l in song_game_levels(found_curated) if l["unlocked"]},
+    }
+
+
+WHATS_NEW_SEP = "\n"
+TUTORIAL_KEYS = {"home", "listening", "results", "collection", "bird", "habitats",
+                 "trophies", "dressup", "challenges", "joke", "game", "game_round"}
+
+
+@app.get("/whats-new")
+def whats_new():
+    """Which areas have something the child hasn't looked at yet, and which
+    tutorial bubbles have already been closed."""
+    marks = get_seen_marks()
+    new = {}
+    for area, items in whats_new_items().items():
+        seen = set(filter(None, marks.get(f"seen:{area}", "").split(WHATS_NEW_SEP)))
+        new[area] = bool(items - seen)
+    return {
+        "new": new,
+        "tutorials": sorted(k[4:] for k in marks if k.startswith("tut:")),
+    }
+
+
+@app.post("/seen/{area}")
+def mark_area_seen(area: str):
+    """The child has looked at this area: whatever is in it now is no
+    longer new."""
+    items = whats_new_items()
+    if area not in items:
+        return JSONResponse({"error": "unknown area"}, status_code=404)
+    set_seen_mark(f"seen:{area}", WHATS_NEW_SEP.join(sorted(items[area])))
+    return {"status": "ok"}
+
+
+@app.post("/tutorial-seen/{name}")
+def mark_tutorial_seen(name: str):
+    """A tutorial bubble has been closed with "Got it!" - never show it
+    again (until a reset)."""
+    if name not in TUTORIAL_KEYS:
+        return JSONResponse({"error": "unknown tutorial"}, status_code=404)
+    set_seen_mark(f"tut:{name}", "1")
+    return {"status": "ok"}
 
 
 @app.get("/accessories")

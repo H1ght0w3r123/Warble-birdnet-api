@@ -475,6 +475,83 @@
   .hub-badge:empty{display:none;}
   .hub-badge.done{background:var(--sage);}
 
+  /* --- Something new is waiting here ---------------------------------
+     A nav tab (or one of the three things on Home) breathes with the same
+     gold glow as the level to play next, with a small gold dot on its
+     shoulder, until the child goes and looks. */
+  .nav-icon-wrap{position:relative;}
+  .nav-tab.has-new .nav-icon-wrap{animation:newGlow 1.6s ease-in-out infinite;}
+  @keyframes newGlow{
+    0%,100%{transform:scale(1); box-shadow:0 0 0 0 rgba(242,201,76,0);}
+    50%{transform:scale(1.1); box-shadow:0 0 0 2px rgba(242,201,76,0.9), 0 0 16px 5px rgba(242,201,76,0.65);}
+  }
+  .nav-tab.has-new .nav-icon-wrap::after, .hub-item.has-new .hub-icon::after{
+    content:''; position:absolute; top:-3px; right:-3px; width:12px; height:12px; border-radius:50%;
+    background:var(--gold); border:2px solid #fff; box-shadow:0 1px 3px rgba(26,17,40,0.45);
+  }
+  /* On Home the challenges disc already wears its tally on that shoulder. */
+  .hub-item.has-new .hub-icon::after{right:auto; left:-3px;}
+  .hub-item.has-new .hub-icon{animation:hubNewGlow 1.6s ease-in-out infinite;}
+  @keyframes hubNewGlow{
+    0%,100%{transform:scale(1); filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35));}
+    50%{transform:scale(1.08); filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(242,201,76,0.95));}
+  }
+
+  /* --- Tutorial bubbles ----------------------------------------------
+     The screen dims, the thing being explained stays lit inside a gold
+     ring, and a speech bubble in the app's wood and cream points at it.
+     The dim is one huge shadow round the lit hole, so the hole is just a
+     box that can glide from one step's target to the next. */
+  .tut-veil{position:fixed; inset:0; z-index:1000; touch-action:none;}
+  .tut-hole{
+    position:fixed; border-radius:18px; pointer-events:none;
+    box-shadow:0 0 0 200vmax rgba(20,12,40,0.62), 0 0 0 3px rgba(242,201,76,0.95), 0 0 18px 6px rgba(242,201,76,0.5);
+    transition:left .3s ease, top .3s ease, width .3s ease, height .3s ease, border-radius .3s ease;
+  }
+  .tut-bubble{
+    --frame:5px; --inner:14px; position:fixed; width:min(320px, calc(100vw - 32px));
+    box-shadow:0 8px 24px rgba(0,0,0,0.45);
+    transition:left .3s ease, top .3s ease; animation:tutIn .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes tutIn{from{transform:scale(.85); opacity:0;} to{transform:none; opacity:1;}}
+  .tut-inner{background:var(--disc-cream); border-radius:var(--inner); padding:14px 14px 12px;}
+  .tut-text{margin:0; font-family:'Poppins'; font-weight:900; font-size:17px; line-height:1.3;
+    color:var(--wood-edge); text-align:center;}
+  .tut-actions{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px;}
+  /* Read it to me: the plain wooden disc with a speaker carved in. */
+  .tut-speak{
+    width:44px; height:44px; flex:0 0 auto; border:none; padding:0; cursor:pointer;
+    background:url('/static/btn-blank-v1.webp') center / contain no-repeat;
+    filter:drop-shadow(0 2px 4px rgba(45,27,105,0.3));
+    display:flex; align-items:center; justify-content:center; color:#B4561B;
+  }
+  .tut-speak svg{width:22px; height:22px;}
+  .tut-speak.speaking{animation:tutSpeak .9s ease-in-out infinite;}
+  @keyframes tutSpeak{50%{transform:scale(1.1);}}
+  .tut-dots{display:flex; gap:6px; justify-content:center; flex:1;}
+  .tut-dot{width:8px; height:8px; border-radius:50%; background:rgba(116,50,6,0.25);}
+  .tut-dot.on{background:var(--wood-dk);}
+  .tut-ok{
+    flex:0 0 auto; min-width:104px; padding:11px 18px; border:none; border-radius:30px; cursor:pointer;
+    background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:900; font-size:16px;
+    box-shadow:0 4px 0 var(--terra-dk);
+  }
+  .tut-ok:active{transform:translateY(3px); box-shadow:0 1px 0 var(--terra-dk);}
+  .tut-ok:focus{outline:none;}
+  .tut-ok:focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+  /* The tail: a wooden point on whichever side faces the lit thing. */
+  .tut-tail{position:fixed; width:0; height:0; border:12px solid transparent; pointer-events:none;
+    transition:left .3s ease, top .3s ease;}
+  .tut-tail.up{border-bottom-color:var(--wood-lit); border-top-width:0;}
+  .tut-tail.down{border-top-color:var(--wood-dk); border-bottom-width:0;}
+  .tut-tail.none{display:none;}
+  @media (prefers-reduced-motion: reduce){
+    .nav-tab.has-new .nav-icon-wrap{animation:none; box-shadow:0 0 0 2px rgba(242,201,76,0.9), 0 0 14px 4px rgba(242,201,76,0.6);}
+    .hub-item.has-new .hub-icon{animation:none; filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(242,201,76,0.95));}
+    .tut-hole, .tut-bubble, .tut-tail{transition:none; animation:none;}
+    .tut-speak.speaking{animation:none;}
+  }
+
   /* --- Guess the Song ----------------------------------------------------
      Deliberately plain: a readout, one big play button, a grid of the
      child's own birds. Tiles are the My Flock wood frame, made square. */
@@ -2729,6 +2806,11 @@ function renderIdle() {
   loadChallengeCard();
   loadJokeTileStatus();
   loadSongGameTile();
+  // Back on Home is when anything new from a recording, a purchase or a
+  // game shows up on the nav bar and the three discs.
+  paintNewCues();
+  refreshWhatsNew();
+  showTutorial('home', 500);
 }
 
 // Three birds in the corner of the Here Now card. Drawn rather than an
@@ -2973,6 +3055,8 @@ async function renderChallenges() {
         meter(prizePct, `${d.completed} of ${items.length} done`)) +
       items.map(i => card(i.complete, '', i.text, 0,
         meter(Math.round((i.progress / i.target) * 100), `${i.progress} of ${i.target}`))).join('');
+    markSeen('challenges');
+    showTutorial('challenges', 300);
   } catch (e) {
     list.innerHTML = `<div class="collection-empty">Couldn't load challenges right now.</div>`;
   }
@@ -3016,6 +3100,8 @@ async function renderJokeOfDay() {
         </button>
       </div>`;
     document.getElementById('revealJokeBtn').onclick = () => revealJokePunchline(data.punchline);
+    markSeen('joke');
+    showTutorial('joke', 300);
   } catch (e) {
     if (box()) box().innerHTML = `<div class="joke-locked">Couldn't load the joke right now.</div>`;
   }
@@ -3151,6 +3237,8 @@ async function renderSongGame(data) {
     if (!level.unlocked || playable === 0) return;
     btn.onclick = () => startSongGameLevel(data, level);
   });
+  markSeen('game');
+  showTutorial('game', 300);   // only once there's a level to point at
 }
 
 // Said only when birds are the one thing a level is waiting for - the
@@ -3299,6 +3387,7 @@ function renderSongGameRound() {
   `;
   bindSongGameBack(g.data);
   fitSongGameGrid();
+  if (g.round === 0) showTutorial('game_round', 300);
   document.getElementById('sgPlay').onclick = playSongGameClip;
   root.querySelectorAll('.sg-tile').forEach(t => {
     t.onclick = () => answerSongGame(g.choices[+t.dataset.i]);
@@ -3468,6 +3557,7 @@ async function renderSongGameEnd() {
       stars = out.stars;
       levels = out.levels;
       data.levels = levels;
+      markSeen('game');   // a level it opens is announced right here
     }
   } catch (e) { /* keep the local stars */ }
   if (!document.getElementById('sgRound')) return;   // left while saving
@@ -3651,6 +3741,7 @@ function renderRecording() {
   document.getElementById('stopBtn').onclick = stopRecording;
   layoutListening();
   loadRecordingLocation();
+  showTutorial('listening', 400);
 }
 
 async function loadRecordingLocation() {
@@ -3824,6 +3915,7 @@ function renderCard() {
   if (hint) hint.textContent = bird.is_duplicate
     ? 'Tap to carry on'
     : 'Tap to add to your collection';
+  showTutorial('results', 800);
   cardEl.onclick = () => {
     cardEl.onclick = null;                   // one tap only, mid-flight taps ignored
     cardEl.classList.remove('collectable');
@@ -4278,6 +4370,7 @@ function renderCollection() {
 
   watchFlockBar();
   loadCollection();
+  markSeen('collection');
 }
 
 // The two icon buttons are a fixed 32x32 whatever the phone, so unlike the
@@ -4857,6 +4950,7 @@ async function loadCollection() {
     }
     collectionBirds = [...seen.values()];
     paintFlock();
+    showTutorial('collection', 300);
   } catch (e) {
     const stats = document.getElementById('flockStats');
     if (stats) stats.textContent = '';
@@ -4950,6 +5044,7 @@ function renderBirdDetail(commonName, onBack) {
   };
   loadBirdPhotos(commonName);
   showDetailPack(commonName);
+  showTutorial('bird', 600);
 }
 
 // Every place a bird has been heard, from the pin button on its card. Built
@@ -5382,6 +5477,7 @@ function renderDone() {
       const wrap = document.getElementById('goAgainWrap');
       if (wrap) wrap.classList.add('visible');
       refreshFeathers();   // reconcile against the server once animations finish
+      refreshWhatsNew();   // the new birds and trophies light up their tabs
     });
   };
 
@@ -6062,6 +6158,261 @@ function setSceneFocus(focused) {
   document.body.classList.toggle('scene-blurred', !focused);
 }
 
+// --- What's new, and first-play tutorials ---------------------------------
+// The server remembers both (/whats-new): which tutorial bubbles have been
+// closed, and for each area whether something has turned up since the child
+// last looked - a new bird, a trophy level, something the feathers now
+// cover, a challenge done, the joke, a game level. Areas are cleared by
+// visiting them (markSeen), never by time passing.
+let tutorialsSeen = null;     // names of tutorials already closed
+let whatsNew = {};            // area -> true while something there is unseen
+let whatsNewGen = 0;          // a reply older than the latest mark is dropped
+const NAV_CUE_TABS = { habitats: 'navHabitats', collection: 'navCollection',
+                       trophies: 'navTrophies', dressup: 'navDressUp' };
+// Home itself never lights up; the three things on it do.
+const HOME_CUE_ITEMS = { challenges: 'challengeCard', joke: 'jokeMini', game: 'gameMini' };
+
+async function refreshWhatsNew() {
+  const gen = ++whatsNewGen;
+  try {
+    const d = await (await fetch('/whats-new')).json();
+    // Tutorials only ever get added to, so any reply can be merged in -
+    // including one that missed a bubble closed while it was on its way.
+    tutorialsSeen = new Set([...(d.tutorials || []), ...(tutorialsSeen || [])]);
+    if (gen !== whatsNewGen) return;   // a newer ask, or a markSeen, landed meanwhile
+    whatsNew = d.new || {};
+  } catch (e) {
+    // Offline or a server error: no cues, and no tutorials rather than
+    // every tutorial at once.
+    if (!tutorialsSeen) tutorialsSeen = new Set(Object.keys(TUTORIALS));
+  }
+  paintNewCues();
+}
+let whatsNewReady = refreshWhatsNew();
+
+function paintNewCues() {
+  for (const [area, id] of Object.entries(NAV_CUE_TABS)) {
+    const el = document.getElementById(id);
+    // The tab you're on is being looked at, so it never glows.
+    if (el) el.classList.toggle('has-new', !!whatsNew[area] && !el.classList.contains('active'));
+  }
+  for (const [area, id] of Object.entries(HOME_CUE_ITEMS)) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('has-new', !!whatsNew[area]);
+  }
+}
+
+// The child has looked at an area: what's in it now stops being new.
+async function markSeen(area) {
+  whatsNewGen++;
+  whatsNew[area] = false;
+  paintNewCues();
+  try { await fetch(`/seen/${area}`, { method: 'POST' }); } catch (e) {}
+}
+
+// Every tutorial, by name. Each is a few steps; a step lights up its
+// target (a selector, a list of them for one box round several things,
+// or a function returning the element) and says one short thing about it.
+const TUTORIALS = {
+  home: [
+    { target: '#recordBtn', text: 'Hear a bird singing? Tap the microphone to listen!' },
+    { target: '.home-hub .hub-item', all: true, text: 'A joke, challenges and a song game live here too.' },
+  ],
+  listening: [
+    { target: '#recScene', text: "Keep still and quiet. Every bird Warble hears flies onto the tree." },
+    { target: '#stopBtn', text: "Tap stop when you've finished listening." },
+  ],
+  results: [
+    { target: '.feather-row', text: 'Every bird wins feathers! Spend them in the Hoot-tique.' },
+    { target: '#revealCard', text: 'Tap the card to add the bird to your collection.' },
+  ],
+  collection: [
+    { target: '.collection-item', text: "Every bird you've heard lives in My Flock. Tap one to see its card." },
+  ],
+  bird: [
+    { target: '.photo-actions', text: 'Hear its song, see where you heard it, share it, or add your own photo!' },
+  ],
+  habitats: [
+    { target: '#cardCarousel', text: 'Swipe through the pack. Can you hear every bird in it?' },
+    { target: '#packCurrent', text: 'Tap here to choose a different pack.' },
+  ],
+  trophies: [
+    { target: '#trophyCarousel', text: 'Swipe to see every trophy. Tap one to find out how to win it.' },
+  ],
+  dressup: [
+    { target: '#dressUpAvatarStage', text: 'This is you! Tap the arrows to choose which bird to be.' },
+    { target: '#colorWheel', text: 'Pick colours for your feathers.' },
+    { target: ['#categoryRow', '.carousel-panel'], text: 'Choose something to wear, then buy it with your feathers!' },
+  ],
+  challenges: [
+    { target: '#challengeList', text: 'Finish all five challenges this week to win 25 feathers!' },
+  ],
+  joke: [
+    { target: '#revealJokeBtn', text: 'Read the joke, then tap the question mark for the answer!' },
+  ],
+  game: [
+    { target: '.sg-level.invite', text: 'Tap a level to play. Get 6 out of 8 right to win a star!' },
+  ],
+  game_round: [
+    { target: '#sgPlay', text: 'Tap play to hear a bird singing.' },
+    { target: '#sgGrid', text: 'Then tap the bird you think it is. Be quick - you have 30 seconds!' },
+  ],
+};
+
+let tutorialOpen = null;      // the one showing, if any
+
+// Show a tutorial the first time its screen is used. Waits `delay` ms for
+// the screen to settle (cards dealing out), then quietly does nothing if
+// it has been seen, another is up, or there's nothing on screen to point
+// at yet - in which case it's still unseen, and comes back next visit.
+async function showTutorial(name, delay = 0, ready = null) {
+  await whatsNewReady;
+  if (tutorialOpen || !tutorialsSeen || tutorialsSeen.has(name)) return;
+  // ready(): something the screen has to finish first (the Hoot-tique's
+  // entrance). Given up on after ten seconds - it'll be back next visit.
+  for (let waited = 0; ready && !ready(); waited += 150) {
+    if (waited > 10000) return;
+    await new Promise(r => setTimeout(r, 150));
+  }
+  if (delay) await new Promise(r => setTimeout(r, delay));
+  if (tutorialOpen || tutorialsSeen.has(name)) return;
+  const steps = TUTORIALS[name].filter(st => tutorialRect(st));
+  if (!steps.length) return;
+  openTutorial(name, steps);
+}
+
+function tutorialTargets(step) {
+  const t = step.target;
+  if (typeof t === 'function') return [t()].filter(Boolean);
+  const sels = Array.isArray(t) ? t : [t];
+  return sels.flatMap(sel => step.all ? [...document.querySelectorAll(sel)]
+                                      : [document.querySelector(sel)]).filter(Boolean);
+}
+
+// The box round a step's target(s) on screen, or null if there's nothing
+// visible to show.
+function tutorialRect(step) {
+  const rects = tutorialTargets(step).map(el => el.getBoundingClientRect())
+    .filter(r => r.width > 0 && r.height > 0);
+  if (!rects.length) return null;
+  const l = Math.min(...rects.map(r => r.left)), t = Math.min(...rects.map(r => r.top));
+  const r = Math.max(...rects.map(r => r.right)), b = Math.max(...rects.map(r => r.bottom));
+  return { left: l, top: t, right: r, bottom: b, width: r - l, height: b - t };
+}
+
+const SPEAKER_SVG = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+  <path d="M3 9.5h3.6L11.5 5v14l-4.9-4.5H3z"/>
+  <path d="M15 8.6a4.6 4.6 0 0 1 0 6.8M17.6 6a8.2 8.2 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+</svg>`;
+
+function openTutorial(name, steps) {
+  const veil = document.createElement('div');
+  veil.className = 'tut-veil';
+  veil.setAttribute('role', 'dialog');
+  veil.setAttribute('aria-modal', 'true');
+  const canSpeak = 'speechSynthesis' in window;
+  veil.innerHTML = `
+    <div class="tut-hole"></div>
+    <span class="tut-tail none"></span>
+    <div class="tut-bubble woodframe">
+      <div class="tut-inner">
+        <p class="tut-text" aria-live="polite"></p>
+        <div class="tut-actions">
+          ${canSpeak ? `<button class="tut-speak" aria-label="Read it to me">${SPEAKER_SVG}</button>` : '<span></span>'}
+          <span class="tut-dots">${steps.length > 1 ? steps.map(() => '<span class="tut-dot"></span>').join('') : ''}</span>
+          <button class="tut-ok"></button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(veil);
+  const hole = veil.querySelector('.tut-hole');
+  const tail = veil.querySelector('.tut-tail');
+  const bubble = veil.querySelector('.tut-bubble');
+  const text = veil.querySelector('.tut-text');
+  const ok = veil.querySelector('.tut-ok');
+  const speak = veil.querySelector('.tut-speak');
+  let i = 0;
+
+  const place = () => {
+    const r = tutorialRect(steps[i]);
+    if (!r) return close(false);   // the screen changed under us
+    const pad = 8, vw = innerWidth, vh = innerHeight;
+    // A round light for a round thing (the mic, the stop and play discs),
+    // a rounded box for everything else.
+    const only = tutorialTargets(steps[i]);
+    const radius = getComputedStyle(only[0]).borderRadius;
+    const round = only.length === 1 && Math.abs(r.width - r.height) < 14 &&
+      (radius.endsWith('%') ? parseFloat(radius) >= 50 : parseFloat(radius) >= r.width / 2 - 1);
+    hole.style.left = `${r.left - pad}px`;
+    hole.style.top = `${r.top - pad}px`;
+    hole.style.width = `${r.width + pad * 2}px`;
+    hole.style.height = `${r.height + pad * 2}px`;
+    hole.style.borderRadius = round ? '50%' : '18px';
+    // Below the lit box if it fits, else above, else over the lower part
+    // of the screen with no tail.
+    const bw = bubble.offsetWidth, bh = bubble.offsetHeight, gap = 18;
+    const below = r.bottom + pad + gap, above = r.top - pad - gap - bh;
+    let top, dir;
+    if (below + bh <= vh - 8) { top = below; dir = 'up'; }
+    else if (above >= 8) { top = above; dir = 'down'; }
+    else { top = Math.max(8, vh - bh - 24); dir = 'none'; }
+    const cx = r.left + r.width / 2;
+    const left = Math.max(16, Math.min(vw - 16 - bw, cx - bw / 2));
+    bubble.style.left = `${left}px`;
+    bubble.style.top = `${top}px`;
+    tail.className = `tut-tail ${dir}`;
+    tail.style.left = `${Math.max(left + 22, Math.min(left + bw - 34, cx - 12))}px`;
+    tail.style.top = dir === 'up' ? `${top - 12}px` : `${top + bh}px`;
+  };
+
+  const show = () => {
+    text.textContent = steps[i].text;
+    ok.textContent = i < steps.length - 1 ? 'Next' : 'Got it!';
+    veil.querySelectorAll('.tut-dot').forEach((d, k) => d.classList.toggle('on', k === i));
+    stopSpeaking();
+    place();
+  };
+
+  const stopSpeaking = () => {
+    if (!canSpeak) return;
+    try { speechSynthesis.cancel(); } catch (e) {}
+    if (speak) speak.classList.remove('speaking');
+  };
+
+  // Things move under the veil - pictures load, the deck settles - so the
+  // lit box follows its target for as long as the bubble is up.
+  const follow = setInterval(place, 250);
+  const onResize = () => place();
+  addEventListener('resize', onResize);
+
+  function close(done) {
+    clearInterval(follow);
+    removeEventListener('resize', onResize);
+    stopSpeaking();
+    veil.remove();
+    tutorialOpen = null;
+    if (!done) return;
+    tutorialsSeen.add(name);
+    fetch(`/tutorial-seen/${name}`, { method: 'POST' }).catch(() => {});
+  }
+
+  ok.onclick = () => { if (++i < steps.length) show(); else close(true); };
+  if (speak) speak.onclick = () => {
+    stopSpeaking();
+    try {
+      const u = new SpeechSynthesisUtterance(steps[i].text);
+      u.lang = 'en-GB'; u.rate = 0.92; u.pitch = 1.1;
+      const voice = speechSynthesis.getVoices().find(v => /^en[-_]GB/i.test(v.lang));
+      if (voice) u.voice = voice;
+      u.onend = u.onerror = () => speak.classList.remove('speaking');
+      speak.classList.add('speaking');
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  };
+  tutorialOpen = { name, close };
+  show();
+}
+
 applyTimeOfDayBackground();
 renderIdle();
 refreshFeathers();
@@ -6104,12 +6455,14 @@ function setActiveTab(tabName) {
   // it the other way round would leave the scene sharp behind Settings and
   // the recording screen, both of which reach here with 'home' still active.
   if (tabName !== 'home') setSceneFocus(false);
+  paintNewCues();   // the tab you're on stops glowing straight away
   // Home already shows the big hero wordmark, so the small top-bar one would
   // just duplicate it. Kept as visibility rather than display so the feather
   // count and profile button don't shift position between screens.
   const wm = document.getElementById('topWordmark');
   if (wm) wm.style.visibility = (tabName === 'home') ? 'hidden' : 'visible';
 }
+
 
 // Eighteen feather colours, nine on screen at a time in a loop that never
 // ends. Four are lifted straight off the birds themselves, so a child can
@@ -6619,6 +6972,10 @@ async function renderSettings() {
     <div class="reset-note">Preview the tree and bird-reveal animations without recording or hearing a real bird.</div>
     <button class="again-btn" id="openAnimPreviewBtn">Animation preview</button>
 
+    <div class="profile-section-title">Tutorials</div>
+    <div class="reset-note">Show every "how to" bubble again, as if Warble were brand new.</div>
+    <button class="again-btn" id="replayTutorialsBtn">Show tutorials again</button>
+
     <div class="profile-section-title">Backup</div>
     <div class="reset-note">Save a copy of everything before you reset.</div>
     <button class="reset-btn" id="exportBtn">Download my data</button>
@@ -6703,7 +7060,21 @@ async function renderSettings() {
     everything: ['Reset EVERYTHING?', 'The whole app goes back to how it was the first time you opened it. Birds, trophies, feathers, Dress Up, your name and photo - all of it.'],
   };
 
-  stage.querySelectorAll('.reset-btn').forEach(btn => {
+  document.getElementById('replayTutorialsBtn').onclick = async (e) => {
+    const btn = e.currentTarget;
+    try {
+      const res = await fetch('/reset/tutorials', { method: 'POST' });
+      if (!res.ok) throw new Error('reset failed');
+      tutorialsSeen = null;   // forget them here too, not just on the server
+      await refreshWhatsNew();
+      btn.textContent = 'Done - they show next time';
+      btn.disabled = true;
+    } catch (err) { btn.textContent = "Couldn't do that - tap to retry"; }
+  };
+
+  // Only the buttons with a scope: "Download my data" shares the look but
+  // not the job, and used to be caught by this and break.
+  stage.querySelectorAll('.reset-btn[data-scope]').forEach(btn => {
     btn.onclick = async () => {
       const scope = btn.dataset.scope;
       const [title, detail] = RESET_COPY[scope];
@@ -7504,6 +7875,12 @@ async function renderDressUp() {
     document.getElementById('speciesNext').onclick = () => stepSpecies(1);
     if (dressUpCategories.length) selectCategory(dressUpCategories[0].id);
     playHootEntrance();
+    markSeen('dressup');
+    // After the sign has landed (or been skipped) - not over the entrance.
+    showTutorial('dressup', 500, () => {
+      const body = document.getElementById('hootBody');
+      return !body || (!body.classList.contains('arriving') && !document.querySelector('.hoot-flyer'));
+    });
   } catch (e) {
     const wrap = document.getElementById('carouselWrap');
     if (wrap) wrap.outerHTML = `<div class="collection-empty">Couldn't load Dress Up right now.</div>`;
@@ -7889,6 +8266,7 @@ async function buyAccessory(accessoryId, category, cost, name) {
       expandedItemId = null;
       setDressUpHint(`Bought ${name} — tap it to wear it`);
       renderCarousel();
+      refreshWhatsNew();   // a purchase can win a trophy
     } else {
       setDressUpHint("That didn't work — try again");
     }
@@ -7986,6 +8364,7 @@ async function loadCollectorPacks(open = true, keepCard = false) {
     stopDeckAnimation(animate ? 0 : 1);
     renderSelectedPack();
     if (animate) animateDeck(1, DECK_OPEN_MS);
+    showTutorial('habitats', DECK_OPEN_MS + 250);
   } catch (e) {
     el.innerHTML = `<div class="collection-empty">Couldn't load packs right now.</div>`;
   }
@@ -8560,6 +8939,7 @@ async function renderHabitats(opts) {
   // opens on that bird. (renderHabitats is also the nav button's click
   // handler, so opts may be a click event.)
   await loadCollectorPacks(!(opts && opts.alreadyOpen), !!(opts && opts.keepCard));
+  markSeen('habitats');
 }
 
 async function renderTrophies(focusKey) {
@@ -8606,6 +8986,8 @@ async function renderTrophies(focusKey) {
     attachTrophySwipe(carousel);
     layoutTrophyCarousel();
     layoutAwardsScene();
+    markSeen('trophies');
+    showTutorial('trophies', 400);
   } catch (e) {
     const c = document.getElementById('trophyCarousel');
     if (c) c.outerHTML = `<div class="collection-empty">Couldn't load trophies right now.</div>`;
@@ -8905,6 +9287,7 @@ async function shareBird(bird) {
     if ((data.newly_earned_trophies || []).length) {
       newlyEarnedTrophies = data.newly_earned_trophies;
       alert(`Trophy unlocked: ${data.newly_earned_trophies[0].name}!`);
+      refreshWhatsNew();
     }
   } catch (e) { /* sharing worked; the trophy can wait */ }
 }

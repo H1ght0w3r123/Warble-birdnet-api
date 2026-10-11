@@ -71,6 +71,15 @@ the server: `message` on `/joke-of-the-day`, `/song-game` (and each of its
 levels) and each pack in `/collector-packs`, null once there's nothing to
 unlock. Change the wording in `main.py`, not the page.
 
+**Every core experience gets a first-play tutorial, and every unlock lights
+the nav bar.** Tutorials are steps in `TUTORIALS` in `static/index.html`,
+shown with `showTutorial(name)` once the screen has rendered; the name must
+also be in `TUTORIAL_KEYS` in `main.py`. "Something new here" is an area in
+`whats_new_items()` in `main.py` (the set of things in it now), cleared by
+`markSeen(area)` when the screen is visited. Home itself never glows - the
+joke, challenges and game discs on it do. Both are remembered server-side in
+`seen_marks`; Settings > Tutorials replays the bubbles.
+
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. New bird 3 feathers, rare 15, Dress Up 5–75. Don't inflate them.
 

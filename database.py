@@ -170,6 +170,21 @@ class BirdPhoto(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class SeenMark(Base):
+    """What the child has already been shown, so it isn't shown again.
+
+    Two kinds of key. "tut:<name>" is a tutorial bubble that has been
+    closed (value "1"). "seen:<area>" is a snapshot of an area as it stood
+    the last time the child looked at it - a count, a list of ids, a date -
+    which is what lets the nav bar glow when something new has turned up
+    there since. One row per key, overwritten each time."""
+    __tablename__ = "seen_marks"
+
+    key = Column(String, primary_key=True)
+    value = Column(Text, nullable=False, default="")
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
 class SongGameLevel(Base):
     """The best a child has done on each Guess the Song level. One row per
     level played, keeping the best result only - a worse go never takes a
@@ -1168,6 +1183,7 @@ def export_everything():
             "bonuses": [b.key for b in session.query(AwardedBonus).all()],
             "song_game": {r.level: {"best_correct": r.best_correct, "best_stars": r.best_stars}
                           for r in session.query(SongGameLevel).all()},
+            "seen_marks": {m.key: m.value for m in session.query(SeenMark).all()},
             "bird_photos": [
                 {"common_name": p.common_name, "photo_data": p.photo_data,
                  "created_at": p.created_at.isoformat() if p.created_at else None}
@@ -1181,6 +1197,46 @@ def export_everything():
 # --- Resets -----------------------------------------------------------------
 # Deliberately explicit about which tables each scope clears, rather than one
 # vague "wipe everything" - so it's obvious what survives each one.
+
+def get_seen_marks() -> dict:
+    """Every seen mark as {key: value}."""
+    if SessionLocal is None:
+        return {}
+    with SessionLocal() as session:
+        return {m.key: m.value for m in session.query(SeenMark).all()}
+
+
+def set_seen_mark(key: str, value: str):
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        mark = session.get(SeenMark, key)
+        if mark is None:
+            session.add(SeenMark(key=key, value=value))
+        else:
+            mark.value = value
+            mark.updated_at = datetime.datetime.utcnow()
+        session.commit()
+
+
+def reset_tutorials():
+    """Every tutorial bubble shows again. What's been looked at on the nav
+    bar is kept, so this doesn't light up every tab at once."""
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        session.query(SeenMark).filter(SeenMark.key.like("tut:%")).delete(synchronize_session=False)
+        session.commit()
+
+
+def reset_seen_marks():
+    """Tutorials and nav-bar memory both - for a full reset."""
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        session.query(SeenMark).delete()
+        session.commit()
+
 
 def reset_dress_up():
     """Sold-back wardrobe: forget owned items and unequip everything. Avatar
@@ -1237,6 +1293,7 @@ def reset_everything():
         return
     reset_sightings()
     reset_dress_up()
+    reset_seen_marks()
     with SessionLocal() as session:
         session.query(PlayerStats).delete()
         session.query(Profile).delete()
