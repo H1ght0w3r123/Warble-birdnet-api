@@ -57,7 +57,7 @@ SCHEDULES = {
 GAME_GOES_PER_WEEK = {"casual": 1, "typical": 2, "keen": 3}
 HOME, PARK = (51.4545, -2.5879), (51.4721, -2.6050)
 GARDEN_PACKS = {"garden_regulars", "tits_and_climbers", "seed_eaters"}
-OUTSIDE_THE_100 = ["Rose-ringed Parakeet", "Rock Pigeon", "Egyptian Goose"]
+OUTSIDE_THE_100 = ["Rose-ringed Parakeet", "Mandarin Duck", "Egyptian Goose"]
 
 
 def one_child(kind: str, weeks: int, seed: int, start: datetime.datetime) -> dict:

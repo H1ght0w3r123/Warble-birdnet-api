@@ -62,6 +62,10 @@ CHALLENGE_POOL = [
         "text": "Hear a new bird",
         "target": 1,
         "progress": lambda w: min(1, len(w["new_species"])),
+        # Only while new birds are still turning up for this child. Once
+        # the ones near home are all found it can't be done, and as one of
+        # the five it would quietly stop the whole week (and High Five).
+        "needs_new_birds": True,
     },
     {
         "id": "game_star",
@@ -118,7 +122,8 @@ def current_week_key(now: datetime.datetime = None) -> str:
 CHALLENGES_BY_ID = {c["id"]: c for c in CHALLENGE_POOL}
 
 
-def get_week_challenges(now: datetime.datetime = None, can_play_game: bool = True):
+def get_week_challenges(now: datetime.datetime = None, can_play_game: bool = True,
+                        finding_new_birds: bool = True):
     """The five challenges for this week. Seeded by the ISO week so the same
     week always yields the same five for the same child. The caller keeps
     the five it was given for the rest of the week (main.week_challenges),
@@ -128,7 +133,8 @@ def get_week_challenges(now: datetime.datetime = None, can_play_game: bool = Tru
     others = [c for c in CHALLENGE_POOL if c["id"] != ANCHOR_ID
               and week >= c.get("from_week", "")
               and week < c.get("until_week", "9999")
-              and (can_play_game or not c.get("needs_game"))]
+              and (can_play_game or not c.get("needs_game"))
+              and (finding_new_birds or not c.get("needs_new_birds"))]
     rng = random.Random(week)
     # Some challenges are strictly easier versions of others ("2 places" vs
     # "3 places"). Picking both wastes a slot, since finishing the harder one

@@ -49,7 +49,7 @@ BIRDS = {
         "size_comparison": 'About as long as a school ruler.',
         "weight_comparison": 'About as heavy as a AA battery.',
     },
-    'Common Blackbird': {
+    'Eurasian Blackbird': {
         "length_cm": 25, "weight_g": 100,
         "speed_kmh": 38, "uk_pop": 15000000, "song": 10, "brains": 5,
         "habitat": 'Gardens & woodland', "diet": 'Worms & berries',
@@ -76,7 +76,7 @@ BIRDS = {
         "size_comparison": 'About as long as a school ruler.',
         "weight_comparison": 'About as heavy as a AA battery.',
     },
-    'Common Starling': {
+    'European Starling': {
         "length_cm": 21, "weight_g": 80,
         "speed_kmh": 60, "uk_pop": 5000000, "song": 7, "brains": 8,
         "habitat": 'Towns & farmland', "diet": 'Insects & fruit',
@@ -251,7 +251,7 @@ BIRDS = {
         "size_comparison": 'About as long as a school ruler.',
         "weight_comparison": 'About as heavy as five pound coins.',
     },
-    'Common Linnet': {
+    'Eurasian Linnet': {
         "length_cm": 13, "weight_g": 18,
         "speed_kmh": 35, "uk_pop": 1800000, "song": 6, "brains": 5,
         "habitat": 'Heath & farmland', "diet": 'Small seeds',
@@ -343,7 +343,7 @@ BIRDS = {
         "size_comparison": 'Small enough to fit in the palm of your hand.',
         "weight_comparison": 'Lighter than two pound coins.',
     },
-    'Common Whitethroat': {
+    'Greater Whitethroat': {
         "length_cm": 14, "weight_g": 16,
         "speed_kmh": 30, "uk_pop": 2000000, "song": 7, "brains": 5,
         "habitat": 'Hedges & scrub', "diet": 'Insects & berries',
@@ -426,7 +426,7 @@ BIRDS = {
         "size_comparison": 'As long as your arm from elbow to fingertips.',
         "weight_comparison": 'About as heavy as a big bag of crisps... times four!',
     },
-    'Western Jackdaw': {
+    'Eurasian Jackdaw': {
         "length_cm": 34, "weight_g": 240,
         "speed_kmh": 55, "uk_pop": 3000000, "song": 3, "brains": 9,
         "habitat": 'Towns & cliffs', "diet": 'Almost anything',
@@ -453,7 +453,7 @@ BIRDS = {
         "size_comparison": 'As long as your whole arm!',
         "weight_comparison": 'About as heavy as a big tin of paint.',
     },
-    'Northern Raven': {
+    'Common Raven': {
         "length_cm": 64, "weight_g": 1200,
         "speed_kmh": 55, "uk_pop": 30000, "song": 3, "brains": 10,
         "habitat": 'Cliffs & moors', "diet": 'Carrion & anything',
@@ -471,7 +471,7 @@ BIRDS = {
         "size_comparison": 'About as long as your forearm.',
         "weight_comparison": 'About as heavy as a small apple.',
     },
-    'European Green Woodpecker': {
+    'Eurasian Green Woodpecker': {
         "length_cm": 32, "weight_g": 190,
         "speed_kmh": 40, "uk_pop": 130000, "song": 4, "brains": 7,
         "habitat": 'Parks & grassland', "diet": 'Ants',
@@ -527,7 +527,7 @@ BIRDS = {
         "size_comparison": 'About as long as your hand and wrist.',
         "weight_comparison": 'About as heavy as six pound coins.',
     },
-    'Common Pheasant': {
+    'Ring-necked Pheasant': {
         "length_cm": 65, "weight_g": 1200,
         "speed_kmh": 45, "uk_pop": 4000000, "song": 2, "brains": 4,
         "habitat": 'Farmland & woods', "diet": 'Seeds & shoots',
@@ -545,7 +545,7 @@ BIRDS = {
         "size_comparison": 'About as long as your hand and wrist - with a very waggy tail!',
         "weight_comparison": 'About as heavy as a AA battery.',
     },
-    'Grey Wagtail': {
+    'Gray Wagtail': {
         "length_cm": 19, "weight_g": 18,
         "speed_kmh": 35, "uk_pop": 76000, "song": 4, "brains": 5,
         "habitat": 'Fast streams', "diet": 'Insects',
@@ -572,7 +572,7 @@ BIRDS = {
         "size_comparison": 'About as long as your hand and wrist.',
         "weight_comparison": 'About as heavy as a small apple.',
     },
-    'Grey Partridge': {
+    'Gray Partridge': {
         "length_cm": 30, "weight_g": 390,
         "speed_kmh": 45, "uk_pop": 74000, "song": 3, "brains": 4,
         "habitat": 'Open farmland', "diet": 'Seeds & shoots',
@@ -601,7 +601,7 @@ BIRDS = {
         "size_comparison": 'Wings wider than you can stretch your arms!',
         "weight_comparison": 'About as heavy as a big bag of flour.',
     },
-    'Common Kestrel': {
+    'Eurasian Kestrel': {
         "length_cm": 34, "weight_g": 190,
         "speed_kmh": 55, "uk_pop": 90000, "song": 2, "brains": 7,
         "habitat": 'Farmland & verges', "diet": 'Voles & insects',
@@ -711,7 +711,7 @@ BIRDS = {
         "size_comparison": 'Almost as tall as a five-year-old!',
         "weight_comparison": 'About as heavy as four and a half bags of sugar.',
     },
-    'Greylag Goose': {
+    'Graylag Goose': {
         "length_cm": 84, "weight_g": 3300,
         "speed_kmh": 60, "uk_pop": 150000, "song": 3, "brains": 6,
         "habitat": 'Lakes & marshes', "diet": 'Grass & grain',
@@ -729,7 +729,7 @@ BIRDS = {
         "size_comparison": 'As long as your arm from elbow to fingertips.',
         "weight_comparison": 'About as heavy as two tins of beans.',
     },
-    'Common Moorhen': {
+    'Eurasian Moorhen': {
         "length_cm": 33, "weight_g": 320,
         "speed_kmh": 35, "uk_pop": 250000, "song": 3, "brains": 5,
         "habitat": 'Ponds & ditches', "diet": 'Plants & insects',
@@ -776,7 +776,7 @@ BIRDS = {
     },
 
     # --- Mucky Puddles
-    'Grey Heron': {
+    'Gray Heron': {
         "length_cm": 95, "weight_g": 1600,
         "speed_kmh": 45, "uk_pop": 40000, "song": 2, "brains": 7,
         "habitat": 'Rivers & lakes', "diet": 'Fish & frogs',
@@ -992,10 +992,10 @@ _build_ratings()
 # grisly. Merged into BIRDS below so every bird carries its own "about".
 ABOUT = {
     'European Robin': "Robins sing all year round, even in winter, and both boys and girls sing. They are brave little birds that often follow gardeners to grab worms from the freshly dug soil.",
-    'Common Blackbird': "Only the boy blackbird is black - the girl is brown. The boy has a bright orange beak and a lovely, slow, fluty song you can hear at dusk.",
+    'Eurasian Blackbird': "Only the boy blackbird is black - the girl is brown. The boy has a bright orange beak and a lovely, slow, fluty song you can hear at dusk.",
     'House Sparrow': "House sparrows love living near people and nest in holes in buildings. They chatter in noisy groups and like to take dust baths.",
     'Dunnock': "The dunnock is a shy brown bird that creeps along the ground under bushes like a little mouse. It is easy to mistake for a sparrow, but it has a thin beak for eating insects.",
-    'Common Starling': "Starlings look black from far away, but up close their feathers shine purple and green with tiny white spots. In winter thousands fly together in swirling clouds called murmurations.",
+    'European Starling': "Starlings look black from far away, but up close their feathers shine purple and green with tiny white spots. In winter thousands fly together in swirling clouds called murmurations.",
     'Common Wood-Pigeon': "The wood pigeon is the biggest pigeon in Britain, with a white patch on its neck. Its soft cooing song sounds like it is saying 'my toe hurts, Betty'.",
     'Eurasian Collared-Dove': "Collared doves have a thin black stripe on the back of their neck, like a collar. They only started living in Britain about seventy years ago, and now they are everywhere.",
     'Rock Pigeon': "The pigeons in town squares come from wild rock doves that live on sea cliffs. They are very good at finding their way home, so people once used them to carry messages.",
@@ -1014,7 +1014,7 @@ ABOUT = {
     'Common Chaffinch': "The boy chaffinch has a pink tummy and a blue-grey head, and both boys and girls have white stripes on their wings. Its song runs down like a bowler running up to bowl.",
     'European Goldfinch': "Goldfinches have red faces and flashes of bright gold on their wings. A group of goldfinches is called a charm, and they love eating thistle seeds.",
     'European Greenfinch': "The greenfinch is a chunky green bird with yellow on its wings and tail. It has a strong beak for cracking open seeds, and it sometimes sounds like it is wheezing.",
-    'Common Linnet': "In spring, the boy linnet gets a rosy red chest and a red patch on his head. Linnets like heaths and farmland, where they feed on small seeds.",
+    'Eurasian Linnet': "In spring, the boy linnet gets a rosy red chest and a red patch on his head. Linnets like heaths and farmland, where they feed on small seeds.",
     'Eurasian Bullfinch': "The boy bullfinch has a bright pink chest and a black cap. Bullfinch pairs often stay together all year.",
     'Eurasian Siskin': "The siskin is a small, stripy yellow-green finch. It loves the seeds of pine and alder trees, and it can hang upside down to reach them.",
     'Yellowhammer': "The boy yellowhammer has a bright yellow head. His song is said to sound like 'a little bit of bread and no cheese!'",
@@ -1024,7 +1024,7 @@ ABOUT = {
     'Eurasian Blackcap': "The boy blackcap has a black cap and the girl has a brown one. It has such a beautiful song that it is sometimes called the northern nightingale.",
     'Common Chiffchaff': "The chiffchaff is named after its song, which goes 'chiff-chaff-chiff-chaff'. It is one of the first summer birds to arrive each spring.",
     'Willow Warbler': "The willow warbler looks almost the same as the chiffchaff, but its song is a sweet tumble of notes going down the scale. It flies here from Africa for the summer.",
-    'Common Whitethroat': "The whitethroat has a fluffy white throat that it puffs out as it sings. It sings a scratchy song from the top of hedges, and sometimes leaps into the air to sing.",
+    'Greater Whitethroat': "The whitethroat has a fluffy white throat that it puffs out as it sings. It sings a scratchy song from the top of hedges, and sometimes leaps into the air to sing.",
     'Sedge Warbler': "The sedge warbler sings a fast, chattering song from the reeds, full of copied sounds. It has a pale stripe over its eye like an eyebrow.",
     'Eurasian Reed Warbler': "The reed warbler weaves a deep cup-shaped nest between reed stems. Its chattering song sounds a bit like a sewing machine.",
     'European Stonechat': "The stonechat's call sounds like two stones being tapped together. It likes to perch on top of gorse bushes, flicking its wings.",
@@ -1033,26 +1033,26 @@ ABOUT = {
     'Common Firecrest': "The firecrest is one of Britain's two smallest birds, with a fiery orange stripe on its head and a white stripe over each eye. It is rare and very special to see.",
     'Eurasian Magpie': "Magpies are black and white with long tails that shimmer blue and green in the sun. They are very clever, and can even recognise themselves in a mirror.",
     'Eurasian Jay': "The jay is a colourful crow with bright blue patches on its wings. In autumn it buries thousands of acorns, and the ones it forgets grow into new oak trees.",
-    'Western Jackdaw': "The jackdaw is the smallest crow, with pale silvery eyes. Jackdaws are clever and chatty, and they often nest in chimneys.",
+    'Eurasian Jackdaw': "The jackdaw is the smallest crow, with pale silvery eyes. Jackdaws are clever and chatty, and they often nest in chimneys.",
     'Carrion Crow': "Carrion crows are big, all-black, and very clever. Some have learned to drop nuts onto roads so cars crack them open.",
     'Rook': "Rooks are crows with a bare, pale face around their beak. They live together in noisy treetop nesting groups called rookeries.",
-    'Northern Raven': "The raven is one of the biggest crows in the world. It is very clever, can copy sounds, and sometimes does somersaults in the air just for fun.",
+    'Common Raven': "The raven is one of the biggest crows in the world. It is very clever, can copy sounds, and sometimes does somersaults in the air just for fun.",
     'Great Spotted Woodpecker': "The great spotted woodpecker is black and white with a red patch under its tail. In spring it drums on trees so fast it sounds like a machine.",
-    'European Green Woodpecker': "The green woodpecker is a big green bird with a red cap. It spends lots of time on lawns licking up ants with its long sticky tongue, and its laughing call is called a yaffle.",
+    'Eurasian Green Woodpecker': "The green woodpecker is a big green bird with a red cap. It spends lots of time on lawns licking up ants with its long sticky tongue, and its laughing call is called a yaffle.",
     'Lesser Spotted Woodpecker': "The lesser spotted woodpecker is only about the size of a sparrow. It is rare and hard to spot, high in the branches of old trees.",
     'Common Cuckoo': "The cuckoo is named after its 'cuck-oo' call. The mother lays her eggs in other birds' nests, and those birds raise her chicks for her.",
     'Song Thrush': "The song thrush sings each line of its song two or three times. It smashes snail shells on a favourite stone, called an anvil, to get at the snail inside.",
     'Mistle Thrush': "The mistle thrush is a big spotty thrush that loves mistletoe berries. It sings from treetops even on windy, rainy days, so it is also called the stormcock.",
     'Eurasian Skylark': "The skylark rises high into the sky, singing all the way up without stopping. It can sing for many minutes while it hovers far above the fields.",
-    'Common Pheasant': "The boy pheasant has a shiny copper body, a green head, red face patches and a very long tail. The girl is brown so she can hide on her nest.",
+    'Ring-necked Pheasant': "The boy pheasant has a shiny copper body, a green head, red face patches and a very long tail. The girl is brown so she can hide on her nest.",
     'White Wagtail': "In Britain it's called the pied wagtail - a black and white bird that wags its long tail up and down all the time. In winter, lots of them sleep together in town centres where it is warmer.",
-    'Grey Wagtail': "Despite its name, the grey wagtail has a bright yellow tummy. It lives by fast streams and wags its very long tail as it hunts for insects.",
+    'Gray Wagtail': "Despite its name, the grey wagtail has a bright yellow tummy. It lives by fast streams and wags its very long tail as it hunts for insects.",
     'Meadow Pipit': "The meadow pipit is a small, stripy brown bird of hills and moors. It flutters up into the air to sing, then parachutes back down.",
     'Redwing': "The redwing is a small thrush with a cream stripe over its eye and red under its wings. Redwings fly here from the far north to spend the winter.",
-    'Grey Partridge': "The grey partridge is a round farmland bird with an orange face. Families stay together in groups called coveys.",
+    'Gray Partridge': "The grey partridge is a round farmland bird with an orange face. Families stay together in groups called coveys.",
     'Ring Ouzel': "The ring ouzel looks like a blackbird wearing a white bib. It lives on wild mountains and moors, and is sometimes called the mountain blackbird.",
     'Common Buzzard': "The buzzard is Britain's most common bird of prey. It circles high in the sky on wide wings and makes a call like a cat's mew.",
-    'Common Kestrel': "The kestrel can hover in one spot in the air, keeping its head perfectly still. It is watching the grass below for mice and voles.",
+    'Eurasian Kestrel': "The kestrel can hover in one spot in the air, keeping its head perfectly still. It is watching the grass below for mice and voles.",
     'Eurasian Sparrowhawk': "The sparrowhawk is a fast, sneaky hunter that zooms along hedges to surprise small birds. The girl is much bigger than the boy.",
     'Red Kite': "The red kite has a forked tail and twists it to steer as it glides. Red kites nearly disappeared from Britain, but now there are lots again.",
     'Peregrine Falcon': "The peregrine falcon is the fastest animal in the world. When it dives through the sky it can go faster than a racing car.",
@@ -1064,14 +1064,14 @@ ABOUT = {
     'Mallard': "The mallard is the most common duck. The boy has a shiny green head, and it is the girl who makes the loud 'quack'.",
     'Mute Swan': "The mute swan is one of the heaviest flying birds in the world. It is called mute, meaning silent, because it is quieter than other swans - but it does hiss and snort.",
     'Canada Goose': "Canada geese have a black head and neck with a white chinstrap. They came from North America and fly in a V shape, honking as they go.",
-    'Greylag Goose': "The greylag is a big grey goose with an orange beak. Most farmyard geese are related to the greylag.",
+    'Graylag Goose': "The greylag is a big grey goose with an orange beak. Most farmyard geese are related to the greylag.",
     'Eurasian Coot': "The coot is a black water bird with a white beak and a white patch on its forehead. Instead of webbed feet, it has funny lobed toes for swimming.",
-    'Common Moorhen': "The moorhen has a red and yellow beak and flicks its white tail as it swims. It can also walk across floating leaves on its long green toes.",
+    'Eurasian Moorhen': "The moorhen has a red and yellow beak and flicks its white tail as it swims. It can also walk across floating leaves on its long green toes.",
     'Little Grebe': "The little grebe, or dabchick, is a small round diving bird. It can sink slowly under the water like a tiny submarine.",
     'Great Crested Grebe': "The great crested grebe has a fancy crest and frills on its head. In spring, pairs do a dance on the water, shaking their heads and offering each other weed.",
     'Common Kingfisher': "The kingfisher is a flash of bright blue and orange by the river. It dives head-first into the water to catch little fish.",
     'Common Eider': "The eider is a big sea duck. The mum lines her nest with her own super-soft feathers, called eiderdown.",
-    'Grey Heron': "The grey heron is a very tall bird that stands perfectly still in the water, waiting to spear a fish with its long beak. Herons build big stick nests high in trees.",
+    'Gray Heron': "The grey heron is a very tall bird that stands perfectly still in the water, waiting to spear a fish with its long beak. Herons build big stick nests high in trees.",
     'Eurasian Oystercatcher': "The oystercatcher is a black and white shore bird with a long bright orange beak. It uses its beak to open mussels and dig up worms.",
     'Common Ringed Plover': "The ringed plover has a black collar and runs about on beaches in little dashes. To protect its eggs, it pretends to have a broken wing to lead danger away.",
     'Sanderling': "Sanderlings are small, pale shore birds that run up and down at the water's edge as the waves come and go. They look like little clockwork toys.",
@@ -1120,7 +1120,7 @@ SEASONAL_MONTHS = {
     "Common House-Martin":    [4, 5, 6, 7, 8, 9],
     "Common Tern":            [4, 5, 6, 7, 8, 9],
     "Willow Warbler":         [4, 5, 6, 7, 8],
-    "Common Whitethroat":     [4, 5, 6, 7, 8],
+    "Greater Whitethroat":     [4, 5, 6, 7, 8],
     "Sedge Warbler":          [4, 5, 6, 7, 8],
     "Common Redstart":        [4, 5, 6, 7, 8],
     "Ring Ouzel":             [4, 5, 6, 7, 8],

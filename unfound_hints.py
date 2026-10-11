@@ -13,13 +13,13 @@ There's a test of this at the bottom of the file.
 UNFOUND_HINTS = {
     "European Robin":
         "Look on garden fences and low branches any time of year \u2014 robins don't migrate and they'll often follow you if you're digging! Listen for a thin, sweet song even on winter mornings.",
-    "Common Blackbird":
+    "Eurasian Blackbird":
         "Check lawns and flowerbeds at dawn or dusk, when they hop about tugging worms from the grass. Males are glossy black with an orange-yellow beak \u2014 hard to miss.",
     "House Sparrow":
         "Listen for noisy chirping from hedges and roof gutters near houses \u2014 they love living close to people. You'll usually spot a whole chattering little gang together.",
     "Dunnock":
         "Look low down, right under hedges and bushes, where this shy brown-and-grey bird shuffles about quietly. It's often mistaken for a sparrow, but its thin beak and quiet 'tseep' give it away.",
-    "Common Starling":
+    "European Starling":
         "Watch rooftops and playing fields for a bird with glossy, speckled feathers that shimmer purple and green in the sun. In winter evenings, look up for huge swirling flocks called murmurations.",
     "Common Wood-Pigeon":
         "Spot this plump grey pigeon with a white neck patch on garden lawns or tree branches almost anywhere. Its soft, five-note coo is one of the most familiar sounds in a British garden.",
@@ -57,7 +57,7 @@ UNFOUND_HINTS = {
         "Check thistle patches and garden niger-seed feeders for a red-faced finch with bold black-and-yellow wings. A flock is called a 'charm', and you'll hear their tinkling, liquid call before you see them.",
     "European Greenfinch":
         "Look for a chunky yellowish-green finch at garden feeders, listening for its wheezy, buzzing 'dzzzweee' call. In spring, males do a slow, fluttery display flight over gardens and hedges.",
-    "Common Linnet":
+    "Eurasian Linnet":
         "Search scrubby farmland, heaths and coastal bushes for small flocks feeding on weed seeds \u2014 males show a rosy-pink breast and forehead in summer. Their song is a fast, musical twittering.",
     "Eurasian Bullfinch":
         "Look in hedgerows and woodland edges for a shy, round finch \u2014 the male's rosy-pink breast and black cap stand out. Its call is a soft, mournful 'peu' whistle, often heard before the bird is seen.",
@@ -77,7 +77,7 @@ UNFOUND_HINTS = {
         "One of the first summer migrants to arrive \u2014 listen from March in woods and parks for its own name sung over and over: 'chiff-chaff-chiff-chaff'.",
     "Willow Warbler":
         "Similar to Chiffchaff but with a gentle, descending song like a sweet cascade of notes. Look in open woodland and scrub with young trees in spring and summer.",
-    "Common Whitethroat":
+    "Greater Whitethroat":
         "Check brambles and scrubby hedgerows in summer for a bird that pops up to sing a scratchy little song, then dives back into cover \u2014 its white throat flashes as it sings.",
     "Sedge Warbler":
         "Search reedbeds and damp scrub near water in summer for a streaky brown warbler with a bold pale eyebrow, belting out a scratchy, chattering song, sometimes even at night.",
@@ -95,17 +95,17 @@ UNFOUND_HINTS = {
         "Look almost anywhere \u2014 parks, gardens, roadsides \u2014 for a bold black-and-white bird with a long tail that flashes green and purple in the light. Its harsh chattering call carries a long way.",
     "Eurasian Jay":
         "Check woodland edges, especially in autumn when jays are busy burying acorns. Look for a pinkish-brown bird with a flash of bright blue on the wing as it flies off, usually shrieking loudly.",
-    "Western Jackdaw":
+    "Eurasian Jackdaw":
         "Look for small, sociable black crows with pale silvery-grey eyes and a soft grey nape, often nesting in chimneys or old buildings and calling a sharp, metallic 'chack'.",
     "Carrion Crow":
         "Look for an all-black crow, usually alone or in a pair rather than a big flock, with a harsh, flat 'caw' call \u2014 common in almost any open space, from parks to farmland.",
     "Rook":
         "Check farmland near noisy treetop colonies called rookeries \u2014 Rooks look like Carrion Crows but have a pale, bare patch of skin around the base of the beak and shaggy 'trouser' feathers on the legs.",
-    "Northern Raven":
+    "Common Raven":
         "Look to upland and coastal areas for the biggest crow of all \u2014 a huge black bird with a deep, croaking 'gronk' call and a diamond-shaped tail, often seen tumbling and rolling in flight.",
     "Great Spotted Woodpecker":
         "Listen in woodland and even leafy gardens for a sharp 'kick' call and a fast drumming roll on tree trunks \u2014 look for a black-and-white bird with a flash of red under the tail.",
-    "European Green Woodpecker":
+    "Eurasian Green Woodpecker":
         "Check grassy parkland and woodland edges, where this green woodpecker often feeds on the ground, probing for ants. Its loud, laughing call gave it the old nickname 'yaffle'.",
     "Lesser Spotted Woodpecker":
         "Britain's smallest and shyest woodpecker \u2014 a real challenge to hear. Scan high in old broadleaf woodland for a sparrow-sized bird with black-and-white barred wings, best located by its faint, fast drumming.",
@@ -117,23 +117,23 @@ UNFOUND_HINTS = {
         "Larger and greyer than Song Thrush, with bolder spotting \u2014 look high in a treetop, even in stormy weather, where it earned the old name 'stormcock' for singing through wind and rain.",
     "Eurasian Skylark":
         "Look up over open farmland and grassland \u2014 Skylarks sing a long, tumbling stream of notes while hovering high overhead, sometimes for minutes at a time, before dropping back to the ground.",
-    "Common Pheasant":
+    "Ring-necked Pheasant":
         "Check farmland edges and woodland margins for a large, long-tailed bird \u2014 the male is unmistakable with a glossy green head and red face wattle. Listen for a loud, explosive crowing call.",
     "White Wagtail":
         "Look near water, car parks and farm buildings for a slim black-and-white bird constantly bobbing its long tail up and down as it walks \u2014 the UK's own form is called the Pied Wagtail.",
-    "Grey Wagtail":
+    "Gray Wagtail":
         "Despite the name, look for a bird with a bright yellow belly, found bobbing along fast-flowing streams and rivers, especially near weirs and bridges.",
     "Meadow Pipit":
         "Scan open moorland, rough grassland and coastal fields for a small streaky brown bird that flies up singing, then parachutes back down on stiff wings \u2014 a classic upland sound.",
     "Redwing":
         "A winter visitor \u2014 check hedgerows, parks and berry bushes from October to March for a small thrush with a bold cream eyebrow stripe and reddish flanks, often arriving in large flocks.",
-    "Grey Partridge":
+    "Gray Partridge":
         "Search open arable farmland at dawn or dusk for a plump, orange-faced bird that prefers to run rather than fly, usually in a small family covey scuttling along field edges.",
     "Ring Ouzel":
         "A true upland specialist \u2014 check high moorland and rocky hillsides in spring or autumn for a blackbird-lookalike with a bold white crescent across its chest.",
     "Common Buzzard":
         "Look up on almost any drive through the countryside for a broad-winged bird soaring in lazy circles, calling a thin, mewing 'pee-yoo' \u2014 Britain's most common bird of prey.",
-    "Common Kestrel":
+    "Eurasian Kestrel":
         "Watch over roadside verges and farmland for a small falcon hovering perfectly still in mid-air, head fixed on the ground below, scanning for voles.",
     "Eurasian Sparrowhawk":
         "Look for a fast, low flight straight through gardens and along hedgerows \u2014 a sudden dash after small birds at a feeder is often the giveaway that a Sparrowhawk is nearby.",
@@ -157,11 +157,11 @@ UNFOUND_HINTS = {
         "Check park lakes, canals and slow rivers for a huge white bird with an orange bill and black knob at the base \u2014 despite the name, it does hiss loudly if you get too close to its nest.",
     "Canada Goose":
         "Look on park lakes, reservoirs and riverside grass for a large brown goose with a black neck and a bold white chinstrap marking, often in noisy honking flocks.",
-    "Greylag Goose":
+    "Graylag Goose":
         "Check lakes, reservoirs and farmland for a large, plain grey-brown goose with an orange bill and pink legs \u2014 the wild ancestor of the farmyard goose.",
     "Eurasian Coot":
         "Look on lakes and slow rivers for an all-black waterbird with a bright white bill and forehead shield \u2014 quite aggressive, often seen chasing other coots across the water.",
-    "Common Moorhen":
+    "Eurasian Moorhen":
         "Check pond and river edges for a dark waterbird with a red-and-yellow bill and a flicking white tail, walking on long-toed feet across lily pads and waterside vegetation.",
     "Little Grebe":
         "Look for a small, round, dumpy waterbird diving frequently on ponds and slow rivers, often disappearing underwater for long stretches \u2014 listen for its trilling, whinnying call.",
@@ -171,7 +171,7 @@ UNFOUND_HINTS = {
         "Watch quiet stretches of river or canal for a flash of electric blue skimming low and fast over the water \u2014 a lucky sighting is often just a blur before it's gone.",
     "Common Eider":
         "Look along rocky and sandy coasts for a large, chunky sea duck \u2014 the male is bold black-and-white, and its deep, crooning 'ooh' call is a classic seaside sound.",
-    "Grey Heron":
+    "Gray Heron":
         "Check riverbanks, lake edges and even garden ponds for a tall, still grey bird standing statue-like in shallow water, waiting to spear a fish with a sudden strike.",
     "Eurasian Oystercatcher":
         "Look along beaches, estuaries and riverbanks for a bold black-and-white wader with a long, bright orange-red bill, and listen for its loud, piping 'kleep' call.",

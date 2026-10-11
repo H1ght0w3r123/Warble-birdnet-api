@@ -38,8 +38,8 @@ PACKS = {
         "art": "locals",
         "color": "#E8845C",
         "common": [
-            "European Robin", "Common Blackbird", "House Sparrow", "Dunnock",
-            "Common Starling", "Common Wood-Pigeon", "Eurasian Collared-Dove",
+            "European Robin", "Eurasian Blackbird", "House Sparrow", "Dunnock",
+            "European Starling", "Common Wood-Pigeon", "Eurasian Collared-Dove",
             "Rock Pigeon",
         ],
         "rare": ["Eurasian Tree Sparrow", "European Turtle-Dove"],
@@ -64,7 +64,7 @@ PACKS = {
         "color": "#F2C94C",
         "common": [
             "Common Chaffinch", "European Goldfinch", "European Greenfinch",
-            "Common Linnet", "Eurasian Bullfinch", "Eurasian Siskin",
+            "Eurasian Linnet", "Eurasian Bullfinch", "Eurasian Siskin",
             "Yellowhammer", "Reed Bunting",
         ],
         "rare": ["Hawfinch", "Corn Bunting"],
@@ -77,7 +77,7 @@ PACKS = {
         "color": "#E87EA1",
         "common": [
             "Eurasian Blackcap", "Common Chiffchaff", "Willow Warbler",
-            "Common Whitethroat", "Sedge Warbler", "Eurasian Reed Warbler",
+            "Greater Whitethroat", "Sedge Warbler", "Eurasian Reed Warbler",
             "European Stonechat", "Common Redstart",
         ],
         "rare": ["Lesser Whitethroat", "Common Firecrest"],
@@ -89,9 +89,9 @@ PACKS = {
         "art": "mischiefs",
         "color": "#9B6FC4",
         "common": [
-            "Eurasian Magpie", "Eurasian Jay", "Western Jackdaw", "Carrion Crow",
-            "Rook", "Northern Raven", "Great Spotted Woodpecker",
-            "European Green Woodpecker",
+            "Eurasian Magpie", "Eurasian Jay", "Eurasian Jackdaw", "Carrion Crow",
+            "Rook", "Common Raven", "Great Spotted Woodpecker",
+            "Eurasian Green Woodpecker",
         ],
         "rare": ["Lesser Spotted Woodpecker", "Common Cuckoo"],
     },
@@ -102,10 +102,10 @@ PACKS = {
         "art": "diggers",
         "color": "#C68958",
         "common": [
-            "Song Thrush", "Mistle Thrush", "Eurasian Skylark", "Common Pheasant",
-            "White Wagtail", "Grey Wagtail", "Meadow Pipit", "Redwing",
+            "Song Thrush", "Mistle Thrush", "Eurasian Skylark", "Ring-necked Pheasant",
+            "White Wagtail", "Gray Wagtail", "Meadow Pipit", "Redwing",
         ],
-        "rare": ["Grey Partridge", "Ring Ouzel"],
+        "rare": ["Gray Partridge", "Ring Ouzel"],
     },
     "hunters": {
         "name": "Sky Divers",
@@ -114,7 +114,7 @@ PACKS = {
         "art": "skydivers",
         "color": "#3B82C4",
         "common": [
-            "Common Buzzard", "Common Kestrel", "Eurasian Sparrowhawk", "Red Kite",
+            "Common Buzzard", "Eurasian Kestrel", "Eurasian Sparrowhawk", "Red Kite",
             "Peregrine Falcon", "Tawny Owl", "Barn Owl", "Little Owl",
         ],
         "rare": ["Eurasian Hobby", "Long-eared Owl"],
@@ -126,8 +126,8 @@ PACKS = {
         "art": "waterwings",
         "color": "#4FB8B0",
         "common": [
-            "Mallard", "Mute Swan", "Canada Goose", "Greylag Goose",
-            "Eurasian Coot", "Common Moorhen", "Little Grebe", "Great Crested Grebe",
+            "Mallard", "Mute Swan", "Canada Goose", "Graylag Goose",
+            "Eurasian Coot", "Eurasian Moorhen", "Little Grebe", "Great Crested Grebe",
         ],
         "rare": ["Common Kingfisher", "Common Eider"],
     },
@@ -138,7 +138,7 @@ PACKS = {
         "art": "muckypuddles",
         "color": "#A88F3D",
         "common": [
-            "Grey Heron", "Eurasian Oystercatcher", "Common Ringed Plover",
+            "Gray Heron", "Eurasian Oystercatcher", "Common Ringed Plover",
             "Sanderling", "Ruddy Turnstone", "Common Sandpiper", "Common Snipe",
             "Northern Lapwing",
         ],
@@ -157,6 +157,22 @@ PACKS = {
         ],
         "rare": ["Northern Gannet", "Razorbill"],
     },
+}
+
+# Names that were on this list before they were checked against BirdNET's
+# own label file - BirdNET never says any of them, so those birds could
+# never be found. Kept so database.rename_old_species() can move anything
+# stored under an old name, and so nobody "fixes" them back. What a child
+# sees is set by birdName() in the page ("Common Blackbird", "Grey Heron").
+RENAMED_SPECIES = {
+    "Common Blackbird": "Eurasian Blackbird", "Common Starling": "European Starling",
+    "Common Linnet": "Eurasian Linnet", "Common Whitethroat": "Greater Whitethroat",
+    "Western Jackdaw": "Eurasian Jackdaw", "Northern Raven": "Common Raven",
+    "European Green Woodpecker": "Eurasian Green Woodpecker",
+    "Common Pheasant": "Ring-necked Pheasant", "Grey Wagtail": "Gray Wagtail",
+    "Grey Partridge": "Gray Partridge", "Common Kestrel": "Eurasian Kestrel",
+    "Greylag Goose": "Graylag Goose", "Common Moorhen": "Eurasian Moorhen",
+    "Grey Heron": "Gray Heron", "European Nightjar": "Eurasian Nightjar",
 }
 
 # --- Derived lookups -------------------------------------------------------

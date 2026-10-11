@@ -102,15 +102,19 @@ TROPHY_DEFINITIONS = {
     "dawn_chorus": {
         "name": "Dawn Chorus", "emoji": "\U0001F3B6",
         "verb": "Hear", "unit": "birds before sunrise in one warble",
-        "levels": [5, 8, 12, 15, 18, 21, 25],
+        # In ONE warble, before the sun is up: only a handful of birds sing
+        # that early (robin, blackbird, wren, song thrush first), and a
+        # child's warble is a few minutes. It used to start at 5 and run to
+        # 25 - level 1 was a lucky spring morning, the top beyond any garden.
+        "levels": [3, 4, 5, 6, 8, 10, 12],
         "citations": [
+            "Three songs before the sun came up - you heard the chorus begin!",
+            "Four birds before dawn. What a morning that was.",
             "Five songs, one sunrise - you caught the whole chorus!",
-            "Eight birds before dawn. What a morning that was.",
-            "Twelve birds in one dawn chorus. Extraordinary.",
-            "Fifteen birds in one dawn. What an orchestra!",
-            "Eighteen birds before sunrise. Brilliant listening!",
-            "Twenty-one birds in one dawn chorus. Wow!",
-            "Twenty-five birds in one dawn. The whole choir sang for you!",
+            "Six birds in one dawn chorus. Extraordinary.",
+            "Eight birds before sunrise. What an orchestra!",
+            "Ten birds in one dawn chorus. Brilliant listening!",
+            "Twelve birds in one dawn. The whole choir sang for you!",
         ],
         "description": "The dawn chorus is one of the most amazing sounds in nature, and you were there for it.",
     },
@@ -194,15 +198,19 @@ TROPHY_DEFINITIONS = {
     "preener": {
         "name": "Preener", "emoji": "\U0001FAB6",
         "verb": "Collect", "unit": "Dress Up items",
-        "levels": [10, 22, 40, 50, 60, 65, 70],
+        # Round numbers, and never "the whole shop": that number moves every
+        # time the Hoot-tique restocks (or loses an item), and the top level
+        # would quietly stop meaning what it says - or stop being possible.
+        # main.py checks the top level is below the number of items there are.
+        "levels": [5, 10, 20, 30, 40, 50, 60],
         "citations": [
-            "Ten outfits and counting - looking sharp!",
-            "Twenty-two items. Quite the wardrobe.",
-            "Forty items. You could open your own shop!",
-            "Fifty items. Best-dressed bird in town!",
-            "Sixty items. What a collection!",
-            "Sixty-five items. Nearly everything!",
-            "Every single item. Nothing left to buy!",
+            "Five things to wear - looking sharp!",
+            "Ten items. Quite the wardrobe.",
+            "Twenty items. You could open your own shop!",
+            "Thirty items. Best-dressed bird in town!",
+            "Forty items. What a collection!",
+            "Fifty items. The Hoot-tique knows your name!",
+            "Sixty items. The best-dressed bird in Warble!",
         ],
         "description": "Real birds preen their feathers every single day to keep them perfect, so you're in very good company.",
     },
@@ -360,7 +368,7 @@ def requirement_text(key: str, level_index: int) -> str:
 # active after dark, not just "sometimes heard in the evening".
 NOCTURNAL_SPECIES = {
     "Tawny Owl", "Barn Owl", "Little Owl", "Long-eared Owl",
-    "Short-eared Owl", "European Nightjar", "Eurasian Woodcock",
+    "Short-eared Owl", "Eurasian Nightjar", "Eurasian Woodcock",
 }
 
 

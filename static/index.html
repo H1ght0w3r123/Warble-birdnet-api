@@ -2983,7 +2983,7 @@ function nextListeningTip() {
 const SEASONAL_NICKNAMES = {
   'Barn Swallow': 'swallows', 'Common House-Martin': 'house martins',
   'Common Tern': 'terns', 'Willow Warbler': 'willow warblers',
-  'Common Whitethroat': 'whitethroats', 'Sedge Warbler': 'sedge warblers',
+  'Greater Whitethroat': 'whitethroats', 'Sedge Warbler': 'sedge warblers',
   'Common Redstart': 'redstarts', 'Ring Ouzel': 'ring ouzels',
   'Lesser Whitethroat': 'lesser whitethroats',
   'Eurasian Reed Warbler': 'reed warblers',
@@ -2995,9 +2995,18 @@ const SEASONAL_NICKNAMES = {
 // name is identical - change that and the bird is silently never found. On
 // screen, every Eurasian and European prefix reads "Common", so the
 // collection uses one word for it throughout ("Common Robin", "Common Wren",
-// alongside "Common Blackbird"). None of the 100 clash once renamed.
+// "Common Blackbird"). BirdNET spells grey the American way ("Gray Heron",
+// "Graylag Goose"); on screen it's British. And two take the name a UK child
+// knows: BirdNET's "Ring-necked Pheasant" and "Greater Whitethroat".
+// None of the 100 clash once renamed.
+const BIRD_DISPLAY_NAMES = {
+  'Ring-necked Pheasant': 'Common Pheasant',
+  'Greater Whitethroat': 'Common Whitethroat',
+};
 function birdName(n) {
-  return String(n || '').replace(/^(Eurasian|European) /, 'Common ');
+  const name = String(n || '');
+  return BIRD_DISPLAY_NAMES[name]
+    || name.replace(/^(Eurasian|European) /, 'Common ').replace(/\bGray/g, 'Grey');
 }
 const nickname = n => SEASONAL_NICKNAMES[n] || birdName(n);
 

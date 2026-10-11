@@ -27,9 +27,28 @@ def load_analyzer():
         from birdnetlib.analyzer import Analyzer
         analyzer = Analyzer()
         print("BirdNET analyzer loaded. Ready for requests.")
+        check_species_names(analyzer.labels)
     except Exception as e:
         analyzer_error = str(e)
         print(f"Failed to load BirdNET analyzer: {e}")
+
+
+# Warble's names for its birds that BirdNET doesn't use - each one is a
+# bird that can never be found. Should always be empty; /status shows it.
+unknown_species_names = []
+
+
+def check_species_names(labels):
+    """BirdNET labels are "Scientific name_Common name". Every name the
+    app matches detections against has to be one of them, exactly."""
+    global unknown_species_names
+    from curated_species import ALL_CURATED_SPECIES
+    from trophies import NOCTURNAL_SPECIES
+    known = {l.split("_", 1)[1] for l in labels if "_" in l}
+    unknown_species_names = sorted((ALL_CURATED_SPECIES | NOCTURNAL_SPECIES) - known)
+    if unknown_species_names:
+        print("WARNING: BirdNET never says these names, so these birds can never "
+              f"be found: {', '.join(unknown_species_names)}")
 
 
 threading.Thread(target=load_analyzer, daemon=True).start()
@@ -56,6 +75,7 @@ def status():
         "status": status,
         "message": "Warble BirdNET inference API",
         "error": analyzer_error,
+        "unknown_species_names": unknown_species_names,
     }
 
 
@@ -179,7 +199,7 @@ async def identify(
 from database import (
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
-    count_sightings_of, count_species_found_far_apart,
+    count_sightings_of, count_species_found_far_apart, count_species_first_heard_since,
     get_share_count, increment_share_count, count_all_sessions,
     reset_dress_up, reset_feathers, reset_sightings, reset_everything,
     delete_species, export_everything,
@@ -279,6 +299,24 @@ def measure_all_trophies():
         "wingman":       get_share_count(),
         "high_five":     count_completed_weeks(),
     }
+
+
+# Trophies whose measure can only go so far - every bird on the list, every
+# pack, every bird in a pack, every item in the shop. None may ask for more
+# than exists, or its top level could never be won; Preener must ask for
+# less than the whole shop. Checked when the server starts, so a pack or a
+# shop change that breaks one fails loudly instead of quietly.
+TROPHY_CEILINGS = {
+    "century": len(ALL_CURATED_SPECIES),
+    "globetrotter": len(PACKS),
+    "skylark": len(pack_species("ground_feeders")),
+    "high_flyer": len(pack_species("hunters")),
+    "still_water": len(pack_species("water_birds")),
+    "preener": len(ACCESSORIES) - 1,
+}
+for _key, _most in TROPHY_CEILINGS.items():
+    assert TROPHY_DEFINITIONS[_key]["levels"][-1] <= _most, \
+        f"{_key} asks for {TROPHY_DEFINITIONS[_key]['levels'][-1]}, only {_most} possible"
 
 
 def check_all_trophies():
@@ -437,9 +475,9 @@ def award_trophy_levels():
 AVATAR_STARTERS = {"classic", "default", "cardinal", "parrot", "penguin"}
 AVATAR_UNLOCKS = {
     "duckling":   {"hint": "Hear a duck, goose or swan to unlock",
-                   "species": {"Mallard", "Canada Goose", "Greylag Goose", "Mute Swan", "Common Eider"}},
+                   "species": {"Mallard", "Canada Goose", "Graylag Goose", "Mute Swan", "Common Eider"}},
     "woodpecker": {"hint": "Hear a woodpecker to unlock",
-                   "species": {"Great Spotted Woodpecker", "European Green Woodpecker",
+                   "species": {"Great Spotted Woodpecker", "Eurasian Green Woodpecker",
                                "Lesser Spotted Woodpecker"}},
     "owl":        {"hint": "Hear an owl to unlock",
                    "species": {"Tawny Owl", "Barn Owl", "Little Owl", "Long-eared Owl"}},
@@ -758,11 +796,31 @@ def week_challenges():
         picked = [CHALLENGES_BY_ID[i] for i in stored.split(",") if i in CHALLENGES_BY_ID]
         if len(picked) == 5:
             return picked
-    can_play = any(l["unlocked"] for l in song_game_levels(
-        count_curated_species_found(ALL_CURATED_SPECIES)))
-    picked = get_week_challenges(can_play_game=can_play)
+    # Playable, not just open: a level with no songs for any of the child's
+    # birds can't be played, and a star in it can't be won.
+    birds = get_found_curated_species(ALL_CURATED_SPECIES)
+    can_play = (any(b["call_url"] for b in birds)
+                and any(l["unlocked"] for l in song_game_levels(len(birds))))
+    picked = get_week_challenges(can_play_game=can_play, finding_new_birds=still_finding_new_birds())
     set_seen_mark(key, ",".join(c["id"] for c in picked))
     return picked
+
+
+# "Hear a new bird" is offered while new birds are still turning up most
+# weeks: early on (fewer than this many species heard), or at least
+# NEW_BIRD_RECENT_MIN new ones in the last four weeks.
+NEW_BIRD_EARLY_SPECIES = 30
+NEW_BIRD_RECENT_DAYS = 28
+# Three, not one: measured with tools/economy_sim.py, a child still finding
+# the odd straggler every few weeks failed it most weeks it was offered.
+NEW_BIRD_RECENT_MIN = 3
+
+
+def still_finding_new_birds() -> bool:
+    if count_distinct_species() < NEW_BIRD_EARLY_SPECIES:
+        return True
+    since = datetime.datetime.utcnow() - datetime.timedelta(days=NEW_BIRD_RECENT_DAYS)
+    return count_species_first_heard_since(since) >= NEW_BIRD_RECENT_MIN
 
 
 def challenges_done_now() -> set:

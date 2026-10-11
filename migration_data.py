@@ -40,7 +40,7 @@ MIGRATION_INFO = {
         "route": [UK_POINT, [67, 249], [156, 375], [74, 444]],
         "fact": "This tiny bird weighs less than a £1 coin but flies over 15,000km there and back to West Africa every single year.",
     },
-    "Common Whitethroat": {
+    "Greater Whitethroat": {
         "direction": "departs",
         "destination_name": "The Sahel, West Africa",
         "route": [UK_POINT, [67, 249], [156, 375], [42, 398]],

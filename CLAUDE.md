@@ -39,7 +39,11 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   needed all 13 summer visitors in one summer); High Five (weeks with all
   five challenges done) was added. Forager is capped at 100 species, Empty
   Nester only counts quiet recordings of a minute or more, and Wingman
-  counts one share per bird per day.
+  counts one share per bird per day. Dawn Chorus (birds in one pre-sunrise
+  warble) runs 3 to 12 - it was 5 to 25, beyond any garden. Preener runs
+  5 to 60 and must never mean "the whole shop", which changes with every
+  restock; `TROPHY_CEILINGS` in `main.py` stops the server starting if
+  Preener, Century, Globetrotter or a pack trophy asks for more than exists.
 - `accessories.py` — 70 Dress Up items priced 5, 10, 15, 20, 30, 40, 50 or 75
   (1,880 for the lot). Four seasonal restocks a year are planned:
   `design-brief-shop-restock-v1.md`. Feather colours: nine free, nine
@@ -52,7 +56,11 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   weeks: from 2026-W42 "in the morning" (before midday, UK time) replaced
   "before 9am", "4 birds in one warble" replaced 5, and "3 different
   places" is retired (`until_week`). A twice-a-week child can't, because
-  "Go warbling 3 times" is always one of the five.
+  "Go warbling 3 times" is always one of the five. Two are only offered
+  when they can be done: "Hear a new bird" while new birds still turn up
+  (under 30 species heard, or 3 new in the last four weeks - otherwise a
+  child who has found everything near home could never finish a week),
+  and "Win a star" when the game has songs to play.
   Feathers only for finishing all five (`ALL_COMPLETE_BONUS`, 25); a single
   challenge pays nothing. A child's five are picked once and kept for the
   week (`week_challenges()` in `main.py`, seen mark `challenges:<week>`).
@@ -84,10 +92,22 @@ Birds or the bird cards — that framing was deliberately removed.
 
 **Species names must match BirdNET's output exactly** ("Eurasian Blue Tit", not
 "Blue Tit"). A mismatch fails silently: the bird is simply never found. There
-was a real bug of exactly this kind.
+were real bugs of exactly this kind - the worst was 14 of the 100 (Blackbird
+and Starling among them, so Locals could never be finished) plus Nightjar,
+written in British or IOC style. They're BirdNET's now ("Eurasian Blackbird",
+"Gray Heron", "Ring-necked Pheasant"); `RENAMED_SPECIES` in
+`curated_species.py` lists the old ones, and `rename_old_species()` moves any
+stored rows on start-up. The source of truth is the label file inside
+birdnetlib (`birdnetlib/models/analyzer/BirdNET_GLOBAL_6K_V2.4_Labels.txt`,
+"Scientific_Common"): check any new name against it. When the analyzer loads,
+`check_species_names()` logs any of the 100 (or Night Owl's birds) it doesn't
+know, and `/status` lists them as `unknown_species_names` - which should
+always be empty.
 
 **On screen, "Eurasian" and "European" read "Common"** ("Common Robin",
-"Common Wren", alongside "Common Blackbird"). This is display only, through
+"Common Wren", "Common Blackbird"), "Gray" reads "Grey", and two take their
+UK names (`BIRD_DISPLAY_NAMES`: Common Pheasant, Common Whitethroat). This is
+display only, through
 `birdName()` in `static/index.html` - the data, the API and every lookup keep
 BirdNET's exact names. Any new place that shows a bird's name must go through
 `birdName()`.

@@ -272,6 +272,7 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_shoes VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_species VARCHAR DEFAULT 'default'"))
 
+    rename_old_species()
     sync_sighting_rarity()
 
     with SessionLocal() as session:
@@ -347,6 +348,25 @@ def count_complete_summers(summer_species: list) -> int:
             by_year.setdefault(created.year, set()).add(name)
     target = set(summer_species)
     return sum(1 for found in by_year.values() if target <= found)
+
+
+def rename_old_species():
+    """Moves sightings and photos stored under a name BirdNET never uses
+    (curated_species.RENAMED_SPECIES) to the name it does. Runs on every
+    start-up; once nothing is left under an old name it changes nothing."""
+    from curated_species import RENAMED_SPECIES
+    if SessionLocal is None:
+        return 0
+    changed = 0
+    with SessionLocal() as session:
+        for old, new in RENAMED_SPECIES.items():
+            for table in (Sighting, BirdPhoto):
+                changed += session.query(table).filter(table.common_name == old).update(
+                    {table.common_name: new}, synchronize_session=False)
+        session.commit()
+    if changed:
+        print(f"Renamed {changed} stored row(s) to BirdNET's species names")
+    return changed
 
 
 def sync_sighting_rarity():
@@ -795,6 +815,17 @@ def get_heard_species() -> set:
         return set()
     with SessionLocal() as session:
         return {n for (n,) in session.query(Sighting.common_name).distinct()}
+
+
+def count_species_first_heard_since(since: datetime.datetime) -> int:
+    """Species whose very first sighting was at or after `since`."""
+    if SessionLocal is None:
+        return 0
+    from sqlalchemy import func
+    with SessionLocal() as session:
+        firsts = session.query(Sighting.common_name).group_by(Sighting.common_name).having(
+            func.min(Sighting.created_at) >= since).all()
+    return len(firsts)
 
 
 def count_distinct_species() -> int:
