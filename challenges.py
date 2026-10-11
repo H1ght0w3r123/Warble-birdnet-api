@@ -64,6 +64,16 @@ CHALLENGE_POOL = [
         "progress": lambda w: min(1, len(w["new_species"])),
     },
     {
+        "id": "game_star",
+        "text": "Win a star in Guess the Song",
+        "target": 1,
+        "progress": lambda w: min(1, w["game_stars"]),
+        # Only for a child who can play it, and only from the week after it
+        # was added - so the week it arrived in didn't reshuffle mid-week.
+        "needs_game": True,
+        "from_week": "2026-W42",
+    },
+    {
         "id": "early_start",
         "text": "Go warbling before 9am",
         "target": 1,
@@ -97,12 +107,19 @@ def current_week_key(now: datetime.datetime = None) -> str:
     return now.strftime("%G-W%V")
 
 
-def get_week_challenges(now: datetime.datetime = None):
+CHALLENGES_BY_ID = {c["id"]: c for c in CHALLENGE_POOL}
+
+
+def get_week_challenges(now: datetime.datetime = None, can_play_game: bool = True):
     """The five challenges for this week. Seeded by the ISO week so the same
-    week always yields the same five, on any device, without storing them."""
+    week always yields the same five for the same child. The caller keeps
+    the five it was given for the rest of the week (main.week_challenges),
+    so a game opening mid-week can't swap them about."""
     week = current_week_key(now)
     anchor = next(c for c in CHALLENGE_POOL if c["id"] == ANCHOR_ID)
-    others = [c for c in CHALLENGE_POOL if c["id"] != ANCHOR_ID]
+    others = [c for c in CHALLENGE_POOL if c["id"] != ANCHOR_ID
+              and week >= c.get("from_week", "")
+              and (can_play_game or not c.get("needs_game"))]
     rng = random.Random(week)
     # Some challenges are strictly easier versions of others ("2 places" vs
     # "3 places"). Picking both wastes a slot, since finishing the harder one

@@ -28,21 +28,31 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   have no status because they're introduced species the UK lists don't assess. All 100 have an `about`:
   one or two child-level sentences shown under the badges on the bird card.
   Also holds seasonality.
-- `trophies.py` — 20 trophies, each with **seven levels** (shown as empty
+- `trophies.py` — 21 trophies, each with **seven levels** (shown as empty
   sockets, then 1-3 green leaves, then the leaves turning gold). Adding
   challenge means extending a `levels` list, not inventing a new trophy.
   Every level won pays `TROPHY_LEVEL_FEATHERS` (5); levels won before that
   was introduced were deliberately not back-paid. Every level is a leaf, and
   the leaves together give a **birder rank** (`BIRDER_RANKS`: Hatchling at 0
-  up to Master Birder at 115 of the 140), shown on Home and Awards and
-  celebrated when it goes up. Summer Squad was removed: its first level
-  needed all 13 summer visitors in one summer.
+  up to Master Birder at 115 of the 147), shown on Home and Awards and
+  celebrated when it goes up. Summer Squad was removed (its first level
+  needed all 13 summer visitors in one summer); High Five (weeks with all
+  five challenges done) was added. Forager is capped at 100 species, Empty
+  Nester only counts quiet recordings of a minute or more, and Wingman
+  counts one share per bird per day.
 - `accessories.py` — 70 Dress Up items priced 5, 10, 15, 20, 30, 40, 50 or 75
-  (1,880 for the lot). Hats are
+  (1,880 for the lot). Four seasonal restocks a year are planned:
+  `design-brief-shop-restock-v1.md`. Feather colours: nine free, nine
+  special at 10 each (`SPECIAL_COLOURS` in `main.py`), bought as
+  `colour:#HEX` rows in the owned-items table (not counted by Preener). Hats are
   fitted per bird (see its docstring).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
   Feathers only for finishing all five (`ALL_COMPLETE_BONUS`, 25); a single
-  challenge pays nothing.
+  challenge pays nothing. A child's five are picked once and kept for the
+  week (`week_challenges()` in `main.py`, seen mark `challenges:<week>`).
+  "Win a star in Guess the Song" is only offered to a child who can play
+  it, and only from 2026-W42 (`from_week`), so adding it didn't reshuffle
+  the week it arrived in. Adding a challenge: give it a `from_week` too.
 - **Guess the Song** (Home → mini card) — hear a song, tap the bird. 5 levels
   of 8 rounds, 2–6 choices, unlocking at 10/15/20/25/30 of the 100 heard
   (`SONG_GAME_LEVELS` in `main.py`, served by `/song-game`) *and* at least one

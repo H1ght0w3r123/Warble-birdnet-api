@@ -190,7 +190,8 @@ from database import (
     get_cached_call_url, get_profile, update_profile,
     get_all_locations, rename_location, delete_location, get_detection_stats,
     set_session_bird_count, count_successful_sessions_this_week,
-    count_empty_sessions, award_bonus_once, get_week_stats,
+    count_empty_sessions, award_bonus_once, get_week_stats, count_completed_weeks,
+    record_song_game_play,
     count_owned_accessories, distinct_seasons_warbled, max_consecutive_warble_days,
     has_species_found_far_apart, count_species_found_in,
     max_sessions_at_one_location, count_rare_sightings, count_distinct_species,
@@ -212,7 +213,7 @@ from curated_species import (
     rarity_of, pack_for_species, pack_color_for_species,
 )
 from unfound_hints import UNFOUND_HINTS
-from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
+from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS, CHALLENGES_BY_ID
 from migration_data import get_migration_info
 
 init_db()
@@ -276,6 +277,7 @@ def measure_all_trophies():
         "still_water":   count_species_found_in(pack_species("water_birds")),
         "brooder":       count_rainy_sessions(),
         "wingman":       get_share_count(),
+        "high_five":     count_completed_weeks(),
     }
 
 
@@ -463,6 +465,34 @@ def avatar_states(heard: set = None) -> dict:
     return out
 
 
+# --- Feather colours ---------------------------------------------------------
+# Nine everyday colours are free; the nine bolder ones cost feathers - so
+# there is always something left to spend on, alongside the shop. Bought
+# colours are kept with the Dress Up items as "colour:#HEX" (they don't count
+# towards Preener). The colour a family was already using stays theirs
+# ("colour:kept").
+FREE_COLOURS = {"#9CAF88", "#FFFFFF", "#000000", "#8B5A2B", "#F91E27",
+                "#F96A1C", "#F2C94C", "#0197B8", "#E87EA1"}
+SPECIAL_COLOURS = {"#6DAA44", "#B5D334", "#2E8B57", "#3CC8C0", "#2F5FD0",
+                   "#1F2A6B", "#B9A6E0", "#7B3FB5", "#D0309A"}
+SPECIAL_COLOUR_COST = 10
+
+
+def colour_states(owned: set = None) -> dict:
+    owned = get_owned_accessory_ids() if owned is None else owned
+    kept = get_seen_marks().get("colour:kept")
+    if kept is None:
+        kept = (get_profile().get("avatar_body") or "").upper()
+        set_seen_mark("colour:kept", kept)
+    return {hx: {"cost": SPECIAL_COLOUR_COST, "owned": f"colour:{hx}" in owned or hx == kept}
+            for hx in SPECIAL_COLOURS}
+
+
+def colour_is_open(hx: str) -> bool:
+    hx = (hx or "").upper()
+    return hx not in SPECIAL_COLOURS or colour_states()[hx]["owned"]
+
+
 def avatar_is_open(species: str, states: dict = None) -> bool:
     if species in AVATAR_STARTERS or species not in AVATAR_UNLOCKS:
         return True
@@ -490,6 +520,7 @@ async def analyze_session(
     lat: float = Form(51.5074),
     lng: float = Form(-0.1278),
     live_detections: str = Form("[]"),
+    duration_s: int = Form(None),
 ):
     """
     Takes the species already identified live during recording, then does the
@@ -533,7 +564,8 @@ async def analyze_session(
     # be derived later, rather than only being known at this moment.
     before_sunrise = is_before_sunrise(lat, lng, now)
     raining = is_raining(lat, lng)
-    _, session_id = record_session(lat, lng, before_sunrise=before_sunrise, was_raining=raining)
+    _, session_id = record_session(lat, lng, before_sunrise=before_sunrise, was_raining=raining,
+                                   duration_s=duration_s)
 
     existing_location_name = get_location_name(lat, lng)
     needs_location_name = existing_location_name is None
@@ -598,9 +630,6 @@ async def analyze_session(
     # Bird count has to be stored before trophies are measured - several of
     # them count sessions that found something.
     set_session_bird_count(session_id, len(results))
-    leaves_before = total_leaves()
-    newly_earned_trophies = check_all_trophies()
-    rank_up = rank_up_between(leaves_before, leaves_before + len(newly_earned_trophies))
     # Birds that became avatars with this recording
     avatars_after = avatar_states()
     new_avatars = [sp for sp, st in avatars_after.items()
@@ -630,8 +659,12 @@ async def analyze_session(
                     session_feathers += PACK_BONUS
                     bonuses.append({"label": f"{pack['name']} complete!", "feathers": PACK_BONUS})
 
-    # Outside the "found something" check: a quiet session can win a trophy
-    # level too (Empty Nester).
+    # Trophies last, after the week and the packs have paid out - High Five
+    # and Globetrotter count those. Outside the "found something" check: a
+    # quiet session can win a trophy level too (Empty Nester).
+    leaves_before = total_leaves()
+    newly_earned_trophies = check_all_trophies()
+    rank_up = rank_up_between(leaves_before, leaves_before + len(newly_earned_trophies))
     for t in newly_earned_trophies:
         t["feathers"] = TROPHY_LEVEL_FEATHERS
         session_feathers += TROPHY_LEVEL_FEATHERS
@@ -698,14 +731,34 @@ def where_am_i(lat: float, lng: float):
 
 
 @app.post("/trophies/wingman")
-def award_wingman():
+def award_wingman(common_name: str = Form("")):
     """Awarded when a bird is shared from the app. Called by the share button
     rather than inferred, since there's no reliable way to detect that a share
-    actually completed."""
-    increment_share_count()
+    actually completed. Each bird counts once a day, so tapping share (or
+    the copy-to-clipboard fallback) over and over doesn't win Wingman."""
+    today = datetime.datetime.utcnow().date().isoformat()
+    if award_bonus_once(f"share:{today}:{common_name or '?'}"):
+        increment_share_count()
     newly, feathers, rank_up = award_trophy_levels()
     return {"newly_earned_trophies": newly, "feathers": feathers,
             "total_feathers": get_total_feathers(), "rank_up": rank_up}
+
+
+def week_challenges():
+    """This week's five for this child: picked once, then kept for the rest
+    of the week in a seen mark, so they never change part-way through."""
+    week = current_week_key()
+    key = f"challenges:{week}"
+    stored = get_seen_marks().get(key)
+    if stored:
+        picked = [CHALLENGES_BY_ID[i] for i in stored.split(",") if i in CHALLENGES_BY_ID]
+        if len(picked) == 5:
+            return picked
+    can_play = any(l["unlocked"] for l in song_game_levels(
+        count_curated_species_found(ALL_CURATED_SPECIES)))
+    picked = get_week_challenges(can_play_game=can_play)
+    set_seen_mark(key, ",".join(c["id"] for c in picked))
+    return picked
 
 
 def evaluate_week_challenges():
@@ -713,7 +766,7 @@ def evaluate_week_challenges():
     (challenge, is_complete, progress) so callers can award or display."""
     stats = get_week_stats()
     out = []
-    for ch in get_week_challenges():
+    for ch in week_challenges():
         progress = ch["progress"](stats)
         out.append((ch, progress >= ch["target"], progress))
     return out
@@ -911,7 +964,8 @@ async def rename_location_endpoint(location_id: int, name: str = Form(...)):
 
 @app.get("/profile")
 def profile():
-    return {**get_profile(), "avatars": avatar_states(), "rank": birder_rank(total_leaves())}
+    return {**get_profile(), "avatars": avatar_states(), "colours": colour_states(),
+            "rank": birder_rank(total_leaves())}
 
 
 @app.post("/profile")
@@ -929,6 +983,8 @@ async def update_profile_endpoint(
     # A bird still to be found can't be chosen, whatever the page sends.
     if avatar_species and not avatar_is_open(avatar_species):
         avatar_species = None
+    if avatar_body and not colour_is_open(avatar_body):
+        avatar_body = None
     update_profile(
         first_name=first_name, last_name=last_name,
         avatar_body=avatar_body, avatar_face=avatar_face, avatar_beak=avatar_beak,
@@ -1105,6 +1161,7 @@ async def song_game_result(level: int = Form(...), correct: int = Form(...)):
     stars = song_game_stars_for(correct)
     before = get_song_game_stars().get(level, 0)
     best = record_song_game_result(level, correct, stars)
+    record_song_game_play(level, correct, stars)
     # Only stars this level has never had before pay - replaying a level
     # you've already got two stars on pays nothing until you get the third.
     new_stars = max(0, best - before)
@@ -1189,7 +1246,9 @@ def whats_new_items() -> dict:
         # Something new to wear, or a new bird to be
         "dressup": {aid for aid, a in ACCESSORIES.items()
                     if aid not in owned and a["cost"] <= feathers}
-                   | {f"avatar:{sp}" for sp, st in avatar_states(heard).items() if st["unlocked"]},
+                   | {f"avatar:{sp}" for sp, st in avatar_states(heard).items() if st["unlocked"]}
+                   | {f"colour:{hx}" for hx, st in colour_states(owned).items()
+                      if not st["owned"] and st["cost"] <= feathers},
         # Things on Home (Home itself never lights up)
         # A new week's set counts as new, as does each challenge finished
         "challenges": {f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done}
@@ -1262,6 +1321,21 @@ async def purchase_accessory_endpoint(accessory_id: str):
     success = purchase_accessory(accessory_id, item["cost"], item["category"])
     # Buying can win a trophy (Preener), and it should arrive now, not at
     # the next recording.
+    trophies, trophy_feathers, rank_up = award_trophy_levels() if success else ([], 0, None)
+    return {"status": "ok" if success else "failed", "new_total": get_total_feathers(),
+            "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers,
+            "rank_up": rank_up}
+
+
+@app.post("/colours/{hex_code}/purchase")
+async def purchase_colour(hex_code: str):
+    """Buys one of the special feather colours and puts it on the bird."""
+    hx = "#" + hex_code.strip("#").upper()
+    if hx not in SPECIAL_COLOURS:
+        return JSONResponse(status_code=404, content={"status": "error", "message": "Not a colour you buy."})
+    success = purchase_accessory(f"colour:{hx}", SPECIAL_COLOUR_COST, "colour")
+    if success:
+        update_profile(avatar_body=hx)
     trophies, trophy_feathers, rank_up = award_trophy_levels() if success else ([], 0, None)
     return {"status": "ok" if success else "failed", "new_total": get_total_feathers(),
             "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers,

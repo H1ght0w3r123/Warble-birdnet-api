@@ -566,7 +566,7 @@
     font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1;}
   .welcome-bird-btn.nudge{animation:birdNudge .35s ease;}
   @keyframes birdNudge{25%{transform:translateX(-4px);} 75%{transform:translateX(4px);}}
-  .welcome-swatches{display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; width:100%; max-width:300px;}
+  .welcome-swatches{display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; width:100%; max-width:260px;}
   .welcome-swatch{aspect-ratio:1; border-radius:50%; border:3px solid rgba(255,255,255,0.85); background:var(--sw);
     cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.35); transition:transform .12s ease;}
   .welcome-swatch.on{transform:scale(1.15); border-color:var(--gold); box-shadow:0 0 0 3px var(--wood-edge), 0 0 12px 3px rgba(242,201,76,0.8);}
@@ -2190,6 +2190,12 @@
             mask-image:linear-gradient(to right, transparent 0, #000 var(--sw-pad), #000 calc(100% - var(--sw-pad)), transparent 100%);
   }
   .color-wheel::-webkit-scrollbar{display:none;}
+  /* A colour still to buy wears a tiny feather. */
+  .color-wheel .color-swatch.special::after{
+    content:''; position:absolute; right:-5px; bottom:-5px; width:13px; height:13px; border-radius:50%;
+    background:var(--disc-cream) url('/static/feather.webp') center / 9px no-repeat;
+    box-shadow:0 0 0 1.5px var(--wood), 0 1px 2px rgba(0,0,0,0.3);
+  }
   .color-wheel .color-swatch{
     position:relative; flex:0 0 auto; width:var(--sw); height:var(--sw); border-radius:50%;
     border:2px solid #fff; cursor:pointer; padding:0; scroll-snap-align:start;
@@ -6389,6 +6395,7 @@ function stopRecording() {
         formData.append('lng', currentLng);
       }
       formData.append('live_detections', JSON.stringify(liveDetectedBirds));
+      formData.append('duration_s', recordSeconds);   // Empty Nester needs a full minute
       const res = await fetch('/analyze-session', { method: 'POST', body: formData });
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
@@ -6908,7 +6915,7 @@ function renderWelcome(step = 0) {
         </button>`; }).join('')}</div>
        <div class="welcome-hint" id="welcomeLockHint">Four to start, four to find!</div>`
     : step === 1
-    ? `<div class="welcome-swatches" role="radiogroup" aria-label="Colours">${AVATAR_SWATCHES.map(c => `
+    ? `<div class="welcome-swatches" role="radiogroup" aria-label="Colours">${AVATAR_SWATCHES.filter(c => !colourCost(c.hex)).map(c => `
         <button class="welcome-swatch ${c.hex.toUpperCase() === d.body.toUpperCase() ? 'on' : ''}" data-hex="${c.hex}"
                 style="--sw:${c.hex}" role="radio" aria-checked="${c.hex.toUpperCase() === d.body.toUpperCase()}"
                 aria-label="${c.name}"></button>`).join('')}</div>`
@@ -7951,7 +7958,10 @@ function renderSwatchRows() {
         // the rest are scenery for the loop.
         if (copy !== mid) { btn.tabIndex = -1; btn.setAttribute('aria-hidden', 'true'); }
         btn.onclick = () => {
-          if ((currentProfile.avatar_body || '').toUpperCase() === hex) return;
+          const cost = colourCost(hex);
+          if (cost) return trySpecialColour(hex, name, cost);
+          colourPreview = null;
+          if ((currentProfile.avatar_body || '').toUpperCase() === hex) { renderDressUpPreview(); return; }
           currentProfile.avatar_body = hex;
           flashAvatar('tint');
           saveAvatarColors();
@@ -7973,6 +7983,7 @@ function renderSwatchRows() {
   // ink or white that swatch can actually carry. Every copy of the chosen
   // colour carries it, so it is ticked wherever the strip has scrolled to.
   wheel.querySelectorAll('.color-swatch').forEach(btn => {
+    btn.classList.toggle('special', !!colourCost(btn.dataset.hex));
     const on = btn.dataset.hex === current;
     btn.classList.toggle('is-on', on);
     btn.setAttribute('aria-pressed', String(on));
@@ -8709,11 +8720,49 @@ async function resetAllAccessories() {
   }
 }
 
+// Special colours: nine of the eighteen cost feathers until bought. The
+// first tap tries one on (the bird shows it, nothing is saved); a second tap
+// on the same colour buys it and keeps it on.
+let colourPreview = null;
+function colourCost(hex) {
+  const st = currentProfile && currentProfile.colours && currentProfile.colours[(hex || '').toUpperCase()];
+  return st && !st.owned ? st.cost : 0;
+}
+async function trySpecialColour(hex, name, cost) {
+  if (colourPreview !== hex) {
+    colourPreview = hex;
+    const el = document.getElementById('dressUpPreview');
+    avatarSwapGen++;
+    if (el) el.innerHTML = avatarSvg(hex, 252, currentProfile.equipped, false, currentProfile.avatar_species);
+    setDressUpHint(currentFeatherTotal >= cost
+      ? `${name}: ${cost} feathers. Tap it again to buy!`
+      : `${name} costs ${cost} feathers - ${Math.round(cost - currentFeatherTotal)} more to go`);
+    return;
+  }
+  if (currentFeatherTotal < cost) return;
+  try {
+    const data = await (await fetch(`/colours/${hex.slice(1)}/purchase`, { method: 'POST' })).json();
+    if (data.status !== 'ok') { setDressUpHint("That didn't work - try again"); return; }
+    currentProfile.colours[hex.toUpperCase()].owned = true;
+    currentProfile.avatar_body = hex;
+    colourPreview = null;
+    currentFeatherTotal = data.new_total - (data.trophy_feathers || 0);
+    animateFeatherCount(currentFeatherTotal);
+    setDressUpHint(`Bought ${name}!`);
+    flashAvatar('tint');
+    renderDressUpPreview();
+    renderSwatchRows();
+    updateNavAvatarIcon();
+    celebrateTrophies(data.newly_earned_trophies, document.getElementById('dressUpPreview'), data.rank_up);
+  } catch (e) { setDressUpHint("That didn't work - try again"); }
+}
+
 function renderDressUpPreview() {
   // Always the avatar here, regardless of any profile photo - this is the
   // bird being dressed, so the accessories have something to sit on.
   const el = document.getElementById('dressUpPreview');
   avatarSwapGen++;   // a plain re-render ends any bird swap in progress
+  colourPreview = null;   // ...and any special colour being tried on
   if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, currentProfile.avatar_species);
 }
 
@@ -9855,7 +9904,10 @@ async function shareBird(bird) {
     return;   // user cancelled the share sheet - not an achievement
   }
   try {
-    const res = await fetch('/trophies/wingman', { method: 'POST' });
+    // One share per bird per day counts towards Wingman.
+    const shareForm = new FormData();
+    shareForm.append('common_name', bird.common_name);
+    const res = await fetch('/trophies/wingman', { method: 'POST', body: shareForm });
     const data = await res.json();
     celebrateTrophies(data.newly_earned_trophies, document.getElementById('shareBirdBtn'), data.rank_up);
   } catch (e) { /* sharing worked; the trophy can wait */ }

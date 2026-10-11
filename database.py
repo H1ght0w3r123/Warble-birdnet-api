@@ -77,6 +77,9 @@ class RecordingSession(Base):
     bird_count = Column(Integer, default=0)   # filled in after detection
     before_sunrise = Column(Boolean, default=False)
     was_raining = Column(Boolean, default=False)
+    # How long it listened, in seconds. Empty Nester only counts quiet
+    # recordings of a minute or more; older rows have none and still count.
+    duration_s = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
@@ -185,6 +188,18 @@ class SeenMark(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class SongGamePlay(Base):
+    """Every finished level of Guess the Song, best or not - so a week can
+    ask "win a star this week" without only seeing improvements."""
+    __tablename__ = "song_game_plays"
+
+    id = Column(Integer, primary_key=True)
+    level = Column(Integer, nullable=False)
+    correct = Column(Integer, nullable=False)
+    stars = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
 class SongGameLevel(Base):
     """The best a child has done on each Guess the Song level. One row per
     level played, keeping the best result only - a worse go never takes a
@@ -234,6 +249,7 @@ def init_db():
         conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS bird_count INTEGER DEFAULT 0"))
         conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS before_sunrise BOOLEAN DEFAULT FALSE"))
         conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS was_raining BOOLEAN DEFAULT FALSE"))
+        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS duration_s INTEGER"))
         conn.execute(text("ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS share_count INTEGER DEFAULT 0"))
         # trophy_key was unique when trophies were one-shot; levels need one row per level
         conn.execute(text("ALTER TABLE earned_trophies ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1"))
@@ -458,7 +474,8 @@ def get_total_feathers() -> float:
         return int(round(stats.total_feathers)) if stats else 0
 
 
-def record_session(lat: float, lng: float, before_sunrise: bool = False, was_raining: bool = False):
+def record_session(lat: float, lng: float, before_sunrise: bool = False, was_raining: bool = False,
+                   duration_s: int = None):
     """Log that a recording happened, regardless of what (if anything) was
     heard. Returns (total_sessions_ever, this_session_id) — the count feeds
     the Fledgling check without a second query, and the id lets the caller
@@ -466,7 +483,8 @@ def record_session(lat: float, lng: float, before_sunrise: bool = False, was_rai
     if SessionLocal is None:
         return 0, None
     with SessionLocal() as session:
-        row = RecordingSession(lat=lat, lng=lng, before_sunrise=before_sunrise, was_raining=was_raining)
+        row = RecordingSession(lat=lat, lng=lng, before_sunrise=before_sunrise, was_raining=was_raining,
+                               duration_s=duration_s)
         session.add(row)
         session.commit()
         return session.query(RecordingSession).count(), row.id
@@ -522,6 +540,7 @@ def get_week_stats():
     blank = {
         "sessions": 0, "days": 0, "locations": 0, "species": set(),
         "best_session_birds": 0, "new_species": set(), "earliest_hour": None,
+        "game_stars": 0,
     }
     if SessionLocal is None:
         return blank
@@ -536,12 +555,15 @@ def get_week_stats():
         sightings = session.query(
             Sighting.common_name, Sighting.tier,
         ).filter(Sighting.created_at >= start).all()
+        # Guess the Song goes this week that won at least one star
+        game_stars = session.query(SongGamePlay).filter(
+            SongGamePlay.created_at >= start, SongGamePlay.stars >= 1).count()
         # Anything heard before this week, so what's left is new this week
         heard_before = {n for (n,) in session.query(Sighting.common_name).filter(
             Sighting.created_at < start).distinct()}
         named = _places_by_cell(session)
 
-    if not rows and not sightings:
+    if not rows and not sightings and not game_stars:
         return blank
 
     return {
@@ -551,6 +573,7 @@ def get_week_stats():
         "species": {s.common_name for s in sightings},
         "best_session_birds": max((r.bird_count or 0 for r in rows), default=0),
         "new_species": {s.common_name for s in sightings} - heard_before,
+        "game_stars": game_stars,
         "earliest_hour": min((r.created_at.hour for r in rows if r.created_at), default=None),
     }
 
@@ -654,12 +677,39 @@ def increment_share_count() -> int:
         return stats.share_count
 
 
+EMPTY_NESTER_MIN_SECONDS = 60
+
+
 def count_empty_sessions() -> int:
-    """Sessions that found nothing - used for the Empty Nester trophy."""
+    """Sessions that found nothing - used for the Empty Nester trophy. Only
+    ones that listened for a minute or more: patience is the point, and
+    tapping start-stop shouldn't win it. Rows from before durations were
+    recorded have none, and still count."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
-        return session.query(RecordingSession).filter(RecordingSession.bird_count == 0).count()
+        return session.query(RecordingSession).filter(
+            RecordingSession.bird_count == 0,
+            (RecordingSession.duration_s.is_(None)) |
+            (RecordingSession.duration_s >= EMPTY_NESTER_MIN_SECONDS),
+        ).count()
+
+
+def count_completed_weeks() -> int:
+    """Weeks with all five challenges done - High Five's measure. Each paid
+    its bonus once under "challenge:<week>:ALL"."""
+    if SessionLocal is None:
+        return 0
+    with SessionLocal() as session:
+        return session.query(AwardedBonus).filter(AwardedBonus.key.like("challenge:%:ALL")).count()
+
+
+def record_song_game_play(level: int, correct: int, stars: int):
+    if SessionLocal is None:
+        return
+    with SessionLocal() as session:
+        session.add(SongGamePlay(level=level, correct=correct, stars=stars))
+        session.commit()
 
 
 def award_bonus_once(key: str) -> bool:
@@ -1025,7 +1075,9 @@ def count_owned_accessories() -> int:
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
-        return session.query(OwnedAccessory).count()
+        # Bought colours live in the same table ("colour:#HEX") but aren't
+        # things to wear, so they don't count.
+        return session.query(OwnedAccessory).filter(~OwnedAccessory.accessory_id.like("colour:%")).count()
 
 
 def distinct_seasons_warbled() -> int:
@@ -1294,6 +1346,7 @@ def reset_sightings():
         # Stars too: they're earned from the birds, and a level opened by
         # birds that are no longer there shouldn't stay open.
         session.query(SongGameLevel).delete()
+        session.query(SongGamePlay).delete()
         session.commit()
 
 

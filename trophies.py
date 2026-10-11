@@ -117,15 +117,17 @@ TROPHY_DEFINITIONS = {
     "forager": {
         "name": "Forager", "emoji": "\U0001F33F",
         "verb": "Hear", "unit": "different birds",
-        "levels": [20, 40, 70, 100, 130, 160, 200],
+        # Capped at 100, Warble's own list - higher levels could only be
+        # reached with birds outside it, which have no cards.
+        "levels": [20, 35, 50, 65, 80, 90, 100],
         "citations": [
             "Twenty different birds - that's a proper collection!",
-            "Forty different birds. Your ear is getting sharp.",
-            "Seventy different birds. That's a real naturalist.",
-            "A hundred different birds! Superb.",
-            "A hundred and thirty birds. You know so many songs!",
-            "A hundred and sixty birds. An expert ear!",
-            "Two hundred different birds. Unbelievable!",
+            "Thirty-five different birds. Your ear is getting sharp.",
+            "Fifty different birds. That's a real naturalist.",
+            "Sixty-five different birds. You know so many songs!",
+            "Eighty different birds. An expert ear!",
+            "Ninety different birds. Hardly anything gets past you!",
+            "A hundred different birds. Unbelievable!",
         ],
         "description": "That's a huge range of songs to know by ear. You're building real knowledge of what's out there.",
     },
@@ -176,7 +178,7 @@ TROPHY_DEFINITIONS = {
     },
     "empty_nester": {
         "name": "Empty Nester", "emoji": "\U0001FAB9",
-        "verb": "Go warbling", "unit": "times without hearing a bird",
+        "verb": "Listen for a whole minute", "unit": "times without hearing a bird",
         "levels": [20, 50, 100, 150, 200, 300, 400],
         "citations": [
             "Twenty quiet warbles - and you kept going anyway!",
@@ -309,6 +311,21 @@ TROPHY_DEFINITIONS = {
             "Eighty rainy warbles. The bravest birdwatcher of all!",
         ],
         "description": "Most people stay inside, but plenty of birds keep right on singing - so you heard something most people never do.",
+    },
+    "high_five": {
+        "name": "High Five", "emoji": "\u270B",
+        "verb": "Finish all five weekly challenges in", "unit": "weeks", "one": "a week",
+        "levels": [1, 3, 6, 10, 15, 25, 40],
+        "citations": [
+            "All five challenges in one week - high five!",
+            "Three full weeks. You love a challenge!",
+            "Six weeks of all five. Nothing stops you.",
+            "Ten perfect weeks. That's a whole term!",
+            "Fifteen weeks of five. Brilliant birding!",
+            "Twenty-five weeks. Half a year of high fives!",
+            "Forty weeks of all five. A true champion!",
+        ],
+        "description": "Five challenges every week, and you finished the lot. Coming back week after week is what makes a real birdwatcher.",
     },
     "wingman": {
         "name": "Wingman", "emoji": "\U0001F91D",
