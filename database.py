@@ -504,7 +504,7 @@ def get_week_stats():
     one query per challenge. Week runs Monday to Sunday, UTC."""
     blank = {
         "sessions": 0, "days": 0, "locations": 0, "species": set(),
-        "best_session_birds": 0, "tiers": set(), "earliest_hour": None,
+        "best_session_birds": 0, "new_species": set(), "earliest_hour": None,
     }
     if SessionLocal is None:
         return blank
@@ -519,6 +519,9 @@ def get_week_stats():
         sightings = session.query(
             Sighting.common_name, Sighting.tier,
         ).filter(Sighting.created_at >= start).all()
+        # Anything heard before this week, so what's left is new this week
+        heard_before = {n for (n,) in session.query(Sighting.common_name).filter(
+            Sighting.created_at < start).distinct()}
         named = _places_by_cell(session)
 
     if not rows and not sightings:
@@ -530,7 +533,7 @@ def get_week_stats():
         "locations": len({_place_key(r.lat, r.lng, named) for r in rows if r.lat is not None}),
         "species": {s.common_name for s in sightings},
         "best_session_birds": max((r.bird_count or 0 for r in rows), default=0),
-        "tiers": {s.tier for s in sightings},
+        "new_species": {s.common_name for s in sightings} - heard_before,
         "earliest_hour": min((r.created_at.hour for r in rows if r.created_at), default=None),
     }
 
