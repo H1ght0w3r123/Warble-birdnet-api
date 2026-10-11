@@ -476,25 +476,43 @@
   .hub-badge.done{background:var(--sage);}
 
   /* --- Something new is waiting here ---------------------------------
-     A nav tab (or one of the three things on Home) breathes with the same
-     gold glow as the level to play next, with a small gold dot on its
-     shoulder, until the child goes and looks. */
+     A nav tab (or one of the three things on Home) wears a soft gold halo
+     and a little painted leaf on its shoulder, hanging by its stem, that
+     twitches now and then - until the child goes and looks. Kept quiet on
+     purpose: a nudge, not an alarm. */
   .nav-icon-wrap{position:relative;}
-  .nav-tab.has-new .nav-icon-wrap{animation:newGlow 1.6s ease-in-out infinite;}
-  @keyframes newGlow{
-    0%,100%{transform:scale(1); box-shadow:0 0 0 0 rgba(242,201,76,0);}
-    50%{transform:scale(1.1); box-shadow:0 0 0 2px rgba(242,201,76,0.9), 0 0 16px 5px rgba(242,201,76,0.65);}
+  .nav-tab.has-new .nav-icon-wrap{animation:newHalo 3s ease-in-out infinite;}
+  @keyframes newHalo{
+    0%,100%{box-shadow:0 0 8px 2px rgba(242,201,76,0.28);}
+    50%{box-shadow:0 0 14px 5px rgba(242,201,76,0.5);}
   }
+  .hub-item.has-new .hub-icon{animation:hubNewHalo 3s ease-in-out infinite;}
+  @keyframes hubNewHalo{
+    0%,100%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(242,201,76,0.45));}
+    50%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(242,201,76,0.75));}
+  }
+  /* The leaf (the tree's own falling-leaf sprite). Its stem is at the top
+     left of the picture, so that's the pivot: it hangs from the shoulder
+     and flicks about the stem. --flip mirrors it for the left shoulder. */
   .nav-tab.has-new .nav-icon-wrap::after, .hub-item.has-new .hub-icon::after{
-    content:''; position:absolute; top:-3px; right:-3px; width:12px; height:12px; border-radius:50%;
-    background:var(--gold); border:2px solid #fff; box-shadow:0 1px 3px rgba(26,17,40,0.45);
+    content:''; position:absolute; width:22px; height:22px; top:-7px; right:-10px;
+    background:url('/static/tree-leaf1-v2.webp') center / contain no-repeat;
+    filter:drop-shadow(0 1px 2px rgba(26,17,40,0.45));
+    transform-origin:30% 20%; --flip:1; transform:scaleX(var(--flip));
+    animation:leafTwitch 3.4s ease-in-out infinite;
   }
-  /* On Home the challenges disc already wears its tally on that shoulder. */
-  .hub-item.has-new .hub-icon::after{right:auto; left:-3px;}
-  .hub-item.has-new .hub-icon{animation:hubNewGlow 1.6s ease-in-out infinite;}
-  @keyframes hubNewGlow{
-    0%,100%{transform:scale(1); filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35));}
-    50%{transform:scale(1.08); filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(242,201,76,0.95));}
+  /* On Home the challenges disc already wears its tally on the right, so
+     the leaf hangs from the left shoulder there, mirrored. */
+  .hub-item.has-new .hub-icon::after{width:30px; height:30px; top:-7px; right:auto; left:-10px;
+    --flip:-1; transform-origin:70% 20%;}
+  /* Still for most of the cycle, then a quick flick and settle - like a
+     leaf catching a breath of wind. */
+  @keyframes leafTwitch{
+    0%,78%,100%{transform:scaleX(var(--flip)) rotate(0deg);}
+    82%{transform:scaleX(var(--flip)) rotate(-20deg);}
+    86%{transform:scaleX(var(--flip)) rotate(14deg);}
+    90%{transform:scaleX(var(--flip)) rotate(-8deg);}
+    94%{transform:scaleX(var(--flip)) rotate(4deg);}
   }
 
   /* --- Tutorial bubbles ----------------------------------------------
@@ -546,8 +564,9 @@
   .tut-tail.down{border-top-color:var(--wood-dk); border-bottom-width:0;}
   .tut-tail.none{display:none;}
   @media (prefers-reduced-motion: reduce){
-    .nav-tab.has-new .nav-icon-wrap{animation:none; box-shadow:0 0 0 2px rgba(242,201,76,0.9), 0 0 14px 4px rgba(242,201,76,0.6);}
-    .hub-item.has-new .hub-icon{animation:none; filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(242,201,76,0.95));}
+    .nav-tab.has-new .nav-icon-wrap{animation:none; box-shadow:0 0 10px 3px rgba(242,201,76,0.4);}
+    .hub-item.has-new .hub-icon{animation:none; filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 8px rgba(242,201,76,0.6));}
+    .nav-tab.has-new .nav-icon-wrap::after, .hub-item.has-new .hub-icon::after{animation:none;}
     .tut-hole, .tut-bubble, .tut-tail{transition:none; animation:none;}
     .tut-speak.speaking{animation:none;}
   }
