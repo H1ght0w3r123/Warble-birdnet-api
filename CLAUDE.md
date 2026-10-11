@@ -122,7 +122,14 @@ head. The whole ladder is at the top of the reward section of `main.py`:
 1 a bird heard again (rare 3) - **once per bird per day** - or one outside
 the 100; 3 a new bird; 5 a trophy level or a new game star; 15 a new rare
 bird; 25 a pack completed or all five weekly challenges. Dress Up 5–75.
-Don't inflate them.
+Don't inflate them. They're balanced against the prices to one target: a
+new child can buy something after their very first warble (Fledgling level
+1 pays 5, the cheapest item costs 5 - keep both), and a child warbling four
+times a week settles at about 25-28 feathers a week: an ordinary 20 item
+about weekly, a 75 every three weeks. Before changing a reward or a price,
+run `python3 tools/economy_sim.py` (needs `freezegun`) before and after: it
+plays pretend children through the real reward code from zero and prints
+the curve.
 
 **Every reward is shown the same way.** A recording's feathers are collected
 on the Done screen (or the "no birds" screen, which can still win a trophy).

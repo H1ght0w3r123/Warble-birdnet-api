@@ -26,17 +26,26 @@ it's narrower and sits over the right eye only rather than spanning both.
 # Price ladder. Costs come from named bands rather than being picked ad hoc,
 # so the spread stays deliberate and any new item has an obvious price.
 #
-# Sized against what the economy actually pays: roughly 150 feathers a week for
-# a child warbling a few times and finishing some challenges, up to ~310 in a
-# very strong week. Previously everything cost 20-110, which meant the dearest
-# item was under one week's income and there was nothing left to want. The top
-# band is now about a month of saving.
+# Sized against what the economy actually pays, measured from zero with
+# tools/economy_sim.py (the app's own reward code, pretend children). Once the
+# first rush of new birds is over, a child earns about:
+#   15 a week warbling twice a week, 25-28 at four times, 40-45 at six.
+# The first weeks pay roughly double that, because every bird is new.
+#
+# The target the bands are set to, for a child warbling about four times a
+# week: something to buy after the very first warble, an ordinary (20) item
+# about once a week, and a 75 dream item about every three weeks. A child
+# going out half as often gets there at half the pace.
+#
+# The first-warble promise rests on two numbers: the cheapest price here (5)
+# and the 5 feathers Fledgling level 1 pays for any first warble, birds or
+# not. Raise the cheapest price, or change Fledgling, and it breaks.
 PRICE_TIERS = {
-    "starter": 5,      # a session or two
-    "everyday": 10,    # a few sessions
+    "starter": 5,      # one warble - the very first always buys one
+    "everyday": 10,    # two or three warbles
     "special": 20,     # about a week
-    "prestige": 40,    # a fortnight - a real goal
-    "legendary": 75,   # a month or so - the things to dream about
+    "prestige": 40,    # a fortnight or less - a real goal
+    "legendary": 75,   # about three weeks of saving - the things to dream about
 }
 
 ACCESSORIES = {
