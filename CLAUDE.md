@@ -87,7 +87,13 @@ joke, challenges and game discs on it do. Both are remembered server-side in
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
 pick a bird, a colour, then an optional first name. It's skipped for a
 profile that already has a name or a non-default bird, and the tutorials
-wait for it (`welcomeDecided`).
+wait for it (`welcomeDecided`). The first mic tap shows "Warble needs to
+listen" (`renderMicIntro`, tutorial key `mic_intro`) before the browser's
+own prompts, unless the microphone is already allowed; a refused microphone
+gets `renderMicBlocked`, written for the child with a line for the grown-up.
+On the Done screen, "New spot!" comes *after* the feathers are collected,
+and a Hoot-tique disc sits beside "Go again?" only when the feathers now
+buy something new (`whatsNew.dressup`).
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. The whole ladder is at the top of the reward section of `main.py`:

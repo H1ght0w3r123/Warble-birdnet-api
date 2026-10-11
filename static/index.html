@@ -517,6 +517,16 @@
     90%{transform:rotate(calc(var(--stand) + 4deg));}
   }
 
+  /* --- Before the first listen, and if the microphone is refused ------- */
+  .mic-intro{display:flex; flex-direction:column; align-items:center; gap:10px; max-width:340px; text-align:center;}
+  .mic-intro-icon{width:118px; height:118px; filter:drop-shadow(0 6px 12px rgba(0,0,0,0.35));}
+  .mic-intro-icon.off{filter:grayscale(1) brightness(.85) drop-shadow(0 6px 12px rgba(0,0,0,0.35));}
+  .mic-intro-title-row{display:flex; align-items:center; gap:10px;}
+  .mic-intro .stage-sub{max-width:320px;}
+  .mic-intro-grownup{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);
+    background:rgba(26,17,40,0.28); border-radius:12px; padding:8px 12px; margin:4px 0 8px;}
+  .mic-intro .tut-ok{min-width:160px;}
+
   /* --- Welcome: bird, colour, name ------------------------------------
      Full screen: the top bar and nav step aside until it's done. */
   body.welcome-on .top, body.welcome-on .bottom-nav{visibility:hidden;}
@@ -2633,6 +2643,30 @@
   .done-feathers{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;transition:opacity .3s ease;}
   .done-feathers.collected{opacity:0; pointer-events:none;}
   .go-again-ask{font-family:'Poppins';font-weight:900;font-size:17px;color:#fff;margin-top:22px;}
+  /* What next, once the feathers are in: go again, and - when the feathers
+     now buy something new - the Hoot-tique, each a disc with its word under. */
+  .done-next{display:flex; justify-content:center; align-items:flex-start; gap:30px; margin-top:12px;}
+  .done-next-item{display:flex; flex-direction:column; align-items:center; gap:6px;
+    font-family:'Poppins'; font-weight:900; font-size:15px; color:#fff;}
+  .done-next-item .mic-again-btn{margin-top:0;}
+  .done-shop-disc{width:84px; height:84px; border-radius:50%; border:none; padding:0; cursor:pointer; overflow:hidden;
+    display:grid; place-items:center; background:radial-gradient(circle at 50% 42%, var(--disc-cream), #F2D3A6 70%);
+    box-shadow:0 0 0 4px var(--wood), 0 0 0 6px var(--wood-edge), 0 4px 10px rgba(0,0,0,0.35);
+    animation:shopInvite 1.6s ease-in-out .6s infinite;}
+  .done-shop-disc:active{transform:scale(.94);}
+  @keyframes shopInvite{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.07); box-shadow:0 0 0 4px var(--wood), 0 0 0 6px var(--wood-edge), 0 0 18px 6px rgba(242,201,76,0.8);}
+  }
+  /* "New spot!" inside the Done screen, after the feathers. */
+  .done-spot{--frame:5px; --inner:14px; width:100%; max-width:340px; margin-top:12px;}
+  .done-spot-in{background:var(--disc-cream); border-radius:var(--inner); padding:14px 14px 10px;
+    display:flex; flex-direction:column; align-items:center; color:var(--wood-edge);}
+  .done-spot-in .stage-label{color:var(--wood-edge); font-size:20px; text-shadow:none;}
+  .done-spot-in .stage-sub{color:var(--wood-dk); text-shadow:none;}
+  .done-spot-in .again-btn{margin-top:10px; background:var(--terra); box-shadow:0 4px 0 var(--terra-dk); font-weight:900;}
+  .done-spot-in .skip-btn{color:var(--wood-dk); text-shadow:none;}
+  @media (prefers-reduced-motion: reduce){ .done-shop-disc{animation:none;} }
   /* Dancing avatar on the Done screen: av-torso (body + both wings) adds a
      small shimmy, and each wing wave pivots at the shoulder joint where it
      meets the body - same wave shape/timing as a resting flap, just offset
@@ -2866,7 +2900,7 @@ function renderIdle() {
   const mic = document.getElementById('recordBtn');
   mic.onpointerdown = () => wrap.classList.add('pressed');
   mic.onpointerup = mic.onpointercancel = () => wrap.classList.remove('pressed');
-  mic.onclick = () => { wrap.classList.remove('mic-alive'); startRecording(); };
+  mic.onclick = () => { wrap.classList.remove('mic-alive'); beginWarble(); };
 
   document.getElementById('challengeCard').onclick = renderChallenges;
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
@@ -4009,13 +4043,10 @@ function renderCard() {
 
 function advanceReveal() {
   cardIndex++;
-  if (cardIndex < sessionResults.length) {
-    renderCard();
-  } else if (needsLocationName) {
-    renderNameLocation(finishSession);
-  } else {
-    finishSession();
-  }
+  // Straight to the feathers: naming a new spot waits until they're
+  // collected (renderDone), so the reward never queues behind typing.
+  if (cardIndex < sessionResults.length) renderCard();
+  else finishSession();
 }
 
 function finishSession() {
@@ -4268,8 +4299,16 @@ function placeDistance(m) {
 // way the spot is saved through /name-location: an existing name adds the
 // spot to that place, a new name starts one.
 function renderNameLocation(onDone) {
+  stage.innerHTML = nameLocationHtml();
+  wireNameLocation(stage, onDone);
+}
+
+// The "New spot!" question, as markup and wiring, so it can be a screen of
+// its own (before going again from "no birds") or sit inside the Done
+// screen once the feathers are in.
+function nameLocationHtml() {
   const nearby = sessionNearbyPlaces || [];
-  stage.innerHTML = `
+  return `
     <div class="stage-label">New spot!</div>
     ${nearby.length ? `
       <div class="stage-sub">Are you somewhere you've been before?</div>
@@ -4286,6 +4325,10 @@ function renderNameLocation(onDone) {
     <button class="again-btn" id="saveLocationBtn">Save</button>
     <button class="skip-btn" id="skipLocationBtn">Skip for now</button>
   `;
+}
+
+function wireNameLocation(root, onDone) {
+  const nearby = sessionNearbyPlaces || [];
   const save = async (name) => {
     if (name && sessionLat !== null && sessionLng !== null) {
       try {
@@ -4300,12 +4343,12 @@ function renderNameLocation(onDone) {
     sessionNearbyPlaces = [];
     onDone();
   };
-  stage.querySelectorAll('.nearby-place').forEach(btn => {
+  root.querySelectorAll('.nearby-place').forEach(btn => {
     btn.onclick = () => save(nearby[+btn.dataset.i].name);
   });
-  document.getElementById('saveLocationBtn').onclick = () =>
-    save(document.getElementById('locationInput').value.trim());
-  document.getElementById('skipLocationBtn').onclick = () => onDone();
+  root.querySelector('#saveLocationBtn').onclick = () =>
+    save(root.querySelector('#locationInput').value.trim());
+  root.querySelector('#skipLocationBtn').onclick = () => onDone();
 }
 
 function wikipediaUrl(scientificName) {
@@ -5598,9 +5641,18 @@ function renderDone() {
       <div class="done-feathers ${total ? 'tappable' : ''}" id="doneFeathers">${total
         ? `<img class="feather-icon" src="/static/feather.webp" alt=""> ${total} feathers earned` : ''}</div>
       <div class="go-again-content" id="goAgainWrap">
-        <div class="go-again-ask">Go again?</div>
-        <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt="Go again"></button>
+        <div class="done-next">
+          <div class="done-next-item">
+            <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt=""></button>
+            <span>Go again?</span>
+          </div>
+          <div class="done-next-item" id="shopNext" hidden>
+            <button class="done-shop-disc" id="shopNextBtn" aria-label="Spend your feathers in the Hoot-tique">${avatarSvg(currentProfile.avatar_body, 70, currentProfile.equipped, false, currentProfile.avatar_species)}</button>
+            <span>Spend feathers</span>
+          </div>
+        </div>
       </div>
+      <div class="done-spot woodframe" id="doneSpot" hidden></div>
     </div>
     <div class="collect-hint" id="doneHint">${total ? 'Tap your feathers to collect them' : ''}</div>
   `;
@@ -5617,11 +5669,11 @@ function renderDone() {
   document.getElementById('againBtn').onclick = startRecording;
 
   const featherEl = document.getElementById('doneFeathers');
-  // Nothing to collect: straight to "Go again?".
+  document.getElementById('shopNextBtn').onclick = renderDressUp;
+  // Nothing to collect: straight on to what's next.
   if (!total) {
     featherEl.classList.add('collected');
-    document.getElementById('goAgainWrap').classList.add('visible');
-    refreshWhatsNew();
+    showDoneNext();
   } else featherEl.onclick = () => {
     featherEl.onclick = null;
     featherEl.classList.remove('tappable');
@@ -5631,15 +5683,31 @@ function renderDone() {
       // Another go is only offered once the feathers have been collected,
       // so it isn't possible to leave the session's reward on the table.
       featherEl.classList.add('collected');
-      const wrap = document.getElementById('goAgainWrap');
-      if (wrap) wrap.classList.add('visible');
       refreshFeathers();   // reconcile against the server once animations finish
-      refreshWhatsNew();   // the new birds and trophies light up their tabs
+      showDoneNext();
     });
   };
 
   newlyEarnedTrophies = [];
   sessionBonuses = [];
+}
+
+// After the feathers are in: name a new spot first, if there is one, then
+// what next - go again, and the Hoot-tique when the feathers now buy
+// something they couldn't before.
+async function showDoneNext() {
+  const spot = document.getElementById('doneSpot');
+  if (needsLocationName && spot) {
+    spot.innerHTML = `<div class="done-spot-in">${nameLocationHtml()}</div>`;
+    spot.hidden = false;
+    wireNameLocation(spot, () => { needsLocationName = false; spot.hidden = true; showDoneNext(); });
+    return;
+  }
+  await refreshWhatsNew();   // the new birds and trophies light up their tabs
+  const wrap = document.getElementById('goAgainWrap');
+  if (!wrap) return;         // left the screen meanwhile
+  document.getElementById('shopNext').hidden = !whatsNew.dressup;
+  wrap.classList.add('visible');
 }
 
 // Well-done messages. The specific ones are checked first so a genuinely
@@ -5802,8 +5870,71 @@ async function startRecording() {
       if (timerEl) timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
     }, 1000);
   } catch (e) {
-    renderError("Couldn't access your microphone. Check your browser's permission settings.");
+    renderMicBlocked(e && e.name);
   }
+}
+
+// The first time, Warble says why before the phone asks: the browser's own
+// prompts are in grown-up words, and two can arrive at once. Skipped once
+// it has been seen, or when the microphone is already allowed.
+async function beginWarble() {
+  await whatsNewReady;
+  let ask = !(tutorialsSeen && tutorialsSeen.has('mic_intro'));
+  if (ask) {
+    try {
+      const st = await navigator.permissions.query({ name: 'microphone' });
+      if (st.state === 'granted') ask = false;
+    } catch (e) { /* not every browser can say - ask anyway */ }
+  }
+  if (ask) renderMicIntro(); else startRecording();
+}
+
+const MIC_INTRO_SAY = "Warble needs to listen. Your phone will ask if Warble can use the microphone, and where you are, so it knows which birds live near you. A grown-up might need to tap Allow.";
+function renderMicIntro() {
+  setActiveTab('home');
+  setSceneFocus(false);
+  stage.classList.remove('top-aligned');
+  stage.innerHTML = `
+    <div class="mic-intro">
+      <img class="mic-intro-icon" src="/static/mic-v2.webp" alt="">
+      <div class="mic-intro-title-row">
+        <h1 class="welcome-title">Warble needs to listen</h1>
+        ${'speechSynthesis' in window ? `<button class="tut-speak" id="micIntroSpeak" aria-label="Read it to me">${SPEAKER_SVG}</button>` : ''}
+      </div>
+      <div class="stage-sub">Your phone will ask if Warble can use the microphone, and where you are, so it knows which birds live near you.</div>
+      <div class="mic-intro-grownup">A grown-up might need to tap <b>Allow</b>.</div>
+      <button class="tut-ok" id="micIntroGo">I'm ready!</button>
+    </div>`;
+  const speak = document.getElementById('micIntroSpeak');
+  if (speak) speak.onclick = () => speakAloud(MIC_INTRO_SAY, speak);
+  document.getElementById('micIntroGo').onclick = () => {
+    if (tutorialsSeen) tutorialsSeen.add('mic_intro');
+    fetch('/tutorial-seen/mic_intro', { method: 'POST' }).catch(() => {});
+    startRecording();
+  };
+}
+
+// The microphone was refused, or wouldn't start: said for a child, with
+// the fix for a grown-up underneath, and a way to try again.
+function renderMicBlocked(reason) {
+  setActiveTab('home');
+  stage.classList.remove('top-aligned');
+  const refused = reason === 'NotAllowedError' || reason === 'SecurityError';
+  stage.innerHTML = `
+    <div class="mic-intro">
+      <img class="mic-intro-icon off" src="/static/mic-v2.webp" alt="">
+      <h1 class="welcome-title">Warble can't hear yet</h1>
+      <div class="stage-sub">${refused
+        ? 'Ask a grown-up to let Warble use the microphone.'
+        : "The microphone didn't start. Ask a grown-up to check it's working."}</div>
+      <div class="mic-intro-grownup">${refused
+        ? "Grown-ups: allow the microphone for this site in your browser's settings (the padlock or <b>aA</b> by the web address), then tap Try again."
+        : 'Grown-ups: check no other app is using the microphone, then tap Try again.'}</div>
+      <button class="tut-ok" id="micTryAgain">Try again</button>
+      <button class="welcome-back" id="micHome">Back to Home</button>
+    </div>`;
+  document.getElementById('micTryAgain').onclick = startRecording;
+  document.getElementById('micHome').onclick = renderIdle;
 }
 
 // --- Live audio-reactive equalizer, driven by real microphone volume ---
@@ -8206,7 +8337,7 @@ const HOOT_ENTRANCE = {
   appear: 180,     // fade up from small
   bump1:  240,     // a small one
   spin:   520,     // one clockwise turn
-  read:  2100,     // sign holds still with the tagline under it, long enough
+  read:  1000,     // sign holds still with the tagline under it, long enough
                    // for a child (or the grown-up reading it out) to get
                    // through it - the line is fully up for about 1.8s of this
   bump2:  300,     // then a bigger one
