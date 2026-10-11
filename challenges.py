@@ -58,10 +58,10 @@ CHALLENGE_POOL = [
         "progress": lambda w: w["best_session_birds"],
     },
     {
-        "id": "not_common",
-        "text": "Hear a Visitor or Rare bird",
+        "id": "rare_bird",
+        "text": "Hear a Rare bird",
         "target": 1,
-        "progress": lambda w: 1 if (w["tiers"] & {"Visitor", "Rare"}) else 0,
+        "progress": lambda w: 1 if "Rare" in w["tiers"] else 0,
     },
     {
         "id": "early_start",

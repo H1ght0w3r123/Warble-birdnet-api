@@ -15,11 +15,8 @@
     --sage:#7EC8A4; --sage-dk:#3F7C5C;
     --mist:#C4BFDF; --mist-dk:#8E87B8;
     --rose:#E87EA1; --ink:#1A1128;
-    /* Rare is a bright, fully saturated gold - the treasure colour. Visitor
-       moves to a warm azure so the two can't be confused: they now sit 163
-       degrees apart, where the old terra/gold-dk pairing was only 27. */
+    /* Rare is a bright, fully saturated gold - the treasure colour. */
     --rare:#FFC300; --rare-dk:#C79600;
-    --visitor:#3B82C4; --visitor-dk:#2A5F91;
     /* Sampled off the collector card frame art (card-frame-v7.webp) so the
        CSS-drawn frames on My Flock sit in the same wood as the painted ones
        on the pack cards: --wood is its lit face, --wood-edge its shadowed
@@ -2629,8 +2626,7 @@ function sessionTier(tier) {
   return tier === 'Rare' ? SESSION_TIERS.rare : SESSION_TIERS.normal;
 }
 
-// Only two rarities exist now - Visitor went when rarity became a fixed
-// property of the species rather than a per-location calculation.
+// The two rarities, Common and Rare - a fixed property of each species.
 const TIER_COLORS = { Common: 'var(--sage)', Rare: 'var(--rare)' };
 
 let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;

@@ -234,6 +234,8 @@ def init_db():
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_shoes VARCHAR"))
         conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_species VARCHAR DEFAULT 'default'"))
 
+    sync_sighting_rarity()
+
     with SessionLocal() as session:
         existing = session.query(PlayerStats).first()
         if existing is None:
@@ -309,42 +311,31 @@ def count_complete_summers(summer_species: list) -> int:
     return sum(1 for found in by_year.values() if target <= found)
 
 
-def get_tiers_by_species(species: set) -> dict:
-    """Which tiers are held for each of a given set of species. Used for pack
-    progress, where a bird counts as complete only at all three tiers."""
-    if SessionLocal is None or not species:
-        return {}
-    with SessionLocal() as session:
-        rows = session.query(Sighting.common_name, Sighting.tier).filter(
-            Sighting.common_name.in_(species)).distinct().all()
-    out = {}
-    for name, tier in rows:
-        if tier:
-            out.setdefault(name, set()).add(tier)
-    return out
+def sync_sighting_rarity():
+    """Bring every stored sighting's tier in line with its species' fixed
+    rarity: Common or Rare for Warble's 100, none for anything else.
 
-
-def count_full_collector_sets(collector_species: set) -> int:
-    """How many collector species are held at all three tiers - the Globetrotter
-    trophy. Counts distinct tiers per species and looks for a full three."""
+    Sightings from before rarity was fixed carry whatever the old
+    per-location lookup said, including a third tier that no longer
+    exists. Runs on every start-up, and only touches rows that disagree."""
+    from curated_species import SPECIES_RARITY
     if SessionLocal is None:
         return 0
+    changed = 0
     with SessionLocal() as session:
-        rows = session.query(Sighting.common_name, Sighting.tier).distinct().all()
-    by_species = {}
-    for name, tier in rows:
-        if name in collector_species and tier:
-            by_species.setdefault(name, set()).add(tier)
-    return sum(1 for tiers in by_species.values() if len(tiers) >= 3)
-
-
-def get_tiers_found_for(common_name: str):
-    """Which tiers of a species are already collected."""
-    if SessionLocal is None:
-        return []
-    with SessionLocal() as session:
-        rows = session.query(Sighting.tier).filter_by(common_name=common_name).distinct().all()
-        return [r[0] for r in rows if r[0]]
+        for name, rarity in SPECIES_RARITY.items():
+            changed += session.query(Sighting).filter(
+                Sighting.common_name == name,
+                (Sighting.tier.is_(None)) | (Sighting.tier != rarity),
+            ).update({Sighting.tier: rarity}, synchronize_session=False)
+        changed += session.query(Sighting).filter(
+            Sighting.common_name.notin_(list(SPECIES_RARITY)),
+            Sighting.tier.isnot(None),
+        ).update({Sighting.tier: None}, synchronize_session=False)
+        session.commit()
+    if changed:
+        print(f"Rarity: brought {changed} old sightings in line with their species")
+    return changed
 
 
 def save_sighting(common_name, scientific_name, confidence, tier, image_url, description=None, lat=None, lng=None, call_url=None):

@@ -178,7 +178,7 @@ async def identify(
 
 from database import (
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
-    count_complete_summers, get_tiers_by_species,
+    count_complete_summers,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_sightings_of, count_species_found_far_apart,
     get_share_count, increment_share_count, count_all_sessions,
@@ -345,39 +345,11 @@ def is_raining(lat: float, lng: float) -> bool:
         return False
 
 
-def get_nbn_tier(scientific_name: str, lat: float, lng: float):
-    """Query NBN Atlas for how many records exist nearby. Returns (tier, record_count)."""
-    try:
-        response = requests.get(
-            "https://records-ws.nbnatlas.org/occurrences/search",
-            params={"q": scientific_name, "lat": lat, "lon": lng, "radius": 25},
-            timeout=10,
-        )
-        response.raise_for_status()
-        total = response.json().get("totalRecords", 0)
-    except Exception as e:
-        print(f"Warning: NBN Atlas lookup failed for {scientific_name}: {e}")
-        total = 0  # if we genuinely can't tell, default to Rare rather than falsely calling it Common
-
-    if total >= 100000:
-        tier = "Common"
-    elif total >= 1000:
-        tier = "Visitor"
-    else:
-        tier = "Rare"
-    return tier, total
-
-
 def is_locally_plausible(scientific_name: str, lat: float, lng: float) -> bool:
-    """A tighter, more garden-relevant plausibility check than the
-    25km tier calculation above. 25km is wide enough that a real UK
-    species (e.g. a farmland specialist like Yellowhammer) can easily
-    have genuine records somewhere in that radius even though it would
-    never actually turn up at this specific recording spot. Uses a
-    much smaller radius, closer to 'could this realistically be heard
-    from here' than 'does this species exist somewhere in the wider
-    region'. Deliberately separate from get_nbn_tier so the existing,
-    already-calibrated 25km tier/feather system is untouched."""
+    """Whether NBN Atlas has records of this species within 5km - close to
+    'could this realistically be heard from here'. A wider radius lets in
+    real UK species (a farmland specialist like Yellowhammer, say) that
+    would never actually turn up at this recording spot."""
     try:
         response = requests.get(
             "https://records-ws.nbnatlas.org/occurrences/search",
@@ -507,7 +479,6 @@ async def analyze_session(
         # Rarity is fixed per species from the curated list. Birds outside
         # the 100 can still be detected and saved, they just carry no rarity.
         tier = rarity_of(common_name)
-        record_count = None
         is_collector = tier is not None
 
         # One card per species now - rarity no longer varies by place, so
@@ -527,7 +498,6 @@ async def analyze_session(
             "scientific_name": scientific_name,
             "confidence": confidence,
             "tier": tier,
-            "nbn_record_count": record_count,
             "is_collector": is_collector,
             "pack": pack_for_species(common_name),
             "pack_name": PACKS[pack_for_species(common_name)]["name"] if pack_for_species(common_name) else None,
