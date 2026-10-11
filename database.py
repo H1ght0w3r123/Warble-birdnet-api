@@ -7,11 +7,17 @@ now — no accounts yet, so there's just one shared total).
 import os
 import math
 import datetime
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+# UK clock time, for the weekly challenges that care about the time of day.
+# The tzdata package in requirements.txt makes sure this exists even on a
+# server image that has no time-zone files of its own.
+UK_TIME = ZoneInfo("Europe/London")
 
 # Railway sometimes provides the URL in a format SQLAlchemy is picky
 # about (postgres:// vs postgresql://) — normalise it just in case.
@@ -528,6 +534,12 @@ def count_successful_sessions_this_week() -> int:
         ).count()
 
 
+def _uk_hour(utc: datetime.datetime) -> int:
+    """The hour on a UK clock for a stored (UTC) time - an hour ahead in
+    summer. The challenges are about the child's morning, not Greenwich's."""
+    return utc.replace(tzinfo=datetime.timezone.utc).astimezone(UK_TIME).hour
+
+
 def _week_start():
     today = datetime.datetime.utcnow().date()
     monday = today - datetime.timedelta(days=today.weekday())
@@ -539,7 +551,7 @@ def get_week_stats():
     one query per challenge. Week runs Monday to Sunday, UTC."""
     blank = {
         "sessions": 0, "days": 0, "locations": 0, "species": set(),
-        "best_session_birds": 0, "new_species": set(), "earliest_hour": None,
+        "best_session_birds": 0, "new_species": set(), "earliest_uk_hour": None,
         "game_stars": 0,
     }
     if SessionLocal is None:
@@ -574,7 +586,7 @@ def get_week_stats():
         "best_session_birds": max((r.bird_count or 0 for r in rows), default=0),
         "new_species": {s.common_name for s in sightings} - heard_before,
         "game_stars": game_stars,
-        "earliest_hour": min((r.created_at.hour for r in rows if r.created_at), default=None),
+        "earliest_uk_hour": min((_uk_hour(r.created_at) for r in rows if r.created_at), default=None),
     }
 
 

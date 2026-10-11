@@ -47,12 +47,19 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   `colour:#HEX` rows in the owned-items table (not counted by Preener). Hats are
   fitted per bird (see its docstring).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
+  Pitched so a child warbling about four times a week (after school, a
+  weekend morning, garden plus one other place) finishes all five most
+  weeks: from 2026-W42 "in the morning" (before midday, UK time) replaced
+  "before 9am", "4 birds in one warble" replaced 5, and "3 different
+  places" is retired (`until_week`). A twice-a-week child can't, because
+  "Go warbling 3 times" is always one of the five.
   Feathers only for finishing all five (`ALL_COMPLETE_BONUS`, 25); a single
   challenge pays nothing. A child's five are picked once and kept for the
   week (`week_challenges()` in `main.py`, seen mark `challenges:<week>`).
   "Win a star in Guess the Song" is only offered to a child who can play
   it, and only from 2026-W42 (`from_week`), so adding it didn't reshuffle
-  the week it arrived in. Adding a challenge: give it a `from_week` too.
+  the week it arrived in. Adding a challenge: give it a `from_week` too;
+  retiring one: `until_week`, and leave it in the pool.
 - **Guess the Song** (Home → mini card) — hear a song, tap the bird. 5 levels
   of 8 rounds, 2–6 choices, unlocking at 10/15/20/25/30 of the 100 heard
   (`SONG_GAME_LEVELS` in `main.py`, served by `/song-game`) *and* at least one
@@ -125,8 +132,9 @@ bird; 25 a pack completed or all five weekly challenges. Dress Up 5–75.
 Don't inflate them. They're balanced against the prices to one target: a
 new child can buy something after their very first warble (Fledgling level
 1 pays 5, the cheapest item costs 5 - keep both), and a child warbling four
-times a week settles at about 25-28 feathers a week: an ordinary 20 item
-about weekly, a 75 every three weeks. Before changing a reward or a price,
+times a week settles at about 35 feathers a week, the weekly 25 included
+about two weeks in three: an ordinary 20 item a week or more, a 75 every
+two or three weeks. Before changing a reward or a price,
 run `python3 tools/economy_sim.py` (needs `freezegun`) before and after: it
 plays pretend children through the real reward code from zero and prints
 the curve.

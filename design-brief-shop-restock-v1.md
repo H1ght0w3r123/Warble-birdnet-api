@@ -11,8 +11,8 @@ the shop keeps getting new things.
 So the Hoot-tique **restocks four times a year**, with a small themed drop
 each season. Each drop is about **10 items worth roughly 200–250 feathers
 in total**: about five weeks of feathers for the keen child who is first to
-own most of the shop (6 warbles a week earns about 45), and about two
-months for a child warbling four times a week (about 27). Either way a drop
+own most of the shop (6 warbles a week earns about 45), and about six
+weeks for a child warbling four times a week (about 35). Either way a drop
 is bought before the next one lands, so feathers stay worth saving without
 the shop ever feeling out of reach. (Earning rates measured with
 `tools/economy_sim.py`.)

@@ -28,10 +28,11 @@ counts are the most a child could have.
 
 The model is a guess about children, not a measurement of them. What it is
 good for is comparing: before and after a price change, one reward against
-another, spring against autumn. In particular nobody here warbles before 9am
-or in a third place except the keen child's early start, so two of the
-weekly challenges are out of reach for the casual and typical child -
-change SCHEDULES to try otherwise.
+another, spring against autumn. The challenges table at the end shows how
+often each weekly challenge got done, which is how "before 9am" and "3
+different places" were found to be out of reach for a typical child. The
+challenge rules in force depend on the dates simulated (from_week and
+until_week), so --start a week at or after the newest change.
 """
 import argparse
 import asyncio
@@ -120,6 +121,7 @@ def one_child(kind: str, weeks: int, seed: int, start: datetime.datetime) -> dic
     async def play():
         source = collections.Counter()
         lifetime, by_week, owned_by_week, bought = [], [], [], []
+        challenges = []   # per week: {challenge id: done}
         earned = 0
         schedule = SCHEDULES[kind]
         for week in range(weeks):
@@ -155,10 +157,12 @@ def one_child(kind: str, weeks: int, seed: int, start: datetime.datetime) -> dic
                     week_earned += got
                     lifetime.append(earned)
                     await shop(bought)
+                    if i == len(schedule) - 1:   # how the week's five ended up
+                        challenges.append({c["id"]: done for c, done, _ in main.evaluate_week_challenges()})
             by_week.append(week_earned)
             owned_by_week.append(len(bought))
         return dict(kind=kind, per_week=len(schedule), lifetime=lifetime, by_week=by_week,
-                    owned_by_week=owned_by_week, source=dict(source), shop_size=len(ACCESSORIES),
+                    owned_by_week=owned_by_week, source=dict(source), challenges=challenges, shop_size=len(ACCESSORIES),
                     birds=database.count_curated_species_found(main.ALL_CURATED_SPECIES),
                     leaves=main.total_leaves())
 
@@ -205,6 +209,22 @@ def report(children):
         print(f"  {kind:8} " + ", ".join(f"{k} {100 * v / whole:.0f}%" for k, v in total.most_common()))
 
 
+def report_challenges(children):
+    print("\nWeekly challenges (weeks with all five done; then each challenge: done / offered):\n")
+    for kind in SCHEDULES:
+        weeks = [w for c in children if c["kind"] == kind for w in c["challenges"]]
+        if not weeks:
+            continue
+        offered, done = collections.Counter(), collections.Counter()
+        for w in weeks:
+            offered.update(w.keys())
+            done.update(k for k, v in w.items() if v)
+        all5 = sum(1 for w in weeks if all(w.values()))
+        print(f"  {kind:8} all five {100 * all5 / len(weeks):.0f}% of weeks")
+        print("           " + ", ".join(f"{k} {100 * done[k] / offered[k]:.0f}%"
+                                         for k in sorted(offered, key=lambda k: done[k] / offered[k])))
+
+
 def main_cli():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--weeks", type=int, default=26)
@@ -232,6 +252,7 @@ def main_cli():
         children.append(json.loads(out.strip().splitlines()[-1]))
     print(f"{args.children} children of each kind, {args.weeks} weeks from {args.start}.\n")
     report(children)
+    report_challenges(children)
 
 
 if __name__ == "__main__":

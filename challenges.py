@@ -74,23 +74,31 @@ CHALLENGE_POOL = [
         "from_week": "2026-W42",
     },
     {
+        # Birds sing most in the morning. It was "before 9am", which a child
+        # at school only manages at the weekend, if then - typical children
+        # never finished it. Any warble before midday, UK time, now counts.
         "id": "early_start",
-        "text": "Go warbling before 9am",
+        "text": "Go warbling in the morning",
         "target": 1,
-        "progress": lambda w: 1 if (w["earliest_hour"] is not None and w["earliest_hour"] < 9) else 0,
+        "progress": lambda w: 1 if (w["earliest_uk_hour"] is not None and w["earliest_uk_hour"] < 12) else 0,
     },
     {
+        # A third place in one week is a family outing, not something a
+        # child can choose - so it's no longer picked. Kept here, with
+        # until_week, so the week it was retired in didn't reshuffle.
         "id": "four_places",
         "family": "places",
         "text": "Warble in 3 different places",
         "target": 3,
         "progress": lambda w: w["locations"],
+        "until_week": "2026-W42",
     },
     {
+        # Was 5, which depends more on the garden than on the child.
         "id": "big_session",
         "family": "one_session",
-        "text": "Hear 5 birds in a single warble",
-        "target": 5,
+        "text": "Hear 4 birds in a single warble",
+        "target": 4,
         "progress": lambda w: w["best_session_birds"],
     },
 ]
@@ -119,6 +127,7 @@ def get_week_challenges(now: datetime.datetime = None, can_play_game: bool = Tru
     anchor = next(c for c in CHALLENGE_POOL if c["id"] == ANCHOR_ID)
     others = [c for c in CHALLENGE_POOL if c["id"] != ANCHOR_ID
               and week >= c.get("from_week", "")
+              and week < c.get("until_week", "9999")
               and (can_play_game or not c.get("needs_game"))]
     rng = random.Random(week)
     # Some challenges are strictly easier versions of others ("2 places" vs
