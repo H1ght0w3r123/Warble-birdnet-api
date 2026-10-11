@@ -718,6 +718,9 @@ async def reset_data(scope: str):
     return {"status": "ok", "scope": scope}
 
 
+EMPTY_PACK_MESSAGE = "Hear any of these birds to start this pack!"
+
+
 def pack_progress():
     """Per-pack progress: which of the 10 birds are found, split into the 8
     common and 2 rare, and whether the pack is complete."""
@@ -766,6 +769,9 @@ def pack_progress():
             "color": pack["color"], "birds": birds,
             "cards_found": got, "cards_total": len(birds),
             "complete": got == len(birds),
+            # An empty pack says how to start it, rather than leaving a
+            # child looking at ten blank cards and a 0.
+            "message": None if got else EMPTY_PACK_MESSAGE,
         })
     return packs
 
@@ -926,18 +932,47 @@ def song_game_stars_for(correct: int) -> int:
     return max(0, 3 - (SONG_GAME_ROUNDS - correct))
 
 
+def birds_to_go(n: int) -> str:
+    return f"Hear {n} more bird{'' if n == 1 else 's'}"
+
+
+def song_game_level_message(level: int, to_go: int, needs_star: bool):
+    """What a locked level is waiting for, in words; None once it's open."""
+    star = f"Win a star on Level {level - 1}"
+    if needs_star and to_go:
+        return f"{star} and {birds_to_go(to_go).lower()}"
+    if needs_star:
+        return f"{star} first"
+    if to_go:
+        return birds_to_go(to_go)
+    return None
+
+
 def song_game_levels(found: int) -> list:
     """Each level with whether it's open, and if not, what's missing: more
-    birds heard (to_go), a star on the level before (needs_star), or both."""
+    birds heard (to_go), a star on the level before (needs_star), or both -
+    and the same again as a short message."""
     stars = get_song_game_stars()
     out = []
     for n, c, need in SONG_GAME_LEVELS:
         needs_star = n > 1 and stars.get(n - 1, 0) < 1
+        to_go = max(0, need - found)
         out.append({"level": n, "choices": c, "unlock_at": need,
-                    "to_go": max(0, need - found), "needs_star": needs_star,
-                    "unlocked": found >= need and not needs_star,
-                    "stars": stars.get(n, 0)})
+                    "to_go": to_go, "needs_star": needs_star,
+                    "unlocked": not to_go and not needs_star,
+                    "stars": stars.get(n, 0),
+                    "message": song_game_level_message(n, to_go, needs_star)})
     return out
+
+
+def song_game_message(found: int, playable: int):
+    """The game as a whole: why it can't be played yet, or None if it can."""
+    first = SONG_GAME_LEVELS[0][2]
+    if found < first:
+        return f"{birds_to_go(first - found)} to unlock Guess the Song!"
+    if not playable:
+        return "Warble couldn't find songs for your birds yet. Try again later!"
+    return None
 
 # Birds xeno-canto had nothing for when asked during this run of the server,
 # so a bird with no recording costs one lookup per deploy rather than one
@@ -968,9 +1003,11 @@ def song_game():
             else:
                 _no_recording.add(b["common_name"])
     found = len(birds)
+    playable = sum(1 for b in birds if b["call_url"])
     return {
         "found": found,
         "rounds": SONG_GAME_ROUNDS,
+        "message": song_game_message(found, playable),
         "levels": song_game_levels(found),
         "birds": [{"common_name": b["common_name"],
                    "image_url": (f"/bird-photos/{b['own_photo_id']}" if b["own_photo_id"]
@@ -1026,15 +1063,21 @@ def dev_set_feathers(amount: float):
     return {"status": "ok", "total_feathers": new_total}
 
 
+# Any recording today opens it, bird or not - so this asks for a listen,
+# not a find.
+JOKE_LOCKED_MESSAGE = "Tap the mic and listen for birds to unlock today's joke!"
+
+
 @app.get("/joke-of-the-day")
 def joke_of_the_day():
     """Today's joke, only revealed once at least one session has
-    happened today - otherwise unlocked stays false and setup/punchline
-    are both null."""
+    happened today - otherwise unlocked stays false, setup/punchline
+    are both null, and message says how to unlock it."""
     unlocked = has_session_today()
     joke = get_joke_of_the_day() if unlocked else {"setup": None, "punchline": None}
     return {
         "unlocked": unlocked,
+        "message": None if unlocked else JOKE_LOCKED_MESSAGE,
         "setup": joke["setup"],
         "punchline": joke["punchline"],
     }

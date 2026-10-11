@@ -196,7 +196,7 @@
   body.scene-on .reset-note, body.scene-on .stat-empty,
   body.scene-on .flock-stats, body.scene-on .pack-tally,
   body.scene-on .pack-more,
-  body.scene-on .pack-blurb, body.scene-on .fan-caption,
+  body.scene-on .pack-blurb, body.scene-on .fan-caption, body.scene-on .pack-empty,
   body.scene-on .hub-label, body.scene-on .nav-tab, body.scene-on .sg-navbtn,
   body.scene-on .joke-setup, body.scene-on .joke-punch, body.scene-on .joke-locked,
   body.scene-on .trophy-caption-name, body.scene-on .trophy-caption-next{
@@ -2295,6 +2295,9 @@
     transition:opacity .15s ease;
   }
   .fan-caption:empty{opacity:0;}
+  /* An empty pack's "how to start" line, above the card's own hint. */
+  .pack-empty{text-align:center;font-family:'Poppins';font-weight:900;font-size:14px;
+    color:#fff;line-height:1.3;margin:10px auto 0;max-width:300px;padding:0 10px;}
   .habitat-tap{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--mist-dk);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
   .hab-list{width:100%;display:flex;flex-direction:column;gap:6px;}
   .hab-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:7px 12px 7px 8px;}
@@ -3006,7 +3009,7 @@ async function renderJokeOfDay() {
     if (!data.unlocked) {
       box().innerHTML = `
         <img class="joke-locked-icon" src="/static/joke-icon-v1.webp" alt="">
-        <div class="joke-locked">Go and hear your first bird today to unlock the joke!</div>`;
+        <div class="joke-locked">${escapeFlock(data.message || '')}</div>`;
       return;
     }
     box().innerHTML = `
@@ -3146,11 +3149,7 @@ async function renderSongGame(data) {
         </span>
         ${songGameStars(l.stars, 'sg-level-stars')}
       </span>
-    </button>`).join('') + (data.found < SONG_GAME_FIRST_UNLOCK
-      ? `<div class="sg-note">You've heard ${data.found} of the ${SONG_GAME_FIRST_UNLOCK} birds you need. Go and listen for some more!</div>`
-      : playable === 0
-        ? `<div class="sg-note">Warble couldn't find songs for your birds yet. Try again later!</div>`
-        : '');
+    </button>`).join('') + (data.message ? `<div class="sg-note">${data.message}</div>` : '');
   box.querySelectorAll('.sg-level').forEach(btn => {
     const level = data.levels.find(l => l.level === +btn.dataset.level);
     if (!level.unlocked || playable === 0) return;
@@ -3162,8 +3161,8 @@ async function renderSongGame(data) {
 // level before already has its star. Waiting on a star needs no words: the
 // level above it is the one pulsing.
 function songGameBirdsNeeded(l) {
-  if (l.unlocked || l.needs_star || l.to_go < 1) return '';
-  return `<span class="sg-level-need">Hear ${l.to_go} more bird${l.to_go === 1 ? '' : 's'}</span>`;
+  if (l.unlocked || l.needs_star || !l.message) return '';
+  return `<span class="sg-level-need">${l.message}</span>`;
 }
 
 function songGameStars(n, cls) {
@@ -8143,6 +8142,7 @@ function renderSelectedPack() {
     <div class="pack-blurb">${p.blurb}</div>
     <div class="card-carousel" id="cardCarousel">${cards}</div>
     <div class="card-dots" id="cardDots"></div>
+    ${p.message ? `<div class="pack-empty">${p.message}</div>` : ''}
     <div class="fan-caption" id="fanCaption"></div>
   `;
 

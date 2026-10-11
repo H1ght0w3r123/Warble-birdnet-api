@@ -66,6 +66,11 @@ was a real bug of exactly this kind.
 BirdNET's exact names. Any new place that shows a bird's name must go through
 `birdName()`.
 
+**Locked and empty states say how to unlock them**, and the words come from
+the server: `message` on `/joke-of-the-day`, `/song-game` (and each of its
+levels) and each pack in `/collector-packs`, null once there's nothing to
+unlock. Change the wording in `main.py`, not the page.
+
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. New bird 3 feathers, rare 15, Dress Up 5–75. Don't inflate them.
 
