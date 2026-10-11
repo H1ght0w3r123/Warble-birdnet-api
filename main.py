@@ -392,6 +392,11 @@ def get_wikipedia_info(scientific_name: str):
 # what was heard, which made the birds themselves feel incidental. The
 # weekly challenges are the reason to come back instead.
 PACK_BONUS = 25
+# Every trophy level won pays this, on top of the trophy itself. Levels won
+# before it was introduced were never back-paid.
+TROPHY_LEVEL_FEATHERS = 5
+# Guess the Song: the first 8 out of 8 on each level, once per level.
+SONG_GAME_PERFECT_FEATHERS = 20
 
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
@@ -543,6 +548,12 @@ async def analyze_session(
                     session_feathers += PACK_BONUS
                     bonuses.append({"label": f"{pack['name']} complete!", "feathers": PACK_BONUS})
 
+    # Outside the "found something" check: a quiet session can win a trophy
+    # level too (Empty Nester).
+    for t in newly_earned_trophies:
+        session_feathers += TROPHY_LEVEL_FEATHERS
+        bonuses.append({"label": f"{t['name']} level {t['level']}", "feathers": TROPHY_LEVEL_FEATHERS})
+
     new_total = add_feathers(session_feathers)
 
     return {
@@ -607,7 +618,11 @@ def award_wingman():
     rather than inferred, since there's no reliable way to detect that a share
     actually completed."""
     increment_share_count()
-    return {"newly_earned_trophies": check_all_trophies()}
+    newly = check_all_trophies()
+    if newly:
+        add_feathers(TROPHY_LEVEL_FEATHERS * len(newly))
+    return {"newly_earned_trophies": newly,
+            "feathers": TROPHY_LEVEL_FEATHERS * len(newly)}
 
 
 def evaluate_week_challenges():
@@ -1002,7 +1017,12 @@ async def song_game_result(level: int = Form(...), correct: int = Form(...)):
     correct = max(0, min(SONG_GAME_ROUNDS, correct))
     stars = song_game_stars_for(correct)
     best = record_song_game_result(level, correct, stars)
-    return {"stars": stars, "best_stars": best, "levels": song_game_levels(found)}
+    feathers = 0
+    if correct == SONG_GAME_ROUNDS and award_bonus_once(f"song_game_perfect:{level}"):
+        feathers = SONG_GAME_PERFECT_FEATHERS
+        add_feathers(feathers)
+    return {"stars": stars, "best_stars": best, "levels": song_game_levels(found),
+            "feathers": feathers}
 
 
 @app.get("/bird-photos/{photo_id}")
@@ -1076,7 +1096,9 @@ def whats_new_items() -> dict:
         "dressup": {aid for aid, a in ACCESSORIES.items()
                     if aid not in owned and a["cost"] <= feathers},
         # Things on Home (Home itself never lights up)
-        "challenges": {f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done},
+        # A new week's set counts as new, as does each challenge finished
+        "challenges": {f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done}
+                      | {f"{week}:set"},
         "joke": {datetime.datetime.utcnow().date().isoformat()} if has_session_today() else set(),
         "game": {str(l["level"]) for l in song_game_levels(found_curated) if l["unlocked"]},
     }
@@ -1084,7 +1106,7 @@ def whats_new_items() -> dict:
 
 WHATS_NEW_SEP = "\n"
 TUTORIAL_KEYS = {"home", "listening", "results", "collection", "bird", "habitats",
-                 "trophies", "dressup", "challenges", "joke", "game", "game_round"}
+                 "trophies", "dressup", "challenges", "game", "game_round"}
 
 
 @app.get("/whats-new")

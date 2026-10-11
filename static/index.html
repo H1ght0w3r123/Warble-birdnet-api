@@ -624,6 +624,11 @@
     100%{transform:scale(1.7); opacity:0; border-width:1px;}
   }
   .sg-message{font-family:'Poppins'; font-weight:700; font-size:14px; color:#fff; margin:4px 0 22px; text-align:center;}
+  /* A level's first 8 out of 8 pays feathers, said in gold just above the buttons. */
+  .sg-prize{display:flex; align-items:center; justify-content:center; gap:6px; margin:-12px 0 18px;
+    font-family:'Poppins'; font-weight:900; font-size:18px; color:var(--gold);
+    text-shadow:0 2px 4px rgba(26,17,40,0.55); animation:sgStarPop .5s cubic-bezier(.34,1.56,.64,1) 1.2s both;}
+  .sg-prize .feather-icon{width:22px; height:22px;}
 
   .sg-round{width:100%; display:flex; flex-direction:column; align-items:center;}
   .sg-head{
@@ -650,7 +655,7 @@
   .sg-timer-fill.running{transition:transform linear; transform:scaleX(0);
     animation:sgTimerColour linear forwards;}
   /* Green while there's plenty of time, through gold and orange, to red at
-     the end. Runs for the same thirty seconds as the drain (the duration is
+     the end. Runs for the same fifteen seconds as the drain (the duration is
      set on both in startSongGameTimer). */
   @keyframes sgTimerColour{
     0%{background:var(--sage);}
@@ -3101,7 +3106,6 @@ async function renderJokeOfDay() {
       </div>`;
     document.getElementById('revealJokeBtn').onclick = () => revealJokePunchline(data.punchline);
     markSeen('joke');
-    showTutorial('joke', 300);
   } catch (e) {
     if (box()) box().innerHTML = `<div class="joke-locked">Couldn't load the joke right now.</div>`;
   }
@@ -3152,7 +3156,7 @@ function revealJokePunchline(punchline) {
 // 8 three - and a level only opens once the one before has a star. The
 // server works the stars out and keeps the best (/song-game/result).
 const SONG_GAME_FIRST_UNLOCK = 10;   // mirrors SONG_GAME_LEVELS in main.py
-const SONG_GAME_ANSWER_MS = 30000;   // from when the song starts playing
+const SONG_GAME_ANSWER_MS = 15000;   // from when the song starts playing
 const SONG_GAME_URGENT_MS = 5000;    // the bar pulses for this last stretch
 const SONG_GAME_CLIP_MS = 9000;      // xeno-canto recordings can run for minutes
 let songGame = null;                 // the level being played, or null
@@ -3361,7 +3365,7 @@ function renderSongGameRound() {
   g.started = false;
   g.playing = false;
   clearTimeout(g.timer); clearTimeout(g.urgentTimer);
-  g.timer = null;   // this round's thirty seconds start on its first play
+  g.timer = null;   // this round's fifteen seconds start on its first play
   const n = g.choices.length;
   root.innerHTML = `
     <div class="sg-head">Level ${g.level.level} · Round ${g.round + 1} of ${g.data.rounds}</div>
@@ -3394,7 +3398,7 @@ function renderSongGameRound() {
   });
 }
 
-// The thirty seconds start the moment the song first starts playing, and
+// The fifteen seconds start the moment the song first starts playing, and
 // listening is part of that time. Replays are allowed but don't reset the
 // clock, so a round can't be stretched out forever by replaying it.
 function playSongGameClip() {
@@ -3547,6 +3551,7 @@ async function renderSongGameEnd() {
   // (and so opening the next level) has to wait.
   let stars = Math.max(0, 3 - (g.results.length - got));
   let levels = before;
+  let prize = 0;   // feathers for the level's first 8 out of 8
   try {
     const form = new FormData();
     form.append('level', level.level);
@@ -3557,6 +3562,7 @@ async function renderSongGameEnd() {
       stars = out.stars;
       levels = out.levels;
       data.levels = levels;
+      prize = out.feathers || 0;
       markSeen('game');   // a level it opens is announced right here
     }
   } catch (e) { /* keep the local stars */ }
@@ -3576,6 +3582,7 @@ async function renderSongGameEnd() {
     ${songGameEndStars(stars)}
     <div class="collection-title">You got ${got} of ${g.results.length}</div>
     <div class="sg-message">${message}</div>
+    ${prize ? `<div class="sg-prize"><img class="feather-icon" src="/static/feather.webp" alt=""> +${prize} feathers!</div>` : ''}
     <div class="sg-endnav">
       ${songGameNavButton('sgLevelsBtn', 'btn-levels-v1', 'Back to levels')}
       ${songGameNavButton('sgAgain', 'btn-retry-v1', 'Retry level')}
@@ -3586,6 +3593,7 @@ async function renderSongGameEnd() {
   if (next && next.unlocked) document.getElementById('sgNext').onclick = () => startSongGameLevel(data, next);
   document.getElementById('sgAgain').onclick = () => startSongGameLevel(data, levels.find(l => l.level === level.level));
   document.getElementById('sgLevelsBtn').onclick = () => renderSongGame(data);
+  if (prize) refreshFeathers();
 }
 
 // `short` is the one-line version for the strip on Home. Keep them to 26
@@ -6215,16 +6223,15 @@ async function markSeen(area) {
 // or a function returning the element) and says one short thing about it.
 const TUTORIALS = {
   home: [
-    { target: '#recordBtn', text: 'Hear a bird singing? Tap the microphone to listen!' },
-    { target: '.home-hub .hub-item', all: true, text: 'A joke, challenges and a song game live here too.' },
+    { target: '#recordBtn', text: 'This is how you listen to birds. If you hear birds singing, get close and tap the mic.' },
+    { target: '.home-hub .hub-item', all: true, text: "Here you'll find some extra challenges and fun to keep things interesting." },
   ],
   listening: [
-    { target: '#recScene', text: "Keep still and quiet. Every bird Warble hears flies onto the tree." },
+    { target: '#recScene', text: 'Keep still and quiet. Every bird you hear is shown above the tree.' },
     { target: '#stopBtn', text: "Tap stop when you've finished listening." },
   ],
   results: [
-    { target: '.feather-row', text: 'Every bird wins feathers! Spend them in the Hoot-tique.' },
-    { target: '#revealCard', text: 'Tap the card to add the bird to your collection.' },
+    { target: '.feather-row', text: 'Every bird you hear wins feathers! Spend them dressing up your bird in the Hoot-tique.' },
   ],
   collection: [
     { target: '.collection-item', text: "Every bird you've heard lives in My Flock. Tap one to see its card." },
@@ -6233,29 +6240,26 @@ const TUTORIALS = {
     { target: '.photo-actions', text: 'Hear its song, see where you heard it, share it, or add your own photo!' },
   ],
   habitats: [
-    { target: '#cardCarousel', text: 'Swipe through the pack. Can you hear every bird in it?' },
-    { target: '#packCurrent', text: 'Tap here to choose a different pack.' },
+    { target: '#cardCarousel', text: 'These are your collection packs! Inside these packs are the top 100 birds in your country. There are 10 packs to complete. Can you complete them all??' },
+    { target: '#packCurrent', text: 'Tap here to flip between packs.' },
   ],
   trophies: [
-    { target: '#trophyCarousel', text: 'Swipe to see every trophy. Tap one to find out how to win it.' },
+    { target: '#trophyCarousel', text: "As you discover birds you'll also earn awards, which can be found here. Your trophies can be levelled up, and each level earns extra feathers." },
   ],
   dressup: [
-    { target: '#dressUpAvatarStage', text: 'This is you! Tap the arrows to choose which bird to be.' },
-    { target: '#colorWheel', text: 'Pick colours for your feathers.' },
+    { target: '#dressUpAvatarStage', text: 'This is you! Tap the arrows to choose your bird.' },
+    { target: '#colorWheel', text: 'You can change the colour of your bird here.' },
     { target: ['#categoryRow', '.carousel-panel'], text: 'Choose something to wear, then buy it with your feathers!' },
   ],
   challenges: [
     { target: '#challengeList', text: 'Finish all five challenges this week to win 25 feathers!' },
   ],
-  joke: [
-    { target: '#revealJokeBtn', text: 'Read the joke, then tap the question mark for the answer!' },
-  ],
   game: [
-    { target: '.sg-level.invite', text: 'Tap a level to play. Get 6 out of 8 right to win a star!' },
+    { target: () => document.querySelector('.sg-level.invite') || document.querySelector('.sg-level:not(.locked)'), text: 'Tap a level to play. Get 6 out of 8 to move to the next level. 8/8 wins 20 feathers!' },
   ],
   game_round: [
-    { target: '#sgPlay', text: 'Tap play to hear a bird singing.' },
-    { target: '#sgGrid', text: 'Then tap the bird you think it is. Be quick - you have 30 seconds!' },
+    { target: '#sgPlay', text: 'Hit play to hear the birdsong.' },
+    { target: '#sgGrid', text: 'Tap the bird you think is singing. Be quick! You only have 15 seconds!' },
   ],
 };
 
@@ -9286,7 +9290,9 @@ async function shareBird(bird) {
     const data = await res.json();
     if ((data.newly_earned_trophies || []).length) {
       newlyEarnedTrophies = data.newly_earned_trophies;
-      alert(`Trophy unlocked: ${data.newly_earned_trophies[0].name}!`);
+      alert(`Trophy unlocked: ${data.newly_earned_trophies[0].name}!` +
+            (data.feathers ? ` You won ${data.feathers} feathers!` : ''));
+      refreshFeathers();
       refreshWhatsNew();
     }
   } catch (e) { /* sharing worked; the trophy can wait */ }

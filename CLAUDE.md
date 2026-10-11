@@ -31,6 +31,8 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
 - `trophies.py` — 21 trophies, each with **seven levels** (shown as empty
   sockets, then 1-3 green leaves, then the leaves turning gold). Adding
   challenge means extending a `levels` list, not inventing a new trophy.
+  Every level won pays `TROPHY_LEVEL_FEATHERS` (5); levels won before that
+  was introduced were deliberately not back-paid.
 - `accessories.py` — 70 Dress Up items on a five-band price ladder. Hats are
   fitted per bird (see its docstring).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
@@ -42,8 +44,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   star on the level before. Stars: 6/8 = 1, 7/8 = 2, 8/8 = 3, worked out
   server-side by `/song-game/result`; the best per level is kept in
   `song_game_levels`. Every level draws from *all* birds heard so far; a bird
-  with no recording can be a wrong choice but is never asked about. No
-  feathers or trophies from it yet.
+  with no recording can be a wrong choice but is never asked about. 15
+  seconds to answer, from when the song starts. The first 8/8 on each level
+  pays `SONG_GAME_PERFECT_FEATHERS` (20) once; no trophies from it yet.
 
 `tools/build_pack_art.py` rebuilds the ten packs' icon/badge/wordmark webps
 from a folder of delivered PNGs. Read its docstring before re-exporting pack
@@ -81,7 +84,8 @@ joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
-head. New bird 3 feathers, rare 15, Dress Up 5–75. Don't inflate them.
+head. New bird 3 feathers, rare 15, trophy level 5, a game level's first 8/8
+20, all five weekly challenges 25, Dress Up 5–75. Don't inflate them.
 
 **Detection is live-only.** Identification happens during recording via short
 clips to `/identify`. Stopping just posts JSON for enrichment — no audio is
