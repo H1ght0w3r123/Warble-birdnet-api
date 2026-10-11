@@ -1132,7 +1132,7 @@ def whats_new_items() -> dict:
 
 
 WHATS_NEW_SEP = "\n"
-TUTORIAL_KEYS = {"home", "listening", "results", "collection", "bird", "habitats",
+TUTORIAL_KEYS = {"welcome", "home", "listening", "results", "collection", "bird", "habitats",
                  "trophies", "dressup", "challenges", "game", "game_round"}
 
 

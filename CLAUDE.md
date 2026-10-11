@@ -84,6 +84,10 @@ also be in `TUTORIAL_KEYS` in `main.py`. "Something new here" is an area in
 `markSeen(area)` when the screen is visited. Home itself never glows - the
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
+Before any of it, a brand-new player gets the welcome (`renderWelcome`):
+pick a bird, a colour, then an optional first name. It's skipped for a
+profile that already has a name or a non-default bird, and the tutorials
+wait for it (`welcomeDecided`).
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. The whole ladder is at the top of the reward section of `main.py`:

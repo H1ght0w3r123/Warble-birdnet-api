@@ -517,6 +517,38 @@
     90%{transform:rotate(calc(var(--stand) + 4deg));}
   }
 
+  /* --- Welcome: bird, colour, name ------------------------------------
+     Full screen: the top bar and nav step aside until it's done. */
+  body.welcome-on .top, body.welcome-on .bottom-nav{visibility:hidden;}
+  .welcome{width:100%; max-width:380px; margin:0 auto; display:flex; flex-direction:column; align-items:center;
+    gap:14px; padding-top:4px;}
+  .welcome-top{display:flex; flex-direction:column; align-items:center; gap:6px; width:100%;}
+  .welcome-dots{display:flex; gap:6px;}
+  .welcome-dots .tut-dot{background:rgba(255,255,255,0.35);}
+  .welcome-dots .tut-dot.on{background:var(--gold);}
+  .welcome-eyebrow{font-family:'Poppins'; font-weight:800; font-size:14px; color:var(--gold); letter-spacing:.02em;}
+  .welcome-title-row{display:flex; align-items:center; gap:10px;}
+  .welcome-title{margin:0; font-family:'Poppins'; font-weight:900; font-size:clamp(24px, 7vw, 30px); color:#fff; text-align:center;
+    text-shadow:0 2px 0 var(--wood-edge), 0 4px 12px rgba(26,17,40,0.5);}
+  .welcome-me{width:150px; height:150px; border-radius:50%; display:grid; place-items:center;
+    background:radial-gradient(circle at 50% 42%, var(--disc-cream), #F2D3A6 70%);
+    box-shadow:0 0 0 6px var(--wood), 0 0 0 9px var(--wood-edge), 0 8px 18px rgba(0,0,0,0.35); overflow:hidden;}
+  .welcome-birds{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; width:100%;}
+  .welcome-bird-btn{aspect-ratio:1; border:none; padding:0; border-radius:50%; cursor:pointer; display:grid; place-items:center;
+    background:var(--disc-cream); box-shadow:0 0 0 3px var(--wood), 0 3px 6px rgba(0,0,0,0.3);
+    transition:transform .12s ease, box-shadow .12s ease; overflow:hidden;}
+  .welcome-bird-btn.on{transform:scale(1.08); box-shadow:0 0 0 3px var(--gold), 0 0 14px 4px rgba(242,201,76,0.7);}
+  .welcome-swatches{display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; width:100%; max-width:300px;}
+  .welcome-swatch{aspect-ratio:1; border-radius:50%; border:3px solid rgba(255,255,255,0.85); background:var(--sw);
+    cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.35); transition:transform .12s ease;}
+  .welcome-swatch.on{transform:scale(1.15); border-color:var(--gold); box-shadow:0 0 0 3px var(--wood-edge), 0 0 12px 3px rgba(242,201,76,0.8);}
+  .welcome-name{max-width:280px; text-align:center; font-size:20px;}
+  .welcome-hint{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9); margin-top:-6px;}
+  .welcome-actions{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; max-width:320px; margin-top:4px;}
+  .welcome-back{border:none; background:none; color:#fff; font-family:'Poppins'; font-weight:800; font-size:15px;
+    padding:10px 6px; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}
+  @media (prefers-reduced-motion: reduce){ .welcome-bird-btn, .welcome-swatch{transition:none;} }
+
   /* --- Tutorial bubbles ----------------------------------------------
      The screen dims, the thing being explained stays lit inside a gold
      ring, and a speech bubble in the app's wood and cream points at it.
@@ -6314,6 +6346,9 @@ async function refreshWhatsNew() {
   paintNewCues();
 }
 let whatsNewReady = refreshWhatsNew();
+// The welcome (bird, colour, name) comes before every tutorial: decided once
+// the profile has loaded, further down the file.
+let welcomeDecided = null, welcomeOpen = false;
 
 function paintNewCues() {
   for (const [area, id] of Object.entries(NAV_CUE_TABS)) {
@@ -6388,6 +6423,8 @@ let tutorialOpen = null;      // the one showing, if any
 // at yet - in which case it's still unseen, and comes back next visit.
 async function showTutorial(name, delay = 0, ready = null) {
   await whatsNewReady;
+  if (welcomeDecided) await welcomeDecided;
+  if (welcomeOpen) return;
   if (tutorialOpen || !tutorialsSeen || tutorialsSeen.has(name)) return;
   // ready(): something the screen has to finish first (the Hoot-tique's
   // entrance). Given up on after ten seconds - it'll be back next visit.
@@ -6419,6 +6456,24 @@ function tutorialRect(step) {
   const l = Math.min(...rects.map(r => r.left)), t = Math.min(...rects.map(r => r.top));
   const r = Math.max(...rects.map(r => r.right)), b = Math.max(...rects.map(r => r.bottom));
   return { left: l, top: t, right: r, bottom: b, width: r - l, height: b - t };
+}
+
+// Read something out in the phone's own voice, for children who can't read
+// yet. `btn` (the speaker disc) wobbles while it talks.
+function speakAloud(text, btn) {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-GB'; u.rate = 0.92; u.pitch = 1.1;
+    const voice = speechSynthesis.getVoices().find(v => /^en[-_]GB/i.test(v.lang));
+    if (voice) u.voice = voice;
+    if (btn) {
+      u.onend = u.onerror = () => btn.classList.remove('speaking');
+      btn.classList.add('speaking');
+    }
+    speechSynthesis.speak(u);
+  } catch (e) {}
 }
 
 const SPEAKER_SVG = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -6518,18 +6573,7 @@ function openTutorial(name, steps) {
   }
 
   ok.onclick = () => { if (++i < steps.length) show(); else close(true); };
-  if (speak) speak.onclick = () => {
-    stopSpeaking();
-    try {
-      const u = new SpeechSynthesisUtterance(steps[i].text);
-      u.lang = 'en-GB'; u.rate = 0.92; u.pitch = 1.1;
-      const voice = speechSynthesis.getVoices().find(v => /^en[-_]GB/i.test(v.lang));
-      if (voice) u.voice = voice;
-      u.onend = u.onerror = () => speak.classList.remove('speaking');
-      speak.classList.add('speaking');
-      speechSynthesis.speak(u);
-    } catch (e) {}
-  };
+  if (speak) speak.onclick = () => { stopSpeaking(); speakAloud(steps[i].text, speak); };
   tutorialOpen = { name, close };
   show();
 }
@@ -6553,7 +6597,7 @@ async function loadProfileForNav() {
     setSceneFocus(onHome);
   } catch (e) { /* keep the default person icon if this fails */ }
 }
-loadProfileForNav();
+const profileReady = loadProfileForNav();
 
 async function loadAccessoryCache() {
   try {
@@ -6565,6 +6609,135 @@ async function loadAccessoryCache() {
   } catch (e) { /* avatars just show without an accessory if this fails */ }
 }
 loadAccessoryCache();
+
+
+// --- Welcome: bird, colour, name -------------------------------------------
+// A brand-new player picks who they are before anything else: which bird,
+// what colour, and (optionally - a grown-up may need to type it) their first
+// name. Shown once, only while the profile is still untouched; a family that
+// has already chosen a name or a bird never sees it. Settings > Tutorials >
+// "Show tutorials again" brings it back.
+const DEFAULT_BODY = '#9CAF88';
+const WELCOME_STEPS = [
+  { title: 'Which bird are you?', say: 'Welcome to Warble! Which bird are you? Tap one.' },
+  { title: 'Pick your colour', say: 'Pick a colour for your feathers.' },
+  { title: "What's your name?", say: "What's your name? Ask a grown-up to help you type it." },
+];
+let welcomeDraft = null;
+
+function profileIsUntouched() {
+  const sp = currentProfile.avatar_species || 'default';
+  return !firstNameOrDefault() && (sp === 'default' || sp === 'classic') &&
+    (currentProfile.avatar_body || DEFAULT_BODY).toUpperCase() === DEFAULT_BODY;
+}
+
+welcomeDecided = (async () => {
+  await Promise.all([whatsNewReady, profileReady]);
+  if (!tutorialsSeen || tutorialsSeen.has('welcome')) return;
+  if (!profileIsUntouched()) {
+    // Already set up before the welcome existed: nothing to ask.
+    tutorialsSeen.add('welcome');
+    fetch('/tutorial-seen/welcome', { method: 'POST' }).catch(() => {});
+    return;
+  }
+  renderWelcome();
+})();
+
+function renderWelcome(step = 0) {
+  welcomeOpen = true;
+  if (tutorialOpen) tutorialOpen.close(false);
+  if (!welcomeDraft) {
+    const sp = currentProfile.avatar_species;
+    welcomeDraft = {
+      species: AVATAR_SPECIES.some(s => s.id === sp) ? sp : AVATAR_SPECIES[0].id,
+      body: currentProfile.avatar_body || DEFAULT_BODY,
+      name: firstNameOrDefault(),
+    };
+  }
+  const d = welcomeDraft, st = WELCOME_STEPS[step];
+  document.body.classList.add('welcome-on');
+  setSceneFocus(false);
+  stage.classList.add('top-aligned');
+  const picker = step === 0
+    ? `<div class="welcome-birds" role="radiogroup" aria-label="Birds">${AVATAR_SPECIES.map(sp => `
+        <button class="welcome-bird-btn ${sp.id === d.species ? 'on' : ''}" data-species="${sp.id}"
+                role="radio" aria-checked="${sp.id === d.species}" aria-label="${sp.name}">
+          ${avatarSvg(d.body, 58, null, false, sp.id)}
+        </button>`).join('')}</div>`
+    : step === 1
+    ? `<div class="welcome-swatches" role="radiogroup" aria-label="Colours">${AVATAR_SWATCHES.map(c => `
+        <button class="welcome-swatch ${c.hex.toUpperCase() === d.body.toUpperCase() ? 'on' : ''}" data-hex="${c.hex}"
+                style="--sw:${c.hex}" role="radio" aria-checked="${c.hex.toUpperCase() === d.body.toUpperCase()}"
+                aria-label="${c.name}"></button>`).join('')}</div>`
+    : `<input type="text" id="welcomeName" class="location-input welcome-name" placeholder="First name"
+              maxlength="24" autocomplete="given-name" value="${escapeFlock(d.name)}">
+       <div class="welcome-hint">Ask a grown-up to help you type it</div>`;
+  stage.innerHTML = `
+    <div class="welcome">
+      <div class="welcome-top">
+        <span class="welcome-dots">${WELCOME_STEPS.map((_, k) => `<span class="tut-dot ${k === step ? 'on' : ''}"></span>`).join('')}</span>
+        <div class="welcome-eyebrow">${step === 0 ? 'Welcome to Warble!' : '&nbsp;'}</div>
+        <div class="welcome-title-row">
+          <h1 class="welcome-title">${st.title}</h1>
+          ${'speechSynthesis' in window ? `<button class="tut-speak" id="welcomeSpeak" aria-label="Read it to me">${SPEAKER_SVG}</button>` : ''}
+        </div>
+      </div>
+      <div class="welcome-me" id="welcomeMe">${avatarSvg(d.body, 150, null, true, d.species)}</div>
+      ${picker}
+      <div class="welcome-actions">
+        ${step > 0 ? '<button class="welcome-back" id="welcomeBack">Back</button>' : '<span></span>'}
+        ${step === 2 ? '<button class="welcome-back" id="welcomeSkip">Skip</button>' : ''}
+        <button class="tut-ok" id="welcomeNext">${step === 2 ? "That's me!" : 'Next'}</button>
+      </div>
+    </div>`;
+
+  const me = () => document.getElementById('welcomeMe');
+  const redraw = () => { me().innerHTML = avatarSvg(d.body, 150, null, true, d.species); };
+  stage.querySelectorAll('.welcome-bird-btn').forEach(b => b.onclick = () => {
+    d.species = b.dataset.species;
+    stage.querySelectorAll('.welcome-bird-btn').forEach(x => {
+      x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b);
+    });
+    redraw();
+  });
+  stage.querySelectorAll('.welcome-swatch').forEach(b => b.onclick = () => {
+    d.body = b.dataset.hex;
+    stage.querySelectorAll('.welcome-swatch').forEach(x => {
+      x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b);
+    });
+    redraw();
+  });
+  const speak = document.getElementById('welcomeSpeak');
+  if (speak) speak.onclick = () => speakAloud(st.say, speak);
+  const name = document.getElementById('welcomeName');
+  if (name) name.oninput = () => { d.name = name.value; };
+  const back = document.getElementById('welcomeBack');
+  if (back) back.onclick = () => renderWelcome(step - 1);
+  const skip = document.getElementById('welcomeSkip');
+  if (skip) skip.onclick = () => finishWelcome(false);
+  document.getElementById('welcomeNext').onclick = () =>
+    step < WELCOME_STEPS.length - 1 ? renderWelcome(step + 1) : finishWelcome(true);
+}
+
+async function finishWelcome(withName) {
+  const d = welcomeDraft;
+  const first = withName ? (d.name || '').trim() : '';
+  const form = new FormData();
+  form.append('avatar_species', d.species);
+  form.append('avatar_body', d.body);
+  if (first) form.append('first_name', first);
+  currentProfile.avatar_species = d.species;
+  currentProfile.avatar_body = d.body;
+  if (first) currentProfile.first_name = first;
+  updateNavAvatarIcon();
+  try { await fetch('/profile', { method: 'POST', body: form }); } catch (e) { /* kept locally */ }
+  tutorialsSeen.add('welcome');
+  fetch('/tutorial-seen/welcome', { method: 'POST' }).catch(() => {});
+  welcomeOpen = false;
+  welcomeDraft = null;
+  document.body.classList.remove('welcome-on');
+  renderIdle();   // greets them by name, then the Home bubbles
+}
 
 function setActiveTab(tabName) {
   if (tabName !== 'dressup') endHootEntrance();
@@ -7094,7 +7267,7 @@ async function renderSettings() {
     <button class="again-btn" id="openAnimPreviewBtn">Animation preview</button>
 
     <div class="profile-section-title">Tutorials</div>
-    <div class="reset-note">Show every "how to" bubble again, as if Warble were brand new.</div>
+    <div class="reset-note">Start again from the welcome (bird, colour, name), then every "how to" bubble, as if Warble were brand new.</div>
     <button class="again-btn" id="replayTutorialsBtn">Show tutorials again</button>
 
     <div class="profile-section-title">Backup</div>
@@ -7188,8 +7361,8 @@ async function renderSettings() {
       if (!res.ok) throw new Error('reset failed');
       tutorialsSeen = null;   // forget them here too, not just on the server
       await refreshWhatsNew();
-      btn.textContent = 'Done - they show next time';
-      btn.disabled = true;
+      stage.classList.remove('top-aligned');
+      renderWelcome();        // from the very beginning: bird, colour, name
     } catch (err) { btn.textContent = "Couldn't do that - tap to retry"; }
   };
 
