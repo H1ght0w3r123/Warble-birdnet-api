@@ -59,6 +59,27 @@ def serve_app():
     return FileResponse("static/index.html")
 
 
+# Painted icons delivered so far (design-brief-info-icons-v1.md): every
+# static/icon-<name>-v<N>.webp, newest version of each. The page shows an
+# emoji stand-in for any name not here, so dropping a file in is all it takes.
+def _painted_icons() -> dict:
+    import re
+    found = {}
+    for f in os.listdir("static"):
+        m = re.fullmatch(r"icon-([a-z0-9-]+)-v(\d+)\.webp", f)
+        if m and int(m.group(2)) >= found.get(m.group(1), (0, ""))[0]:
+            found[m.group(1)] = (int(m.group(2)), f"/static/{f}")
+    return {name: url for name, (_, url) in found.items()}
+
+
+PAINTED_ICONS = _painted_icons()
+
+
+@app.get("/painted-icons")
+def painted_icons():
+    return {"icons": PAINTED_ICONS}
+
+
 @app.get("/status")
 def status():
     """The old root endpoint, moved here — still useful for checking

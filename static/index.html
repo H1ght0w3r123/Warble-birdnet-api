@@ -11,7 +11,15 @@
     --terra:#E8845C; --terra-dk:#B85A36;
     --parch:#F5EDD6; --parch-dk:#E9DDBE;
     --disc-cream:#FBEAD1;   /* the face of the wooden play/share/pin discs */
-    --gold:#F2C94C; --gold-dk:#B8901F;
+    /* Gold means rare (--rare below) and nothing else; the trophy leaves
+       turning gold are painted. --sun is only for the warm foot of the sky
+       gradients. Selected, finished and progress are green (--sage); every
+       glow is cream (--glow, as r,g,b); feather amounts are feather blue,
+       --feather on cream and --feather-lt on a scene. See the design
+       language in CLAUDE.md. */
+    --sun:#F2C94C;
+    --glow:251,234,209;
+    --feather:#1A6FB0; --feather-lt:#9AD6FF;
     --sage:#7EC8A4; --sage-dk:#3F7C5C;
     --mist:#C4BFDF; --mist-dk:#8E87B8;
     --rose:#E87EA1; --ink:#1A1128;
@@ -66,8 +74,8 @@
 
   /* --- Time-of-day backgrounds, applied globally, every screen --- */
   body.time-dawn{background:linear-gradient(180deg,#3D2A85 0%,#8C6BB0 45%,#F0A868 75%,#F6C98A 100%);}
-  body.time-day{background:linear-gradient(180deg,var(--dusk-mid) 0%,var(--mist) 45%,var(--sage) 80%,var(--gold) 100%);}
-  body.time-dusk{background:linear-gradient(180deg,var(--dusk) 0%,var(--rose) 45%,var(--terra) 75%,var(--gold) 100%);}
+  body.time-day{background:linear-gradient(180deg,var(--dusk-mid) 0%,var(--mist) 45%,var(--sage) 80%,var(--sun) 100%);}
+  body.time-dusk{background:linear-gradient(180deg,var(--dusk) 0%,var(--rose) 45%,var(--terra) 75%,var(--sun) 100%);}
   body.time-night{background:linear-gradient(180deg,var(--ink) 0%,var(--dusk) 60%,var(--dusk-mid) 100%);}
 
   /* --- The painted scene, behind every screen ---------------------------
@@ -223,7 +231,7 @@
   .scene-pick img{width:100%; height:100%; object-fit:cover; display:block;}
   .scene-pick.none{
     display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(180deg,var(--dusk-mid),var(--gold));
+    background:linear-gradient(180deg,var(--dusk-mid),var(--sun));
   }
   .scene-pick-name{
     position:absolute; left:0; right:0; bottom:0; padding:12px 4px 5px;
@@ -231,10 +239,10 @@
     background:linear-gradient(180deg,rgba(26,17,40,0),rgba(26,17,40,0.78));
   }
   /* A tick as well as the ring, so the choice is not carried by colour alone */
-  .scene-pick.on{outline:3px solid var(--gold); outline-offset:-3px;}
+  .scene-pick.on{outline:3px solid var(--sage); outline-offset:-3px;}
   .scene-pick-tick{
-    position:absolute; top:5px; right:5px; width:21px; height:21px; border-radius:50%;
-    background:var(--gold); color:#fff; font-size:12px; font-weight:900;
+    position:absolute; top:4px; right:4px; width:24px; height:24px; border-radius:50%;
+    background:none; font-size:22px;
     display:none; align-items:center; justify-content:center;
   }
   .scene-pick.on .scene-pick-tick{display:flex;}
@@ -246,12 +254,15 @@
   .top-settings-btn img{width:100%;height:100%;object-fit:contain;display:block;}
   .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
-  .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Poppins';font-weight:900;font-size:17px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.35);}
+  .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Poppins';font-weight:900;font-size:17px;color:var(--feather-lt);text-shadow:0 1px 3px rgba(0,0,0,0.35);}
   /* Shared feather icon - height:1em means it always matches whatever
      font-size its context has, so one image works inline at every size
      this shows up at (top bar counter, challenge rewards, price tags,
      the flying particle animation) without per-site sizing. */
   .feather-icon{height:1em; width:auto; vertical-align:-0.15em; display:inline-block;}
+  /* A painted icon standing in a line of text, sized by that text - so it
+     drops into the same places its emoji stand-in did. */
+  .ico{height:1.15em; width:auto; vertical-align:-0.2em; display:inline-block;}
   .feathers.feather-pop{animation:featherPop 0.32s ease;}
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
   .top-wordmark{
@@ -299,7 +310,7 @@
     color:#fff; font-family:'Poppins'; font-size:9px; font-weight:700;
     flex:1 1 0; min-width:0;
   }
-  .nav-tab.active{color:var(--gold);}
+  .nav-tab.active{color:var(--sage);}
   /* Every label stays on one line. The Dress Up tab used to say "The
      Hoot-tique", which needed smaller type and still wrapped on a 320px
      phone; as "Hoot-tique" it fits at the same size as the rest. */
@@ -476,7 +487,7 @@
   /* How many of this week's challenges are done, on the disc's shoulder. */
   .hub-badge{
     position:absolute; top:-4px; right:-12px; min-width:30px; padding:3px 6px;
-    border-radius:11px; background:var(--gold); color:var(--ink);
+    border-radius:11px; background:var(--sage); color:var(--ink);
     font-weight:900; font-size:12px; line-height:1; text-align:center;
     box-shadow:0 2px 4px rgba(26,17,40,0.35); text-shadow:none;
   }
@@ -484,20 +495,20 @@
   .hub-badge.done{background:var(--sage);}
 
   /* --- Something new is waiting here ---------------------------------
-     A nav tab (or one of the three things on Home) wears a soft gold halo
+     A nav tab (or one of the three things on Home) wears a soft cream halo
      and a little painted leaf on its shoulder, hanging by its stem, that
      twitches now and then - until the child goes and looks. Kept quiet on
      purpose: a nudge, not an alarm. */
   .nav-icon-wrap{position:relative;}
   .nav-tab.has-new .nav-icon-wrap{animation:newHalo 3s ease-in-out infinite;}
   @keyframes newHalo{
-    0%,100%{box-shadow:0 0 8px 2px rgba(242,201,76,0.28);}
-    50%{box-shadow:0 0 14px 5px rgba(242,201,76,0.5);}
+    0%,100%{box-shadow:0 0 8px 2px rgba(var(--glow),0.28);}
+    50%{box-shadow:0 0 14px 5px rgba(var(--glow),0.5);}
   }
   .hub-item.has-new .hub-icon{animation:hubNewHalo 3s ease-in-out infinite;}
   @keyframes hubNewHalo{
-    0%,100%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(242,201,76,0.45));}
-    50%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(242,201,76,0.75));}
+    0%,100%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(var(--glow),0.45));}
+    50%{filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(var(--glow),0.75));}
   }
   /* The leaf (the tree's own falling-leaf sprite) stands up off the
      icon's top-right rim like a sprout. In the picture the stem is at the
@@ -543,8 +554,8 @@
   .welcome-top{display:flex; flex-direction:column; align-items:center; gap:6px; width:100%;}
   .welcome-dots{display:flex; gap:6px;}
   .welcome-dots .tut-dot{background:rgba(255,255,255,0.35);}
-  .welcome-dots .tut-dot.on{background:var(--gold);}
-  .welcome-eyebrow{font-family:'Poppins'; font-weight:800; font-size:14px; color:var(--gold); letter-spacing:.02em;}
+  .welcome-dots .tut-dot.on{background:var(--sage);}
+  .welcome-eyebrow{font-family:'Poppins'; font-weight:800; font-size:14px; color:var(--disc-cream); letter-spacing:.02em;}
   .welcome-title-row{display:flex; align-items:center; gap:10px;}
   .welcome-title{margin:0; font-family:'Poppins'; font-weight:900; font-size:clamp(24px, 7vw, 30px); color:#fff; text-align:center;
     text-shadow:0 2px 0 var(--wood-edge), 0 4px 12px rgba(26,17,40,0.5);}
@@ -555,7 +566,7 @@
   .welcome-bird-btn{aspect-ratio:1; border:none; padding:0; border-radius:50%; cursor:pointer; display:grid; place-items:center;
     background:var(--disc-cream); box-shadow:0 0 0 3px var(--wood), 0 3px 6px rgba(0,0,0,0.3);
     transition:transform .12s ease, box-shadow .12s ease; overflow:hidden;}
-  .welcome-bird-btn.on{transform:scale(1.08); box-shadow:0 0 0 3px var(--gold), 0 0 14px 4px rgba(242,201,76,0.7);}
+  .welcome-bird-btn.on{transform:scale(1.08); box-shadow:0 0 0 3px var(--sage), 0 0 14px 4px rgba(var(--glow),0.7);}
   /* A bird still to find: its shape, dark, with a question mark - found by
      hearing the real thing outside. */
   .welcome-bird-btn{position:relative;}
@@ -569,7 +580,7 @@
   .welcome-swatches{display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; width:100%; max-width:260px;}
   .welcome-swatch{aspect-ratio:1; border-radius:50%; border:3px solid rgba(255,255,255,0.85); background:var(--sw);
     cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.35); transition:transform .12s ease;}
-  .welcome-swatch.on{transform:scale(1.15); border-color:var(--gold); box-shadow:0 0 0 3px var(--wood-edge), 0 0 12px 3px rgba(242,201,76,0.8);}
+  .welcome-swatch.on{transform:scale(1.15); border-color:var(--sage); box-shadow:0 0 0 3px var(--wood-edge), 0 0 12px 3px rgba(var(--glow),0.8);}
   .welcome-name{max-width:280px; text-align:center; font-size:20px;}
   .welcome-hint{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9); margin-top:-6px;}
   .welcome-actions{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; max-width:320px; margin-top:4px;}
@@ -578,14 +589,14 @@
   @media (prefers-reduced-motion: reduce){ .welcome-bird-btn, .welcome-swatch{transition:none;} }
 
   /* --- Tutorial bubbles ----------------------------------------------
-     The screen dims, the thing being explained stays lit inside a gold
+     The screen dims, the thing being explained stays lit inside a cream
      ring, and a speech bubble in the app's wood and cream points at it.
      The dim is one huge shadow round the lit hole, so the hole is just a
      box that can glide from one step's target to the next. */
   .tut-veil{position:fixed; inset:0; z-index:1000; touch-action:none;}
   .tut-hole{
     position:fixed; border-radius:18px; pointer-events:none;
-    box-shadow:0 0 0 200vmax rgba(20,12,40,0.62), 0 0 0 3px rgba(242,201,76,0.95), 0 0 18px 6px rgba(242,201,76,0.5);
+    box-shadow:0 0 0 200vmax rgba(20,12,40,0.62), 0 0 0 3px rgba(var(--glow),0.95), 0 0 18px 6px rgba(var(--glow),0.5);
     transition:left .3s ease, top .3s ease, width .3s ease, height .3s ease, border-radius .3s ease;
   }
   .tut-bubble{
@@ -610,7 +621,7 @@
   @keyframes tutSpeak{50%{transform:scale(1.1);}}
   .tut-dots{display:flex; gap:6px; justify-content:center; flex:1;}
   .tut-dot{width:8px; height:8px; border-radius:50%; background:rgba(116,50,6,0.25);}
-  .tut-dot.on{background:var(--wood-dk);}
+  .tut-dot.on{background:var(--sage-dk);}
   .tut-ok{
     flex:0 0 auto; min-width:104px; padding:11px 18px; border:none; border-radius:30px; cursor:pointer;
     background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:900; font-size:16px;
@@ -618,7 +629,7 @@
   }
   .tut-ok:active{transform:translateY(3px); box-shadow:0 1px 0 var(--terra-dk);}
   .tut-ok:focus{outline:none;}
-  .tut-ok:focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+  .tut-ok:focus-visible{outline:3px solid var(--sage); outline-offset:2px;}
   /* The tail: a wooden point on whichever side faces the lit thing. */
   .tut-tail{position:fixed; width:0; height:0; border:12px solid transparent; pointer-events:none;
     transition:left .3s ease, top .3s ease;}
@@ -626,8 +637,8 @@
   .tut-tail.down{border-top-color:var(--wood-dk); border-bottom-width:0;}
   .tut-tail.none{display:none;}
   @media (prefers-reduced-motion: reduce){
-    .nav-tab.has-new .nav-icon-wrap{animation:none; box-shadow:0 0 10px 3px rgba(242,201,76,0.4);}
-    .hub-item.has-new .hub-icon{animation:none; filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 8px rgba(242,201,76,0.6));}
+    .nav-tab.has-new .nav-icon-wrap{animation:none; box-shadow:0 0 10px 3px rgba(var(--glow),0.4);}
+    .hub-item.has-new .hub-icon{animation:none; filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)) drop-shadow(0 0 8px rgba(var(--glow),0.6));}
     .nav-tab.has-new .nav-icon-wrap::after, .hub-item.has-new .hub-icon::after{animation:none;}
     .tut-hole, .tut-bubble, .tut-tail{transition:none; animation:none;}
     .tut-speak.speaking{animation:none;}
@@ -666,13 +677,13 @@
   .sg-level-name{font-family:'Poppins'; font-weight:900; font-size:18px; display:block; color:var(--wood-edge);}
   .sg-level-need{font-family:'Poppins'; font-weight:700; font-size:12px; display:block;
     color:var(--wood-dk);}
-  /* The level to play next breathes and glows gold, like the front trophy. */
+  /* The level to play next breathes and glows cream, like the front trophy. */
   .sg-level.invite{animation:sgLevelInvite 1.6s ease-in-out infinite;}
   @keyframes sgLevelInvite{
     0%,100%{transform:scale(1);
-      box-shadow:0 2px 5px rgba(26,17,40,0.3), 0 0 0 0 rgba(242,201,76,0);}
+      box-shadow:0 2px 5px rgba(26,17,40,0.3), 0 0 0 0 rgba(var(--glow),0);}
     50%{transform:scale(1.035);
-      box-shadow:0 2px 5px rgba(26,17,40,0.3), 0 0 0 2px rgba(242,201,76,0.9), 0 0 20px 5px rgba(242,201,76,0.65);}
+      box-shadow:0 2px 5px rgba(26,17,40,0.3), 0 0 0 2px rgba(var(--glow),0.9), 0 0 20px 5px rgba(var(--glow),0.65);}
   }
   .sg-note{font-size:13px; color:#fff; text-align:center; margin-top:16px; line-height:1.4;}
   /* Stars: gold when earned, an empty outline-ish dim star when not. On the
@@ -683,7 +694,7 @@
   .sg-star:not(.on){filter:grayscale(1) brightness(.8); opacity:.5;}
   .sg-level-stars{margin-left:auto; flex:0 0 auto;}
   /* End screen: three grey sockets, and each star won drops into its socket
-     in turn - overshooting, settling, with a gold ring bursting out behind
+     in turn - overshooting, settling, with a cream ring bursting out behind
      it. --d staggers them. */
   .sg-end-stars{gap:10px; margin:10px 0 8px;}
   .sg-slot{position:relative; width:68px; height:68px;}
@@ -691,14 +702,14 @@
   .sg-end-stars .sg-star{width:68px; height:68px;}
   .sg-end-stars .sg-star.on{position:absolute; inset:0; z-index:2;
     animation:sgStarPop .65s cubic-bezier(.25,1.5,.5,1) both; animation-delay:var(--d);
-    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(242,201,76,0.5));}
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(var(--glow),0.5));}
   @keyframes sgStarPop{
     0%{transform:scale(2.2) rotate(-25deg); opacity:0;}
     55%{transform:scale(.88) rotate(6deg); opacity:1;}
     100%{transform:scale(1) rotate(0); opacity:1;}
   }
   .sg-burst{position:absolute; inset:-6px; z-index:1; border-radius:50%; pointer-events:none;
-    border:4px solid var(--gold); opacity:0;
+    border:4px solid var(--disc-cream); opacity:0;
     animation:sgBurst .7s ease-out forwards; animation-delay:calc(var(--d) + .3s);}
   @keyframes sgBurst{
     0%{transform:scale(.6); opacity:.95;}
@@ -730,13 +741,12 @@
     transform-origin:left center; transform:scaleX(1);}
   .sg-timer-fill.running{transition:transform linear; transform:scaleX(0);
     animation:sgTimerColour linear forwards;}
-  /* Green while there's plenty of time, through gold and orange, to red at
+  /* Green while there's plenty of time, through orange, to red at
      the end. Runs for the same fifteen seconds as the drain (the duration is
      set on both in startSongGameTimer). */
   @keyframes sgTimerColour{
     0%{background:var(--sage);}
-    45%{background:var(--gold);}
-    72%{background:#F08A3C;}
+    55%{background:#F08A3C;}
     100%{background:#E5483B;}
   }
   .sg-grid{display:grid; gap:10px; width:100%; max-width:360px; justify-content:center;}
@@ -815,12 +825,12 @@
   .sg-navbtn.locked{cursor:default; opacity:.75;}
   .sg-navbtn.locked img{filter:grayscale(1) brightness(.85) drop-shadow(0 3px 6px rgba(0,0,0,0.35));}
   .sg-navbtn.locked:active img{transform:none;}
-  /* Next level open: it breathes and glows gold once the stars have landed,
+  /* Next level open: it breathes and glows cream once the stars have landed,
      like the level to play next on the levels page. */
   .sg-navbtn.invite img{animation:sgNavInvite 1.6s ease-in-out 1.4s infinite;}
   @keyframes sgNavInvite{
     0%,100%{transform:scale(1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35));}
-    50%{transform:scale(1.1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(242,201,76,0.95));}
+    50%{transform:scale(1.1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 12px rgba(var(--glow),0.95));}
   }
   @media (prefers-reduced-motion: reduce){
     .sg-timer.urgent{animation:none; box-shadow:0 0 10px 2px rgba(229,72,59,0.75);}
@@ -843,7 +853,7 @@
   .season-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--mist);}
   .season-here .season-dot{background:var(--sage);}
   .season-leaving .season-dot{background:var(--terra);}
-  .season-arriving .season-dot{background:var(--gold);}
+  .season-arriving .season-dot{background:var(--sage);}
   .season-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
   .season-away .season-name{color:var(--mist-dk);}
   .season-label{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--mist-dk);flex-shrink:0;}
@@ -865,7 +875,7 @@
   .migration-map-overlay{position:absolute;inset:0;width:100%;height:100%;}
   .migration-credit{font-size:9.5px;color:rgba(255,255,255,0.55);text-align:center;margin-top:6px;}
   .migration-credit a{color:rgba(255,255,255,0.7);}
-  .migration-destination{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);text-align:center;margin-top:14px;}
+  .migration-destination{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--disc-cream);text-align:center;margin-top:14px;}
   .migration-fact{font-size:13px;line-height:1.55;color:rgba(255,255,255,0.92);text-align:center;margin-top:8px;padding:0 8px;}
   /* Weekly Challenges: each one is a card like the rest of the app - the
      My Flock wooden frame round a panel in the discs' cream. A finished one
@@ -881,7 +891,7 @@
      making a finished card taller - all six still fit without scrolling. */
   .challenge-tick{flex:0 0 auto;width:24px;height:24px;display:block;margin:-4px 0;
     filter:drop-shadow(0 1px 2px rgba(26,17,40,0.35));}
-  .challenge-feathers{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--wood-dk);flex-shrink:0;
+  .challenge-feathers{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--feather);flex-shrink:0;
     display:flex;align-items:center;gap:3px;}
   .challenge-meter{display:flex;align-items:center;gap:9px;margin-top:6px;}
   .challenge-bar{flex:1;height:7px;background:rgba(116,50,6,0.14);border-radius:4px;overflow:hidden;}
@@ -889,16 +899,17 @@
   .challenge-progress{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-dk);
     flex:0 0 auto;white-space:nowrap;}
   /* The prize card: the week's only feathers, so it leads and stands out a
-     little - a gold edge inside the frame and a bigger feather count. */
+     little - a green edge inside the frame (finished is green) and a bigger
+     feather count. */
   /* Set apart from the five below it: a wider gap, and a darker, warmer
      cream than theirs. */
   .challenge-card.all-bonus{margin-bottom:24px;}
-  .challenge-card.all-bonus .challenge-inner{background:#F1D3A1; box-shadow:inset 0 0 0 2px var(--gold);}
+  .challenge-card.all-bonus .challenge-inner{background:#F1D3A1; box-shadow:inset 0 0 0 2px var(--sage-dk);}
   .challenge-card.all-bonus .challenge-feathers{font-size:17px;}
   /* The four shortcuts sit on an arc beneath the mic rather than as four
      full-width stacked tiles, which dominated the screen. Positions are set
      per-button with --x/--y so the arc is defined in one place. */
-  .tip-card{width:100%;background:#fff;border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
+  .tip-card{width:100%;background:var(--disc-cream);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
   .tip-icon{font-size:22px;flex-shrink:0;}
   .tip-title{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
   .tip-text{font-size:12.5px;line-height:1.5;color:var(--ink);}
@@ -913,7 +924,7 @@
   .nobirds-tip:active{transform:scale(.98);}
   .tip-more{
     font-family:'Poppins'; font-weight:700; font-size:11.5px;
-    color:var(--gold-dk); margin-top:7px;
+    color:var(--wood-edge); margin-top:7px;
   }
   /* --- Joke of the Day ---------------------------------------------------
      No card: the joke sits straight on the scene, big, and spread down the
@@ -936,7 +947,7 @@
   }
   .joke-reveal img{width:100%; height:100%; display:block;}
   /* The drama, in three beats. 1: the question mark winds up - a shake that
-     grows. 2: it bursts, throwing a gold ring and sparks. 3: the punchline
+     grows. 2: it bursts, throwing a cream ring and sparks. 3: the punchline
      bounces in where it was. */
   .joke-reveal.windup{animation:jokeWindup .6s ease-in both;}
   .joke-reveal.burst{animation:jokeBurst .28s ease-out forwards;}
@@ -950,19 +961,19 @@
   }
   @keyframes jokeBurst{to{transform:scale(1.7) rotate(25deg); opacity:0;}}
   .joke-ring{position:absolute; left:50%; top:50%; width:120px; height:120px; margin:-60px 0 0 -60px;
-    border-radius:50%; border:8px solid var(--gold); pointer-events:none;
-    box-shadow:0 0 14px rgba(242,201,76,0.8); animation:jokeRing .6s ease-out forwards;}
+    border-radius:50%; border:8px solid var(--disc-cream); pointer-events:none;
+    box-shadow:0 0 14px rgba(var(--glow),0.8); animation:jokeRing .6s ease-out forwards;}
   @keyframes jokeRing{from{transform:scale(.5); opacity:1;} to{transform:scale(2.4); opacity:0; border-width:1px;}}
   .joke-spark{position:absolute; left:50%; top:50%; width:18px; height:18px; margin:-9px 0 0 -9px;
     box-shadow:0 0 8px rgba(255,255,255,0.7);
-    border-radius:50%; background:var(--spark, var(--gold)); pointer-events:none;
+    border-radius:50%; background:var(--spark, var(--disc-cream)); pointer-events:none;
     animation:jokeSpark .75s cubic-bezier(.15,.7,.4,1) forwards;}
   @keyframes jokeSpark{
     from{transform:translate(0,0) scale(1); opacity:1;}
     to{transform:translate(var(--dx), var(--dy)) scale(.3); opacity:0;}
   }
   .joke-punch{
-    font-weight:900; font-size:clamp(27px, 8vw, 34px); line-height:1.2; color:var(--gold);
+    font-weight:900; font-size:clamp(27px, 8vw, 34px); line-height:1.2; color:var(--disc-cream);
     /* Gold alone disappears into a dusk sky, so it's carved out with a dark
        wood edge and a soft shadow, like the wordmark. */
     text-shadow:0 2px 0 var(--wood-edge), 0 -1px 0 var(--wood-edge), 2px 0 0 var(--wood-edge),
@@ -1010,7 +1021,7 @@
   /* The seasonal ribbon sits over the bottom of the nameplate, so give the
      name less room on those cards rather than letting it run underneath. */
   .fan-card.away .fan-name{height:25px;}
-  .season-surprise{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);}
+  .season-surprise{background:#FFF6E6;border:2px solid var(--wood);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);}
   /* Rare cards: a gold band across the bottom of the bird window, a gold
      trim round the whole card, and the pack mark in the corners in gold.
      The band sits under the frame layer (z-index 1, after the photo) and runs
@@ -1066,7 +1077,7 @@
   .tag.new{background:var(--disc-cream); color:var(--wood-edge); font-weight:900; font-size:12px;
     box-shadow:inset 0 0 0 2px var(--wood);}
   .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
-  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:15px;color:var(--gold-dk);animation:statFadeUp 0.4s ease 0.6s both;}
+  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:15px;color:var(--feather);animation:statFadeUp 0.4s ease 0.6s both;}
   /* Heard again the same day: no feathers, said plainly rather than "+0". */
   .feather-row.none{font-size:12.5px;color:var(--mist-dk);}
   @keyframes statFadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
@@ -1119,7 +1130,7 @@
   .moment-kicker{font-family:'Poppins'; font-weight:900; font-size:16px; line-height:1.15; color:var(--wood-edge);}
   .moment-name{font-family:'Poppins'; font-weight:700; font-size:12.5px; line-height:1.25; color:#4A2408; opacity:.8;}
   .moment-feathers{display:flex; align-items:center; gap:4px; flex:0 0 auto; margin-left:2px;
-    font-family:'Poppins'; font-weight:900; font-size:18px; color:#B8901F;}
+    font-family:'Poppins'; font-weight:900; font-size:18px; color:var(--feather);}
   .moment-feathers .feather-icon{width:20px; height:20px;}
   @media (prefers-reduced-motion: reduce){ .moment{animation:none;} }
   .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
@@ -1266,8 +1277,8 @@
     align-items:center; justify-content:center; padding:0;
   }
   .flock-searchbtn.on{
-    background:linear-gradient(180deg, var(--wood-lit), var(--wood));
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(116,50,6,0.45);
+    background:linear-gradient(180deg, #9AD7B8, var(--sage)); color:var(--ink);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), inset 0 0 0 1px rgba(63,124,92,0.6);
   }
 
   /* The seg control and the field itself fold away when stuck, which is the
@@ -1325,12 +1336,11 @@
     cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;
     max-width:100%; overflow:hidden;
   }
-  /* Chosen: solid wood with a lit top edge, the same read as a pressed
-     wooden button elsewhere in the app. */
+  /* Chosen: green with a lit top edge - selected is green everywhere. */
   .flock-ctl.on{
-    background:linear-gradient(180deg, var(--wood-lit), var(--wood));
-    color:var(--parch);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(116,50,6,0.45);
+    background:linear-gradient(180deg, #9AD7B8, var(--sage));
+    color:var(--ink);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), inset 0 0 0 1px rgba(63,124,92,0.6);
   }
   .flock-ctl-label{overflow:hidden;text-overflow:ellipsis;}
   .flock-spacer{flex:1 1 auto;}
@@ -1358,10 +1368,10 @@
     padding:7px 0; font-family:'Poppins'; font-weight:700; font-size:12.5px;
     color:rgba(245,237,214,0.78); transition:background .18s ease, color .18s ease;
   }
-  /* The one parchment element in the bar, so which view you are in is the
-     first thing you see - and it is the same cream as the nameplates. */
+  /* The one green element in the bar, so which view you are in is the
+     first thing you see - selected is green everywhere. */
   .flock-seg button.on{
-    background:var(--parch); color:var(--wood-edge);
+    background:var(--sage); color:var(--ink);
     box-shadow:0 1px 2px rgba(26,17,40,0.25);
   }
 
@@ -1388,14 +1398,14 @@
     font-family:'Poppins'; font-weight:700; font-size:13px; color:var(--dusk);
     cursor:pointer; margin-bottom:6px; min-height:44px;
   }
-  .sheet-opt.on{background:var(--goldbg,#FBF0D8);outline:2px solid var(--gold);}
-  .sheet-opt .tick{margin-left:auto;color:var(--gold-dk);font-weight:900;}
+  .sheet-opt.on{background:#EAF5EE;outline:2px solid var(--sage);}
+  .sheet-opt .tick{margin-left:auto;color:var(--sage-dk);font-weight:900;}
   .sheet-chips{display:flex;flex-wrap:wrap;gap:6px;}
   .sheet-chip{
     background:var(--parch); border:none; border-radius:15px; padding:8px 12px; min-height:34px;
     font-family:'Poppins'; font-weight:700; font-size:12px; color:var(--dusk); cursor:pointer;
   }
-  .sheet-chip.on{background:var(--gold);color:#fff;}
+  .sheet-chip.on{background:var(--sage-dk);color:#fff;}
   .sheet-actions{
     display:flex; gap:8px; align-items:center; margin-top:18px;
     position:sticky; bottom:-22px; background:#fff; padding:10px 0 0;
@@ -1405,7 +1415,7 @@
     color:var(--mist-dk); cursor:pointer; padding:12px 4px;
   }
   .sheet-done{
-    flex:1 1 auto; background:var(--gold); color:#fff; border:none; border-radius:16px;
+    flex:1 1 auto; border-radius:16px;
     padding:13px; font-family:'Poppins'; font-weight:900; font-size:13.5px; cursor:pointer;
   }
 
@@ -1644,7 +1654,7 @@
   .tt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
   .tt-label{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);width:64px;flex-shrink:0;}
   .tt-bar{flex:1;height:9px;background:var(--parch-dk);border-radius:5px;overflow:hidden;}
-  .tt-fill{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:5px;}
+  .tt-fill{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--sage-dk));border-radius:5px;}
   .tt-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--dusk);width:24px;text-align:right;flex-shrink:0;}
   .fact-num-sm{font-size:11px !important;line-height:1.25;}
   .facts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
@@ -1939,7 +1949,7 @@
      .color-wheel uses, without its padding) so the first and last icons
      line up with the first and last swatches. Each button is as wide as its
      icon for that reason; it's tall enough to tap. The chosen one lifts
-     and glows gold over a gold dot - no growing, which would push it past
+     and glows cream over a green dot - no growing, which would push it past
      the swatches' edge - and the rest dim. */
   .category-chip{
     width:32px; height:44px; border:none; cursor:pointer; background:none;
@@ -1954,9 +1964,9 @@
   }
   .category-chip.active{transform:translateY(-3px);}
   .category-chip.active img{opacity:1;
-    filter:brightness(0) invert(1) drop-shadow(0 0 6px rgba(242,201,76,0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.45));}
+    filter:brightness(0) invert(1) drop-shadow(0 0 6px rgba(var(--glow),0.95)) drop-shadow(0 2px 3px rgba(0,0,0,0.45));}
   .category-chip.active::after{content:''; position:absolute; left:50%; bottom:0; width:6px; height:6px;
-    margin-left:-3px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px rgba(242,201,76,0.9);}
+    margin-left:-3px; border-radius:50%; background:var(--sage); box-shadow:0 0 6px rgba(var(--glow),0.9);}
 
   /* Reset and Randomise, as the secondary utilities they are rather than
      the widest button on the screen, which is what Reset used to be. */
@@ -2084,7 +2094,7 @@
   .carousel-panel{width:100%;max-width:100%;overflow-x:hidden;overflow-y:visible;}
   /* Item cards: the cream of the wooden discs in a wooden frame, like the
      level cards and challenges. An item you haven't bought is a darker
-     cream with its picture faded; the one being worn has a gold frame that
+     cream with its picture faded; the one being worn has a green frame that
      glows. */
   .carousel-item{
     flex:0 0 auto; width:78px; background:var(--disc-cream); border-radius:14px; padding:8px 5px 10px;
@@ -2094,8 +2104,8 @@
   }
   .carousel-item{transition:transform .25s cubic-bezier(.34,1.4,.64,1), box-shadow .25s ease, width .25s ease, border-color .2s ease;}
   .carousel-item.unowned{background:#EBDCC2;}
-  .carousel-item.equipped{border-color:var(--gold);
-    box-shadow:inset 0 0 0 1px rgba(116,50,6,0.35), 0 0 12px 2px rgba(242,201,76,0.8);}
+  .carousel-item.equipped{border-color:var(--sage);
+    box-shadow:inset 0 0 0 1px rgba(116,50,6,0.35), 0 0 12px 2px rgba(var(--glow),0.8);}
   /* Tapping an unowned item lifts it out of the row and makes room for Buy */
   .carousel-item.expanded{
     width:96px; transform:translateY(-10px) scale(1.06); z-index:5;
@@ -2106,7 +2116,7 @@
     border-radius:10px; padding:5px 4px; font-family:'Poppins'; font-weight:900;
     font-size:10px; cursor:pointer; box-shadow:0 2px 0 var(--terra-dk);
   }
-  .item-buy-btn.cant-afford{background:var(--mist-dk); box-shadow:0 2px 0 var(--dusk-mid); font-size:8.5px;}
+  .item-buy-btn.cant-afford{font-size:8.5px;}
   .carousel-item .item-icon-wrap{width:60px;height:60px;line-height:1;}
   .carousel-item.expanded .item-icon-wrap{width:76px;height:76px;}
   .carousel-item.unowned .item-icon-wrap{opacity:0.55;filter:grayscale(0.4);}
@@ -2118,9 +2128,9 @@
     box-shadow:0 1px 4px rgba(0,0,0,0.25);
   }
   .carousel-item-price-badge .feather-icon{width:9px;height:9px;}
-  .carousel-item-price-badge.affordable{color:var(--gold-dk);}
+  .carousel-item-price-badge.affordable{color:var(--feather);}
   .carousel-item-price-badge.unaffordable{color:var(--mist-dk);opacity:0.75;}
-  .avatar-option.selected{border-color:var(--gold);}
+  .avatar-option.selected{border-color:var(--sage);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
   /* The dressing room. The white circle and its wooden ring are gone: the
      bird now stands on the purple rug inside a lit dressing room, and every
@@ -2226,7 +2236,6 @@
   .feather-set-btn{margin:0;padding:12px 22px;flex-shrink:0;}
   .reset-note{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:10px;width:100%;}
   .reset-btn{width:100%;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;text-align:left;}
-  .reset-btn.danger{background:rgba(192,57,43,0.55);}
   .reset-btn:disabled{opacity:.6;}
   .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:11px 14px;width:100%;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);cursor:pointer;}
   .toggle-row input{width:20px;height:20px;accent-color:var(--terra);cursor:pointer;}
@@ -2250,7 +2259,7 @@
   .feather-input{flex:1;margin:0;max-width:none;}
   .nearby-places{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;margin-top:12px;}
   .nearby-place{display:flex;align-items:center;justify-content:space-between;gap:10px;
-    background:#fff;border:none;border-radius:14px;padding:13px 16px;cursor:pointer;
+    background:var(--disc-cream);border:none;border-radius:14px;padding:13px 16px;cursor:pointer;
     box-shadow:0 4px 12px rgba(26,17,40,0.18);text-align:left;}
   .nearby-place:active{transform:scale(.97);}
   .nearby-place-name{font-family:'Poppins';font-weight:700;font-size:15px;color:var(--dusk);}
@@ -2278,7 +2287,7 @@
      either side recede. Real 3D perspective behaves inconsistently across
      mobile browsers, and reads no better at this size. */
   .habitat-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;width:100%;}
-  .habitat-card.complete{background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);}
+  .habitat-card.complete{background:#EAF5EE;border:2px solid var(--sage-dk);}
   .habitat-top{display:flex;justify-content:space-between;align-items:baseline;}
   .habitat-name{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--dusk);}
   .habitat-count{font-family:'Poppins';font-weight:700;font-size:12px;color:var(--mist-dk);}
@@ -2288,7 +2297,7 @@
   .hab-dot{width:11px;height:11px;border-radius:50%;background:var(--mist);opacity:.45;}
   .hab-dot.found{background:var(--sage);opacity:1;}
   .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Poppins';font-weight:700;}
-  .habitat-done{font-size:10.5px;color:var(--gold-dk);margin-top:7px;font-family:'Poppins';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
+  .habitat-done{font-size:10.5px;color:var(--sage-dk);margin-top:7px;font-family:'Poppins';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
   .habitat-card{cursor:pointer;}
   /* Collections layout: a single row of pill-button pack tabs across the top
      (scrolls sideways, doesn't compete for space with the carousel below),
@@ -2337,7 +2346,7 @@
     border-radius:12px;background:var(--parch);cursor:pointer;text-align:left;
     min-height:40px;
   }
-  .all-pack.on{background:var(--goldbg,#FBF0D8);outline:2px solid var(--gold);}
+  .all-pack.on{background:#EAF5EE;outline:2px solid var(--sage);}
   /* The round badge here rather than the loose icon: ten circles of one
      width line the grid up, where ten different silhouettes would not. */
   .all-pack-badge{height:36px;width:36px;object-fit:contain;flex:0 0 auto;display:block;}
@@ -2352,7 +2361,7 @@
     object-position:left center;display:block;}
   .all-pack-count{font-family:'Poppins';font-weight:900;font-size:10.5px;color:var(--mist-dk);
     white-space:nowrap;line-height:19px;}
-  .all-pack.done .all-pack-count{color:var(--gold-dk);}
+  .all-pack.done .all-pack-count{color:var(--sage-dk);}
 
   /* No card frame - the fan sits straight on the background. All ten cards
      sit statically in one overlapping row sized to fit the frame at once -
@@ -2571,7 +2580,7 @@
      vanish, so here they go the near-white of the stats panel below them. */
   .bird-card .fact-tile{background:#FFF9EF;}
   .trophy-hero{
-    height:236px; background:var(--goldbg,#FBF0D8);
+    height:236px; background:#FFF6E6;
     display:flex; align-items:center; justify-content:center;
     border-radius:var(--inner) var(--inner) 0 0;
   }
@@ -2661,12 +2670,12 @@
      of focus. */
   /* On the trophy card: which of the seven levels this is, beside the name. */
   .trophy-card-title{display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px;}
-  .trophy-card-level{display:inline-block; background:var(--gold); color:var(--ink);
+  .trophy-card-level{display:inline-block; background:var(--sage); color:var(--ink);
     font-family:'Poppins'; font-size:12px; font-weight:900; padding:3px 10px; border-radius:12px;
     white-space:nowrap;}
-  .trophy-level{display:inline-block;background:var(--gold);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;text-shadow:none;}
+  .trophy-level{display:inline-block;background:var(--sage);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;text-shadow:none;}
   .trophy-caption-next{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:5px;}
-  .trophy-caption-tap{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .trophy-caption-tap{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--disc-cream);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
   /* Feathers-earned and "go again" share one grid cell (both always in the
      DOM, never display:none) so the cell's height is fixed to whichever is
      taller - swapping which one is visible is a pure opacity crossfade with
@@ -2679,7 +2688,7 @@
     opacity:0; pointer-events:none; transition:opacity .3s ease;
   }
   .done-feathers-slot .go-again-content.visible{opacity:1; pointer-events:auto;}
-  .done-feathers{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--gold);margin-top:14px;transition:opacity .3s ease;}
+  .done-feathers{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--feather-lt);margin-top:14px;transition:opacity .3s ease;}
   .done-feathers.collected{opacity:0; pointer-events:none;}
   /* It shares its grid cell with what comes next, which is taller - keep
      the glowing pill its own size rather than stretched to fill it. */
@@ -2698,7 +2707,7 @@
   .done-shop-disc:active{transform:scale(.94);}
   @keyframes shopInvite{
     0%,100%{transform:scale(1);}
-    50%{transform:scale(1.07); box-shadow:0 0 0 4px var(--wood), 0 0 0 6px var(--wood-edge), 0 0 18px 6px rgba(242,201,76,0.8);}
+    50%{transform:scale(1.07); box-shadow:0 0 0 4px var(--wood), 0 0 0 6px var(--wood-edge), 0 0 18px 6px rgba(var(--glow),0.8);}
   }
   /* "New spot!" inside the Done screen, after the feathers. */
   .done-spot{--frame:5px; --inner:14px; width:100%; max-width:340px; margin-top:12px;}
@@ -2706,8 +2715,12 @@
     display:flex; flex-direction:column; align-items:center; color:var(--wood-edge);}
   .done-spot-in .stage-label{color:var(--wood-edge); font-size:20px; text-shadow:none;}
   .done-spot-in .stage-sub{color:var(--wood-dk); text-shadow:none;}
-  .done-spot-in .again-btn{margin-top:10px; background:var(--terra); box-shadow:0 4px 0 var(--terra-dk); font-weight:900;}
+  .done-spot-in .again-btn{margin-top:10px;}
   .done-spot-in .skip-btn{color:var(--wood-dk); text-shadow:none;}
+  /* The scene's legibility shadow (body.scene-on ...) outranks the three
+     lines above, and on cream it smudged every letter of "New spot!". */
+  body.scene-on .done-spot-in .stage-label, body.scene-on .done-spot-in .stage-sub,
+  body.scene-on .done-spot-in .skip-btn, body.scene-on .done-spot-in .nearby-or{text-shadow:none;}
   @media (prefers-reduced-motion: reduce){ .done-shop-disc{animation:none;} }
   /* Dancing avatar on the Done screen: av-torso (body + both wings) adds a
      small shimmy, and each wing wave pivots at the shoulder joint where it
@@ -2734,13 +2747,13 @@
   @keyframes wingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(45deg);}}
   @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-45deg);}}
   .done-avatar{margin-bottom:4px;}
-  .trophy-banner-tap{font-family:'Poppins';font-weight:700;font-size:10px;color:var(--gold-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
+  .trophy-banner-tap{font-family:'Poppins';font-weight:700;font-size:10px;color:var(--sage-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
   .done-feathers.tappable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;border-radius:20px;padding:6px 18px;}
   .trophy-banner{
-    width:100%;background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:16px;
+    width:100%;background:#FFF6E6;border:2px solid var(--wood);border-radius:16px;
     padding:14px;margin-top:16px;text-align:center;
   }
-  .trophy-banner-title{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.04em;}
+  .trophy-banner-title{font-family:'Poppins';font-weight:900;font-size:13px;color:var(--wood-edge);text-transform:uppercase;letter-spacing:.04em;}
   .trophy-banner-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px;}
   .trophy-banner-emoji{font-size:24px;}
   .trophy-banner-text{text-align:left;}
@@ -2750,6 +2763,37 @@
   .avatar-banner-bird{width:56px; height:56px; border-radius:50%; overflow:hidden; flex:0 0 auto;
     background:var(--disc-cream); box-shadow:0 0 0 2px var(--wood);}
   .rank-banner-leaf{width:30px; height:30px; transform:rotate(-30deg);}
+  /* --- Every text button is wood ------------------------------------------
+     The design language (CLAUDE.md): one material for everything a child
+     touches. A text button is a carved wood rim round a cream face with the
+     words in the wood's dark edge colour, sitting proud on a darker lip that
+     it presses into when tapped - the same wood as the frames and discs.
+     One element, no extra markup: the cream fills the padding box and the
+     wood shows through the transparent border. Sizes and spacing stay with
+     each button's own rule above; only the material is set here, after them,
+     so it wins. A new text button joins this list rather than picking a
+     colour of its own. */
+  .again-btn:not(.mic-again-btn), .tut-ok, .photo-btn, .photo-btn-clear,
+  .reset-btn, .play-call-btn, .sheet-done, .item-buy-btn{
+    background:
+      linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box,
+      repeating-linear-gradient(91deg, rgba(255,255,255,0.06) 0 1px, rgba(116,50,6,0.06) 1px 3px) border-box,
+      linear-gradient(180deg, var(--wood-lit) 0%, var(--wood) 52%, var(--wood-dk) 100%) border-box;
+    border:3px solid transparent;
+    color:var(--wood-edge); font-weight:900; text-shadow:none;
+    box-shadow:0 3px 0 var(--wood-edge), 0 4px 8px rgba(26,17,40,0.28);
+    backdrop-filter:none; -webkit-backdrop-filter:none;
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .again-btn:not(.mic-again-btn):active, .tut-ok:active, .photo-btn:active, .photo-btn-clear:active,
+  .reset-btn:active, .play-call-btn:active, .sheet-done:active, .item-buy-btn:active{
+    transform:translateY(2px); box-shadow:0 1px 0 var(--wood-edge), 0 2px 4px rgba(26,17,40,0.28);
+  }
+  /* The one that can't be undone says so in its words' colour, not a red slab. */
+  .reset-btn.danger{color:#A3261C;}
+  /* Not enough feathers yet: the same wood, greyed like anything locked. */
+  .item-buy-btn.cant-afford{filter:grayscale(1); opacity:.7; box-shadow:0 2px 0 var(--wood-edge);}
+  .reset-btn:disabled, .again-btn:disabled, .tut-ok:disabled{filter:grayscale(.6); opacity:.6;}
 </style>
 </head>
 <body>
@@ -2819,6 +2863,28 @@
 
 <script>
 const stage = document.getElementById('stage');
+
+// --- Painted icons -------------------------------------------------------
+// The design language is painted art, never emoji. These are the last few
+// small icons still waiting for their paintings: each shows its emoji
+// stand-in until static/icon-<name>-v<N>.webp is delivered. The server lists
+// the ones it finds (/painted-icons) and icon() uses them from then on, with
+// no code change. What each should look like: design-brief-info-icons-v1.md.
+const ICON_STANDINS = {
+  weight: '⚖️', length: '📏', wingspan: '↔️', habitat: '🏞️', diet: '🍽️',
+  'garden-parks': '🌳', woodland: '🌲', 'wetland-coast': '🌊', farmland: '🌾', towns: '🏘️',
+  'tip-sunrise': '🌅', 'tip-quiet': '🤫', 'tip-places': '📍', 'tip-close': '🎧',
+  'tip-rain': '🌦️', 'tip-calm': '🧘',
+  pin: '📍', lock: '🔒', camera: '📷',
+};
+let paintedIcons = {};
+fetch('/painted-icons').then(r => r.ok ? r.json() : {}).then(d => { paintedIcons = d.icons || {}; }).catch(() => {});
+function icon(name) {
+  return paintedIcons[name] ? `<img class="ico" src="${paintedIcons[name]}" alt="">` : (ICON_STANDINS[name] || '');
+}
+// Two that are painted already.
+const PAINTED_TICK = '<img class="ico" src="/static/tick-v1.webp" alt="done">';
+const PAINTED_BIRD = '<img class="ico" src="/static/live-bird-v2.webp" alt="">';
 const featherCountEl = document.getElementById('featherCount');
 
 // Untiered birds - ones BirdNET knows that Warble does not collect - used to
@@ -3084,7 +3150,7 @@ async function renderWhatsHere() {
       <div class="season-row season-${b.state} tappable" data-name="${b.common_name}">
         <span class="season-dot"></span>
         <span class="season-name">${birdName(b.common_name)}</span>
-        <span class="season-label">${b.found ? '✓ ' : ''}${b.label}</span>
+        <span class="season-label">${b.found ? PAINTED_TICK + ' ' : ''}${b.label}</span>
         <span class="season-chevron">›</span>
       </div>`).join('');
     list.querySelectorAll('.season-row').forEach(row => {
@@ -3283,7 +3349,7 @@ function revealJokePunchline(punchline) {
     btn.classList.remove('windup');
     btn.classList.add('burst');
     try { navigator.vibrate && navigator.vibrate(35); } catch (e) {}
-    const colours = ['var(--gold)', '#FFFFFF', 'var(--terra)', 'var(--sage)'];
+    const colours = ['var(--disc-cream)', '#FFFFFF', 'var(--terra)', 'var(--sage)'];
     let bits = '<span class="joke-ring"></span>';
     for (let i = 0; i < 20; i++) {
       const a = (i / 20) * Math.PI * 2 + Math.random() * 0.3;
@@ -3376,7 +3442,7 @@ async function renderSongGame(data) {
   box.innerHTML = data.levels.map(l => `
     <button class="sg-level woodframe ${l.unlocked ? '' : 'locked'} ${l === invite ? 'invite' : ''}" data-level="${l.level}">
       <span class="sg-level-inner">
-        <span class="sg-level-num">${l.level}${l.unlocked ? '' : '<span class="sg-level-lock">🔒</span>'}</span>
+        <span class="sg-level-num">${l.level}${l.unlocked ? '' : `<span class="sg-level-lock">${icon('lock')}</span>`}</span>
         <span>
           <span class="sg-level-name">Level ${l.level}</span>
           ${songGameBirdsNeeded(l)}
@@ -3526,10 +3592,10 @@ function renderSongGameRound() {
       ${g.choices.map((b, i) => `
         <button class="sg-tile woodframe waiting" data-i="${i}" disabled>
           <span class="sg-photo">
-            ${b.own_photo ? '<span class="sg-own" aria-label="Your photo">📷</span>' : ''}
+            ${b.own_photo ? `<span class="sg-own" aria-label="Your photo">${icon('camera')}</span>` : ''}
             ${b.image_url
               ? `<img ${b.own_photo ? `src="${escapeFlock(b.image_url)}"` : `class="stock" ${birdImg(b.image_url, 260)}`} alt="">`
-              : '<div class="sg-blank">🐦</div>'}
+              : `<div class="sg-blank">${PAINTED_BIRD}</div>`}
           </span>
           <span class="sg-name">${escapeFlock(birdName(b.common_name))}</span>
         </button>`).join('')}
@@ -3774,17 +3840,17 @@ async function renderSongGameEnd() {
 // useful on its own - tapping through to the full tip is a bonus, not the
 // point.
 const WARBLING_TIPS = [
-  { icon: '🌅', title: 'Early birds sing loudest', short: 'Birds sing most at sunrise',
+  { icon: 'tip-sunrise', title: 'Early birds sing loudest', short: 'Birds sing most at sunrise',
     text: "Dawn is when birds sing the most, right before and after sunrise. Get out early and you'll hear far more than any other time of day." },
-  { icon: '🤫', title: 'Stay still and quiet', short: 'Stand still and listen',
+  { icon: 'tip-quiet', title: 'Stay still and quiet', short: 'Stand still and listen',
     text: 'Birds go quiet if they hear something moving or talking nearby. Find a spot, stop, and just listen for a minute before you start recording.' },
-  { icon: '📍', title: 'Try lots of different places', short: 'New places, new birds',
+  { icon: 'tip-places', title: 'Try lots of different places', short: 'New places, new birds',
     text: "Different birds live in different spots — some like gardens, some like woods, some like water. The more places you warble, the more you'll hear." },
-  { icon: '🎧', title: 'Get close, but not too close', short: 'Point your phone at it',
+  { icon: 'tip-close', title: 'Get close, but not too close', short: 'Point your phone at it',
     text: "Hold your phone up and point it toward where the sound is coming from. You don't need to be right next to a bird, just close enough to hear it clearly." },
-  { icon: '🌦️', title: 'Birds sing on rainy days too', short: 'Birds sing in light rain',
+  { icon: 'tip-rain', title: 'Birds sing on rainy days too', short: 'Birds sing in light rain',
     text: "Don't wait for perfect weather. Many birds keep singing through light rain and cloudy skies — you might hear something new." },
-  { icon: '🧘', title: "It's okay to hear nothing", short: 'Heard nothing? Try again',
+  { icon: 'tip-calm', title: "It's okay to hear nothing", short: 'Heard nothing? Try again',
     text: "Sometimes you won't hear any birds, and that's completely normal. Just try again another time or another place." },
 ];
 
@@ -3792,7 +3858,7 @@ function renderTips() {
   stage.classList.add('top-aligned');
   const tipCards = WARBLING_TIPS.map(tip => `
     <div class="tip-card">
-      <div class="tip-icon">${tip.icon}</div>
+      <div class="tip-icon">${icon(tip.icon)}</div>
       <div>
         <div class="tip-title">${tip.title}</div>
         <div class="tip-text">${tip.text}</div>
@@ -4011,7 +4077,7 @@ function renderSessionResults() {
     // next - sits on TOP of the pack. Without an explicit z-index the DOM
     // order wins and it ends up buried at the back, which is backwards.
     const z = sessionResults.length - i;
-    return `<div class="silhouette-card ${t.cls}" style="--tier-color:${t.color}; transform:rotate(${angle}deg); z-index:${z}; animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">🐦</span></div>`;
+    return `<div class="silhouette-card ${t.cls}" style="--tier-color:${t.color}; transform:rotate(${angle}deg); z-index:${z}; animation-delay:${(i * 0.08).toFixed(2)}s;"><span style="opacity:0.35;filter:grayscale(1);">${PAINTED_BIRD}</span></div>`;
   }).join('');
 
   stage.innerHTML = `
@@ -4329,7 +4395,7 @@ const ORIGAMI_SVG = `
 // swap and makes the transformation feel like it disturbed something.
 // Named distinctly from the recording tree's LEAF_COLORS - two top-level
 // consts of the same name is a SyntaxError that kills the whole script.
-const BURST_LEAF_COLORS = ['#7EC8A4', '#5FB88F', '#F2C94C', '#E8845C', '#3F7C5C'];
+const BURST_LEAF_COLORS = ['#7EC8A4', '#5FB88F', '#A9DCBF', '#E8845C', '#3F7C5C'];
 
 function burstLeaves(cx, cy) {
   for (let i = 0; i < 14; i++) {
@@ -4486,7 +4552,7 @@ function nameLocationHtml() {
       <div class="nearby-places">
         ${nearby.map((p, i) => `
           <button class="nearby-place" data-i="${i}">
-            <span class="nearby-place-name">📍 ${escapeFlock(p.name)}</span>
+            <span class="nearby-place-name">${icon('pin')} ${escapeFlock(p.name)}</span>
             <span class="nearby-place-dist">${placeDistance(p.distance_m)}</span>
           </button>`).join('')}
       </div>
@@ -4538,7 +4604,7 @@ function renderNoBirds() {
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
     <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt="Go again"></button>
     <button class="tip-card nobirds-tip" id="noBirdsTip">
-      <div class="tip-icon">${tip.icon}</div>
+      <div class="tip-icon">${icon(tip.icon)}</div>
       <div>
         <div class="tip-title">${escapeFlock(tip.title)}</div>
         <div class="tip-text">${escapeFlock(tip.text)}</div>
@@ -5142,7 +5208,7 @@ function openSortSheet() {
   if (flockView === 'history') return;
   const body = FLOCK_SORTS.map(r => `
     <button class="sheet-opt ${r.id === flockSort ? 'on' : ''}" data-sort="${r.id}">
-      ${r.label}${r.id === flockSort ? '<span class="tick">✓</span>' : ''}
+      ${r.label}${r.id === flockSort ? `<span class="tick">${PAINTED_TICK}</span>` : ''}
     </button>`).join('');
   const sheet = openSheet('Sort your flock', body);
   sheet.wrap.querySelectorAll('[data-sort]').forEach(b => {
@@ -5652,8 +5718,8 @@ const stageAudioObserver = new MutationObserver(() => stopAnyPlayingAudio());
 stageAudioObserver.observe(stage, { childList: true });
 
 const HABITAT_ICONS = {
-  'Garden & Parks': '🌳', 'Woodland': '🌲', 'Wetland & Coast': '🌊',
-  'Farmland': '🌾', 'Towns & Cities': '🏘️',
+  'Garden & Parks': 'garden-parks', 'Woodland': 'woodland', 'Wetland & Coast': 'wetland-coast',
+  'Farmland': 'farmland', 'Towns & Cities': 'towns',
 };
 
 // Mirrors STAT_LABELS in birds.py. Kept in a fixed order so the bars
@@ -5685,14 +5751,14 @@ function buildCoreTiles(bird) {
   const weight = bird.weight_g >= 1000
     ? `${(bird.weight_g / 1000).toFixed(1)}kg` : `${bird.weight_g}g`;
   const measures = [
-    ['⚖️', weight, 'Weight'],
-    ['📏', `${bird.length_cm}cm`, 'Length'],
+    [icon('weight'), weight, 'Weight'],
+    [icon('length'), `${bird.length_cm}cm`, 'Length'],
   ];
   // Wingspan: tip to tip with the wings stretched out.
-  if (bird.wingspan_cm) measures.push(['↔️', `${bird.wingspan_cm}cm`, 'Wingspan']);
+  if (bird.wingspan_cm) measures.push([icon('wingspan'), `${bird.wingspan_cm}cm`, 'Wingspan']);
   const words = [
-    ['🏞️', bird.habitat, 'Where it lives'],
-    ['🍽️', bird.diet, 'What it eats'],
+    [icon('habitat'), bird.habitat, 'Where it lives'],
+    [icon('diet'), bird.diet, 'What it eats'],
   ];
   const grid = (cls, tiles) => `<div class="facts-grid ${cls}">${tiles.map(([icon, num, label]) => `
     <div class="fact-tile">
@@ -5707,7 +5773,7 @@ function buildCoreTiles(bird) {
 function buildConservation(bird) {
   if (!bird) return '';
   const tags = (bird.habitat_tags || [])
-    .map(h => `<span class="habitat-tag">${HABITAT_ICONS[h] || '📍'} ${h}</span>`)
+    .map(h => `<span class="habitat-tag">${icon(HABITAT_ICONS[h] || 'pin')} ${h}</span>`)
     .join('');
   return tags ? `<div class="habitat-tags">${tags}</div>` : '';
 }
@@ -6479,12 +6545,12 @@ function renderScenePicker() {
     <button class="scene-pick ${chosen === sc.id ? 'on' : ''}" data-scene="${sc.id}"
             aria-pressed="${chosen === sc.id}">
       <img src="${sceneUrl(sc.id, band)}" alt="${sc.name}">
-      <span class="scene-pick-tick">✓</span>
+      <span class="scene-pick-tick">${PAINTED_TICK}</span>
       <span class="scene-pick-name">${sc.name}</span>
     </button>`).join('') + `
     <button class="scene-pick none ${chosen === 'none' ? 'on' : ''}" data-scene="none"
             aria-pressed="${chosen === 'none'}">
-      <span class="scene-pick-tick">✓</span>
+      <span class="scene-pick-tick">${PAINTED_TICK}</span>
       <span class="scene-pick-name">No picture</span>
     </button>`;
 
@@ -8375,7 +8441,7 @@ async function loadProfileLocations() {
       <div class="location-row" data-id="${loc.id}">
         <a class="location-row-name location-map-link"
            href="https://www.openstreetmap.org/?mlat=${loc.lat}&mlon=${loc.lng}#map=16/${loc.lat}/${loc.lng}"
-           target="_blank" rel="noopener">📍 ${loc.name}</a>${loc.spots > 1 ? `<span class="location-spots">${loc.spots} spots</span>` : ''}
+           target="_blank" rel="noopener">${icon('pin')} <span class="location-name-text">${loc.name}</span></a>${loc.spots > 1 ? `<span class="location-spots">${loc.spots} spots</span>` : ''}
         <span class="location-row-actions">
           <button class="location-edit-btn" data-id="${loc.id}">Edit</button>
           <button class="location-delete-btn" data-id="${loc.id}" aria-label="Delete ${loc.name}">✕</button>
@@ -8388,7 +8454,7 @@ async function loadProfileLocations() {
     listEl.querySelectorAll('.location-delete-btn').forEach(btn => {
       btn.onclick = async () => {
         const row = btn.closest('.location-row');
-        const name = row.querySelector('.location-row-name').textContent.replace('📍 ', '');
+        const name = row.querySelector('.location-name-text').textContent;
         if (!confirm(`Forget the name "${name}"? The place stays, it just becomes unnamed again.`)) return;
         try {
           await fetch(`/locations/${btn.dataset.id}/delete`, { method: 'POST' });
@@ -8404,7 +8470,7 @@ async function loadProfileLocations() {
 function editLocationPrompt(id, listEl) {
   const row = listEl.querySelector(`.location-row[data-id="${id}"]`);
   if (!row) return;
-  const currentName = row.querySelector('.location-row-name').textContent.replace('📍 ', '');
+  const currentName = row.querySelector('.location-name-text').textContent;
   row.innerHTML = `
     <input type="text" class="location-input" style="margin:0;flex:1;padding:8px 12px;" value="${currentName}" id="editInput${id}">
     <button class="location-edit-btn" id="saveEdit${id}">Save</button>
@@ -9138,7 +9204,7 @@ function renderSelectedPack() {
     const rareMark = rare ? `<div class="fan-rare">RARE</div>` : '';
     const face = b.photo_url
       ? `<img class="fan-photo" ${birdImg(b.photo_url, 420)} alt="">`
-      : `<div class="fan-photo empty">${b.found ? '' : '<span class="fan-photo-emoji">🐦</span>'}</div>`;
+      : `<div class="fan-photo empty">${b.found ? '' : `<span class="fan-photo-emoji">${PAINTED_BIRD}</span>`}</div>`;
     // An away bird is marked as such, so an empty slot reads as "not this
     // month" rather than something the child has failed to find.
     const away = !b.found && b.season_state === 'away';
@@ -9953,14 +10019,14 @@ function renderTrophyDetail(trophyKey) {
     <div class="awards-bg" id="awardsBg"><div class="awards-beam"></div><div class="awards-off"></div></div>
     <div class="awards-veil"></div>
     <div class="woodframe detail-wood trophy-card-hover" data-bird-detail>
-    <div class="detail-card" style="--tier-color:var(--gold);">
+    <div class="detail-card" style="--tier-color:var(--sage-dk);">
       <div class="trophy-hero">
         <div class="trophy-hero-art">${trophyArt(trophy)}</div>
       </div>
       <div class="detail-body">
         <div class="detail-name trophy-card-title">${trophy.name}
           <span class="trophy-card-level">Level ${trophy.level}</span></div>
-        <div class="detail-sci" style="font-style:normal;color:var(--gold-dk);font-weight:700;">${trophy.citation}</div>
+        <div class="detail-sci" style="font-style:normal;color:var(--wood-edge);font-weight:700;">${trophy.citation}</div>
         <div class="detail-desc">${trophy.description}</div>
       </div>
     </div>
