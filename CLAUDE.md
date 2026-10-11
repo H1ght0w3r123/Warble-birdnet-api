@@ -60,6 +60,12 @@ Birds or the bird cards — that framing was deliberately removed.
 "Blue Tit"). A mismatch fails silently: the bird is simply never found. There
 was a real bug of exactly this kind.
 
+**On screen, "Eurasian" and "European" read "Common"** ("Common Robin",
+"Common Wren", alongside "Common Blackbird"). This is display only, through
+`birdName()` in `static/index.html` - the data, the API and every lookup keep
+BirdNET's exact names. Any new place that shows a bird's name must go through
+`birdName()`.
+
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. New bird 3 feathers, rare 15, Dress Up 5–75. Don't inflate them.
 

@@ -2765,7 +2765,16 @@ const SEASONAL_NICKNAMES = {
   'European Turtle-Dove': 'turtle doves', 'Eurasian Hobby': 'hobbies',
   'Common Cuckoo': 'cuckoos', 'Redwing': 'redwings',
 };
-const nickname = n => SEASONAL_NICKNAMES[n] || n;
+// The name a child sees. The data keeps BirdNET's exact names ("European
+// Robin", "Eurasian Wren") because a detection only matches if the stored
+// name is identical - change that and the bird is silently never found. On
+// screen, every Eurasian and European prefix reads "Common", so the
+// collection uses one word for it throughout ("Common Robin", "Common Wren",
+// alongside "Common Blackbird"). None of the 100 clash once renamed.
+function birdName(n) {
+  return String(n || '').replace(/^(Eurasian|European) /, 'Common ');
+}
+const nickname = n => SEASONAL_NICKNAMES[n] || birdName(n);
 
 async function loadHereNowCard() {
   const head = document.getElementById('hereNowHead');
@@ -2836,11 +2845,11 @@ async function renderWhatsHere() {
     // Here and leaving first - those are the ones you can act on today
     const rank = { leaving: 0, here: 1, arriving: 2, away: 3 };
     const birds = (d.birds || []).sort((a, b) =>
-      (rank[a.state] - rank[b.state]) || a.common_name.localeCompare(b.common_name));
+      (rank[a.state] - rank[b.state]) || birdName(a.common_name).localeCompare(birdName(b.common_name)));
     list.innerHTML = birds.map(b => `
       <div class="season-row season-${b.state} tappable" data-name="${b.common_name}">
         <span class="season-dot"></span>
-        <span class="season-name">${b.common_name}</span>
+        <span class="season-name">${birdName(b.common_name)}</span>
         <span class="season-label">${b.found ? '✓ ' : ''}${b.label}</span>
         <span class="season-chevron">›</span>
       </div>`).join('');
@@ -2894,7 +2903,7 @@ async function renderMigrationCard(commonName, onBack) {
     <div style="width:100%;margin-bottom:12px;">
       <button class="back-btn" id="backBtn">← Back</button>
     </div>
-    <div class="migration-title">${commonName}</div>
+    <div class="migration-title">${birdName(commonName)}</div>
     <div class="migration-subtitle" id="migrationSubtitle">Loading...</div>
     <div id="migrationMapWrap" style="width:100%;"></div>
   `;
@@ -3218,7 +3227,7 @@ function fitSongGameGrid() {
   // Measure with the longest answer line this round could show already in
   // place, so a two-line "Not quite - that was a ..." can't tip it over.
   const result = document.getElementById('sgResult');
-  const longest = g.choices.reduce((a, b) => b.common_name.length > a.length ? b.common_name : a, '');
+  const longest = g.choices.reduce((a, b) => birdName(b.common_name).length > a.length ? birdName(b.common_name) : a, '');
   if (result) result.textContent = `Not quite - that was a ${longest}`;
   try { fitSongGameGridNow(g, grid, sc, root); }
   finally { if (result && !g.answered) result.textContent = ''; }
@@ -3287,7 +3296,7 @@ function renderSongGameRound() {
               ? `<img ${b.own_photo ? `src="${escapeFlock(b.image_url)}"` : `class="stock" ${birdImg(b.image_url, 260)}`} alt="">`
               : '<div class="sg-blank">🐦</div>'}
           </span>
-          <span class="sg-name">${escapeFlock(b.common_name)}</span>
+          <span class="sg-name">${escapeFlock(birdName(b.common_name))}</span>
         </button>`).join('')}
     </div>
     <div class="sg-result" id="sgResult"></div>
@@ -3416,9 +3425,9 @@ function answerSongGame(picked) {
   });
   document.getElementById('sgPrompt').textContent = '';
   document.getElementById('sgResult').textContent = right
-    ? `Yes! That was a ${answer.common_name}!`
-    : picked ? `Not quite - that was a ${answer.common_name}`
-             : `Time's up! That was a ${answer.common_name}`;
+    ? `Yes! That was a ${birdName(answer.common_name)}!`
+    : picked ? `Not quite - that was a ${birdName(answer.common_name)}`
+             : `Time's up! That was a ${birdName(answer.common_name)}`;
 
   setTimeout(() => {
     if (songGame !== g || !document.getElementById('sgRound')) return;
@@ -3792,13 +3801,13 @@ function renderCard() {
       <div class="card ${bird.tier === 'Rare' ? 'rare-card' : ''}" id="revealCard" style="--tier-color:${tierColor}">
         ${bird.photo_url ? `<img class="card-photo" ${birdImg(bird.photo_url, 800)}>` : `<div class="card-photo"></div>`}
         <div class="card-body">
-          <div class="card-name">${bird.common_name}</div>
+          <div class="card-name">${birdName(bird.common_name)}</div>
           ${currentProfile.show_scientific_names !== false ? `<div class="card-sci">${bird.scientific_name}</div>` : ''}
           <div class="card-tags">
             <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already heard' : 'New!'}</span>
           </div>
           ${bird.season && bird.season.state === 'away'
-            ? `<div class="season-surprise">Unusual! ${bird.common_name}s have normally left by now.</div>` : ''}
+            ? `<div class="season-surprise">Unusual! ${birdName(bird.common_name)}s have normally left by now.</div>` : ''}
           ${packStripHtml(bird)}
           <div class="feather-row"><img class="feather-icon" src="/static/feather.webp" alt=""> +${bird.feathers}</div>
           ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">▶ Hear its call</button>` : ''}
@@ -4147,9 +4156,9 @@ let collectionBirds = [];
 // the comparison can never drift apart.
 const FLOCK_SORTS = [
   { id: 'az',     label: 'A–Z',                 short: 'A–Z',
-    get: b => b.common_name.toLowerCase() },
+    get: b => birdName(b.common_name).toLowerCase() },
   { id: 'za',     label: 'Z–A',                 short: 'Z–A',
-    get: b => b.common_name.toLowerCase(), desc: true },
+    get: b => birdName(b.common_name).toLowerCase(), desc: true },
   { id: 'recent', label: 'Recently discovered', short: 'Newest',
     get: b => +new Date(b.first_found), desc: true },
   { id: 'first',  label: 'First discovered',    short: 'Oldest',
@@ -4337,7 +4346,9 @@ function watchFlockBar() {
 function matchesQuery(s) {
   const q = flockQuery.trim().toLowerCase();
   if (!q) return true;
+  // Either name finds it: "robin" and "european" both still work.
   return s.common_name.toLowerCase().includes(q) ||
+         birdName(s.common_name).toLowerCase().includes(q) ||
          (s.scientific_name || '').toLowerCase().includes(q);
 }
 
@@ -4368,7 +4379,7 @@ function visibleBirds() {
     const x = rule.get(a), y = rule.get(b);
     if (x < y) return -1;
     if (x > y) return 1;
-    return a.common_name.localeCompare(b.common_name);   // steady tie-break
+    return birdName(a.common_name).localeCompare(birdName(b.common_name));   // steady tie-break
   });
   return rule.desc ? out.reverse() : out;
 }
@@ -4520,7 +4531,7 @@ function paintHistory() {
           <div class="hist-time">${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
           ${s.image_url ? `<img ${birdImg(s.image_url, 96)} alt="">` : '<div class="hist-thumb"></div>'}
           <div class="hist-text">
-            <div class="hist-name">${s.common_name}</div>
+            <div class="hist-name">${birdName(s.common_name)}</div>
             ${meta ? `<div class="hist-meta">${meta}</div>` : ''}
           </div>
         </div>`;
@@ -4781,7 +4792,7 @@ function collectionCardHtml(bird) {
     <div class="collection-item woodframe"
          data-name="${escapeFlock(bird.common_name)}" data-key="${escapeFlock(bird.key || bird.common_name)}">
       ${bird.image_url ? `<img ${birdImg(bird.image_url, flockDensity === 'large' ? 400 : 260)} alt="">` : '<div class="ci-blank"></div>'}
-      <div class="ci-name">${bird.common_name}</div>
+      <div class="ci-name">${birdName(bird.common_name)}</div>
     </div>`;
 }
 
@@ -4883,7 +4894,7 @@ function renderBirdDetail(commonName, onBack) {
         <input type="file" id="birdPhotoInput" accept="image/*" style="display:none">
       </div>
       <div class="detail-body">
-        <div class="detail-name">${latest.common_name}</div>
+        <div class="detail-name">${birdName(latest.common_name)}</div>
         ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${latest.scientific_name}</div>` : ''}
         <div class="detail-pack" id="detailPack">
           ${conservationDisc(latest.bird)}
@@ -4894,7 +4905,7 @@ function renderBirdDetail(commonName, onBack) {
         ${CONSERVATION[latest.bird?.conservation_status]
           ? `<div class="badge-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote"><div><p>${CONSERVATION[latest.bird.conservation_status].note}</p></div></div>` : ''}
         ${latest.bird?.migration
-          ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(latest.common_name, latest.bird.migration)}</p></div></div>` : ''}
+          ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(birdName(latest.common_name), latest.bird.migration)}</p></div></div>` : ''}
         <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
         <div class="badge-note heard-note" id="heardNote"><div><p><button class="pack-note-go" id="heardNoteGo">
           ${heardLine(matches)}<span aria-hidden="true"> →</span></button></p></div></div>
@@ -4910,7 +4921,7 @@ function renderBirdDetail(commonName, onBack) {
     </div>
   `;
   document.getElementById('removeBirdBtn').onclick = async () => {
-    if (!confirm(`Remove ${commonName} from your collection?\n\nUse this if it was heard wrong. Your feathers are kept.`)) return;
+    if (!confirm(`Remove ${birdName(commonName)} from your collection?\n\nUse this if it was heard wrong. Your feathers are kept.`)) return;
     try {
       await fetch(`/species/${encodeURIComponent(commonName)}/delete`, { method: 'POST' });
       renderCollection();
@@ -4970,7 +4981,7 @@ function renderBirdPlaces(commonName, back) {
     <div class="woodframe detail-wood" data-bird-detail>
     <div class="detail-card bird-card">
       <div class="places-body">
-        <div class="places-title">Where you've heard the ${commonName}</div>
+        <div class="places-title">Where you've heard the ${birdName(commonName)}</div>
         <div class="places-sub">${rows.length === 1 ? 'One place' : `${rows.length} places`} · ${matches.length === 1 ? 'once' : `${matches.length} times`} in all</div>
         ${rows.map(p => `
           <div class="place-row">
@@ -6855,7 +6866,7 @@ async function loadDetectionStats() {
     // placeholder - e.g. favourite location needs at least one named spot.
     const rows = [
       ['Total detections', String(s.total_detections)],
-      s.top_bird && ['Most detected bird', `${s.top_bird.name} (${s.top_bird.count})`],
+      s.top_bird && ['Most detected bird', `${birdName(s.top_bird.name)} (${s.top_bird.count})`],
       s.top_location && ['Favourite spot', `${s.top_location.name} (${s.top_location.count})`],
       s.top_time && ['Favourite time', `${s.top_time.name} (${s.top_time.count})`],
     ].filter(Boolean);
@@ -8122,7 +8133,7 @@ function renderSelectedPack() {
              -webkit-mask-image:url('/static/pack-${p.art}-emblem-v2.webp');
              mask-image:url('/static/pack-${p.art}-emblem-v2.webp')"></div>
         ${face}
-        <div class="fan-name">${b.common_name}</div>
+        <div class="fan-name">${birdName(b.common_name)}</div>
         ${rareMark}
         ${away ? `<div class="fan-away">${b.season_label}</div>` : ''}
       </div>`;
@@ -8879,7 +8890,7 @@ function attachTrophySwipe(carousel) {
 }
 
 async function shareBird(bird) {
-  const text = `I heard a ${bird.common_name} on Warble!`;
+  const text = `I heard a ${birdName(bird.common_name)} on Warble!`;
   try {
     if (navigator.share) {
       await navigator.share({ title: 'Warble', text });
