@@ -41,7 +41,8 @@ TROPHY_DEFINITIONS = {
     },
     "early_bird": {
         "name": "Early Bird", "emoji": "\U0001F305",
-        "verb": "Warble before sunrise", "unit": "times", "one": "once",
+        # It counts early warbles that heard a bird, so it says so.
+        "verb": "Hear birds before sunrise", "unit": "times", "one": "once",
         "levels": [1, 5, 15, 25, 40, 60, 80],
         "citations": [
             "Up before the birds - well, almost!",
@@ -137,18 +138,22 @@ TROPHY_DEFINITIONS = {
     },
     "night_owl": {
         "name": "Night Owl", "emoji": "\U0001F989",
-        "verb": "Hear", "unit": "night birds after dark",
+        # Every bird heard after dark counts, owl or not - each bird in each
+        # warble, so a robin singing under a streetlight three evenings
+        # running is three. "After dark" is after dusk or before dawn
+        # (is_after_dark), not just after sunset, when it's still light.
+        "verb": "Hear", "unit": "birds after dark",
         "levels": [5, 10, 20, 30, 45, 60, 80],
         "citations": [
-            "Five night birds - you're not scared of the dark!",
+            "Five birds after dark - you're not scared of the dark!",
             "Ten after dark. The night belongs to you.",
-            "Twenty night birds. A true creature of the night.",
-            "Thirty night birds. Owls must think you're one of them!",
-            "Forty-five night birds. Spooky good listening!",
-            "Sixty night birds. The moon is your friend.",
-            "Eighty night birds. King of the night!",
+            "Twenty birds after dark. A true creature of the night.",
+            "Thirty birds after dark. Owls must think you're one of them!",
+            "Forty-five birds after dark. Spooky good listening!",
+            "Sixty birds after dark. The moon is your friend.",
+            "Eighty birds after dark. King of the night!",
         ],
-        "description": "Owls, nightjars and woodcocks only come out at night. Hearing them takes proper dedication.",
+        "description": "Most birds go quiet when it gets dark - but not all of them. Robins sing under streetlights, and owls are only just waking up.",
     },
     "century": {
         "name": "Century", "emoji": "\U0001F4AF",
@@ -363,13 +368,21 @@ def requirement_text(key: str, level_index: int) -> str:
     return f"{t['verb']} {rest}".replace("  ", " ")
 
 
-# UK species that are genuinely nocturnal — used for the Night Owl trophy.
-# Deliberately narrow: only birds that are specifically known for being
-# active after dark, not just "sometimes heard in the evening".
-NOCTURNAL_SPECIES = {
-    "Tawny Owl", "Barn Owl", "Little Owl", "Long-eared Owl",
-    "Short-eared Owl", "Eurasian Nightjar", "Eurasian Woodcock",
-}
+def is_after_dark(lat: float, lng: float, moment_utc: datetime.datetime) -> bool:
+    """Night Owl's "after dark": after dusk or before dawn. Civil dusk and
+    dawn - the sun 6 degrees below the horizon, about when streetlights come
+    on - rather than sunset, after which it stays light for half an hour or
+    more. In UTC throughout, like is_before_sunrise."""
+    if moment_utc.tzinfo is None:
+        moment_utc = moment_utc.replace(tzinfo=datetime.timezone.utc)
+    try:
+        location = LocationInfo("", "", "UTC", lat, lng)
+        s = sun(location.observer, date=moment_utc.date(), tzinfo=datetime.timezone.utc)
+        return moment_utc < s["dawn"] or moment_utc > s["dusk"]
+    except Exception:
+        # No dusk at all: a northern summer night that never gets properly
+        # dark (Shetland in June). Nothing counts as after dark then.
+        return False
 
 
 def is_before_sunrise(lat: float, lng: float, moment_utc: datetime.datetime) -> bool:

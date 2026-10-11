@@ -648,13 +648,15 @@ def best_pre_sunrise_session() -> int:
     return max((r[0] or 0 for r in rows), default=0)
 
 
-def count_sightings_of(species: set) -> int:
-    """How many sightings belong to a given set of species - Night Owl counts
-    nocturnal birds this way."""
-    if SessionLocal is None or not species:
-        return 0
+def get_bird_sessions():
+    """(lat, lng, created_at, bird_count) for every warble that heard
+    something - Night Owl works out which were after dark."""
+    if SessionLocal is None:
+        return []
     with SessionLocal() as session:
-        return session.query(Sighting).filter(Sighting.common_name.in_(species)).count()
+        return session.query(RecordingSession.lat, RecordingSession.lng,
+                             RecordingSession.created_at, RecordingSession.bird_count).filter(
+            RecordingSession.bird_count > 0).all()
 
 
 def count_species_found_far_apart(min_km: float = 5.0) -> int:

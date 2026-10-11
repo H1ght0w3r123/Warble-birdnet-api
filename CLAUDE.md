@@ -39,7 +39,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   needed all 13 summer visitors in one summer); High Five (weeks with all
   five challenges done) was added. Forager is capped at 100 species, Empty
   Nester only counts quiet recordings of a minute or more, and Wingman
-  counts one share per bird per day. Dawn Chorus (birds in one pre-sunrise
+  counts one share per bird per day. Night Owl counts every bird heard
+  after dark (after dusk or before dawn, `is_after_dark()`), not just owls.
+  Dawn Chorus (birds in one pre-sunrise
   warble) runs 3 to 12 - it was 5 to 25, beyond any garden. Preener runs
   5 to 60 and must never mean "the whole shop", which changes with every
   restock; `TROPHY_CEILINGS` in `main.py` stops the server starting if
@@ -100,7 +102,7 @@ written in British or IOC style. They're BirdNET's now ("Eurasian Blackbird",
 stored rows on start-up. The source of truth is the label file inside
 birdnetlib (`birdnetlib/models/analyzer/BirdNET_GLOBAL_6K_V2.4_Labels.txt`,
 "Scientific_Common"): check any new name against it. When the analyzer loads,
-`check_species_names()` logs any of the 100 (or Night Owl's birds) it doesn't
+`check_species_names()` logs any of the 100 it doesn't
 know, and `/status` lists them as `unknown_species_names` - which should
 always be empty.
 

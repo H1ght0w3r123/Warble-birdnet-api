@@ -43,9 +43,8 @@ def check_species_names(labels):
     app matches detections against has to be one of them, exactly."""
     global unknown_species_names
     from curated_species import ALL_CURATED_SPECIES
-    from trophies import NOCTURNAL_SPECIES
     known = {l.split("_", 1)[1] for l in labels if "_" in l}
-    unknown_species_names = sorted((ALL_CURATED_SPECIES | NOCTURNAL_SPECIES) - known)
+    unknown_species_names = sorted(ALL_CURATED_SPECIES - known)
     if unknown_species_names:
         print("WARNING: BirdNET never says these names, so these birds can never "
               f"be found: {', '.join(unknown_species_names)}")
@@ -199,7 +198,7 @@ async def identify(
 from database import (
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
-    count_sightings_of, count_species_found_far_apart, count_species_first_heard_since,
+    count_species_found_far_apart, count_species_first_heard_since, get_bird_sessions,
     get_share_count, increment_share_count, count_all_sessions,
     reset_dress_up, reset_feathers, reset_sightings, reset_everything,
     delete_species, export_everything,
@@ -224,7 +223,7 @@ from database import (
 )
 from birds import (bird_data, STAT_LABELS, HABITAT_ICONS,
                    season_state, is_seasonal, SEASONAL_ORDER)
-from trophies import (TROPHY_DEFINITIONS, is_before_sunrise, NOCTURNAL_SPECIES, requirement_text,
+from trophies import (TROPHY_DEFINITIONS, is_before_sunrise, is_after_dark, requirement_text,
                       birder_rank)
 from jokes import get_joke_of_the_day
 from accessories import ACCESSORIES, CATEGORIES
@@ -268,6 +267,14 @@ def pack_species(key: str) -> set:
     return set(p["common"] + p["rare"])
 
 
+def count_birds_after_dark() -> int:
+    """Night Owl: every bird heard in a warble after dusk or before dawn,
+    worked out from where and when each warble was - so warbles from
+    before this measure existed count too."""
+    return sum(birds for lat, lng, when, birds in get_bird_sessions()
+               if lat is not None and lng is not None and is_after_dark(lat, lng, when))
+
+
 def measure_all_trophies():
     """Current value of every trophy's measure, in one place.
 
@@ -283,7 +290,7 @@ def measure_all_trophies():
         "golden_eagle":  count_rare_sightings(),
         "dawn_chorus":   best_pre_sunrise_session(),
         "forager":       count_distinct_species(),
-        "night_owl":     count_sightings_of(NOCTURNAL_SPECIES),
+        "night_owl":     count_birds_after_dark(),
         "century":       count_curated_species_found(ALL_CURATED_SPECIES),
         "globetrotter":  sum(1 for p in pack_progress() if p["complete"]),
         "empty_nester":  count_empty_sessions(),
