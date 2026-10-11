@@ -82,11 +82,8 @@ reference for scale and placement.
 
 ## Also needed: one trophy emblem
 
-The new **High Five** trophy (finish all five weekly challenges in a week)
-is using the Weekly Challenges target as a stand-in. It wants its own
-carved-wood emblem to match the other twenty, for example a raised hand
-with a star:
-`emblem_high-five_256x256.png`, matching `static/emblem-fledgling-v1.webp` in style and size.
+The new **High Five** trophy needs its own carved-wood emblem. It has its
+own brief: `design-brief-high-five-emblem-v1.md`.
 
 ## Before sending
 
