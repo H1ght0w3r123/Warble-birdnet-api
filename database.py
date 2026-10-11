@@ -10,6 +10,7 @@ import datetime
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text, UniqueConstraint
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -1281,16 +1282,27 @@ def get_seen_marks() -> dict:
 
 
 def set_seen_mark(key: str, value: str):
+    """Saves a mark, new or changed. Two requests can save the same new key
+    at once - the page asks for /whats-new and /weekly-challenges together,
+    and on a new week both pick and save that week's five - so an insert
+    that loses the race becomes an update rather than an error."""
     if SessionLocal is None:
         return
-    with SessionLocal() as session:
-        mark = session.get(SeenMark, key)
-        if mark is None:
-            session.add(SeenMark(key=key, value=value))
-        else:
-            mark.value = value
-            mark.updated_at = datetime.datetime.utcnow()
-        session.commit()
+    for attempt in range(2):
+        with SessionLocal() as session:
+            mark = session.get(SeenMark, key)
+            if mark is None:
+                session.add(SeenMark(key=key, value=value))
+            else:
+                mark.value = value
+                mark.updated_at = datetime.datetime.utcnow()
+            try:
+                session.commit()
+                return
+            except IntegrityError:
+                session.rollback()
+                if attempt:
+                    raise
 
 
 def reset_tutorials():

@@ -148,10 +148,11 @@ def one_child(kind: str, weeks: int, seed: int, start: datetime.datetime) -> dic
                         if levels:
                             level = next((l for l in levels if l["stars"] < 3), levels[-1])
                             g0 = database.get_total_feathers()
-                            await main.song_game_result(
+                            out = await main.song_game_result(
                                 level=level["level"],
                                 correct=rng.choices([4, 5, 6, 7, 8], [0.1, 0.2, 0.3, 0.25, 0.15])[0])
-                            source["Guess the Song"] += database.get_total_feathers() - g0
+                            source["weekly challenges"] += out["week_bonus"]
+                            source["Guess the Song"] += database.get_total_feathers() - g0 - out["week_bonus"]
                     got = database.get_total_feathers() - before
                     earned += got
                     week_earned += got

@@ -562,6 +562,9 @@ async def analyze_session(
 
     # Conditions are recorded on the session itself so the level counters can
     # be derived later, rather than only being known at this moment.
+    # Which of the week's challenges were already done, so the ones this
+    # recording finishes can each have their moment.
+    challenges_before = challenges_done_now()
     before_sunrise = is_before_sunrise(lat, lng, now)
     raining = is_raining(lat, lng)
     _, session_id = record_session(lat, lng, before_sunrise=before_sunrise, was_raining=raining,
@@ -637,27 +640,24 @@ async def analyze_session(
 
     session_feathers = sum(r["feathers"] for r in results)
     bonuses = []
+    packs_completed = []
+
+    # The weekly challenges: each one this recording finished, and the
+    # week's prize if that was the last of the five.
+    challenges_done, week_bonus = award_week_challenges(challenges_before)
+    if week_bonus:
+        session_feathers += week_bonus
+        bonuses.append({"label": "All 5 challenges done!", "feathers": week_bonus})
 
     if results:
-        # Rewards showing up, not just discovering something new - which is the
-        # behaviour that keeps going once the local birds are all found. Capped
-        # at 2/day so it can't be farmed by tapping record repeatedly.
-        # Weekly challenges. The old standalone "3 warbles a week" bonus is now
-        # just one of these, so there's a single weekly mechanic rather than two
-        # competing ones. They pay out once, for the whole week: nothing for
-        # each challenge on its own, ALL_COMPLETE_BONUS when the last is done.
-        week = evaluate_week_challenges()
-        if week and all(done for _, done, _ in week):
-            if award_bonus_once(f"challenge:{current_week_key()}:ALL"):
-                session_feathers += ALL_COMPLETE_BONUS
-                bonuses.append({"label": f"All {len(week)} challenges done!", "feathers": ALL_COMPLETE_BONUS})
-
         # Completing a pack is a real milestone worth paying for
         for key, pack in PACKS.items():
             if count_species_found_in(pack_species(key)) >= 10:
                 if award_bonus_once(f"pack:{key}"):
                     session_feathers += PACK_BONUS
                     bonuses.append({"label": f"{pack['name']} complete!", "feathers": PACK_BONUS})
+                    packs_completed.append({"key": key, "name": pack["name"], "art": pack["art"],
+                                            "feathers": PACK_BONUS})
 
     # Trophies last, after the week and the packs have paid out - High Five
     # and Globetrotter count those. Outside the "found something" check: a
@@ -676,6 +676,10 @@ async def analyze_session(
         "detections": results,
         "total_feathers_this_session": session_feathers,
         "bonuses": bonuses,
+        # The same payouts, itemised for the celebrations on the Done screen
+        "packs_completed": packs_completed,
+        "challenges_done": challenges_done,
+        "week_bonus": week_bonus,
         "total_feathers": new_total,
         "newly_earned_trophies": newly_earned_trophies,
         "rank_up": rank_up,
@@ -759,6 +763,27 @@ def week_challenges():
     picked = get_week_challenges(can_play_game=can_play)
     set_seen_mark(key, ",".join(c["id"] for c in picked))
     return picked
+
+
+def challenges_done_now() -> set:
+    """The ids of this week's challenges that are already done."""
+    return {c["id"] for c, done, _ in evaluate_week_challenges() if done}
+
+
+def award_week_challenges(done_before: set):
+    """After anything that can finish a challenge (a recording, a game):
+    the challenges it finished, as {id, text, done, of}, and the week's
+    prize - ALL_COMPLETE_BONUS, banked here - if the last of the five fell.
+    A challenge on its own pays nothing; it gets its moment all the same."""
+    week = evaluate_week_challenges()
+    done_count = sum(1 for _, done, _ in week if done)
+    newly = [{"id": c["id"], "text": c["text"], "done": done_count, "of": len(week)}
+             for c, done, _ in week if done and c["id"] not in done_before]
+    paid = 0
+    if week and done_count == len(week):
+        if award_bonus_once(f"challenge:{current_week_key()}:ALL"):
+            paid = ALL_COMPLETE_BONUS
+    return newly, paid
 
 
 def evaluate_week_challenges():
@@ -1157,6 +1182,7 @@ async def song_game_result(level: int = Form(...), correct: int = Form(...)):
     this = next((l for l in levels if l["level"] == level), None)
     if this is None or not this["unlocked"]:
         return JSONResponse({"error": "level not open"}, status_code=400)
+    challenges_before = challenges_done_now()
     correct = max(0, min(SONG_GAME_ROUNDS, correct))
     stars = song_game_stars_for(correct)
     before = get_song_game_stars().get(level, 0)
@@ -1166,11 +1192,15 @@ async def song_game_result(level: int = Form(...), correct: int = Form(...)):
     # you've already got two stars on pays nothing until you get the third.
     new_stars = max(0, best - before)
     feathers = SONG_GAME_STAR_FEATHERS * new_stars
-    if feathers:
-        add_feathers(feathers)
+    # A star can be the week's last challenge - its prize is paid here and
+    # now, not at the next recording. Before the trophies: High Five counts it.
+    challenges_done, week_bonus = award_week_challenges(challenges_before)
+    if feathers + week_bonus:
+        add_feathers(feathers + week_bonus)
     trophies, trophy_feathers, rank_up = award_trophy_levels()
     return {"stars": stars, "best_stars": best, "levels": song_game_levels(found),
             "new_stars": new_stars, "feathers": feathers,
+            "challenges_done": challenges_done, "week_bonus": week_bonus,
             "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers,
             "rank_up": rank_up, "total_feathers": get_total_feathers()}
 

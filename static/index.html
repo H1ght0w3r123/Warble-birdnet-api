@@ -1061,7 +1061,10 @@
   .card-sci{font-size:12px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
   .card-tags{display:flex;gap:8px;margin-top:10px;animation:statFadeUp 0.4s ease 0.45s both;}
   .tag{font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
-  .tag.new{background:var(--gold); color:var(--ink);}
+  /* Worded and coloured like a moment's kicker: the reveal card is the
+     new-bird moment at full size. */
+  .tag.new{background:var(--disc-cream); color:var(--wood-edge); font-weight:900; font-size:12px;
+    box-shadow:inset 0 0 0 2px var(--wood);}
   .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
   .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:15px;color:var(--gold-dk);animation:statFadeUp 0.4s ease 0.6s both;}
   /* Heard again the same day: no feathers, said plainly rather than "+0". */
@@ -1097,20 +1100,28 @@
     50%{box-shadow:0 12px 34px rgba(255,255,255,0.6);}
   }
   .flying-feather{position:fixed;z-index:960;font-size:20px;pointer-events:none;will-change:transform,opacity;}
-  /* The feather moment: what it was for, and how many, in the app's wood
-     and cream - then the feathers fly from it to the counter. */
-  .feather-chip{--frame:4px; --inner:12px; position:fixed; z-index:950; pointer-events:none;
-    width:max-content; max-width:min(300px, calc(100vw - 24px)); box-shadow:0 6px 18px rgba(0,0,0,0.4);
-    animation:chipIn .35s cubic-bezier(.34,1.56,.64,1);}
-  .feather-chip.leaving{transition:opacity .35s ease, transform .35s ease; opacity:0; transform:scale(.9);}
-  @keyframes chipIn{from{transform:scale(.6); opacity:0;} to{transform:none; opacity:1;}}
-  .feather-chip-inner{display:flex; align-items:center; gap:10px; padding:9px 14px;
+  /* The moment - every reward's celebration (celebrate() in the script):
+     a wood-framed cream card with the reward's picture on a disc, what
+     happened over what it was, and its feathers. It pops in on MOMENT.arrive
+     (the duration is set from the script, so the timing lives in one place)
+     and is flown home by the script. */
+  .moment{--frame:4px; --inner:14px; position:fixed; z-index:950; cursor:pointer;
+    width:max-content; max-width:min(320px, calc(100vw - 24px)); box-shadow:0 8px 22px rgba(0,0,0,0.42);
+    animation:momentIn 350ms cubic-bezier(.34,1.56,.64,1) both; will-change:transform,opacity;}
+  @keyframes momentIn{from{transform:scale(.4); opacity:0;} to{transform:none; opacity:1;}}
+  .moment-inner{display:flex; align-items:center; gap:11px; padding:9px 14px 9px 9px;
     background:var(--disc-cream); border-radius:var(--inner);}
-  .feather-chip-label{font-family:'Poppins'; font-weight:900; font-size:15px; line-height:1.2; color:var(--wood-edge);}
-  .feather-chip-amount{display:flex; align-items:center; gap:4px; flex:0 0 auto;
+  .moment-icon{flex:0 0 auto; width:48px; height:48px; border-radius:50%; display:grid; place-items:center;
+    background:radial-gradient(circle at 50% 40%, #FFF6E6, #F2D3A6 75%); box-shadow:inset 0 0 0 2px rgba(116,50,6,0.22);}
+  .moment-icon img{width:38px; height:38px; object-fit:contain;}
+  .moment-num{font-family:'Poppins'; font-weight:900; font-size:24px; color:var(--wood-edge);}
+  .moment-text{display:flex; flex-direction:column; min-width:0;}
+  .moment-kicker{font-family:'Poppins'; font-weight:900; font-size:16px; line-height:1.15; color:var(--wood-edge);}
+  .moment-name{font-family:'Poppins'; font-weight:700; font-size:12.5px; line-height:1.25; color:#4A2408; opacity:.8;}
+  .moment-feathers{display:flex; align-items:center; gap:4px; flex:0 0 auto; margin-left:2px;
     font-family:'Poppins'; font-weight:900; font-size:18px; color:#B8901F;}
-  .feather-chip-amount .feather-icon{width:20px; height:20px;}
-  @media (prefers-reduced-motion: reduce){ .feather-chip{animation:none;} }
+  .moment-feathers .feather-icon{width:20px; height:20px;}
+  @media (prefers-reduced-motion: reduce){ .moment{animation:none;} }
   .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
   .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:96px;height:96px;will-change:transform,opacity;}
   .origami{display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35));}
@@ -1150,7 +1161,7 @@
      Where backdrop-filter is not supported this is simply ignored and the
      behaviour is what it was before. */
   .prev-btn, .photo-btn-clear,
-  .reset-btn, .pack-more, .bonus-row{
+  .reset-btn, .pack-more{
     backdrop-filter:brightness(0.58) saturate(0.9);
     -webkit-backdrop-filter:brightness(0.58) saturate(0.9);
   }
@@ -2723,21 +2734,8 @@
   @keyframes wingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(45deg);}}
   @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-45deg);}}
   .done-avatar{margin-bottom:4px;}
-  .done-trophy{cursor:pointer;}
-  .done-trophy.celebrating{animation:trophyCelebrate .9s cubic-bezier(.34,1.56,.64,1);}
-  @keyframes trophyCelebrate{
-    0%{transform:scale(1) rotate(0);}
-    25%{transform:scale(1.22) rotate(-7deg);}
-    50%{transform:scale(1.22) rotate(7deg);}
-    75%{transform:scale(1.28) rotate(-4deg);}
-    100%{transform:scale(1.12) rotate(0);}
-  }
   .trophy-banner-tap{font-family:'Poppins';font-weight:700;font-size:10px;color:var(--gold-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
   .done-feathers.tappable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;border-radius:20px;padding:6px 18px;}
-  .spark{position:fixed;z-index:200;pointer-events:none;font-size:18px;will-change:transform,opacity;}
-  .bonus-list{width:100%;max-width:300px;margin-top:12px;}
-  .bonus-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.18);border-radius:10px;padding:8px 13px;margin-bottom:6px;font-family:'Poppins';font-weight:700;font-size:12.5px;color:#fff;}
-  .bonus-feathers{color:var(--gold);}
   .trophy-banner{
     width:100%;background:var(--goldbg,#FBF0D8);border:2px solid var(--gold);border-radius:16px;
     padding:14px;margin-top:16px;text-align:center;
@@ -2847,6 +2845,8 @@ const TIER_COLORS = { Common: 'var(--sage)', Rare: 'var(--rare)' };
 let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
 let sessionResults = [], cardIndex = 0;
 let sessionBonuses = [], sessionFeatherTotal = 0;
+// What a recording won besides its birds: each gets its moment on Done.
+let sessionPacks = [], sessionChallenges = [], sessionWeekBonus = 0;
 // Running feather total, kept in step with the counter in the top bar so the
 // per-card fly-and-count animation can add to it without re-fetching.
 let currentFeatherTotal = 0;
@@ -3691,6 +3691,7 @@ async function renderSongGameEnd() {
   let stars = Math.max(0, 3 - (g.results.length - got));
   let levels = before;
   let prize = 0, newStars = 0, trophies = [], rankUp = null;   // what this go won
+  let challengesDone = [], weekBonus = 0;
   try {
     const form = new FormData();
     form.append('level', level.level);
@@ -3705,6 +3706,8 @@ async function renderSongGameEnd() {
       newStars = out.new_stars || 0;
       trophies = out.newly_earned_trophies || [];
       rankUp = out.rank_up || null;
+      challengesDone = out.challenges_done || [];
+      weekBonus = out.week_bonus || 0;
       markSeen('game');   // a level it opens is announced right here
     }
   } catch (e) { /* keep the local stars */ }
@@ -3734,12 +3737,19 @@ async function renderSongGameEnd() {
   if (next && next.unlocked) document.getElementById('sgNext').onclick = () => startSongGameLevel(data, next);
   document.getElementById('sgAgain').onclick = () => startSongGameLevel(data, levels.find(l => l.level === level.level));
   document.getElementById('sgLevelsBtn').onclick = () => renderSongGame(data);
-  // Once the stars have popped in: each new star pays, then any trophy.
-  if (prize || trophies.length || rankUp) setTimeout(() => {
+  // Once the stars have popped in, the moments, in the order they were won:
+  // the new stars (they fly back into the stars row), the level they opened
+  // (into its button), a challenge, then any trophy.
+  if (prize || opened || challengesDone.length || trophies.length || rankUp) setTimeout(() => {
     // Over the score line, so the stars that were just won stay in view.
     const scoreEl = root.querySelector('.collection-title');
     if (!document.getElementById('sgRound')) return;
-    celebrateFeathers(prize, newStars === 1 ? 'A new star!' : `${newStars} new stars!`, scoreEl);
+    if (prize) celebrate({ kicker: newStars === 1 ? 'New star!' : `${newStars} new stars!`,
+      name: `Level ${level.level}`, icon: MOMENT_ICONS.star(), feathers: prize,
+      from: scoreEl, home: root.querySelector('.sg-end-stars') });
+    if (opened) celebrate({ kicker: 'Level unlocked!', name: `Level ${next.level}`,
+      icon: MOMENT_ICONS.level(next.level), from: scoreEl, home: document.getElementById('sgNext') });
+    celebrateChallenges(challengesDone, weekBonus, scoreEl);
     celebrateTrophies(trophies, scoreEl, rankUp);
   }, reducedMotion() ? 200 : 1400);
 }
@@ -4046,7 +4056,7 @@ function renderCard() {
           <div class="card-name">${birdName(bird.common_name)}</div>
           ${currentProfile.show_scientific_names !== false ? `<div class="card-sci">${bird.scientific_name}</div>` : ''}
           <div class="card-tags">
-            <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already heard' : 'New!'}</span>
+            <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already heard' : 'New bird!'}</span>
           </div>
           ${bird.season && bird.season.state === 'away'
             ? `<div class="season-surprise">Unusual! ${birdName(bird.common_name)}s have normally left by now.</div>` : ''}
@@ -4066,6 +4076,13 @@ function renderCard() {
 
   const cardEl = document.getElementById('revealCard');
   const hint = document.getElementById('collectHint');
+  // A new bird is a moment like any other reward: the same burst of leaves
+  // as the card lands. Its flight home to My Flock is the tap below.
+  if (!bird.is_duplicate && !reducedMotion()) setTimeout(() => {
+    if (!cardEl.isConnected) return;
+    const r = cardEl.getBoundingClientRect();
+    burstLeaves(r.left + r.width / 2, r.top + r.height * 0.35);
+  }, MOMENT.arrive);
 
   // The card is tappable as soon as it's revealed. One tap drives the whole
   // sequence: feathers fly to the counter, then the card flies to My Birds.
@@ -4131,53 +4148,123 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
   setTimeout(onDone, flightTime);
 }
 
-// --- The feather moment ---------------------------------------------------
-// Every reward that isn't a recording's (those have the Done screen) is shown
-// the same way: a little wood-and-cream chip saying what it was for pops up
-// over where it was won, then its feathers fly to the counter, which counts
-// up and pops. Several in a row queue up rather than landing at once.
-// The server has already banked the feathers; this is only the showing.
-let featherMoments = Promise.resolve();
-// The same chip with no feathers on it - for a new rank, which is news
-// rather than a payout.
-function celebrateMoment(label, fromEl) { return celebrateFeathers(0, label, fromEl, true); }
-function celebrateFeathers(amount, label, fromEl, wordsOnly = false) {
-  if (!amount && !wordsOnly) return featherMoments;
-  featherMoments = featherMoments.then(() => new Promise(resolve => {
-    const chip = document.createElement('div');
-    chip.className = 'feather-chip woodframe';
-    chip.innerHTML = `<div class="feather-chip-inner">
-      <span class="feather-chip-label">${escapeFlock(label)}</span>
-      ${wordsOnly ? '' : `<span class="feather-chip-amount"><img class="feather-icon" src="/static/feather.webp" alt=""> +${amount}</span>`}
+// --- The moment: one celebration for every reward -------------------------
+// A new bird, a trophy level, a pack, a challenge, a game star and a level
+// opening are one family, so they share one shape and one timing:
+//   ARRIVE  a wood-and-cream card pops in over where it was won, and
+//           a scatter of leaves bursts from behind it;
+//   HOLD    it stays long enough to be read out: what happened (the kicker),
+//           what it was (the name), and its feathers if it pays any;
+//   GO HOME it shrinks and flies to where the thing now lives - a nav tab,
+//           or the game's own stars - which pops as it lands, while its
+//           feathers fly to the counter at the same moment.
+// Several queue up, one at a time. A tap sends a card home early.
+// The new bird's reveal card is this same moment at full size: it arrives
+// on MOMENT.arrive with the same burst, and goes home to My Flock.
+// The server has already banked every feather; this is only the showing.
+const MOMENT = { arrive: 350, hold: 1300, home: 600, gap: 150 };
+let momentQueue = Promise.resolve();
+
+// icon: markup for the disc (an <img>, or a little text).
+// home: the element it flies into, or its id; none = it shrinks where it is.
+function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null }) {
+  momentQueue = momentQueue.then(() => new Promise(resolve => {
+    const card = document.createElement('div');
+    card.className = 'moment woodframe';
+    card.setAttribute('role', 'status');
+    card.innerHTML = `<div class="moment-inner">
+      ${icon ? `<span class="moment-icon">${icon}</span>` : ''}
+      <span class="moment-text">
+        <span class="moment-kicker">${escapeFlock(kicker)}</span>
+        ${name ? `<span class="moment-name">${escapeFlock(name)}</span>` : ''}
+      </span>
+      ${feathers ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${feathers}</span>` : ''}
     </div>`;
-    document.body.appendChild(chip);
-    // Over the thing that won it, or the middle of the screen.
-    const r = fromEl && fromEl.isConnected ? fromEl.getBoundingClientRect() : null;
+    card.style.animationDuration = `${MOMENT.arrive}ms`;
+    document.body.appendChild(card);
+    const fromEl = from && from.isConnected ? from : null;
+    const r = fromEl ? fromEl.getBoundingClientRect() : null;
     const cx = r && r.width ? r.left + r.width / 2 : innerWidth / 2;
-    const cy = r && r.height ? r.top + r.height / 2 : innerHeight * 0.45;
-    const w = chip.offsetWidth, h = chip.offsetHeight;
-    chip.style.left = `${Math.max(12, Math.min(innerWidth - 12 - w, cx - w / 2))}px`;
-    chip.style.top = `${Math.max(60, Math.min(innerHeight - 140 - h, cy - h / 2))}px`;
-    const hold = reducedMotion() ? 600 : 1100;
-    setTimeout(() => {
-      if (amount) flyFeathersToCounter(chip, amount, () => {});
-      chip.classList.add('leaving');
-      setTimeout(() => { chip.remove(); resolve(); }, 450);
-    }, hold);
+    const cy = r && r.height ? r.top + r.height / 2 : innerHeight * 0.42;
+    const w = card.offsetWidth, h = card.offsetHeight;
+    card.style.left = `${Math.max(12, Math.min(innerWidth - 12 - w, cx - w / 2))}px`;
+    card.style.top = `${Math.max(60, Math.min(innerHeight - 140 - h, cy - h / 2))}px`;
+    const still = reducedMotion();
+    if (!still) setTimeout(() => {
+      const b = card.getBoundingClientRect();
+      burstLeaves(b.left + b.width / 2, b.top + b.height / 2);
+    }, MOMENT.arrive / 3);
+
+    let gone = false;
+    const goHome = () => {
+      if (gone) return;
+      gone = true;
+      clearTimeout(holdTimer);
+      if (feathers) flyFeathersToCounter(card, feathers, () => {});
+      const target = typeof home === 'string' ? document.getElementById(home) : home;
+      const t = target && target.isConnected && !still ? target.getBoundingClientRect() : null;
+      const b = card.getBoundingClientRect();
+      const dx = t ? (t.left + t.width / 2) - (b.left + b.width / 2) : 0;
+      const dy = t ? (t.top + t.height / 2) - (b.top + b.height / 2) : 0;
+      card.style.animation = 'none';
+      card.style.transition = still ? 'opacity .3s ease'
+        : `transform ${MOMENT.home}ms cubic-bezier(.55,0,.65,1), opacity ${MOMENT.home * .4}ms ease ${MOMENT.home * .6}ms`;
+      requestAnimationFrame(() => {
+        if (!still) card.style.transform = `translate(${dx}px, ${dy}px) scale(${t ? .1 : .5})`;
+        card.style.opacity = '0';
+      });
+      setTimeout(() => {
+        card.remove();
+        if (t) { target.classList.add('nav-pop'); setTimeout(() => target.classList.remove('nav-pop'), 600); }
+        setTimeout(resolve, MOMENT.gap);
+      }, still ? 300 : MOMENT.home);
+    };
+    card.onclick = goHome;
+    const holdTimer = setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold));
   }));
-  return featherMoments;
+  return momentQueue;
 }
 
-// Trophy levels won away from a recording (a purchase, a share, a game):
-// one feather moment each, and Awards lights up.
+// The disc pictures, so every moment of a kind looks alike wherever it fires.
+const MOMENT_ICONS = {
+  trophy: t => `<img src="/static/emblem-${t.key}-v1.webp" alt="">`,
+  rank:   () => '<img src="/static/tree-leaf1-v2.webp" alt="">',
+  pack:   p => `<img src="/static/pack-${p.art}-badge-v2.webp" alt="">`,
+  challenge: () => '<img src="/static/tick-v1.webp" alt="">',
+  week:   () => '<img src="/static/challenge-icon-v1.webp" alt="">',
+  star:   () => '<img src="/static/star-v1.webp" alt="">',
+  level:  n => `<span class="moment-num">${n}</span>`,
+};
+
+// Each kind of reward, as a moment. `from` is where it was won.
+function celebrateTrophy(t, from) {
+  return celebrate({ kicker: t.level > 1 ? 'Trophy level up!' : 'Trophy won!',
+    name: `${t.name} · level ${t.level}`, icon: MOMENT_ICONS.trophy(t),
+    feathers: t.feathers || 0, from, home: 'navTrophies' });
+}
+function celebrateRank(rank, from) {
+  if (currentProfile) currentProfile.rank = rank;
+  return celebrate({ kicker: 'New birder rank!', name: `You're a ${rank.name} now!`,
+    icon: MOMENT_ICONS.rank(), from, home: 'navTrophies' });
+}
+function celebratePack(p, from) {
+  return celebrate({ kicker: 'Pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
+    feathers: p.feathers || 0, from, home: 'navHabitats' });
+}
+// A single challenge pays nothing, so its moment says how far the week has
+// got instead; the fifth is followed by the week's own moment, which pays.
+function celebrateChallenges(list, weekBonus, from) {
+  (list || []).forEach((c, i) => celebrate({
+    kicker: `Challenge done! ${c.done - (list.length - 1 - i)} of ${c.of}`, name: c.text,
+    icon: MOMENT_ICONS.challenge(), from, home: 'navHome' }));
+  if (weekBonus) celebrate({ kicker: 'All five done!', name: "This week's challenges",
+    icon: MOMENT_ICONS.week(), feathers: weekBonus, from, home: 'navHome' });
+}
 function celebrateTrophies(list, fromEl, rankUp) {
-  (list || []).forEach(t => celebrateFeathers(t.feathers || 0,
-    `${t.name} trophy, level ${t.level}!`, fromEl));
-  if (rankUp) {
-    celebrateMoment(`You're a ${rankUp.name} now!`, fromEl);
-    if (currentProfile) currentProfile.rank = rankUp;
-  }
+  (list || []).forEach(t => celebrateTrophy(t, fromEl));
+  if (rankUp) celebrateRank(rankUp, fromEl);
   if ((list || []).length) refreshWhatsNew();
+  return momentQueue;
 }
 
 // --- Avatar birds you have to find, and the birder rank -------------------
@@ -4440,8 +4527,6 @@ function renderNoBirds() {
     <img class="done-icon" src="/static/empty-nest.webp" alt="Empty nest">
     <div class="done-title">No birds heard this time</div>
     <div class="done-sub">Try somewhere with more trees, or get a bit closer</div>
-    ${sessionBonuses.length ? `<div class="bonus-list">${sessionBonusRowsHtml()}</div>` : ''}
-    ${sessionTrophyBannersHtml()}
     <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt="Go again"></button>
     <button class="tip-card nobirds-tip" id="noBirdsTip">
       <div class="tip-icon">${tip.icon}</div>
@@ -4454,21 +4539,9 @@ function renderNoBirds() {
   `;
   document.getElementById('noBirdsTip').onclick = renderTips;
   // A quiet session can still win a trophy level (the very first warble,
-  // Empty Nester). Its feathers are already banked, so they arrive with
-  // the same feather moment as any other reward.
-  stage.querySelectorAll('.done-trophy').forEach(el => {
-    el.onclick = () => { el.onclick = null; celebrateTrophy(el); };
-  });
-  if (sessionFeatherTotal) {
-    // After the screen has settled, over the row that says what it was for.
-    const amount = sessionFeatherTotal, label = newlyEarnedTrophies.length ? 'Trophy won!' : 'Bonus!';
-    setTimeout(() => celebrateFeathers(amount, label, stage.querySelector('.bonus-list')), 700);
-    refreshWhatsNew();
-  }
-  newlyEarnedTrophies = [];
-  sessionBonuses = [];
-  sessionFeatherTotal = 0;
-  sessionRankUp = null;
+  // Empty Nester): its moments play once the screen has settled.
+  const moments = takeSessionMoments();
+  setTimeout(() => moments(stage.querySelector('.done-title')), 700);
   sessionNewAvatars = [];
   document.getElementById('againBtn').onclick = () => {
     // Location naming still has to happen first if it's pending, but once
@@ -5669,16 +5742,29 @@ function migrationLine(name, m) {
   return `The ${name} migrates in ${m.month}. It flies all the way to ${where}.`;
 }
 
-// The bonus rows and trophy banners a recording won - shared by the Done
-// screen and the "no birds" one, since a quiet session can win a trophy too.
-function sessionBonusRowsHtml() {
-  return sessionBonuses.map(b => `
-    <div class="bonus-row"><span>${b.label}</span><span class="bonus-feathers">+${b.feathers}</span></div>
-  `).join('');
+// Everything a recording won besides its birds, as moments, in the order
+// the server paid them: packs, challenges (and the week), trophies, rank.
+// Shared by the Done screen and the "no birds" one, since a quiet session
+// can win a trophy too. Takes the session's state and clears it, so a
+// screen re-rendered later can't celebrate the same things twice; the
+// returned function plays them, and its promise settles when they're done.
+function takeSessionMoments() {
+  const packs = sessionPacks, challenges = sessionChallenges, week = sessionWeekBonus;
+  const trophies = newlyEarnedTrophies, rank = sessionRankUp;
+  sessionPacks = []; sessionChallenges = []; sessionWeekBonus = 0;
+  newlyEarnedTrophies = []; sessionRankUp = null; sessionBonuses = []; sessionFeatherTotal = 0;
+  return (from) => {
+    packs.forEach(p => celebratePack(p, from));
+    celebrateChallenges(challenges, week, from);
+    celebrateTrophies(trophies, from, rank);
+    return momentQueue;
+  };
 }
-function sessionTrophyBannersHtml() {
-  // A new bird to be, then a new rank, then the trophies themselves.
-  const avatars = sessionNewAvatars.map(a => {
+
+// A bird the child can now be: not a payout but a door, so it stays on the
+// Done screen as a button to try it on.
+function sessionAvatarBannersHtml() {
+  return sessionNewAvatars.map(a => {
     const sp = AVATAR_SPECIES.find(x => x.id === a.id);
     return `
     <button class="trophy-banner avatar-banner" data-go="dressup">
@@ -5693,36 +5779,13 @@ function sessionTrophyBannersHtml() {
       <div class="trophy-banner-tap">Tap to try it on</div>
     </button>`;
   }).join('');
-  const rank = sessionRankUp ? `
-    <div class="trophy-banner rank-banner">
-      <div class="trophy-banner-title">New birder rank!</div>
-      <div class="trophy-banner-row">
-        <img class="rank-banner-leaf" src="/static/tree-leaf1-v2.webp" alt="">
-        <div class="trophy-banner-text">
-          <div class="trophy-banner-name">You're a ${sessionRankUp.name} now!</div>
-          <div class="trophy-banner-citation">${sessionRankUp.leaves} trophy leaves${sessionRankUp.next_name ? ` · ${sessionRankUp.to_go} more to ${sessionRankUp.next_name}` : ''}</div>
-        </div>
-      </div>
-    </div>` : '';
-  return avatars + rank + newlyEarnedTrophies.map(t => `
-    <div class="trophy-banner done-trophy">
-      <div class="trophy-banner-title">\u{1F3C6} Trophy earned!</div>
-      <div class="trophy-banner-row">
-        <div class="trophy-banner-emoji">${t.emoji}</div>
-        <div class="trophy-banner-text">
-          <div class="trophy-banner-name">${t.name}${t.level ? ` · Level ${t.level}` : ''}</div>
-          <div class="trophy-banner-citation">${t.citation}</div>
-        </div>
-      </div>
-      <div class="trophy-banner-tap">Tap to celebrate</div>
-    </div>
-  `).join('');
 }
 
 function renderDone() {
-  // Server total, not a sum of the birds - bonuses are added server-side.
-  const total = sessionFeatherTotal || sessionResults.reduce((sum, b) => sum + b.feathers, 0);
-  const bonusRows = sessionBonusRowsHtml();
+  // The birds' own feathers, collected here with a tap. Everything else the
+  // recording won (packs, challenges, trophies) follows as its own moment.
+  const total = sessionResults.reduce((sum, b) => sum + b.feathers, 0);
+  const moments = takeSessionMoments();
 
   // Rarity isn't shown here any more - it belongs to the collector packs. The
   // counts are still worked out, but only so a rare find can pick a message
@@ -5732,15 +5795,14 @@ function renderDone() {
   const newCount = sessionResults.filter(b => !b.is_duplicate).length;
   const n = sessionResults.length;
 
-  const trophyBanners = sessionTrophyBannersHtml();
+  const avatarBanners = sessionAvatarBannersHtml();
 
   stage.innerHTML = `
     <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, 140, currentProfile.equipped, true, currentProfile.avatar_species)}</div>
     <div class="done-title">${pickDoneMessage(n, newCount, tierCounts)}</div>
     <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
     ${total ? '' : `<div class="done-sub">You've already won feathers for these birds today</div>`}
-    ${bonusRows ? `<div class="bonus-list">${bonusRows}</div>` : ''}
-    ${trophyBanners}
+    ${avatarBanners}
     <div class="done-feathers-slot">
       <div class="done-feathers ${total ? 'tappable' : ''}" id="doneFeathers">${total
         ? `<img class="feather-icon" src="/static/feather.webp" alt=""> ${total} feathers earned` : ''}</div>
@@ -5761,9 +5823,6 @@ function renderDone() {
     <div class="collect-hint" id="doneHint">${total ? 'Tap your feathers to collect them' : ''}</div>
   `;
 
-  stage.querySelectorAll('.done-trophy').forEach(el => {
-    el.onclick = () => { el.onclick = null; celebrateTrophy(el); };
-  });
   stage.querySelectorAll('.avatar-banner').forEach(el => { el.onclick = renderDressUp; });
 
   scheduleDoneLeafBurst(stage.querySelector('.done-avatar'));
@@ -5775,10 +5834,17 @@ function renderDone() {
 
   const featherEl = document.getElementById('doneFeathers');
   document.getElementById('shopNextBtn').onclick = renderDressUp;
-  // Nothing to collect: straight on to what's next.
+  // Then the rest of what was won, one moment at a time, and only then
+  // what's next - so going again never cuts a celebration short.
+  const slot = stage.querySelector('.done-feathers-slot');
+  const afterFeathers = () => moments(slot).then(() => {
+    refreshFeathers();   // reconcile against the server once animations finish
+    showDoneNext();
+  });
+  // No bird feathers to collect: the moments, after the screen has settled.
   if (!total) {
     featherEl.classList.add('collected');
-    showDoneNext();
+    setTimeout(afterFeathers, 700);
   } else featherEl.onclick = () => {
     featherEl.onclick = null;
     featherEl.classList.remove('tappable');
@@ -5788,14 +5854,10 @@ function renderDone() {
       // Another go is only offered once the feathers have been collected,
       // so it isn't possible to leave the session's reward on the table.
       featherEl.classList.add('collected');
-      refreshFeathers();   // reconcile against the server once animations finish
-      showDoneNext();
+      afterFeathers();
     });
   };
 
-  newlyEarnedTrophies = [];
-  sessionBonuses = [];
-  sessionRankUp = null;
   sessionNewAvatars = [];
 }
 
@@ -5838,52 +5900,6 @@ function pickDoneMessage(count, newCount, tierCounts) {
   else if (count === 1) pool = DONE_MESSAGES.one;
   else pool = DONE_MESSAGES.general;
   return pool[Math.floor(Math.random() * pool.length)];
-}
-
-function celebrateTrophy(el) {
-  el.classList.add('celebrating');
-  burstSparks(el);
-  setTimeout(() => {
-    el.classList.remove('celebrating');
-    flyElementTo(el, document.getElementById('navTrophies'));
-  }, 900);
-}
-
-// A burst of stars around an element - the trophy celebration
-function burstSparks(el) {
-  const r = el.getBoundingClientRect();
-  for (let i = 0; i < 12; i++) {
-    const s = document.createElement('div');
-    s.className = 'spark';
-    s.textContent = ['\u2728', '\u2B50', '\u{1F31F}'][i % 3];
-    s.style.left = `${r.left + r.width / 2}px`;
-    s.style.top = `${r.top + r.height / 2}px`;
-    document.body.appendChild(s);
-    const angle = (Math.PI * 2 * i) / 12;
-    const dist = 70 + Math.random() * 50;
-    requestAnimationFrame(() => {
-      s.style.transition = 'transform .85s cubic-bezier(.2,.8,.3,1), opacity .85s ease';
-      s.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) scale(.4)`;
-      s.style.opacity = '0';
-    });
-    setTimeout(() => s.remove(), 900);
-  }
-}
-
-// Shrink an element away into one of the nav tabs
-function flyElementTo(el, target) {
-  if (!el) return;
-  if (!target) { el.style.display = 'none'; return; }
-  const from = el.getBoundingClientRect();
-  const to = target.getBoundingClientRect();
-  const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
-  const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
-  el.style.transition = 'transform .62s cubic-bezier(.55,0,.65,1), opacity .25s ease .38s';
-  el.style.transform = `translate(${dx}px, ${dy}px) scale(.08)`;
-  el.style.opacity = '0';
-  target.classList.add('nav-pop');
-  setTimeout(() => target.classList.remove('nav-pop'), 600);
-  setTimeout(() => { el.style.display = 'none'; }, 640);
 }
 
 let currentLat = null, currentLng = null, newlyEarnedTrophies = [];
@@ -6402,6 +6418,9 @@ function stopRecording() {
       sessionResults = sortForReveal(data.detections || []);
       sessionBonuses = data.bonuses || [];
       sessionFeatherTotal = data.total_feathers_this_session || 0;
+      sessionPacks = data.packs_completed || [];
+      sessionChallenges = data.challenges_done || [];
+      sessionWeekBonus = data.week_bonus || 0;
       newlyEarnedTrophies = data.newly_earned_trophies || [];
       sessionRankUp = data.rank_up || null;
       sessionNewAvatars = data.new_avatars || [];

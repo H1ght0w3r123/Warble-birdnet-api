@@ -139,14 +139,26 @@ run `python3 tools/economy_sim.py` (needs `freezegun`) before and after: it
 plays pretend children through the real reward code from zero and prints
 the curve.
 
-**Every reward is shown the same way.** A recording's feathers are collected
-on the Done screen (or the "no birds" screen, which can still win a trophy).
-Everything else - game stars, a trophy won by buying or sharing - goes
-through `celebrateFeathers(amount, label, fromEl)` in `static/index.html`: a
-wood-and-cream chip over where it was won, then the feathers fly to the
-counter. The server has always banked them already. Trophy pay outside a
-recording goes through `award_trophy_levels()` in `main.py`, so trophies are
-checked after a purchase, a share and a game, not just after recordings.
+**Every reward is one kind of moment.** New bird, trophy level, birder rank,
+pack complete, challenge done (and all five), Song Game star and level
+unlock all go through `celebrate()` in `static/index.html` (with
+`celebrateTrophy`, `celebratePack`, `celebrateChallenges`... wrapping it),
+in one shape and one timing (`MOMENT`): a wood-and-cream card pops in over
+where it was won with a burst of leaves, holds (kicker, name, +feathers),
+then flies home - Awards, Collections, Home, the game's stars or Next level
+button - while its feathers fly to the counter. They queue one at a time; a
+tap sends one home early. The new bird's reveal card is the same moment at
+full size (same burst, "New bird!" in the kicker's style, flies to My
+Flock). On the Done screen the birds' own feathers are tapped to collect,
+then the recording's other rewards play as moments, and only then "Go
+again" - so nothing is cut short. A new avatar bird stays a banner: it's a
+door to Dress Up, not a payout. The server has always banked the feathers
+already; `/analyze-session` and `/song-game/result` itemise them
+(`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a
+recording goes through `award_trophy_levels()` and challenge pay through
+`award_week_challenges()` in `main.py`, so a game star that finishes the
+week pays its 25 at once. Add a new kind of reward as a `celebrate()` call,
+never a new animation.
 
 **Detection is live-only.** Identification happens during recording via short
 clips to `/identify`. Stopping just posts JSON for enrichment — no audio is
