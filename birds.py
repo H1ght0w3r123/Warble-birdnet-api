@@ -1188,6 +1188,12 @@ def season_state(common_name: str, month: int):
         return {"state": "here", "seasonal": False, "label": None}
     if here and not here_next:
         return {"state": "leaving", "seasonal": True, "label": "Leaving soon!"}
+    # The first month of its stay. Each list starts with the month the bird
+    # arrives (October for Redwing, which wraps the year end), so this is
+    # months[0]. Still 'here' - only the words change - because "Here right
+    # now" for a winter visitor in October read like a contradiction.
+    if here and month == months[0]:
+        return {"state": "here", "seasonal": True, "label": "Just arrived!"}
     if here:
         return {"state": "here", "seasonal": True, "label": "Here right now"}
     if here_next:
