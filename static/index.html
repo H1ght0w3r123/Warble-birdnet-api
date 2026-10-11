@@ -501,10 +501,11 @@
     transform-origin:30% 20%; --flip:1; transform:scaleX(var(--flip));
     animation:leafTwitch 3.4s ease-in-out infinite;
   }
-  /* On Home the challenges disc already wears its tally on the right, so
-     the leaf hangs from the left shoulder there, mirrored. */
-  .hub-item.has-new .hub-icon::after{width:30px; height:30px; top:-7px; right:auto; left:-10px;
-    --flip:-1; transform-origin:70% 20%;}
+  /* Bigger on Home's discs, still on the right shoulder like the nav. */
+  .hub-item.has-new .hub-icon::after{width:30px; height:30px; top:-7px; right:-10px;}
+  /* The challenges disc wears its tally there, so its leaf hangs off the
+     tally's far end instead of covering it. */
+  #challengeCard.has-new .hub-icon::after{right:-34px; top:-4px; z-index:1;}
   /* Still for most of the cycle, then a quick flick and settle - like a
      leaf catching a breath of wind. */
   @keyframes leafTwitch{
