@@ -399,7 +399,7 @@ def add_feathers(amount: float) -> float:
             session.add(stats)
         stats.total_feathers += amount
         session.commit()
-        return stats.total_feathers
+        return int(round(stats.total_feathers))
 
 
 def set_total_feathers(amount: float) -> float:
@@ -453,7 +453,9 @@ def get_total_feathers() -> float:
         return 0
     with SessionLocal() as session:
         stats = session.query(PlayerStats).first()
-        return stats.total_feathers if stats else 0
+        # Stored as a float column, but every amount is whole - so it's
+        # handed out as a whole number, never "10.0".
+        return int(round(stats.total_feathers)) if stats else 0
 
 
 def record_session(lat: float, lng: float, before_sunrise: bool = False, was_raining: bool = False):

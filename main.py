@@ -384,10 +384,12 @@ def get_wikipedia_info(scientific_name: str):
         return None, None
 
 
-# Reward tuning. Duplicates pay meaningfully now because once a child has
-# found their local birds, repeats are what going outside actually produces -
-# the old 1-feather duplicate meant the app stopped paying right when the
-# habit should have been forming.
+# Reward tuning - the whole ladder, so it can be read in one place:
+#   1  a bird heard again (once per bird per day), or one outside the 100
+#   3  a new bird (a rare one heard again: 3, once a day)
+#   5  a trophy level, or a new star in Guess the Song
+#  15  a new rare bird
+#  25  a pack completed, or all five weekly challenges
 # No per-session bonus. Turning up used to pay 10 feathers regardless of
 # what was heard, which made the birds themselves feel incidental. The
 # weekly challenges are the reason to come back instead.
@@ -395,13 +397,29 @@ PACK_BONUS = 25
 # Every trophy level won pays this, on top of the trophy itself. Levels won
 # before it was introduced were never back-paid.
 TROPHY_LEVEL_FEATHERS = 5
-# Guess the Song: the first 8 out of 8 on each level, once per level.
-SONG_GAME_PERFECT_FEATHERS = 20
+# Guess the Song: each star won on a level for the first time - so a level
+# is worth up to 15, and getting better pays, not just being perfect. Stars
+# held before this was introduced were never back-paid.
+SONG_GAME_STAR_FEATHERS = 5
+
+
+def award_trophy_levels():
+    """Checks every trophy and pays TROPHY_LEVEL_FEATHERS for each level just
+    won. For anything other than a recording, which folds the same pay into
+    its own total and bonus list. Returns (newly_won, feathers)."""
+    newly = check_all_trophies()
+    for t in newly:
+        t["feathers"] = TROPHY_LEVEL_FEATHERS
+    feathers = TROPHY_LEVEL_FEATHERS * len(newly)
+    if feathers:
+        add_feathers(feathers)
+    return newly, feathers
 
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
     """Small numbers on purpose - an eight-year-old can hold "15 feathers for
-    a rare bird" in their head in a way they can't hold 50.
+    a rare bird" in their head in a way they can't hold 50. A bird heard
+    again only pays the first time that day - see analyze_session.
 
     Only Warble's 100 carry a tier. A bird outside the collection pays a
     token amount: still worth hearing, but it isn't going in a pack."""
@@ -489,7 +507,11 @@ async def analyze_session(
         # One card per species now - rarity no longer varies by place, so
         # there's nothing to re-collect.
         is_duplicate = has_existing_sighting(common_name)
-        feathers = calculate_feathers(tier, is_duplicate)
+        # A bird pays once a day at most: new, or the first time it's heard
+        # again that day. Otherwise a garden with five regulars pays five
+        # feathers every time record is tapped, however often that is.
+        first_today = award_bonus_once(f"heard:{now.date().isoformat()}:{common_name}")
+        feathers = calculate_feathers(tier, is_duplicate) if (first_today or not is_duplicate) else 0
         photo_url, description = get_wikipedia_info(scientific_name)
 
         call_url = get_cached_call_url(common_name)
@@ -551,6 +573,7 @@ async def analyze_session(
     # Outside the "found something" check: a quiet session can win a trophy
     # level too (Empty Nester).
     for t in newly_earned_trophies:
+        t["feathers"] = TROPHY_LEVEL_FEATHERS
         session_feathers += TROPHY_LEVEL_FEATHERS
         bonuses.append({"label": f"{t['name']} level {t['level']}", "feathers": TROPHY_LEVEL_FEATHERS})
 
@@ -618,11 +641,9 @@ def award_wingman():
     rather than inferred, since there's no reliable way to detect that a share
     actually completed."""
     increment_share_count()
-    newly = check_all_trophies()
-    if newly:
-        add_feathers(TROPHY_LEVEL_FEATHERS * len(newly))
-    return {"newly_earned_trophies": newly,
-            "feathers": TROPHY_LEVEL_FEATHERS * len(newly)}
+    newly, feathers = award_trophy_levels()
+    return {"newly_earned_trophies": newly, "feathers": feathers,
+            "total_feathers": get_total_feathers()}
 
 
 def evaluate_week_challenges():
@@ -1016,13 +1037,19 @@ async def song_game_result(level: int = Form(...), correct: int = Form(...)):
         return JSONResponse({"error": "level not open"}, status_code=400)
     correct = max(0, min(SONG_GAME_ROUNDS, correct))
     stars = song_game_stars_for(correct)
+    before = get_song_game_stars().get(level, 0)
     best = record_song_game_result(level, correct, stars)
-    feathers = 0
-    if correct == SONG_GAME_ROUNDS and award_bonus_once(f"song_game_perfect:{level}"):
-        feathers = SONG_GAME_PERFECT_FEATHERS
+    # Only stars this level has never had before pay - replaying a level
+    # you've already got two stars on pays nothing until you get the third.
+    new_stars = max(0, best - before)
+    feathers = SONG_GAME_STAR_FEATHERS * new_stars
+    if feathers:
         add_feathers(feathers)
+    trophies, trophy_feathers = award_trophy_levels()
     return {"stars": stars, "best_stars": best, "levels": song_game_levels(found),
-            "feathers": feathers}
+            "new_stars": new_stars, "feathers": feathers,
+            "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers,
+            "total_feathers": get_total_feathers()}
 
 
 @app.get("/bird-photos/{photo_id}")
@@ -1165,7 +1192,11 @@ async def purchase_accessory_endpoint(accessory_id: str):
         return JSONResponse(status_code=404, content={"status": "error", "message": "Unknown accessory."})
     item = ACCESSORIES[accessory_id]
     success = purchase_accessory(accessory_id, item["cost"], item["category"])
-    return {"status": "ok" if success else "failed", "new_total": get_total_feathers()}
+    # Buying can win a trophy (Preener), and it should arrive now, not at
+    # the next recording.
+    trophies, trophy_feathers = award_trophy_levels() if success else ([], 0)
+    return {"status": "ok" if success else "failed", "new_total": get_total_feathers(),
+            "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers}
 
 
 @app.post("/accessories/equip")

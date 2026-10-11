@@ -33,7 +33,8 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   challenge means extending a `levels` list, not inventing a new trophy.
   Every level won pays `TROPHY_LEVEL_FEATHERS` (5); levels won before that
   was introduced were deliberately not back-paid.
-- `accessories.py` — 70 Dress Up items on a five-band price ladder. Hats are
+- `accessories.py` — 70 Dress Up items priced 5, 10, 15, 20, 30, 40, 50 or 75
+  (1,880 for the lot). Hats are
   fitted per bird (see its docstring).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
   Feathers only for finishing all five (`ALL_COMPLETE_BONUS`, 25); a single
@@ -45,8 +46,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   server-side by `/song-game/result`; the best per level is kept in
   `song_game_levels`. Every level draws from *all* birds heard so far; a bird
   with no recording can be a wrong choice but is never asked about. 15
-  seconds to answer, from when the song starts. The first 8/8 on each level
-  pays `SONG_GAME_PERFECT_FEATHERS` (20) once; no trophies from it yet.
+  seconds to answer, from when the song starts. Each star won on a level for
+  the first time pays `SONG_GAME_STAR_FEATHERS` (5), so a level is worth up
+  to 15; no trophies from it yet.
 
 `tools/build_pack_art.py` rebuilds the ten packs' icon/badge/wordmark webps
 from a folder of delivered PNGs. Read its docstring before re-exporting pack
@@ -84,8 +86,20 @@ joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
-head. New bird 3 feathers, rare 15, trophy level 5, a game level's first 8/8
-20, all five weekly challenges 25, Dress Up 5–75. Don't inflate them.
+head. The whole ladder is at the top of the reward section of `main.py`:
+1 a bird heard again (rare 3) - **once per bird per day** - or one outside
+the 100; 3 a new bird; 5 a trophy level or a new game star; 15 a new rare
+bird; 25 a pack completed or all five weekly challenges. Dress Up 5–75.
+Don't inflate them.
+
+**Every reward is shown the same way.** A recording's feathers are collected
+on the Done screen (or the "no birds" screen, which can still win a trophy).
+Everything else - game stars, a trophy won by buying or sharing - goes
+through `celebrateFeathers(amount, label, fromEl)` in `static/index.html`: a
+wood-and-cream chip over where it was won, then the feathers fly to the
+counter. The server has always banked them already. Trophy pay outside a
+recording goes through `award_trophy_levels()` in `main.py`, so trophies are
+checked after a purchase, a share and a game, not just after recordings.
 
 **Detection is live-only.** Identification happens during recording via short
 clips to `/identify`. Stopping just posts JSON for enrichment — no audio is
