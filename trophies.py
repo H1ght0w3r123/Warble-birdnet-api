@@ -1,8 +1,9 @@
 """
 Trophy definitions and the logic to check them.
 
-Only the first 3 MVP trophies for now — Fledgling, Early Bird, Nomad.
-The other 16 from the original design stay parked, same as always.
+18 trophies of seven levels each. Dawn Chorus, Globetrotter and Skylark were
+removed (October 2026); levels a child had won on them no longer count as
+leaves, but the feathers they paid were kept.
 """
 import datetime
 
@@ -26,16 +27,16 @@ from astral.sun import sun
 TROPHY_DEFINITIONS = {
     "fledgling": {
         "name": "Fledgling", "emoji": "\U0001F95A",
-        "verb": "Go warbling", "unit": "times", "one": "once",
-        "levels": [1, 15, 60, 100, 150, 250, 365],
+        "verb": "Just get out there", "unit": "times", "one": "once",
+        "levels": [1, 15, 60, 100, 150, 250, 350],
         "citations": [
-            "Your very first warble - welcome to the flock!",
-            "Fifteen warbles in - this is a proper habit now.",
+            "Congratulations on your very first warble. Welcome to the flock. Spread your wings!",
+            "Getting the hang of this now? 15 warbles and counting.",
             "Sixty warbles. You're not a fledgling any more.",
-            "A hundred warbles! You've got real wings now.",
-            "A hundred and fifty. You're flying high.",
-            "Two hundred and fifty warbles. What a birdwatcher!",
-            "365 warbles - that's one for every day of the year!",
+            "A hundred warbles! Now you've got your wings.",
+            "A hundred and fifty. Flying high!",
+            "Two hundred and fifty warbles. You are soaring now!",
+            "You've hit the 350 mark! You're out of sight!",
         ],
         "description": "This is where it all begins. Every birdwatcher remembers their first time listening properly - and you've kept coming back.",
     },
@@ -43,51 +44,51 @@ TROPHY_DEFINITIONS = {
         "name": "Early Bird", "emoji": "\U0001F305",
         # It counts early warbles that heard a bird, so it says so.
         "verb": "Hear birds before sunrise", "unit": "times", "one": "once",
-        "levels": [1, 5, 15, 25, 40, 60, 80],
+        "levels": [1, 5, 10, 15, 20, 30, 45],
         "citations": [
-            "Up before the birds - well, almost!",
-            "Five sunrises beaten. That takes real getting up.",
-            "Fifteen dawns. The birds must know you by now.",
-            "Twenty-five sunrises. The sun's got competition!",
-            "Forty dawns. You're a true morning bird.",
-            "Sixty sunrises. The early bird really does get the worm.",
-            "Eighty dawns. Nobody gets up earlier than you!",
+            "Up before the birds. Well...almost!",
+            "Five sunrises beaten. Get up and Go!",
+            "10 early rises. Go catch that worm!",
+            "Warbling before dawn fifteen times! This is becoming a habit.",
+            "Twenty dawns. Who's waking who up at this point?",
+            "Thirty sunrises. You've definitely earned chocolate for breakfast!",
+            "Forty-five dawns. You are indeed THE early bird!",
         ],
-        "description": "Dawn is when birds sing their loudest and best, to wake up the neighbourhood. Not many people hear it - you're one of the lucky ones.",
+        "description": "Dawn is when birds sing their loudest and best. Hear them as you're waking up? Then make the most of it!",
     },
     "nomad": {
         "name": "Nomad", "emoji": "\U0001F9ED",
-        "verb": "Warble in", "unit": "different places",
-        "levels": [10, 25, 50, 75, 100, 150, 200],
+        "verb": "Travel to", "unit": "different places",
+        "levels": [5, 10, 25, 40, 75, 100, 150],
         "citations": [
-            "Ten different spots, ten different adventures!",
-            "Twenty-five places. You really do get about.",
-            "Fifty different places. That's a proper explorer.",
-            "Seventy-five places. Is there anywhere you haven't been?",
-            "A hundred different places. Amazing!",
-            "A hundred and fifty places. A true wanderer.",
-            "Two hundred places. You've warbled everywhere!",
+            "Five different locations. You're getting around!",
+            "10 unique places. Really mixing it up now. Good for you!",
+            "Twenty-five locations now. Keep on trucking!",
+            "You've travelled to forty different places now.",
+            "Seventy-five locations! A travelling warbler.",
+            "A hundred places. Are you ever at home?!",
+            "A hundred and fifty unique locations. Incredible effort!",
         ],
-        "description": "Real birdwatchers know the best way to hear new birds is to go out listening for them - and that's exactly what you've been doing.",
+        "description": "The best way to hear new birds is to try in lots of different places. This trophy rewards those that keep on moving.",
     },
     "rooster": {
         "name": "Rooster", "emoji": "\U0001F413",
         "verb": "Warble", "unit": "times in the same place",
         "levels": [5, 20, 50, 75, 100, 150, 200],
         "citations": [
-            "Same spot, five times - that's your patch now!",
-            "Twenty visits. You know every tree in that place.",
+            "Same spot, five times. Claiming that patch!",
+            "Twenty visits. Laying down roots!",
             "Fifty visits to one spot. That's real devotion.",
             "Seventy-five visits. The birds there know your name!",
-            "A hundred visits to one place. It's your kingdom now.",
+            "A hundred visits to one place. This is your domain!",
             "A hundred and fifty visits. Nobody knows that spot like you.",
-            "Two hundred visits. You ARE that place!",
+            "Two hundred visits to the same place. Such dedication. Good for you!",
         ],
-        "description": "You know it now - the trees, the corners, the birds that live there. That's not luck, that's knowing your patch.",
+        "description": "You've found a purple patch and you're sticking to it. Good for you! Are any birds nesting in your hair yet?",
     },
     "golden_eagle": {
         "name": "Golden Eagle", "emoji": "\U0001F985",
-        "verb": "Hear", "unit": "Rare birds",
+        "verb": "Hear", "unit": "rare birds",
         "levels": [5, 15, 40, 60, 80, 100, 125],
         "citations": [
             "You heard birds that almost nobody hears here!",
@@ -98,30 +99,11 @@ TROPHY_DEFINITIONS = {
             "A hundred rare birds. Incredible!",
             "A hundred and twenty-five rare birds. A real legend!",
         ],
-        "description": "These are the kind of sightings that make experienced birdwatchers gasp. You've got a brilliant ear.",
-    },
-    "dawn_chorus": {
-        "name": "Dawn Chorus", "emoji": "\U0001F3B6",
-        "verb": "Hear", "unit": "birds before sunrise in one warble",
-        # In ONE warble, before the sun is up: only a handful of birds sing
-        # that early (robin, blackbird, wren, song thrush first), and a
-        # child's warble is a few minutes. It used to start at 5 and run to
-        # 25 - level 1 was a lucky spring morning, the top beyond any garden.
-        "levels": [3, 4, 5, 6, 8, 10, 12],
-        "citations": [
-            "Three songs before the sun came up - you heard the chorus begin!",
-            "Four birds before dawn. What a morning that was.",
-            "Five songs, one sunrise - you caught the whole chorus!",
-            "Six birds in one dawn chorus. Extraordinary.",
-            "Eight birds before sunrise. What an orchestra!",
-            "Ten birds in one dawn chorus. Brilliant listening!",
-            "Twelve birds in one dawn. The whole choir sang for you!",
-        ],
-        "description": "The dawn chorus is one of the most amazing sounds in nature, and you were there for it.",
+        "description": "Rare birds are the hardest of the bunch to hear. You have a brilliant ear, and a knack for being in the right place at the right time.",
     },
     "forager": {
         "name": "Forager", "emoji": "\U0001F33F",
-        "verb": "Hear", "unit": "different birds",
+        "verb": "Add", "unit": "birds to your flock",
         # Capped at 100, Warble's own list - higher levels could only be
         # reached with birds outside it, which have no cards.
         "levels": [20, 35, 50, 65, 80, 90, 100],
@@ -134,7 +116,7 @@ TROPHY_DEFINITIONS = {
             "Ninety different birds. Hardly anything gets past you!",
             "A hundred different birds. Unbelievable!",
         ],
-        "description": "That's a huge range of songs to know by ear. You're building real knowledge of what's out there.",
+        "description": "This trophy rewards a full and varied flock! Keep on adding to it to level up.",
     },
     "night_owl": {
         "name": "Night Owl", "emoji": "\U0001F989",
@@ -153,11 +135,11 @@ TROPHY_DEFINITIONS = {
             "Sixty birds after dark. The moon is your friend.",
             "Eighty birds after dark. King of the night!",
         ],
-        "description": "Most birds go quiet when it gets dark - but not all of them. Robins sing under streetlights, and owls are only just waking up.",
+        "description": "Most birds go quiet when it gets dark, but not all of them and some are just waking up. Take a grown-up on a nighttime warble. Who knows what you'll hear!",
     },
     "century": {
         "name": "Century", "emoji": "\U0001F4AF",
-        "verb": "Hear", "unit": "birds from Warble's list",
+        "verb": "Collect", "unit": "birds from the UK's top 100",
         "levels": [10, 25, 40, 60, 75, 90, 100],
         "citations": [
             "Ten of the hundred already - a brilliant start!",
@@ -168,22 +150,7 @@ TROPHY_DEFINITIONS = {
             "Ninety! Only ten left to find.",
             "All 100 birds. You've completed Warble.",
         ],
-        "description": "There are 100 birds on Warble's list. Working through them takes real skill, patience and a lot of listening.",
-    },
-    "globetrotter": {
-        "name": "Globetrotter", "emoji": "\U0001F30D",
-        "verb": "Complete", "unit": "collector packs", "one": "a collector pack",
-        "levels": [1, 2, 3, 4, 6, 8, 10],
-        "citations": [
-            "A whole pack completed - every bird at every tier!",
-            "Two packs finished. You've really covered the country.",
-            "Three packs complete. You're a collector now!",
-            "Four packs. Your collection is growing fast!",
-            "Six packs complete. More than half way!",
-            "Eight packs. Only two to go!",
-            "Every collector pack complete. Nothing left to chase.",
-        ],
-        "description": "A bird everyone sees at home can be a special sight somewhere else. You had to travel to learn that.",
+        "description": "How many of the UK's top 100 birds can you hear? Completing this trophy takes real skill, patience and a lot of listening.",
     },
     "empty_nester": {
         "name": "Empty Nester", "emoji": "\U0001FAB9",
@@ -198,11 +165,11 @@ TROPHY_DEFINITIONS = {
             "Three hundred quiet warbles. You never give up!",
             "Four hundred. The most patient birdwatcher ever!",
         ],
-        "description": "Every real birdwatcher knows that feeling. Coming back and trying again after a quiet day is the hardest part of all.",
+        "description": "Sometimes the birds just don't feel like singing. But they'll be back, and so will you! Going again after a quiet session shows determination. Great effort!",
     },
     "preener": {
         "name": "Preener", "emoji": "\U0001FAB6",
-        "verb": "Collect", "unit": "Dress Up items",
+        "verb": "Collect", "unit": "accessories in the Hoot-tique",
         # Round numbers, and never "the whole shop": that number moves every
         # time the Hoot-tique restocks (or loses an item), and the top level
         # would quietly stop meaning what it says - or stop being possible.
@@ -232,7 +199,7 @@ TROPHY_DEFINITIONS = {
             "Twelve seasons. Three years of birds!",
             "Sixteen seasons. Four whole years - you're evergreen!",
         ],
-        "description": "Birds change enormously through the year - who's singing, who's visiting, who's flown away.",
+        "description": "The birds around you change enormously through the year. Stick at it through every season and you learn who stays and who flies away.",
     },
     "tailwind": {
         "name": "Tailwind", "emoji": "\U0001F32C\uFE0F",
@@ -247,38 +214,23 @@ TROPHY_DEFINITIONS = {
             "Forty-five days in a row. Incredible!",
             "Sixty days running. A true champion!",
         ],
-        "description": "Keeping a habit going is genuinely hard, and birds reward the people who show up again and again.",
+        "description": "Creating a habit and keeping it up can be really hard. Well done, you're showing real commitment. Showing up day after day proves you're reliable and people can count on you! It does help when it's this fun though!",
     },
     "migrator": {
         "name": "Migrator", "emoji": "\U0001F5FA\uFE0F",
         "verb": "Hear", "unit": "birds in two places 5km apart",
         "one": "the same bird in two places 5km apart",
-        "levels": [1, 5, 15, 20, 30, 40, 50],
+        "levels": [1, 2, 5, 10, 20, 35, 50],
         "citations": [
             "You heard the same bird miles from where you first met it!",
-            "Five birds tracked across the miles.",
-            "Fifteen birds heard far and wide. A real map-maker.",
-            "Twenty birds heard far apart. You get around!",
-            "Thirty birds across the miles. Like a migrating bird!",
-            "Forty birds far and wide. A true traveller.",
+            "Two birds tracked across the miles.",
+            "Five birds heard far and wide. A real map-maker.",
+            "Ten birds heard far apart. You get around!",
+            "Twenty birds across the miles. Like a migrating bird!",
+            "Thirty-five birds far and wide. A true traveller.",
             "Fifty birds heard far apart. You've mapped the country!",
         ],
-        "description": "Birds move around far more than people realise, and now you've got the proof yourself.",
-    },
-    "skylark": {
-        "name": "Skylark", "emoji": "\U0001F33E",
-        "verb": "Hear", "unit": "farmland or hedgerow birds",
-        "levels": [2, 3, 4, 6, 8, 9, 10],
-        "citations": [
-            "Two farmland birds - out in the open fields!",
-            "Three farmland birds. Listen to those hedgerows!",
-            "Four farmland birds. You know the open fields!",
-            "Six farmland birds. The hedgerows are yours.",
-            "Eight farmland birds. Brilliant!",
-            "Nine! Just one farmland bird left to hear.",
-            "Every farmland bird on the list. Remarkable.",
-        ],
-        "description": "These are some of the trickiest birds to hear, and many of them are getting rarer, so every one counts.",
+        "description": "Birds move around far more than people realise. Those who max out the Migrator trophy become expert trackers.",
     },
     "high_flyer": {
         "name": "High Flyer", "emoji": "\U0001F9BF",
@@ -293,7 +245,7 @@ TROPHY_DEFINITIONS = {
             "Nine! Just one bird of prey left to hear.",
             "Every bird of prey on the list. Outstanding.",
         ],
-        "description": "These are the hunters - the ones circling high overhead - and hearing them takes real patience.",
+        "description": "These are the hunters who circle high overhead. You'll have to travel to some pretty interesting places to level up this trophy!",
     },
     "still_water": {
         "name": "Still Water", "emoji": "\U0001F30A",
@@ -308,11 +260,11 @@ TROPHY_DEFINITIONS = {
             "Nine! Just one water bird left to hear.",
             "Every water bird on the list. Astonishing.",
         ],
-        "description": "A whole different world of birds lives around water - ponds, rivers, reedbeds and marshes.",
+        "description": "A whole different world of birds lives around ponds, rivers, reedbeds and marshes. Hearing these birds takes patience, cunning and often complete silence!",
     },
     "brooder": {
         "name": "Brooder", "emoji": "\u2614",
-        "verb": "Go warbling in the rain", "unit": "times", "one": "once",
+        "verb": "Hear birds in the rain", "unit": "times", "one": "once",
         "levels": [1, 5, 15, 25, 40, 60, 80],
         "citations": [
             "You went out in the rain - proper dedication!",
@@ -323,7 +275,7 @@ TROPHY_DEFINITIONS = {
             "Sixty rainy warbles. Rain or shine, you're out there.",
             "Eighty rainy warbles. The bravest birdwatcher of all!",
         ],
-        "description": "Most people stay inside, but plenty of birds keep right on singing - so you heard something most people never do.",
+        "description": "Most people try to stay out of the rain. But you don't, and by the sounds of it, neither do the birds!",
     },
     "high_five": {
         "name": "High Five", "emoji": "\u270B",
@@ -338,7 +290,7 @@ TROPHY_DEFINITIONS = {
             "Twenty-five weeks. Half a year of high fives!",
             "Forty weeks of all five. A true champion!",
         ],
-        "description": "Five challenges every week, and you finished the lot. Coming back week after week is what makes a real birdwatcher.",
+        "description": "Five challenges every week, and you finished the lot. Maxing out your feather count week after week!",
     },
     "wingman": {
         "name": "Wingman", "emoji": "\U0001F91D",
@@ -351,9 +303,9 @@ TROPHY_DEFINITIONS = {
             "Twenty-five shared. Everyone's learning from you!",
             "Forty shared birds. A true bird teacher!",
             "Sixty shared. You've got everyone listening.",
-            "Eighty birds shared. Warble's best friend!",
+            "Eighty birds shared. Thanks for spreading the word!",
         ],
-        "description": "Birdwatchers have always told each other what they've heard, and now you're part of that too.",
+        "description": "Sharing is caring! Hit the share button on any bird you hear so your friends know how brilliant you are!",
     },
 }
 
@@ -408,8 +360,8 @@ def is_before_sunrise(lat: float, lng: float, moment_utc: datetime.datetime) -> 
 # total leaves (147 in all). Each rank has its own look in the page
 # (rankSeal), and a painting, when one arrives, as icon-rank-<key>.
 BIRDER_RANKS = [
-    (0, "Hatchling"), (5, "Spotter"), (12, "Tracker"), (25, "Scout"),
-    (40, "Ranger"), (60, "Warden"), (85, "Expert"), (115, "Master Birder"),
+    (0, "Hatchling"), (5, "Lark"), (12, "Eavesdropper"), (25, "Trill Seeker"),
+    (40, "Glider"), (60, "Flockstar"), (85, "Elder"), (115, "Warbler"),
 ]
 
 

@@ -630,16 +630,19 @@ def count_pre_sunrise_sessions() -> int:
 
 
 def count_rainy_sessions() -> int:
-    """Sessions warbled in the rain - Brooder's measure."""
+    """Brooder's measure: warbles in the rain that heard at least one bird
+    ("Hear birds in the rain")."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
         return session.query(RecordingSession).filter(
-            RecordingSession.was_raining == True).count()  # noqa: E712
+            RecordingSession.was_raining == True,  # noqa: E712
+            RecordingSession.bird_count > 0).count()
 
 
 def best_pre_sunrise_session() -> int:
-    """Most birds heard in a single pre-sunrise session - Dawn Chorus."""
+    """Most birds heard in a single pre-sunrise session (Dawn Chorus used
+    this; that trophy was removed, the function is kept for now)."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
@@ -773,17 +776,37 @@ def has_session_today() -> bool:
         ).count() > 0
 
 
-def count_distinct_locations(precision: int = 3) -> int:
-    """Counts genuinely different places sessions have happened, by
-    rounding coordinates to `precision` decimal places (3 dp is
-    roughly 110m) so the same spot doesn't count twice just from GPS
-    jitter."""
+NOMAD_SAME_PLACE_KM = 0.5
+
+
+def count_distinct_locations(same_place_km: float = NOMAD_SAME_PLACE_KM) -> int:
+    """Nomad's measure: how many different places have been warbled in. A
+    named place counts once however big it is; any other spot counts as the
+    same place as one already counted within same_place_km (500m) of it, so
+    the far end of the garden or the next street isn't a new place. Only
+    Nomad uses this looser idea of a place - Rooster and the weekly
+    challenges keep the ~110m one in _place_key."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
         named = _places_by_cell(session)
-        rows = session.query(RecordingSession.lat, RecordingSession.lng).all()
-        return len({_place_key(lat, lng, named) for lat, lng in rows if lat is not None})
+        rows = session.query(RecordingSession.lat, RecordingSession.lng) \
+            .order_by(RecordingSession.created_at).all()
+    anchors = [((lat, lng), ("place", name)) for (lat, lng), name in named.items()]
+    places = set()
+    for lat, lng in rows:
+        if lat is None or lng is None:
+            continue
+        key = _place_key(lat, lng, named)
+        if key[0] != "place":
+            near = [(_km((lat, lng), at), k) for at, k in anchors]
+            near = [n for n in near if n[0] <= same_place_km]
+            if near:
+                key = min(near)[1]
+            else:
+                anchors.append(((lat, lng), key))
+        places.add(key)
+    return len(places)
 
 
 def max_sessions_at_one_location(precision: int = 3) -> int:
@@ -804,11 +827,15 @@ def max_sessions_at_one_location(precision: int = 3) -> int:
 
 
 def count_rare_sightings() -> int:
-    """How many Rare-tier discoveries in total — used for Golden Eagle."""
+    """Golden Eagle's measure: rare birds heard, counting each rare bird at
+    most once a day (UK date) - the same one heard in three warbles on a
+    Saturday is one, and again on Sunday is two."""
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
-        return session.query(Sighting).filter_by(tier="Rare").count()
+        rows = session.query(Sighting.common_name, Sighting.created_at).filter_by(tier="Rare").all()
+    return len({(name, when.replace(tzinfo=datetime.timezone.utc).astimezone(UK_TIME).date())
+                for name, when in rows if when})
 
 
 def get_heard_species() -> set:

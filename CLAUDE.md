@@ -28,16 +28,17 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   have no status because they're introduced species the UK lists don't assess. All 100 have an `about`:
   one or two child-level sentences shown under the badges on the bird card.
   Also holds seasonality.
-- `trophies.py` — 21 trophies, each with **seven levels** (shown as empty
+- `trophies.py` — 18 trophies, each with **seven levels** (shown as empty
   sockets, then 1-3 green leaves, then the leaves turning gold). Adding
   challenge means extending a `levels` list, not inventing a new trophy.
   Every level won pays `TROPHY_LEVEL_FEATHERS` (5); levels won before that
   was introduced were deliberately not back-paid. Every level is a leaf, and
   the leaves together give a **birder rank** (`BIRDER_RANKS`: Hatchling at 0
-  up to Master Birder at 115 of the 147), shown as its badge in the top bar
+  - Lark, Eavesdropper, Trill Seeker, Glider, Flockstar, Elder - up to
+  Warbler at 115 of the 126), shown as its badge in the top bar
   beside the feathers on every screen, and celebrated when it goes up. Each rank has its own look, `rankSeal()`: a
   wooden seal with the rank's number and a wreath of the painted leaf that
-  grows a pair per rank, gold for the top two (Expert, Master Birder) -
+  grows a pair per rank, gold for the top two (Elder, Warbler) -
   replaced by a painting when `icon-rank-<key>` arrives
   (`design-brief-rank-badges-v1.md`). Tapping the top-bar badge opens the
   whole ladder over whatever screen is showing (`openRankLadder()`), as does
@@ -49,11 +50,16 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   Nester only counts quiet recordings of a minute or more, and Wingman
   counts one share per bird per day. Night Owl counts every bird heard
   after dark (after dusk or before dawn, `is_after_dark()`), not just owls.
-  Dawn Chorus (birds in one pre-sunrise
-  warble) runs 3 to 12 - it was 5 to 25, beyond any garden. Preener runs
+  Golden Eagle counts each rare bird at most once a day, Brooder counts rainy
+  warbles that heard a bird, and Nomad counts a spot within 500m of one
+  already counted as the same place (`count_distinct_locations`; Rooster
+  and the challenges keep the ~110m place). Preener runs
   5 to 60 and must never mean "the whole shop", which changes with every
   restock; `TROPHY_CEILINGS` in `main.py` stops the server starting if
-  Preener, Century, Globetrotter or a pack trophy asks for more than exists.
+  Preener, Century or a pack trophy asks for more than exists. Phil edits
+  the trophies' words and numbers in a spreadsheet; Dawn Chorus,
+  Globetrotter and Skylark were removed that way (levels won on them no
+  longer count as leaves; their feathers were kept).
 - `accessories.py` — 70 Dress Up items priced 5, 10, 15, 20, 30, 40, 50 or 75
   (1,880 for the lot). Four seasonal restocks a year are planned:
   `design-brief-shop-restock-v1.md`. Feather colours: nine free, nine

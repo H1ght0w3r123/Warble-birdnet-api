@@ -309,18 +309,15 @@ def measure_all_trophies():
         "nomad":         count_distinct_locations(),
         "rooster":       max_sessions_at_one_location(),
         "golden_eagle":  count_rare_sightings(),
-        "dawn_chorus":   best_pre_sunrise_session(),
         "forager":       count_distinct_species(),
         "night_owl":     count_birds_after_dark(),
         "century":       count_curated_species_found(ALL_CURATED_SPECIES),
-        "globetrotter":  sum(1 for p in pack_progress() if p["complete"]),
         "empty_nester":  count_empty_sessions(),
         "preener":       count_owned_accessories(),
         "evergreen":     distinct_seasons_warbled(),
         "tailwind":      max_consecutive_warble_days(),
         "migrator":      count_species_found_far_apart(5.0),
         # Repointed from the old habitat groups to the packs that replaced them
-        "skylark":       count_species_found_in(pack_species("ground_feeders")),
         "high_flyer":    count_species_found_in(pack_species("hunters")),
         "still_water":   count_species_found_in(pack_species("water_birds")),
         "brooder":       count_rainy_sessions(),
@@ -336,8 +333,6 @@ def measure_all_trophies():
 # shop change that breaks one fails loudly instead of quietly.
 TROPHY_CEILINGS = {
     "century": len(ALL_CURATED_SPECIES),
-    "globetrotter": len(PACKS),
-    "skylark": len(pack_species("ground_feeders")),
     "high_flyer": len(pack_species("hunters")),
     "still_water": len(pack_species("water_birds")),
     "preener": len(ACCESSORIES) - 1,
@@ -737,8 +732,7 @@ async def analyze_session(
                     packs_completed.append({"key": key, "name": pack["name"], "art": pack["art"],
                                             "feathers": PACK_BONUS})
 
-    # Trophies last, after the week and the packs have paid out - High Five
-    # and Globetrotter count those. Outside the "found something" check: a
+    # Trophies last, after the week has paid out - High Five counts it. Outside the "found something" check: a
     # quiet session can win a trophy level too (Empty Nester).
     leaves_before = total_leaves()
     newly_earned_trophies = check_all_trophies()

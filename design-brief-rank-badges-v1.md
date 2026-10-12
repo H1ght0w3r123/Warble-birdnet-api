@@ -3,7 +3,7 @@
 ## What this is
 
 Every trophy level a child wins is a leaf, and their leaves add up to a
-**birder rank**: eight steps from Hatchling to Master Birder. The rank shows
+**birder rank**: eight steps from Hatchling to Warbler. The rank shows
 as a small badge in the top bar beside the feathers, on every screen; on a
 ladder of all eight that opens when it's tapped; and on the biggest
 celebration in the app, when a child goes up a rank.
@@ -24,13 +24,13 @@ the built seal everywhere.
 | Rank | Leaves | File key | What it could be |
 |---|---|---|---|
 | Hatchling | 0 | `hatchling` | A cracked egg in a nest, a beak poking out |
-| Spotter | 5 | `spotter` | A pair of chunky toy binoculars |
-| Tracker | 12 | `tracker` | Bird footprints in mud, a magnifying glass |
-| Scout | 25 | `scout` | A little scout's hat with a feather, or a compass |
-| Ranger | 40 | `ranger` | A ranger's wide hat, or a walking stick with a map |
-| Warden | 60 | `warden` | A wooden birdhouse with a lantern |
-| Expert | 85 | `expert` | An open field guide, gold ribbon bookmark |
-| Master Birder | 115 | `master-birder` | A golden owl, or a crown of leaves with a bird on it |
+| Lark | 5 | `lark` | A small lark singing on a grass stem |
+| Eavesdropper | 12 | `eavesdropper` | A big cupped ear peeping round a leaf, or an old ear trumpet |
+| Trill Seeker | 25 | `trill-seeker` | A magnifying glass over a curl of music notes |
+| Glider | 40 | `glider` | A bird gliding with its wings spread wide |
+| Flockstar | 60 | `flockstar` | A wooden star with feathers, or a little V of birds |
+| Elder | 85 | `elder` | A wise old owl in spectacles |
+| Warbler | 115 | `warbler` | A golden warbler mid-song, in a crown of leaves |
 
 The ideas are only starting points. What matters is the **ladder**:
 
@@ -38,7 +38,7 @@ The ideas are only starting points. What matters is the **ladder**:
   one, same size, same light. A child should be able to put them in order
   without the names: the object gets grander and the wreath round the disc
   fuller with every step, as the built ones do now.
-- **Green leaves up to Warden, gold for Expert and Master Birder.** In
+- **Green leaves up to Flockstar, gold for Elder and Warbler.** In
   Warble gold means only two things: a rare bird, and a trophy's leaves
   turning gold at its top levels. The top two ranks are the leaves turning
   gold, so they may use gold; nothing below them should.
@@ -71,7 +71,7 @@ The same picture is used at about **150 px** (the celebration), **54 px**
 The same rules as every Warble brief:
 
 1. **One badge per file**, named `icon-rank-<key>_1024x1024.png` (for
-   example `icon-rank-master-birder_1024x1024.png`). Any sheet with several
+   example `icon-rank-trill-seeker_1024x1024.png`). Any sheet with several
    together is a separate file named `PREVIEW-ONLY`.
 2. **The file's pixel size IS the canvas:** exactly 1024 × 1024, square.
 3. **Real transparency.** A true alpha channel, not a painted checkerboard.
