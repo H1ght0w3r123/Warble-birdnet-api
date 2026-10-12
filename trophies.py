@@ -403,8 +403,8 @@ def is_before_sunrise(lat: float, lng: float, moment_utc: datetime.datetime) -> 
 
 
 # Birder rank: what all the trophies add up to. Every trophy level is a leaf,
-# and the leaves together give the child a title - shown on Home and on the
-# Awards page, where the whole ladder opens over the trophies. Thresholds are
+# and the leaves together give the child a title - its badge sits in the top
+# bar beside the feathers on every screen, and opens the whole ladder. Thresholds are
 # total leaves (147 in all). Each rank has its own look in the page
 # (rankSeal), and a painting, when one arrives, as icon-rank-<key>.
 BIRDER_RANKS = [

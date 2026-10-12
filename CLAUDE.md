@@ -34,13 +34,13 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   Every level won pays `TROPHY_LEVEL_FEATHERS` (5); levels won before that
   was introduced were deliberately not back-paid. Every level is a leaf, and
   the leaves together give a **birder rank** (`BIRDER_RANKS`: Hatchling at 0
-  up to Master Birder at 115 of the 147), shown on Home and Awards and
-  celebrated when it goes up. Each rank has its own look, `rankSeal()`: a
+  up to Master Birder at 115 of the 147), shown as its badge in the top bar
+  beside the feathers on every screen, and celebrated when it goes up. Each rank has its own look, `rankSeal()`: a
   wooden seal with the rank's number and a wreath of the painted leaf that
   grows a pair per rank, gold for the top two (Expert, Master Birder) -
   replaced by a painting when `icon-rank-<key>` arrives
-  (`design-brief-rank-badges-v1.md`). The rank tag on Home and Awards opens
-  the whole ladder over Awards (`openRankLadder()`); `birder_rank()` sends
+  (`design-brief-rank-badges-v1.md`). Tapping the top-bar badge opens the
+  whole ladder over whatever screen is showing (`openRankLadder()`); `birder_rank()` sends
   the ladder and the "how to climb" words (`message`) with the rank. Summer Squad was removed (its first level
   needed all 13 summer visitors in one summer); High Five (weeks with all
   five challenges done) was added. Forager is capped at 100 species, Empty
@@ -179,7 +179,8 @@ tap sends one home early. The new bird's reveal card is the same moment at
 full size (same burst, "New bird!" in the kicker's style, flies to My
 Flock), and so is a new birder rank (`celebrate({big: true})`: the screen
 dims, the new seal is large, the ladder underneath lights the step just
-climbed, a double burst and three times the hold) - big is kept for that
+climbed, a double burst and three times the hold; it flies into the top-bar
+badge, which changes as it lands) - big is kept for that
 one, the rarest reward. On the Done screen the birds' own feathers are tapped to collect,
 then the recording's other rewards play as moments, and only then "Go
 again" - so nothing is cut short. A new avatar bird stays a banner: it's a

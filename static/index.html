@@ -260,6 +260,13 @@
 
   .top{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;position:relative;}
   .top-actions{display:flex;align-items:center;gap:8px;}
+  /* Feathers and the birder rank, side by side: what the child has, and who
+     they are. The rank is just its badge - the number in its wreath - and
+     taps open the ladder. */
+  .top-left{display:flex;align-items:center;gap:6px;}
+  .top-rank{border:none;background:none;padding:0;cursor:pointer;display:flex;
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.35));}
+  .top-rank[hidden]{display:none;}
   .top-settings-btn{background:transparent;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;}
   .top-settings-btn svg{width:23px;height:23px;}
   .top-settings-btn img{width:100%;height:100%;object-fit:contain;display:block;}
@@ -455,17 +462,6 @@
      up to 160px. On a tall phone it sits well down the screen; on a short
      one, where there's no spare room, it stays snug under the mic. */
   .home-greeting{margin-top:0;}
-  /* Birder rank, from every trophy leaf won: a small wooden tag over the
-     greeting. Tapping it goes to Awards, where the leaves come from. */
-  .home-wordmark + .home-rank{margin-top:-14px;}
-  .home-rank{display:inline-flex; align-items:center; gap:5px; margin:0 0 6px; padding:3px 12px 3px 8px;
-    border:none; border-radius:14px; cursor:pointer; background:var(--disc-cream);
-    box-shadow:0 0 0 2px var(--wood), 0 2px 4px rgba(0,0,0,0.25);
-    font-family:'Poppins'; font-weight:900; font-size:13px; color:var(--wood-edge);}
-  .home-rank .rank-seal{margin:-5px 0 -5px -4px;}
-  /* The same tag on Awards, beside the leaf count; it opens the ladder. */
-  .awards-rank{margin:0; text-shadow:none;}
-  #trophyCount{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;}
 
   /* --- Birder rank seals (rankSeal in the script) --------------------------
      A wood-rimmed cream disc with the rank's number, and a wreath of the
@@ -2848,7 +2844,10 @@
 
   <div id="scroller">
   <div class="top">
-    <div class="feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> <span id="featherCount">–</span></div>
+    <div class="top-left">
+      <div class="feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> <span id="featherCount">–</span></div>
+      <button class="top-rank" id="topRank" hidden aria-label="Your birder rank - see all the ranks"></button>
+    </div>
     <div class="top-wordmark" id="topWordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;"></div>
     <div class="top-actions">
     <button class="top-settings-btn" id="topSettingsBtn" aria-label="Settings">
@@ -2994,9 +2993,6 @@ function renderIdle() {
     <div class="home-wordmark"><img src="/static/wordmark.webp" alt="Warble" style="height:100%;display:block;margin:0 auto;"></div>
     <!-- The greeting sits above the mic now: straight below it is where the
          bottom of the U of three discs goes. -->
-    <button class="home-rank" id="homeRank" hidden aria-label="Your birder rank - see your awards">
-      <span class="home-rank-seal"></span><span class="home-rank-name"></span>
-    </button>
     <div class="stage-label home-greeting">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
     <div class="stage-sub">Hear some birds? Then tap the mic!</div>
 
@@ -3038,9 +3034,6 @@ function renderIdle() {
   mic.onclick = () => { wrap.classList.remove('mic-alive'); beginWarble(); };
 
   document.getElementById('challengeCard').onclick = renderChallenges;
-  // The rank tag goes to Awards with the ladder open over it.
-  document.getElementById('homeRank').onclick = async () => { await renderTrophies(); openRankLadder(); };
-  paintHomeRank();
   refreshRank();
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
   document.getElementById('gameMini').onclick = () => renderSongGame();
@@ -4358,15 +4351,18 @@ function celebrateTrophy(t, from) {
     feathers: t.feathers || 0, from, home: 'navTrophies' });
 }
 // A new rank is the one moment at full size: the new seal, big, and the
-// ladder underneath with the step just climbed lit up.
+// ladder underneath with the step just climbed lit up. It flies into the
+// top bar, and the badge there changes as it lands.
 function celebrateRank(rank, from) {
   if (currentProfile) currentProfile.rank = rank;
+  const landed = () => paintTopRank();
   const ladder = (rank.ladder || []).map((step, i) =>
     `<span class="moment-step${i === rank.index ? ' now' : ''}">${rankSeal(i, step.key, 30, i > rank.index)}</span>`).join('');
   const next = rank.next_name ? `Next: ${rank.next_name} at ${rank.next_at} leaves` : 'The very top rank!';
   return celebrate({ kicker: 'New birder rank!', name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
-    icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'navTrophies',
-    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>` });
+    icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'topRank',
+    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>` })
+    .then(r => { landed(); return r; });
 }
 function celebratePack(p, from) {
   return celebrate({ kicker: 'Pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
@@ -4396,22 +4392,23 @@ function avatarLock(id) {
   return st && !st.unlocked ? st : null;
 }
 
-// Home's rank pill and the Awards line both read currentProfile.rank; this
-// brings it (and the bird locks) up to date after anything that can change them.
+// The top bar's rank badge and the Awards line both read currentProfile.rank;
+// this brings it (and the bird locks) up to date after anything that can
+// change them.
 async function refreshRank() {
   try {
     const d = await (await fetch('/profile')).json();
     currentProfile.rank = d.rank;
     currentProfile.avatars = d.avatars;
-    paintHomeRank();
+    paintTopRank();
   } catch (e) { /* keep what we had */ }
 }
-function paintHomeRank() {
-  const el = document.getElementById('homeRank');
+function paintTopRank() {
+  const el = document.getElementById('topRank');
   const r = currentProfile && currentProfile.rank;
   if (!el || !r) return;
-  el.querySelector('.home-rank-seal').innerHTML = rankSeal(r.index, r.key, 26);
-  el.querySelector('.home-rank-name').textContent = r.name;
+  el.innerHTML = rankSeal(r.index, r.key, 40);
+  el.setAttribute('aria-label', `Your birder rank: ${r.name} - see all the ranks`);
   el.hidden = false;
 }
 
@@ -6868,7 +6865,7 @@ const TUTORIALS = {
   ],
   trophies: [
     { target: '#trophyCarousel', text: "As you discover birds you'll also earn awards. Every trophy level wins a leaf and extra feathers, and your leaves add up to your birder rank!" },
-    { target: '#awardsRank', text: 'This is your birder rank. Tap it to see every rank, and how many leaves until the next one!' },
+    { target: '#topRank', text: 'This is your birder rank. Tap it to see every rank, and how many leaves until the next one!' },
   ],
   dressup: [
     { target: '#dressUpAvatarStage', text: 'This is you! Tap the arrows to choose your bird.' },
@@ -9150,6 +9147,10 @@ async function handleAccessoryTap(accessoryId, owned, category, cost, name) {
 
 document.getElementById('topProfileBtn').onclick = renderProfile;
 document.getElementById('topSettingsBtn').onclick = renderSettings;
+// The rank badge beside the feathers, on every screen: it opens the ladder
+// over whatever is showing.
+document.getElementById('topRank').onclick = openRankLadder;
+refreshRank();
 document.getElementById('navCollection').onclick = renderCollection;
 document.getElementById('navHome').onclick = renderIdle;
 document.getElementById('navTrophies').onclick = renderTrophies;
@@ -9819,17 +9820,12 @@ async function renderTrophies(focusKey) {
     const levelsGot = allTrophiesRaw.reduce((n, t) => n + (t.level || 0), 0);
     const levelsTotal = allTrophiesRaw.reduce((n, t) => n + (t.level_count || 7), 0);
     // The rank from all the leaves together, and how far to the next one.
-    // The rank is a wooden tag that opens the whole ladder over the trophies.
+    // (Its badge is in the top bar, which opens the whole ladder.)
     const r = data.rank;
-    const countEl = document.getElementById('trophyCount');
-    if (r) {
-      countEl.innerHTML = `<button class="home-rank awards-rank" id="awardsRank" aria-label="See all the birder ranks">
-          <span class="home-rank-seal">${rankSeal(r.index, r.key, 26)}</span><span class="home-rank-name">${escapeFlock(r.name)}</span>
-        </button>
-        <span class="awards-leaves">${levelsGot} of ${levelsTotal} leaves</span>`;
-      document.getElementById('awardsRank').onclick = openRankLadder;
-    } else countEl.textContent = `${levelsGot} of ${levelsTotal} levels earned`;
-    if (r && currentProfile) currentProfile.rank = r;
+    document.getElementById('trophyCount').textContent = r
+      ? `${r.name} · ${levelsGot} of ${levelsTotal} leaves` + (r.next_name ? ` · ${r.to_go} more to ${r.next_name}` : '')
+      : `${levelsGot} of ${levelsTotal} levels earned`;
+    if (r && currentProfile) { currentProfile.rank = r; paintTopRank(); }
 
     // Coming back from a trophy's card, that trophy goes back to the front.
     // Otherwise start on the first unearned one - the most useful thing to

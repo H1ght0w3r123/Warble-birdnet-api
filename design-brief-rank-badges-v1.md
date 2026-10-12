@@ -4,9 +4,9 @@
 
 Every trophy level a child wins is a leaf, and their leaves add up to a
 **birder rank**: eight steps from Hatchling to Master Birder. The rank shows
-as a small tag on Home and Awards, on a ladder of all eight that opens over
-the Awards treehouse, and on the biggest celebration in the app, when a
-child goes up a rank.
+as a small badge in the top bar beside the feathers, on every screen; on a
+ladder of all eight that opens when it's tapped; and on the biggest
+celebration in the app, when a child goes up a rank.
 
 Each rank needs **its own badge**, so that going up feels like becoming
 something new. For now the app builds them itself (`rankSeal()` in
@@ -58,10 +58,10 @@ Use the trophy emblems and the trophies' leaves as the reference
 ## They're shown big and small
 
 The same picture is used at about **150 px** (the celebration), **54 px**
-(the ladder) and **26 px** (the tag on Home and Awards). So:
+(the ladder) and **40 px** (the top bar, beside the feather count). So:
 
 - Bold silhouette, few details, nothing thin.
-- At 26 px it must still be clear which rank it is, mostly from the size of
+- At 40 px it must still be clear which rank it is, mostly from the size of
   the wreath and its colour. Shrink it and check.
 - A rank not reached yet is shown greyed out; it should still read as a
   badge in grey.
