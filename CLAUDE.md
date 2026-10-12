@@ -56,7 +56,13 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   and the challenges keep the ~110m place). Preener runs
   5 to 60 and must never mean "the whole shop", which changes with every
   restock; `TROPHY_CEILINGS` in `main.py` stops the server starting if
-  Preener, Century or a pack trophy asks for more than exists. Phil edits
+  Preener, Century or a pack trophy asks for more than exists. The Awards
+  scene carries no words but "Tap for more", on the plinth under the front
+  trophy; everything else is on the trophy's card (`renderTrophyDetail`), in
+  this order: picture, name and level, the level's citation, the
+  description, then the next level's target with a green bar. A trophy not
+  won yet opens too: greyed, a carved "?" for its name, no story, just what
+  it takes to win it. Phil edits
   the trophies' words and numbers in a spreadsheet; Dawn Chorus,
   Globetrotter and Skylark were removed that way (levels won on them no
   longer count as leaves; their feathers were kept).

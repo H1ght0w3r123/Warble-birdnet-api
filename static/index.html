@@ -2605,13 +2605,15 @@
      vanish, so here they go the near-white of the stats panel below them. */
 
   .trophy-hero{
-    height:236px; background:#FFF6E6;
+    height:clamp(170px, 30vh, 236px); background:#FFF6E6;
     display:flex; align-items:center; justify-content:center;
     border-radius:var(--inner) var(--inner) 0 0;
   }
   /* Bigger than the 130px the carousel gives it: this is the one screen
      that is only about this trophy. */
-  .trophy-hero-art{width:186px;}
+  .trophy-hero-art{width:min(186px, 23vh);}
+  /* A trophy not won yet looks as it does on the plinth: greyed and dim. */
+  .trophy-hero.locked .trophy-art{filter:grayscale(0.9) brightness(0.72);}
   .trophy-hero-art .trophy-art{animation:trophyBreathe 3s ease-in-out infinite;}
   @keyframes trophyBreathe{
     0%,100%{transform:scale(1);}
@@ -2620,7 +2622,10 @@
   @media (prefers-reduced-motion: reduce){
     .trophy-hero-art .trophy-art{animation:none;}
   }
-  .trophy-caption{width:100%;max-width:300px;text-align:center;margin-top:6px;min-height:44px;}
+  .trophy-caption{width:100%;max-width:300px;text-align:center;margin-top:6px;}
+  /* Above the trophy row, whose box reaches down over the plinth: without
+     this the row caught the tap meant for "Tap for more". */
+  #trophyCaption{position:relative; z-index:6;}
   /* The front trophy's name and level, above the row. It takes 42px of the
      gap above the row (12px margin + 30px), and the row's own margin gives
      the same back, so the trophies stay level with the Collections cards. */
@@ -2700,7 +2705,18 @@
     white-space:nowrap;}
   .trophy-level{display:inline-block;background:var(--sage);color:var(--ink);font-size:10px;font-weight:900;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;text-shadow:none;}
   .trophy-caption-next{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:5px;}
-  .trophy-caption-tap{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--disc-cream);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
+  /* The one line left on the Awards scene: white text on the plinth, with
+     the scene's dark collar (inherited), tapping open the front trophy. */
+  .trophy-caption-tap{font-family:'Poppins';font-weight:700;font-size:12px;color:#fff;text-transform:uppercase;letter-spacing:.05em;
+    background:none;border:none;padding:6px 12px;cursor:pointer;text-shadow:inherit;}
+  /* The trophy card, below the picture: this level's line, the trophy's
+     story, then what the next level needs with a green bar. */
+  .trophy-card-citation{font-family:'Poppins';font-weight:700;font-size:14px;line-height:1.4;color:var(--wood-edge);margin-top:6px;}
+  .trophy-card-next{margin-top:14px;padding:10px 12px;border-radius:12px;background:var(--cream-lt);}
+  .trophy-card-next-label{font-family:'Poppins';font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);}
+  .trophy-card-next-text{font-family:'Poppins';font-weight:700;font-size:14px;line-height:1.35;color:var(--ink-brown);margin-top:2px;}
+  .trophy-card-next-text b{font-weight:900;color:var(--wood-edge);}
+  .trophy-card-next .rank-row-bar{margin-top:7px;}
   /* Feathers-earned and "go again" share one grid cell (both always in the
      DOM, never display:none) so the cell's height is fixed to whichever is
      taller - swapping which one is visible is a pure opacity crossfade with
@@ -9868,7 +9884,7 @@ async function renderTrophies(focusKey) {
   stage.innerHTML = `
     <div class="awards-bg" id="awardsBg"><div class="awards-beam"></div><div class="awards-off"></div></div>
     <div class="collection-header"><div class="collection-title"><img src="/static/title-awards-v2.webp" alt="Awards" style="height:30px;width:auto;display:block;"></div></div>
-    <div class="collection-count" id="trophyCount">Loading...</div>
+    <div class="collection-count" id="trophyCount"></div>
     <div class="trophy-title awards-sign-text" id="trophyTitle"></div>
     <div class="trophy-carousel" id="trophyCarousel"></div>
     <div class="trophy-caption" id="trophyCaption"></div>
@@ -9881,12 +9897,10 @@ async function renderTrophies(focusKey) {
     // Levels earned, not trophies started - 20 trophies x 3 levels
     const levelsGot = allTrophiesRaw.reduce((n, t) => n + (t.level || 0), 0);
     const levelsTotal = allTrophiesRaw.reduce((n, t) => n + (t.level_count || 7), 0);
-    // The rank from all the leaves together, and how far to the next one.
-    // (Its badge is in the top bar, which opens the whole ladder.)
+    // No words on the Awards scene: the rank and its leaves are the top bar's
+    // badge (and its ladder), and each trophy's words are on its card.
+    // #trophyCount stays, empty, as the line the scene is laid out under.
     const r = data.rank;
-    document.getElementById('trophyCount').textContent = r
-      ? `${r.name} · ${levelsGot} of ${levelsTotal} leaves` + (r.next_name ? ` · ${r.to_go} more to ${r.next_name}` : '')
-      : `${levelsGot} of ${levelsTotal} levels earned`;
     if (r && currentProfile) { currentProfile.rank = r; paintTopRank(); }
 
     // Coming back from a trophy's card, that trophy goes back to the front.
@@ -9959,25 +9973,16 @@ function renderTrophyCaption() {
   const t = allTrophiesRaw[trophyIndex];
   const caption = document.getElementById('trophyCaption');
   const title = document.getElementById('trophyTitle');
-  // The name and level sit above the row, the trophy's citation and what
-  // the next level needs below it.
   // The spotlight is on for a trophy that's been won, and goes out for one
   // that hasn't.
   const scene = document.getElementById('awardsBg');
   if (t && scene) scene.classList.toggle('lights-off', !t.earned);
-  if (t && title) {
-    title.innerHTML = `<span class="trophy-caption-name">${t.earned ? t.name : icon('mystery')}</span>
-      ${t.earned ? `<span class="trophy-level">Level ${t.level}</span>` : ''}`;
-  }
+  // All the words are on the trophy's card now: the sign stays bare and
+  // the only line on the scene is "Tap for more", on the plinth.
+  if (title) title.innerHTML = '';
   if (t && caption) {
-    const progressLine = t.maxed
-      ? 'All seven levels complete!'
-      : `${t.requirement} &nbsp;·&nbsp; ${Math.min(t.progress, t.next_target)}/${t.next_target}`;
-    caption.innerHTML = `
-      ${t.earned && t.citation ? `<div class="trophy-caption-req">${t.citation}</div>` : ''}
-      <div class="trophy-caption-next">${progressLine}</div>
-      ${t.earned ? '<div class="trophy-caption-tap">Tap for more</div>' : ''}
-    `;
+    caption.innerHTML = `<button class="trophy-caption-tap" id="trophyTap">Tap for more</button>`;
+    document.getElementById('trophyTap').onclick = () => renderTrophyDetail(t.key);
   }
   placeAwardsCaption();
   fitAwardsSign();
@@ -10010,6 +10015,7 @@ const AWARDS_BG = {
   w: 942, h: 1669,
   sign: { l: 200, t: 150, r: 740, b: 292 },
   standX: 471, standY: 1040, faceY: 1130, top: 110, floor: 1420,
+  tapY: 1080,   // the stump's top, between the trophy's base and its front edge
 };
 let awardsGeom = null;
 let awardsSceneBox = null;   // where the scene was last drawn, for the trophy card
@@ -10040,7 +10046,7 @@ function layoutAwardsScene() {
   awardsSceneBox = { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' };
   Object.assign(bg.style, awardsSceneBox);
   const at = (x, y) => ({ x: left + x * sc, y: top + y * sc });
-  awardsGeom = { standY: at(0, B.standY).y, faceY: at(0, B.faceY).y };
+  awardsGeom = { standY: at(0, B.standY).y, faceY: at(0, B.faceY).y, tapY: at(0, B.tapY).y };
 
   // The trophy's name on the painted sign.
   const title = document.getElementById('trophyTitle');
@@ -10065,9 +10071,8 @@ function layoutAwardsScene() {
   placeAwardsCaption();
 }
 
-// The description and progress go on the stump's face, under the trophy -
-// dark wood that white type reads well against - or as near as fits above
-// the nav bar.
+// "Tap for more" sits on the stump's top, in the strip of wood between the
+// trophy's base and the front edge - or as near as fits above the nav bar.
 function placeAwardsCaption() {
   const caption = document.getElementById('trophyCaption');
   const sc = document.getElementById('scroller');
@@ -10078,7 +10083,7 @@ function placeAwardsCaption() {
   // 20px is the scroll pane's own bottom padding: any lower and the page
   // would scroll by those few pixels.
   const floor = sc.getBoundingClientRect().bottom - 20 - caption.offsetHeight;
-  const want = Math.min(awardsGeom.faceY, floor);
+  const want = Math.min(awardsGeom.tapY - caption.offsetHeight / 2, floor);
   caption.style.marginTop = (margin + want - now) + 'px';
 }
 window.addEventListener('resize', () => { if (document.getElementById('awardsBg')) layoutAwardsScene(); });
@@ -10175,14 +10180,14 @@ function attachTrophySwipe(carousel) {
     // A tap on a gliding row just stops it, on the nearest trophy.
     if (caught) { land(Math.round(trophyIndex + drift)); return; }
     // A tap: a side trophy comes to the front; the front one opens its
-    // detail, but only once it's been earned. Found by coordinate, because
+    // card, won or not (a locked one says what it takes). Found by coordinate, because
     // capturing the pointer retargets the event to the row itself.
     const at = document.elementFromPoint(e.clientX, e.clientY);
     const hit = at && at.closest ? at.closest('.trophy-slide') : null;
     if (!hit) return;
     const i = +hit.dataset.i;
     if (i !== trophyIndex) land(i);
-    else if (allTrophiesRaw[i].earned) renderTrophyDetail(allTrophiesRaw[i].key);
+    else renderTrophyDetail(allTrophiesRaw[i].key);
   });
   carousel.addEventListener('pointercancel', () => { pid = null; land(Math.round(trophyIndex + drift)); });
 }
@@ -10213,7 +10218,18 @@ async function shareBird(bird) {
 
 function renderTrophyDetail(trophyKey) {
   const trophy = allTrophiesRaw.find(t => t.key === trophyKey);
-  if (!trophy || !trophy.earned) return;
+  if (!trophy) return;
+  // In order: the picture, the name and level, this level's line, the
+  // trophy's story, and what the next level needs. A trophy not won yet
+  // keeps its secret (a carved "?" for the name, no story) and says what
+  // it takes to win it.
+  const won = trophy.earned;
+  const done = trophy.maxed ? 1 : Math.max(0, Math.min(1, (trophy.progress || 0) / (trophy.next_target || 1)));
+  const next = trophy.maxed
+    ? `<div class="trophy-card-next-text">All seven levels complete!</div>`
+    : `<div class="trophy-card-next-label">${won ? `Level ${trophy.level + 1}` : 'To win it'}</div>
+       <div class="trophy-card-next-text">${trophy.requirement} · <b>${Math.min(trophy.progress, trophy.next_target)}/${trophy.next_target}</b></div>
+       <span class="rank-row-bar"><span style="width:${(done * 100).toFixed(0)}%"></span></span>`;
 
   // No Back button: like the bird card, a tap anywhere goes back - to the
   // trophy row, with this trophy still at the front.
@@ -10224,14 +10240,15 @@ function renderTrophyDetail(trophyKey) {
     <div class="awards-veil"></div>
     <div class="woodframe detail-wood trophy-card-hover" data-bird-detail>
     <div class="detail-card" style="--tier-color:var(--sage-dk);">
-      <div class="trophy-hero">
+      <div class="trophy-hero ${won ? '' : 'locked'}">
         <div class="trophy-hero-art">${trophyArt(trophy)}</div>
       </div>
       <div class="detail-body">
-        <div class="detail-name trophy-card-title">${trophy.name}
-          <span class="trophy-card-level">Level ${trophy.level}</span></div>
-        <div class="detail-sci" style="font-style:normal;color:var(--wood-edge);font-weight:700;">${trophy.citation}</div>
-        <div class="detail-desc">${trophy.description}</div>
+        <div class="detail-name trophy-card-title">${won ? trophy.name : icon('mystery')}
+          ${won ? `<span class="trophy-card-level">Level ${trophy.level}</span>` : ''}</div>
+        ${won && trophy.citation ? `<div class="trophy-card-citation">${trophy.citation}</div>` : ''}
+        ${won ? `<div class="detail-desc">${trophy.description}</div>` : ''}
+        <div class="trophy-card-next">${next}</div>
       </div>
     </div>
     </div>
