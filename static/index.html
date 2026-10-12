@@ -2235,6 +2235,20 @@
     box-shadow:0 2px 6px rgba(0,0,0,0.28);
     transition:transform .16s cubic-bezier(.34,1.5,.64,1), box-shadow .16s ease;
   }
+  /* My rank on My Profile: a framed card (something to look at) that opens
+     the ladder. */
+  .profile-rank{--frame:4px; --inner:14px; display:block; width:100%; border:none; cursor:pointer; text-align:left;
+    font:inherit; margin-top:8px;}
+  .profile-rank-inner{display:flex; flex-direction:column; gap:8px; padding:12px 14px; background:var(--disc-cream);
+    border-radius:var(--inner);}
+  .profile-rank-top{display:flex; align-items:center; gap:12px;}
+  .profile-rank-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+  .profile-rank-name{font-family:'Poppins'; font-weight:900; font-size:20px; color:var(--wood-edge);}
+  .profile-rank-leaves{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft);}
+  .profile-rank-msg{font-family:'Poppins'; font-weight:400; font-size:13px; line-height:1.4; color:var(--ink-brown);}
+  .profile-rank-steps{margin-top:0;}
+  .profile-rank-link{align-self:center; font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--wood-edge);
+    display:inline-flex; align-items:center; gap:4px;}
   .profile-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px;}
   .profile-photo-preview{width:104px;height:104px;border-radius:50%;background:var(--disc-cream);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,0.22);}
   .profile-photo-preview img{width:100%;height:100%;object-fit:cover;}
@@ -7675,6 +7689,9 @@ async function renderProfile() {
       </div>
     </div>
 
+    <div class="profile-section-title">My rank</div>
+    <div id="profileRank" style="width:100%;"></div>
+
     <div class="profile-section-title">My name</div>
     <input type="text" id="firstNameInput" class="location-input" placeholder="First name" maxlength="24">
     <input type="text" id="lastNameInput" class="location-input" placeholder="Last name" maxlength="24">
@@ -7695,6 +7712,7 @@ async function renderProfile() {
   document.getElementById('firstNameInput').value = currentProfile.first_name || '';
   document.getElementById('lastNameInput').value = currentProfile.last_name || '';
   renderPhotoPreview();
+  paintProfileRank();
   loadProfileLocations();
   loadDetectionStats();
 
@@ -8000,6 +8018,35 @@ function renderMicCheck() {
       ? "Your phone is filtering the audio, which can hide quiet birds."
       : "Your phone is giving Warble the raw audio. That's what we want."
   }</div>`;
+}
+
+// My rank on My Profile: the badge, how many leaves of all of them, a green
+// bar to the next rank with the server's words on how to get there, and the
+// eight badges in a row showing the climb. The whole card opens the ladder.
+function paintProfileRank() {
+  const el = document.getElementById('profileRank');
+  const r = currentProfile && currentProfile.rank;
+  if (!el || !r) return;
+  const from = r.ladder ? r.ladder[r.index].at : 0;
+  const toNext = r.next_at != null ? Math.max(0, Math.min(1, (r.leaves - from) / (r.next_at - from))) : 1;
+  const steps = (r.ladder || []).map((step, i) =>
+    `<span class="moment-step${i === r.index ? ' now' : ''}">${rankSeal(i, step.key, 28, i > r.index)}</span>`).join('');
+  el.innerHTML = `<button class="profile-rank woodframe" id="profileRankCard" aria-label="See all the birder ranks">
+    <span class="profile-rank-inner">
+      <span class="profile-rank-top">
+        ${rankSeal(r.index, r.key, 72)}
+        <span class="profile-rank-text">
+          <span class="profile-rank-name">${escapeFlock(r.name)}</span>
+          <span class="profile-rank-leaves">${r.leaves} of ${r.leaves_total || '?'} leaves</span>
+          <span class="rank-row-bar"><span style="width:${(toNext * 100).toFixed(0)}%"></span></span>
+        </span>
+      </span>
+      <span class="profile-rank-msg">${escapeFlock(r.message || '')}</span>
+      ${steps ? `<span class="moment-ladder profile-rank-steps">${steps}</span>` : ''}
+      <span class="profile-rank-link">See all the ranks ${icon('forward')}</span>
+    </span>
+  </button>`;
+  document.getElementById('profileRankCard').onclick = openRankLadder;
 }
 
 async function loadDetectionStats() {

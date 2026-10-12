@@ -426,6 +426,7 @@ def birder_rank(leaves: int) -> dict:
     to_go = (nxt[0] - leaves) if nxt else 0
     return {"name": BIRDER_RANKS[i][1], "key": rank_key(BIRDER_RANKS[i][1]),
             "index": i, "leaves": leaves,
+            "leaves_total": sum(len(t["levels"]) for t in TROPHY_DEFINITIONS.values()),
             "next_name": nxt[1] if nxt else None,
             "next_at": nxt[0] if nxt else None,
             "to_go": to_go,
