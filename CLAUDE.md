@@ -230,7 +230,8 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   buttons, 400 only for a quiet line or typed text. Italic only for
   scientific names. Painted wordmarks only for the five nav tabs; screens
   inside them use plain white Poppins.
-- *Pictures:* painted, never emoji. Small icons go through `icon(name)`,
+- *Pictures:* painted, never emoji - except bird photos, which are shown as
+  real photographs with no filter (the watercolour one was removed). Small icons go through `icon(name)`,
   which shows `static/icon-<name>-v<N>.webp` (newest version; `/painted-icons`
   lists them, read once at server start) and falls back to its stand-in in
   `ICON_STANDINS` only if the file is missing. All 24 in
