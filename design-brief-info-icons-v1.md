@@ -4,11 +4,12 @@
 
 Warble's design language is painted art, never emoji. Almost everything is
 painted already. These 24 small icons are the last places that still show a
-phone emoji, and each is waiting for a painting.
+phone emoji or a plain text symbol (an arrow, a cross, "???"), and each is
+waiting for a painting.
 
 **Nothing in the app needs changing when they arrive.** Each one appears the
 moment its file is in `static/` as `icon-<name>-v1.webp` (from the PNG you
-deliver). Until then the emoji stays as a stand-in. A later redraw is
+deliver). Until then the emoji or symbol stays as a stand-in. A later redraw is
 `-v2`, and the newest version always wins.
 
 ## The 24 icons
