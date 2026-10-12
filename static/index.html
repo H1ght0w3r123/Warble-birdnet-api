@@ -284,7 +284,12 @@
   /* The carved "?" on the sign of a trophy not won yet stands for a whole
      name, so it is drawn bigger than an icon in a line of words. */
   .trophy-caption-name .ico{height:1.9em; vertical-align:-0.45em;}
-  .feathers.feather-pop{animation:featherPop 0.32s ease;}
+  /* The rank badge sits right after the count, so nothing here may change
+     width while it counts: the digits are all one width (tabular), the
+     number keeps room for its longest value (animateFeatherCount), and the
+     pop is the feather alone, not the whole counter. */
+  #featherCount{display:inline-block; font-variant-numeric:tabular-nums; text-align:left;}
+  .feathers.feather-pop .feather-icon{animation:featherPop 0.32s ease;}
   @keyframes featherPop{0%{transform:scale(1);}45%{transform:scale(1.28);}100%{transform:scale(1);}}
   .top-wordmark{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
@@ -2975,7 +2980,10 @@ function animateFeatherCount(newTotal) {
   const el = featherCountEl;
   const startVal = parseInt(el.textContent, 10) || 0;
   const endVal = Math.round(newTotal);
-  if (startVal === endVal) { el.textContent = endVal; return; }
+  // Room for the longer of the two numbers from the start, so the rank badge
+  // beside it doesn't shuffle along as the digits tick over (99 -> 100).
+  el.style.minWidth = `${Math.max(String(startVal).length, String(endVal).length)}ch`;
+  if (startVal === endVal) { el.textContent = endVal; el.style.minWidth = ''; return; }
   const duration = 700;
   const startTime = performance.now();
   function step(now) {
@@ -2986,6 +2994,7 @@ function animateFeatherCount(newTotal) {
       requestAnimationFrame(step);
     } else {
       el.textContent = endVal;
+      el.style.minWidth = `${String(endVal).length}ch`;
       const pill = el.closest('.feathers');
       if (pill) {
         pill.classList.add('feather-pop');
