@@ -162,26 +162,49 @@ On the Done screen, "New spot!" comes *after* the feathers are collected,
 and a Hoot-tique disc sits beside "Go again?" only when the feathers now
 buy something new (`whatsNew.dressup`).
 
-**Avatar birds: four to start, four to find.** Classic, Cardinal, Parrot and
-Penguin are free. Duckling, Woodpecker, Owl and Kingfisher unlock the first
-time their real counterpart is heard (`AVATAR_UNLOCKS` in `main.py`: any
-duck/goose/swan, any woodpecker, any owl, a Kingfisher). Not trophies - an
-avatar is who the child is, so it comes from the birds. The bird a family
-was using when this arrived is kept (`avatar:kept` seen mark). The server
-refuses a locked bird on `POST /profile`.
+**Avatar birds: three to start, the rest found then bought.** Cardinal,
+Parrot and Penguin are free (none of them live here). The UK birds -
+Classic (the robin), Duckling, Woodpecker, Owl, Kingfisher - are *found* the
+first time the child hears the real bird or one of its family
+(`AVATAR_UNLOCKS` in `main.py`: a robin, stonechat or redstart; any
+duck/goose/swan; any woodpecker; any owl; a Kingfisher) and then bought for
+`AVATAR_PRICE` (30) in the Hoot-tique ("Be one for 30"); a found bird shows
+in its colours with its price, one still to find as a dark shape with how
+to find it. Bought birds are `avatar:<id>` rows with the Dress Up items (not
+counted by Preener). Not trophies - an avatar is who the child is, so it
+comes from the birds. When the price arrived, a family already playing kept
+free whatever it had (`_keep_avatars_already_had`, run once at start-up,
+`avatars:priced` mark). The server refuses a bird the child doesn't own on
+`POST /profile`. Four more are being painted (`AVATARS_TO_COME`,
+`design-brief-avatar-birds-v1.md`: Blue Tit, Blackbird, Magpie, Seagull);
+when the art is in, move each into `AVATAR_UNLOCKS` and the page's
+`AVATAR_SPECIES`.
+
+**The Hoot-tique opens a batch at a time**, one per birder rank
+(`SHOP_BATCHES` in `accessories.py`: 18 at Hatchling - every 5-feather item
+among them, so the first warble still buys something - then 8, 8, 10, 12,
+8, 4, 2; the showiest 75s last). A batch is hidden until its rank (a new
+rank is a delivery); `/accessories` sends only open items (and anything
+owned) plus how many the next rank brings (`next_batch.message`, shown
+under the shop), purchase refuses an item not open yet, the rank-up moment
+says "New in the Hoot-tique: 8 things to wear!", and each batch lights the
+nav bar. A restock adds its items to a batch.
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. The whole ladder is at the top of the reward section of `main.py`:
 1 a bird heard again (rare 3) - **once per bird per day** - or one outside
 the 100; +1 on top for a migrator, one of the 14 that come and go
 (`MIGRATOR_BONUS`, on the same once-per-bird-per-day terms); 3 a new bird; 5 a trophy level or a new game star; 15 a new rare
-bird; 25 a pack completed or all five weekly challenges. Dress Up 5–75.
+bird; 25 a pack completed or all five weekly challenges. Dress Up 5–75, a
+found avatar bird 30.
 Don't inflate them. They're balanced against the prices to one target: a
 new child can buy something after their very first warble (Fledgling level
 1 pays 5, the cheapest item costs 5 - keep both), and a child warbling four
 times a week settles at about 35 feathers a week, the weekly 25 included
 about two weeks in three: an ordinary 20 item a week or more, a 75 every
-two or three weeks. Before changing a reward or a price,
+two or three weeks. With the shop opening by rank, a typical child runs
+short of things to buy in their first year (about 450 feathers unspent at
+the end; restocks and the new birds are what fill that). Before changing a reward or a price,
 run `python3 tools/economy_sim.py` (needs `freezegun`) before and after: it
 plays pretend children through the real reward code from zero and prints
 the curve.
@@ -205,8 +228,8 @@ climbed, a double burst and three times the hold; it flies into the top-bar
 badge, which changes as it lands) - big is kept for that
 one, the rarest reward. On the Done screen the birds' own feathers are tapped to collect,
 then the recording's other rewards play as moments, and only then "Go
-again" - so nothing is cut short. A new avatar bird stays a banner: it's a
-door to Dress Up, not a payout. The server has always banked the feathers
+again" - so nothing is cut short. A newly found avatar bird stays a banner
+("Be a Kingfisher for 30"): it's a door to the Hoot-tique, not a payout. The server has always banked the feathers
 already; `/analyze-session` and `/song-game/result` itemise them
 (`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a
 recording goes through `award_trophy_levels()` and challenge pay through

@@ -216,7 +216,7 @@ async def identify(
 # Wikipedia photos + feather maths + saving — all in one call.
 # ============================================================
 
-from database import (trophy_leaves_newest_first, 
+from database import (trophy_leaves_newest_first, grant_owned, 
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_species_found_far_apart, count_species_first_heard_since, get_bird_sessions,
@@ -245,9 +245,9 @@ from database import (trophy_leaves_newest_first,
 from birds import (bird_data, STAT_LABELS, HABITAT_ICONS,
                    season_state, is_seasonal, SEASONAL_ORDER)
 from trophies import (TROPHY_DEFINITIONS, is_before_sunrise, is_after_dark, requirement_text,
-                      birder_rank)
+                      birder_rank, BIRDER_RANKS)
 from jokes import get_joke_of_the_day
-from accessories import ACCESSORIES, CATEGORIES
+from accessories import ACCESSORIES, CATEGORIES, SHOP_BATCHES
 from curated_species import (
     ALL_CURATED_SPECIES, PACKS, SPECIES_RARITY, TIERS,
     rarity_of, pack_for_species, pack_color_for_species,
@@ -475,9 +475,30 @@ def total_leaves() -> int:
     return sum(lvl for key, lvl in get_trophy_levels().items() if key in TROPHY_DEFINITIONS)
 
 
+def rank_now(leaves: int) -> dict:
+    """The birder rank, plus how many Hoot-tique items its batch brought
+    (shop_new) - the rank-up moment says so."""
+    r = birder_rank(leaves)
+    r["shop_new"] = len(SHOP_BATCHES[r["index"]]) if 0 < r["index"] < len(SHOP_BATCHES) else 0
+    return r
+
+
+def shop_rank() -> int:
+    """How far into SHOP_BATCHES the Hoot-tique is open: the rank's index."""
+    return birder_rank(total_leaves())["index"]
+
+
+def shop_is_open(aid: str, rank: int = None, owned: set = None) -> bool:
+    """An item is in the shop once its batch's rank is reached - or if the
+    family owns it already."""
+    rank = shop_rank() if rank is None else rank
+    owned = get_owned_accessory_ids() if owned is None else owned
+    return ACCESSORIES[aid]["batch"] <= rank or aid in owned
+
+
 def rank_up_between(before: int, after: int):
     """The new rank if `after` leaves crosses into one `before` didn't have."""
-    a, b = birder_rank(before), birder_rank(after)
+    a, b = rank_now(before), rank_now(after)
     return b if b["index"] > a["index"] else None
 
 
@@ -496,38 +517,86 @@ def award_trophy_levels():
 
 
 # --- Avatar birds ------------------------------------------------------------
-# Four birds to start, four to find. The four that live in the UK unlock the
-# first time the child hears the real thing, so each one is a souvenir of a
-# find. The bird a family was already using when this arrived stays theirs
-# ("avatar:kept", recorded once), whether or not they've heard it.
-AVATAR_STARTERS = {"classic", "default", "cardinal", "parrot", "penguin"}
+# Three birds to start (Cardinal, Parrot, Penguin - none of them live here);
+# the UK ones have to be found, then bought. Hearing the bird, or one of its
+# family, finds it ("found"); AVATAR_PRICE feathers makes it the child's
+# ("owned", kept as an "avatar:<id>" row with the Dress Up items, not counted
+# by Preener). So each one is a souvenir of a find and a thing saved up for.
+# When this arrived, a family that had been playing kept, free, everything
+# it already had: Classic, any bird the old rules had unlocked, and the bird
+# in use ("avatars:priced" marks that done).
+AVATAR_STARTERS = {"cardinal", "parrot", "penguin"}
+AVATAR_PRICE = 30
 AVATAR_UNLOCKS = {
-    "duckling":   {"hint": "Hear a duck, goose or swan to unlock",
+    "classic":    {"hint": "Hear a robin to find it",
+                   "species": {"European Robin", "European Stonechat", "Common Redstart"}},
+    "duckling":   {"hint": "Hear a duck, goose or swan to find it",
                    "species": {"Mallard", "Canada Goose", "Graylag Goose", "Mute Swan", "Common Eider"}},
-    "woodpecker": {"hint": "Hear a woodpecker to unlock",
+    "woodpecker": {"hint": "Hear a woodpecker to find it",
                    "species": {"Great Spotted Woodpecker", "Eurasian Green Woodpecker",
                                "Lesser Spotted Woodpecker"}},
-    "owl":        {"hint": "Hear an owl to unlock",
+    "owl":        {"hint": "Hear an owl to find it",
                    "species": {"Tawny Owl", "Barn Owl", "Little Owl", "Long-eared Owl"}},
-    "kingfisher": {"hint": "Hear a Kingfisher to unlock", "species": {"Common Kingfisher"}},
+    "kingfisher": {"hint": "Hear a Kingfisher to find it", "species": {"Common Kingfisher"}},
 }
-for _rule in AVATAR_UNLOCKS.values():
+# Painting now (design-brief-avatar-birds-v1.md). When a bird's art is in,
+# move it into AVATAR_UNLOCKS and add it to AVATAR_SPECIES in the page.
+AVATARS_TO_COME = {
+    "bluetit":    {"hint": "Hear a tit to find it",
+                   "species": {"Eurasian Blue Tit", "Great Tit", "Coal Tit", "Marsh Tit", "Willow Tit"}},
+    "blackbird":  {"hint": "Hear a blackbird or a thrush to find it",
+                   "species": {"Eurasian Blackbird", "Song Thrush", "Mistle Thrush", "Redwing", "Ring Ouzel"}},
+    "magpie":     {"hint": "Hear a magpie or a crow to find it",
+                   "species": {"Eurasian Magpie", "Eurasian Jay", "Eurasian Jackdaw", "Carrion Crow",
+                               "Rook", "Common Raven"}},
+    "seagull":    {"hint": "Hear a gull to find it",
+                   "species": {"Herring Gull", "Black-headed Gull", "Common Gull", "Great Black-backed Gull"}},
+}
+for _rule in list(AVATAR_UNLOCKS.values()) + list(AVATARS_TO_COME.values()):
     assert _rule["species"] <= ALL_CURATED_SPECIES, _rule["species"] - ALL_CURATED_SPECIES
 
 
+def avatar_id(species: str) -> str:
+    """The profile has always stored Classic as "default"."""
+    return "classic" if species in ("default", "classic", None, "") else species
+
+
+def _keep_avatars_already_had():
+    """Once, when birds started to cost: a family that has been playing
+    keeps Classic, every bird the old rules had unlocked (heard its family),
+    and the bird it's using, without paying. Run at start-up, never on the
+    way through a warble - a brand-new child's first warble would otherwise
+    look like a family that had been playing."""
+    heard = get_heard_species()
+    marks = get_seen_marks()
+    if marks.get("avatars:priced"):
+        return
+    if count_all_sessions() > 0:
+        grant_owned("avatar:classic")
+        for sp, rule in AVATAR_UNLOCKS.items():
+            if rule["species"] & heard:
+                grant_owned(f"avatar:{sp}")
+        for sp in (marks.get("avatar:kept"), get_profile().get("avatar_species")):
+            if sp and avatar_id(sp) in AVATAR_UNLOCKS:
+                grant_owned(f"avatar:{avatar_id(sp)}")
+    set_seen_mark("avatars:priced", "1")
+
+
+_keep_avatars_already_had()
+
+
 def avatar_states(heard: set = None) -> dict:
-    """Each lockable bird: unlocked or not, what unlocks it, and (once heard)
-    which bird did. Starters aren't listed - they're always open."""
+    """Each bird to find: "locked" (not heard yet - the hint says how),
+    "found" (heard; costs AVATAR_PRICE) or "owned". "unlocked" means owned.
+    Starters aren't listed - they're always open."""
     heard = get_heard_species() if heard is None else heard
-    kept = get_seen_marks().get("avatar:kept")
-    if kept is None:
-        kept = get_profile().get("avatar_species") or ""
-        set_seen_mark("avatar:kept", kept)
+    owned = get_owned_accessory_ids()
     out = {}
     for sp, rule in AVATAR_UNLOCKS.items():
         by = sorted(rule["species"] & heard)
-        out[sp] = {"unlocked": bool(by) or sp == kept, "hint": rule["hint"],
-                   "heard": by[0] if by else None}
+        state = "owned" if f"avatar:{sp}" in owned else "found" if by else "locked"
+        out[sp] = {"state": state, "unlocked": state == "owned", "price": AVATAR_PRICE,
+                   "hint": rule["hint"], "heard": by[0] if by else None}
     return out
 
 
@@ -560,9 +629,10 @@ def colour_is_open(hx: str) -> bool:
 
 
 def avatar_is_open(species: str, states: dict = None) -> bool:
-    if species in AVATAR_STARTERS or species not in AVATAR_UNLOCKS:
+    sp = avatar_id(species)
+    if sp in AVATAR_STARTERS or sp not in AVATAR_UNLOCKS:
         return True
-    return (states or avatar_states())[species]["unlocked"]
+    return (states or avatar_states())[sp]["state"] == "owned"
 
 
 def calculate_feathers(tier: str, is_duplicate: bool) -> float:
@@ -709,7 +779,7 @@ async def analyze_session(
     # Birds that became avatars with this recording
     avatars_after = avatar_states()
     new_avatars = [sp for sp, st in avatars_after.items()
-                   if st["unlocked"] and not avatars_before[sp]["unlocked"]]
+                   if st["state"] != "locked" and avatars_before[sp]["state"] == "locked"]
 
     session_feathers = sum(r["feathers"] for r in results)
     bonuses = []
@@ -1082,7 +1152,7 @@ async def rename_location_endpoint(location_id: int, name: str = Form(...)):
 @app.get("/profile")
 def profile():
     return {**get_profile(), "avatars": avatar_states(), "colours": colour_states(),
-            "rank": birder_rank(total_leaves())}
+            "rank": rank_now(total_leaves())}
 
 
 @app.post("/profile")
@@ -1143,7 +1213,7 @@ def list_trophies():
     # The trophy that most recently gained a leaf (one that still exists),
     # for Awards to open on.
     last_leaf = next((k for k in trophy_leaves_newest_first() if k in TROPHY_DEFINITIONS), None)
-    return {"trophies": out, "rank": birder_rank(leaves), "last_leaf": last_leaf}
+    return {"trophies": out, "rank": rank_now(leaves), "last_leaf": last_leaf}
 
 
 @app.get("/sightings")
@@ -1361,6 +1431,7 @@ def whats_new_items() -> dict:
     found_curated = len(heard & ALL_CURATED_SPECIES)
     feathers = get_total_feathers()
     owned = get_owned_accessory_ids()
+    rank = shop_rank()
     week = current_week_key()
     return {
         # Tabs
@@ -1370,8 +1441,9 @@ def whats_new_items() -> dict:
                      for lv in range(1, top + 1)},
         # Something new to wear, or a new bird to be
         "dressup": {aid for aid, a in ACCESSORIES.items()
-                    if aid not in owned and a["cost"] <= feathers}
-                   | {f"avatar:{sp}" for sp, st in avatar_states(heard).items() if st["unlocked"]}
+                    if aid not in owned and a["cost"] <= feathers and shop_is_open(aid, rank, owned)}
+                   | {f"batch:{n}" for n in range(1, rank + 1)}
+                   | {f"avatar:{sp}" for sp, st in avatar_states(heard).items() if st["state"] != "locked"}
                    | {f"colour:{hx}" for hx, st in colour_states(owned).items()
                       if not st["owned"] and st["cost"] <= feathers},
         # Things on Home (Home itself never lights up)
@@ -1426,15 +1498,27 @@ def mark_tutorial_seen(name: str):
 
 @app.get("/accessories")
 def list_accessories():
-    """The whole Dress Up catalog, each marked owned or not, plus the
-    5 categories (with their icons) in display order."""
+    """The Dress Up items the shop has open (its batches so far, and anything
+    owned), each marked owned or not, the 5 categories (with their icons) in
+    display order, and what the next rank brings - how many items, never
+    which (they're a surprise)."""
     owned = get_owned_accessory_ids()
+    rank = shop_rank()
+    nxt = next((n for n in range(rank + 1, len(SHOP_BATCHES)) if SHOP_BATCHES[n]), None)
+    next_batch = None
+    if nxt is not None:
+        name = BIRDER_RANKS[nxt][1]
+        count = len(SHOP_BATCHES[nxt])
+        next_batch = {"rank": name, "count": count,
+                      "message": f"{count} more things to wear arrive when you're "
+                                 f"{'an' if name[0] in 'AEIOU' else 'a'} {name}!"}
     return {
         "accessories": [
             {"id": aid, "owned": aid in owned, **info}
-            for aid, info in ACCESSORIES.items()
+            for aid, info in ACCESSORIES.items() if shop_is_open(aid, rank, owned)
         ],
         "categories": CATEGORIES,
+        "next_batch": next_batch,
     }
 
 
@@ -1443,6 +1527,8 @@ async def purchase_accessory_endpoint(accessory_id: str):
     if accessory_id not in ACCESSORIES:
         return JSONResponse(status_code=404, content={"status": "error", "message": "Unknown accessory."})
     item = ACCESSORIES[accessory_id]
+    if not shop_is_open(accessory_id):
+        return {"status": "failed", "message": "Not in the shop yet.", "new_total": get_total_feathers()}
     success = purchase_accessory(accessory_id, item["cost"], item["category"])
     # Buying can win a trophy (Preener), and it should arrive now, not at
     # the next recording.
@@ -1465,6 +1551,22 @@ async def purchase_colour(hex_code: str):
     return {"status": "ok" if success else "failed", "new_total": get_total_feathers(),
             "newly_earned_trophies": trophies, "trophy_feathers": trophy_feathers,
             "rank_up": rank_up}
+
+
+@app.post("/avatars/{species}/purchase")
+async def purchase_avatar(species: str):
+    """Buys a bird the child has found, and becomes it."""
+    sp = avatar_id(species)
+    st = avatar_states().get(sp)
+    if st is None:
+        return JSONResponse(status_code=404, content={"status": "error", "message": "Not a bird you buy."})
+    if st["state"] != "found":
+        return {"status": "failed", "message": "Find it first." if st["state"] == "locked" else "Already yours.",
+                "new_total": get_total_feathers()}
+    success = purchase_accessory(f"avatar:{sp}", AVATAR_PRICE, "avatar")
+    if success:
+        update_profile(avatar_species=sp)
+    return {"status": "ok" if success else "failed", "new_total": get_total_feathers()}
 
 
 @app.post("/accessories/equip")

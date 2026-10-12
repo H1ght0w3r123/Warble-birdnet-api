@@ -1159,9 +1159,12 @@ def count_owned_accessories() -> int:
     if SessionLocal is None:
         return 0
     with SessionLocal() as session:
-        # Bought colours live in the same table ("colour:#HEX") but aren't
-        # things to wear, so they don't count.
-        return session.query(OwnedAccessory).filter(~OwnedAccessory.accessory_id.like("colour:%")).count()
+        # Bought colours ("colour:#HEX") and avatar birds ("avatar:owl") live
+        # in the same table, but they aren't things to wear, so they don't
+        # count.
+        return session.query(OwnedAccessory).filter(
+            ~OwnedAccessory.accessory_id.like("colour:%"),
+            ~OwnedAccessory.accessory_id.like("avatar:%")).count()
 
 
 def distinct_seasons_warbled() -> int:
@@ -1560,6 +1563,20 @@ def purchase_accessory(accessory_id: str, cost: float, category: str = None) -> 
             return False
         stats.total_feathers -= cost
         session.add(OwnedAccessory(accessory_id=accessory_id))
+        session.commit()
+        return True
+
+
+def grant_owned(item_id: str) -> bool:
+    """Owns something without paying for it - used to keep what a family
+    already had when a free thing starts to cost (avatar birds). False if
+    it was owned already."""
+    if SessionLocal is None:
+        return False
+    with SessionLocal() as session:
+        if session.query(OwnedAccessory).filter_by(accessory_id=item_id).first():
+            return False
+        session.add(OwnedAccessory(accessory_id=item_id))
         session.commit()
         return True
 

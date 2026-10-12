@@ -662,3 +662,44 @@ CATEGORIES = [
     {"id": "held", "name": "Held", "icon_img": "/static/cat-icon-held-v1.webp"},
     {"id": "shoes", "name": "Shoes", "icon_img": "/static/cat-icon-shoes-v1.webp"},
 ]
+
+# The Hoot-tique doesn't open all at once: each birder rank brings a batch,
+# hidden until then (a new rank is a delivery to the shop). Index = rank in
+# trophies.BIRDER_RANKS (0 Hatchling ... 7 Warbler). The first batch holds
+# every 5-feather item, so a child can still buy something after their first
+# warble; the showiest 75s come last. Items a family owned before this
+# arrived stay theirs and stay on show. A restock (design-brief-shop-restock)
+# adds its items to a batch here too.
+SHOP_BATCHES = [
+    # Hatchling: 18
+    ["fancy_bow", "bow_tie", "teal_specs", "flip_flops", "lollipop", "water_bottle", "stick",
+     "party_hat", "cozy_beanie", "baseball_cap", "round_specs", "wellies", "ice_cream", "cosy_scarf",
+     "top_hat", "sunglasses", "trainers", "flower_crown"],
+    # Lark: 8
+    ["beret", "black_browline", "ballet_slippers", "beaded_necklace", "heart_glasses", "drumsticks",
+     "star_necklace", "baby_rattle"],
+    # Eavesdropper: 8
+    ["hard_hat", "shutter_shades", "striped_scarf", "movie_3d", "sun_hat", "cowboy_boots",
+     "magnifying_glass", "glow_necklace"],
+    # Trill Seeker: 10
+    ["sailor_hat", "chef_hat", "ski_hat", "cat_eye", "football_boots", "walkie_talkie",
+     "pearl_necklace", "pixel_shades", "magic_baton", "pirate_hat"],
+    # Glider: 12
+    ["deerstalker_hat", "aviator_hat", "daisy_glasses", "snow_boots", "flower_lei", "star_wand",
+     "spiked_collar", "explorer_helmet", "explorer_goggles", "hiking_boots", "monocle", "dj_headphones"],
+    # Flockstar: 8
+    ["pineapple_glasses", "flower_glasses", "lightning_glasses", "ice_skates", "hip_hop_chain",
+     "roller_skates", "binoculars", "star_glasses"],
+    # Elder: 4
+    ["wizard_hat", "microphone", "butterfly_glasses", "golden_medal"],
+    # Warbler: 2
+    ["golden_crown", "rainbow_holo"],
+]
+_in_batches = [i for batch in SHOP_BATCHES for i in batch]
+assert sorted(_in_batches) == sorted(ACCESSORIES), \
+    f"every item in exactly one batch: missing {set(ACCESSORIES) - set(_in_batches)}, " \
+    f"extra or twice {[i for i in _in_batches if _in_batches.count(i) > 1 or i not in ACCESSORIES]}"
+for _n, _batch in enumerate(SHOP_BATCHES):
+    for _id in _batch:
+        ACCESSORIES[_id]["batch"] = _n
+assert min(a["cost"] for a in ACCESSORIES.values()) == min(ACCESSORIES[i]["cost"] for i in SHOP_BATCHES[0])

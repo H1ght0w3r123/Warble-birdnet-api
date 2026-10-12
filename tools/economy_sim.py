@@ -24,7 +24,10 @@ warble hears 0-5 birds: the garden packs often, the rest mostly at weekends,
 rare birds seldom, summer and winter visitors only in season. Guess the Song
 gets a go or two a week once it's open. The child buys the cheapest thing
 they can afford as soon as they can - the impatient shopper, so "owned"
-counts are the most a child could have.
+counts are the most a child could have: Dress Up items from the batches the
+shop has open for their rank, and avatar birds they've found. "birds" is
+how many birds they bought, "unspent" the feathers left at the end (a big
+number means the shop ran out of things to buy).
 
 The model is a guess about children, not a measurement of them. What it is
 good for is comparing: before and after a price change, one reward against
@@ -107,20 +110,29 @@ def one_child(kind: str, weeks: int, seed: int, start: datetime.datetime) -> dic
             heard.add(rng.choice(OUTSIDE_THE_100))
         return [{"common_name": n, "scientific_name": n, "confidence": 0.9} for n in heard]
 
-    async def shop(bought):
-        owned = database.get_owned_accessory_ids()
+    async def shop(bought, birds):
+        """Buys the cheapest thing it can, again and again: Dress Up items
+        the shop has open (its batches so far), and avatar birds the child
+        has found."""
         while True:
             have = database.get_total_feathers()
-            can = sorted((a["cost"], k) for k, a in ACCESSORIES.items()
-                         if k not in owned and a["cost"] <= have)
-            if not can or (await main.purchase_accessory_endpoint(can[0][1]))["status"] != "ok":
+            owned = database.get_owned_accessory_ids()
+            rank = main.shop_rank()
+            can = [(a["cost"], k, "item") for k, a in ACCESSORIES.items()
+                   if k not in owned and a["cost"] <= have and main.shop_is_open(k, rank, owned)]
+            can += [(st["price"], sp, "bird") for sp, st in main.avatar_states().items()
+                    if st["state"] == "found" and st["price"] <= have]
+            if not can:
                 return
-            owned.add(can[0][1])
-            bought.append(can[0][0])
+            cost, key, kind = sorted(can)[0]
+            buy = main.purchase_accessory_endpoint(key) if kind == "item" else main.purchase_avatar(key)
+            if (await buy)["status"] != "ok":
+                return
+            (bought if kind == "item" else birds).append(cost)
 
     async def play():
         source = collections.Counter()
-        lifetime, by_week, owned_by_week, bought = [], [], [], []
+        lifetime, by_week, owned_by_week, bought, birds = [], [], [], [], []
         challenges = []   # per week: {challenge id: done}
         earned = 0
         schedule = SCHEDULES[kind]
@@ -157,13 +169,14 @@ def one_child(kind: str, weeks: int, seed: int, start: datetime.datetime) -> dic
                     earned += got
                     week_earned += got
                     lifetime.append(earned)
-                    await shop(bought)
+                    await shop(bought, birds)
                     if i == len(schedule) - 1:   # how the week's five ended up
                         challenges.append({c["id"]: done for c, done, _ in main.evaluate_week_challenges()})
             by_week.append(week_earned)
             owned_by_week.append(len(bought))
         return dict(kind=kind, per_week=len(schedule), lifetime=lifetime, by_week=by_week,
-                    owned_by_week=owned_by_week, source=dict(source), challenges=challenges, shop_size=len(ACCESSORIES),
+                    owned_by_week=owned_by_week, birds_bought=len(birds),
+                    unspent=database.get_total_feathers(), source=dict(source), challenges=challenges, shop_size=len(ACCESSORIES),
                     birds=database.count_curated_species_found(main.ALL_CURATED_SPECIES),
                     leaves=main.total_leaves())
 
@@ -183,7 +196,7 @@ def report(children):
     med = statistics.median
     print("Saving from zero (median, and the slowest child in brackets):\n")
     print(f"{'':9}{'1st warble':>11}{'end wk 1':>10}{'a 20 in':>10}{'a 75 in':>10}"
-          f"{'wk 1-4':>9}{'wk 9+':>8}{'owned':>8}")
+          f"{'wk 1-4':>9}{'wk 9+':>8}{'owned':>8}{'birds':>7}{'unspent':>9}")
     for kind in SCHEDULES:
         group = [c for c in children if c["kind"] == kind]
         if not group:
@@ -196,10 +209,12 @@ def report(children):
         late = [statistics.mean(c["by_week"][8:]) for c in group if len(c["by_week"]) > 8]
         owned = [c["owned_by_week"][-1] for c in group]
         shop = group[0]["shop_size"]
+        birds = [c.get("birds_bought", 0) for c in group]
+        unspent = [c.get("unspent", 0) for c in group]
         print(f"{kind:9}{f'{med(first):g} ({min(first)})':>11}{f'{med(wk1):g} ({min(wk1)})':>10}"
               f"{f'wk {med(w20):g} ({max(w20)})':>10}{f'wk {med(w75):g} ({max(w75)})':>10}"
               f"{f'{med(early):.0f}/wk':>9}{f'{med(late):.0f}/wk' if late else '-':>8}"
-              f"{f'{med(owned):g}/{shop}':>8}")
+              f"{f'{med(owned):g}/{shop}':>8}{f'{med(birds):g}':>7}{f'{med(unspent):g}':>9}")
     print("\nWhere the feathers came from (all children of that kind, % of what they earned):\n")
     for kind in SCHEDULES:
         total = collections.Counter()

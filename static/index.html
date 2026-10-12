@@ -1169,6 +1169,7 @@
   .moment-step.now{box-shadow:0 0 0 2.5px var(--sage); animation:stepNow .6s cubic-bezier(.34,1.56,.64,1) .45s both;}
   @keyframes stepNow{from{transform:scale(.4);}}
   .moment-next{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft); margin-top:8px;}
+  .moment-shop{color:var(--wood-edge); margin-top:4px;}
   @media (prefers-reduced-motion: reduce){ .moment{animation:none;} .moment-step.now{animation:none;} }
   .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
   .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:96px;height:96px;will-change:transform,opacity;}
@@ -1866,6 +1867,13 @@
   .species-silhouette-btn img{height:100%; width:auto; display:block;}
   .avatar-frame.locked-bird{position:relative;}
   .avatar-frame.locked-bird svg{filter:brightness(0) opacity(.42);}
+  /* Found but not bought: in its colours, just a little quiet. */
+  .avatar-frame.locked-bird.found-bird svg{filter:saturate(.85);}
+  .bird-buy-btn{display:inline-flex; align-items:center; gap:5px; margin:8px auto 0; padding:7px 16px;
+    border-radius:20px; font-family:'Poppins'; font-size:14px; cursor:pointer;}
+  .hint-feathers{display:inline-flex; align-items:center; gap:3px; font-weight:900; color:var(--feather);}
+  .dressup-hint .hint-feathers{color:var(--feather-lt);}
+  .bird-buy-btn .hint-feathers{color:var(--feather);}
   .bird-lock.big{right:auto; left:50%; top:50%; bottom:auto; transform:translate(-50%,-50%);
     width:56px; height:56px; font-size:32px; border-width:3px;}
 
@@ -1966,6 +1974,9 @@
   /* The hint is the only element here that appears and disappears, so it
      reserves its line whether or not it has anything to say - otherwise
      randomising nudges everything above it upward. */
+  .shop-next{font-family:'Poppins'; font-weight:700; font-size:12px; line-height:16px; color:#fff;
+    text-align:center; margin-top:6px; text-shadow:0 1px 3px rgba(0,0,0,0.5);}
+  .shop-next:empty{display:none;}
   .dressup-hint{
     font-family:'Poppins'; font-size:12px; line-height:16px; min-height:16px;
     color:rgba(255,255,255,0.9); text-align:center; margin-top:4px;
@@ -2822,7 +2833,7 @@
      so it wins. A new text button joins this list rather than picking a
      colour of its own. */
   .again-btn:not(.mic-again-btn), .tut-ok, .photo-btn, .photo-btn-clear,
-  .reset-btn, .play-call-btn, .sheet-done, .item-buy-btn, .grownup > summary{
+  .reset-btn, .play-call-btn, .sheet-done, .item-buy-btn, .bird-buy-btn, .grownup > summary{
     background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
     border:3px solid transparent;
     color:var(--wood-edge); font-weight:900; text-shadow:none;
@@ -2831,7 +2842,7 @@
     transition:transform .08s ease, box-shadow .08s ease;
   }
   .again-btn:not(.mic-again-btn):active, .tut-ok:active, .photo-btn:active, .photo-btn-clear:active,
-  .reset-btn:active, .play-call-btn:active, .sheet-done:active, .item-buy-btn:active{
+  .reset-btn:active, .play-call-btn:active, .sheet-done:active, .item-buy-btn:active, .bird-buy-btn:active{
     transform:translateY(2px); box-shadow:0 1px 0 var(--wood-edge), 0 2px 4px rgba(26,17,40,0.28);
   }
   /* Settings' grown-up corner: a full-width wood button that opens it. */
@@ -4411,9 +4422,11 @@ function celebrateRank(rank, from) {
   const ladder = (rank.ladder || []).map((step, i) =>
     `<span class="moment-step${i === rank.index ? ' now' : ''}">${rankSeal(i, step.key, 30, i > rank.index)}</span>`).join('');
   const next = rank.next_name ? `Next: ${rank.next_name} at ${rank.next_at} leaves` : 'The very top rank!';
+  // Each rank opens a new batch in the Hoot-tique.
+  const shop = rank.shop_new ? `<span class="moment-next moment-shop">New in the Hoot-tique: ${rank.shop_new} things to wear!</span>` : '';
   return celebrate({ kicker: 'New birder rank!', name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
     icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'topRank',
-    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>` })
+    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}` })
     .then(r => { landed(); return r; });
 }
 function celebratePack(p, from) {
@@ -6025,15 +6038,15 @@ function sessionAvatarBannersHtml() {
     const sp = AVATAR_SPECIES.find(x => x.id === a.id);
     return `
     <button class="trophy-banner avatar-banner" data-go="dressup">
-      <div class="trophy-banner-title">New bird to be!</div>
+      <div class="trophy-banner-title">You found a new bird to be!</div>
       <div class="trophy-banner-row">
         <div class="avatar-banner-bird">${avatarSvg(currentProfile.avatar_body, 56, null, false, a.id)}</div>
         <div class="trophy-banner-text">
-          <div class="trophy-banner-name">You can be ${/^[aeiou]/i.test(sp ? sp.name : '') ? 'an' : 'a'} ${sp ? sp.name : a.id} now!</div>
+          <div class="trophy-banner-name">Be ${/^[aeiou]/i.test(sp ? sp.name : '') ? 'an' : 'a'} ${sp ? sp.name : a.id} for <span class="hint-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${(currentProfile.avatars && currentProfile.avatars[a.id] && currentProfile.avatars[a.id].price) || 30}</span></div>
           <div class="trophy-banner-citation">${a.heard ? `Because you heard a ${escapeFlock(birdName(a.heard))}.` : ''}</div>
         </div>
       </div>
-      <div class="trophy-banner-tap">Tap to try it on</div>
+      <div class="trophy-banner-tap">Tap to see it in the Hoot-tique</div>
     </button>`;
   }).join('');
 }
@@ -7172,7 +7185,8 @@ function renderWelcome(step = 0) {
   if (!welcomeDraft) {
     const sp = currentProfile.avatar_species;
     welcomeDraft = {
-      species: AVATAR_SPECIES.some(s => s.id === sp) ? sp : AVATAR_SPECIES[0].id,
+      species: AVATAR_SPECIES.some(s => s.id === sp) && !avatarLock(sp) ? sp
+        : (AVATAR_SPECIES.find(s => !avatarLock(s.id)) || AVATAR_SPECIES[0]).id,
       body: currentProfile.avatar_body || DEFAULT_BODY,
       name: firstNameOrDefault(),
     };
@@ -7191,7 +7205,7 @@ function renderWelcome(step = 0) {
           ${avatarSvg(d.body, 58, null, false, sp.id)}
           ${lock ? '<span class="bird-lock" aria-hidden="true">?</span>' : ''}
         </button>`; }).join('')}</div>
-       <div class="welcome-hint" id="welcomeLockHint">Four to start, four to find!</div>`
+       <div class="welcome-hint" id="welcomeLockHint">Three to start, more to find!</div>`
     : step === 1
     ? `<div class="welcome-swatches" role="radiogroup" aria-label="Colours">${AVATAR_SWATCHES.filter(c => !colourCost(c.hex)).map(c => `
         <button class="welcome-swatch ${c.hex.toUpperCase() === d.body.toUpperCase() ? 'on' : ''}" data-hex="${c.hex}"
@@ -7227,7 +7241,7 @@ function renderWelcome(step = 0) {
       // Still to find: say how, and keep the bird they had.
       const sp = AVATAR_SPECIES.find(x => x.id === b.dataset.species);
       const hint = document.getElementById('welcomeLockHint');
-      if (hint) hint.textContent = `${lock.hint.replace(/ to unlock$/, '')} to become ${/^[aeiou]/i.test(sp.name) ? 'an' : 'a'} ${sp.name}!`;
+      if (hint) hint.textContent = `${lock.hint.replace(/ to (unlock|find it)$/, '')} to find the ${sp.name}!`;
       b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge');
       return;
     }
@@ -8498,6 +8512,17 @@ function setActiveSilhouette(btn) {
 function commitSpeciesSelection(id) {
   const lock = avatarLock(id);
   const el = document.getElementById('dressUpPreview');
+  if (lock && lock.state === 'found') {
+    // Found but not bought: the bird in its colours, and what it costs.
+    // Nothing is saved until it's bought.
+    const sp = AVATAR_SPECIES.find(x => x.id === id);
+    if (el) {
+      el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, id);
+      el.classList.add('locked-bird', 'found-bird');
+    }
+    showBirdBuy(id, sp ? sp.name : id, lock);
+    return;
+  }
   if (lock) {
     // A bird still to find: shown as its dark shape with how to find it.
     // Nothing is saved - the bird they were wearing stays theirs.
@@ -8505,13 +8530,14 @@ function commitSpeciesSelection(id) {
     if (el) {
       el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, id) +
         '<span class="bird-lock big" aria-hidden="true">?</span>';
+      el.classList.remove('found-bird');
       el.classList.add('locked-bird');
     }
-    setDressUpHint(`${lock.hint.replace(/ to unlock$/, '')} to become ${/^[aeiou]/i.test(sp.name) ? 'an' : 'a'} ${sp.name}!`);
+    setDressUpHint(`${lock.hint.replace(/ to (unlock|find it)$/, '')} to find the ${sp.name}!`);
     return;
   }
   if (el && el.classList.contains('locked-bird')) {
-    el.classList.remove('locked-bird');
+    el.classList.remove('locked-bird', 'found-bird');
     setDressUpHint('');
     if (currentProfile.avatar_species === id) { renderDressUpPreview(); return; }
     el.innerHTML = '';
@@ -8737,6 +8763,7 @@ async function renderDressUp() {
       <button class="dress-util" id="resetAccessoriesBtn" aria-label="Reset outfit" title="Reset outfit">${RESET_ICON}</button>
     </div>
     <div class="dressup-hint" id="dressUpHint"></div>
+    <div class="shop-next" id="shopNext"></div>
     </div>
   `;
 
@@ -8748,6 +8775,11 @@ async function renderDressUp() {
     ]);
     const accData = await accRes.json();
     accessoryCatalog = accData.accessories || [];
+    // The shop opens a batch at a time, one per birder rank; what the next
+    // rank brings is a surprise, but not how many (the words are the
+    // server's).
+    const shopNext = document.getElementById('shopNext');
+    if (shopNext) shopNext.textContent = (accData.next_batch && accData.next_batch.message) || '';
     dressUpCategories = accData.categories || [];
     currentProfile = await profRes.json();
     const featherData = await featherRes.json();
@@ -9103,6 +9135,40 @@ function selectCategory(categoryId) {
   expandedItemId = null;   // don't carry an open card into another category
   renderCategoryRow();
   renderCarousel();
+}
+
+// A bird the child has found: what it costs, and a wood button to buy it
+// (or how many feathers are still to save). Buying makes it their bird.
+function showBirdBuy(id, name, st) {
+  const hintEl = document.getElementById('dressUpHint');
+  if (!hintEl) return;
+  const a = /^[aeiou]/i.test(name) ? 'an' : 'a';
+  const feather = '<img class="feather-icon" src="/static/feather.webp" alt="">';
+  if (currentFeatherTotal < st.price) {
+    hintEl.innerHTML = `You found the ${escapeFlock(name)}! Save <span class="hint-feathers">${feather} ${st.price}</span> to be one - ${Math.round(st.price - currentFeatherTotal)} more to go`;
+    return;
+  }
+  hintEl.innerHTML = `You found the ${escapeFlock(name)}!
+    <button class="bird-buy-btn" id="birdBuyBtn">Be one for <span class="hint-feathers">${feather} ${st.price}</span></button>`;
+  document.getElementById('birdBuyBtn').onclick = async () => {
+    try {
+      const data = await (await fetch(`/avatars/${id}/purchase`, { method: 'POST' })).json();
+      if (data.status !== 'ok') { setDressUpHint("That didn't work - try again"); return; }
+      currentProfile.avatars[id].state = 'owned';
+      currentProfile.avatars[id].unlocked = true;
+      currentFeatherTotal = data.new_total;
+      animateFeatherCount(currentFeatherTotal);
+      const el = document.getElementById('dressUpPreview');
+      if (el) el.classList.remove('locked-bird', 'found-bird');
+      const from = currentProfile.avatar_species;
+      currentProfile.avatar_species = id;
+      setDressUpHint(`You're ${a} ${name} now!`);
+      renderDressUpPreview();
+      flashAvatar('tint');
+      updateNavAvatarIcon();
+      refreshWhatsNew();
+    } catch (e) { setDressUpHint("That didn't work - try again"); }
+  };
 }
 
 function setDressUpHint(text) {
