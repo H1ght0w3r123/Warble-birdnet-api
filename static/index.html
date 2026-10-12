@@ -462,7 +462,59 @@
     border:none; border-radius:14px; cursor:pointer; background:var(--disc-cream);
     box-shadow:0 0 0 2px var(--wood), 0 2px 4px rgba(0,0,0,0.25);
     font-family:'Poppins'; font-weight:900; font-size:13px; color:var(--wood-edge);}
-  .home-rank img{width:16px; height:16px; transform:rotate(-30deg);}
+  .home-rank .rank-seal{margin:-5px 0 -5px -4px;}
+  /* The same tag on Awards, beside the leaf count; it opens the ladder. */
+  .awards-rank{margin:0; text-shadow:none;}
+  #trophyCount{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;}
+
+  /* --- Birder rank seals (rankSeal in the script) --------------------------
+     A wood-rimmed cream disc with the rank's number, and a wreath of the
+     painted leaf that grows a pair per rank; gold for the top two. --s is
+     the seal's size; everything inside is a share of it. */
+  .rank-seal{position:relative; display:inline-block; flex:0 0 auto; width:var(--s); height:var(--s);}
+  .rank-seal > img{position:absolute; width:44%; height:44%; pointer-events:none;
+    filter:drop-shadow(0 calc(var(--s) * .012) calc(var(--s) * .02) rgba(26,17,40,.35));}
+  .rank-seal.gold > img{filter:url(#gold-filter) drop-shadow(0 calc(var(--s) * .012) calc(var(--s) * .02) rgba(26,17,40,.35));}
+  .rank-face{position:absolute; inset:21%; border-radius:50%; display:grid; place-items:center;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
+    border:max(2px, calc(var(--s) * .045)) solid transparent;
+    box-shadow:0 calc(var(--s) * .03) calc(var(--s) * .07) rgba(26,17,40,.35);
+    font-family:'Poppins'; font-weight:900; font-size:calc(var(--s) * .27); line-height:1; color:var(--wood-edge);}
+  .rank-seal.painted > img{position:static; width:100%; height:100%; object-fit:contain; filter:none;}
+  /* A rank still to come: there, but grey, like a trophy not yet won. */
+  .rank-seal.locked{filter:grayscale(1); opacity:.5;}
+
+  /* --- The ladder, over Awards (openRankLadder) --------------------------- */
+  .rank-sheet-veil{position:fixed; inset:0; z-index:900; display:grid; place-items:center; padding:16px;
+    padding-bottom:calc(var(--nav-h, 64px) + 12px);
+    background:rgba(26,17,40,0.55); animation:awardsVeilIn .25s ease both;}
+  .rank-sheet-veil.closing{opacity:0; transition:opacity .2s ease;}
+  .rank-sheet{--frame:5px; --inner:16px; width:100%; max-width:360px; max-height:100%; display:flex;
+    box-shadow:0 18px 40px rgba(10,6,20,0.55), 0 4px 10px rgba(10,6,20,0.35);
+    animation:trophyCardHover .38s cubic-bezier(.2,1.25,.45,1) both;}
+  .rank-sheet-inner{flex:1; min-height:0; display:flex; flex-direction:column; background:var(--disc-cream);
+    border-radius:var(--inner); padding:14px 14px 10px;}
+  .rank-sheet-head{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .rank-sheet-title{font-family:'Poppins'; font-weight:900; font-size:20px; color:var(--wood-edge);}
+  /* The painted cross is its own little wooden disc. */
+  .rank-sheet-close{flex:0 0 auto; display:grid; place-items:center; cursor:pointer; padding:0; border:none; background:none;
+    color:var(--wood-edge); font-size:18px;}
+  .rank-sheet-close .ico{width:28px; height:28px;}
+  .rank-sheet-msg{font-family:'Poppins'; font-weight:400; font-size:13px; line-height:1.4; color:var(--ink-brown); margin:4px 0 10px;}
+  .rank-ladder{overflow-y:auto; min-height:0; display:flex; flex-direction:column; gap:6px; padding-bottom:4px;}
+  .rank-row{display:flex; align-items:center; gap:12px; padding:6px 10px 6px 6px; border-radius:14px; background:var(--cream-lt);}
+  .rank-row-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+  .rank-row-name{font-family:'Poppins'; font-weight:900; font-size:16px; color:var(--wood-edge);}
+  .rank-row-at{font-family:'Poppins'; font-weight:700; font-size:11.5px; color:var(--ink-soft);}
+  .rank-row.ahead .rank-row-name{color:var(--ink-soft);}
+  /* Where the child is now: green, the colour of selected and of progress. */
+  .rank-row.here{background:rgba(126,200,164,0.28); box-shadow:inset 0 0 0 2.5px var(--sage);}
+  .rank-row.here .rank-row-at{color:var(--sage-dk);}
+  .rank-row-bar{display:block; height:8px; border-radius:4px; margin-top:3px; background:rgba(116,50,6,0.14); overflow:hidden;}
+  .rank-row-bar span{display:block; height:100%; border-radius:4px; background:var(--sage);}
+  .rank-row-tick{flex:0 0 auto;}
+  .rank-row-tick .ico{width:24px; height:24px;}
+  @media (prefers-reduced-motion: reduce){ .rank-sheet-veil, .rank-sheet{animation:none;} }
   .home-hub{
     position:relative; width:100%; margin-top:20px;
     --mic:130px; --disc:68px; --R:124px; --side-x:105.2px; --side-y:65.7px;
@@ -1144,7 +1196,23 @@
   .moment-feathers{display:flex; align-items:center; gap:4px; flex:0 0 auto; margin-left:2px;
     font-family:'Poppins'; font-weight:900; font-size:18px; color:var(--feather);}
   .moment-feathers .feather-icon{width:20px; height:20px;}
-  @media (prefers-reduced-motion: reduce){ .moment{animation:none;} }
+  /* The full-size moment (celebrate({big:true})): the same card, in the
+     middle of the screen, the picture large above the words. */
+  /* .woodframe, further down, is position:relative; the moment is fixed to
+     the screen, so it says so with the extra weight to win. */
+  .moment.woodframe{position:fixed;}
+  .moment.moment-big{max-width:min(330px, calc(100vw - 32px)); --frame:6px; --inner:18px;
+    box-shadow:0 0 0 100vmax rgba(26,17,40,0.5), 0 14px 34px rgba(0,0,0,0.5);}
+  .moment-big .moment-inner{flex-direction:column; gap:4px; padding:16px 20px 18px; text-align:center;}
+  .moment-art{display:block; margin-bottom:4px;}
+  .moment-big .moment-kicker{font-size:15px; text-transform:uppercase; letter-spacing:.04em;}
+  .moment-big .moment-name{font-family:'Poppins'; font-weight:900; font-size:24px; line-height:1.15; color:var(--wood-edge); opacity:1;}
+  .moment-ladder{display:flex; justify-content:center; gap:3px; margin-top:12px;}
+  .moment-step{display:inline-grid; border-radius:50%;}
+  .moment-step.now{box-shadow:0 0 0 2.5px var(--sage); animation:stepNow .6s cubic-bezier(.34,1.56,.64,1) .45s both;}
+  @keyframes stepNow{from{transform:scale(.4);}}
+  .moment-next{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft); margin-top:8px;}
+  @media (prefers-reduced-motion: reduce){ .moment{animation:none;} .moment-step.now{animation:none;} }
   .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
   .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:96px;height:96px;will-change:transform,opacity;}
   .origami{display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35));}
@@ -2719,7 +2787,6 @@
   .avatar-banner{display:block; font:inherit; cursor:pointer;}
   .avatar-banner-bird{width:56px; height:56px; border-radius:50%; overflow:hidden; flex:0 0 auto;
     background:var(--disc-cream); box-shadow:0 0 0 2px var(--wood);}
-  .rank-banner-leaf{width:30px; height:30px; transform:rotate(-30deg);}
   /* --- Every text button is wood ------------------------------------------
      The design language (CLAUDE.md): one material for everything a child
      touches. A text button is a carved wood rim round a cream face with the
@@ -2928,7 +2995,7 @@ function renderIdle() {
     <!-- The greeting sits above the mic now: straight below it is where the
          bottom of the U of three discs goes. -->
     <button class="home-rank" id="homeRank" hidden aria-label="Your birder rank - see your awards">
-      <img src="/static/tree-leaf1-v2.webp" alt=""><span class="home-rank-name"></span>
+      <span class="home-rank-seal"></span><span class="home-rank-name"></span>
     </button>
     <div class="stage-label home-greeting">${firstNameOrDefault() ? `Get out there, ${firstNameOrDefault()}` : 'Get out there'}</div>
     <div class="stage-sub">Hear some birds? Then tap the mic!</div>
@@ -2971,7 +3038,8 @@ function renderIdle() {
   mic.onclick = () => { wrap.classList.remove('mic-alive'); beginWarble(); };
 
   document.getElementById('challengeCard').onclick = renderChallenges;
-  document.getElementById('homeRank').onclick = () => renderTrophies();
+  // The rank tag goes to Awards with the ladder open over it.
+  document.getElementById('homeRank').onclick = async () => { await renderTrophies(); openRankLadder(); };
   paintHomeRank();
   refreshRank();
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
@@ -4206,12 +4274,21 @@ let momentQueue = Promise.resolve();
 
 // icon: markup for the disc (an <img>, or a little text).
 // home: the element it flies into, or its id; none = it shrinks where it is.
-function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null }) {
+// big: the same moment at full size, in the middle of the screen - a large
+// picture in place of the disc, `more` (markup) under the name, a bigger
+// burst and three times the hold. For the rarest rewards only (a new birder rank).
+function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '' }) {
   momentQueue = momentQueue.then(() => new Promise(resolve => {
     const card = document.createElement('div');
-    card.className = 'moment woodframe';
+    card.className = big ? 'moment moment-big woodframe' : 'moment woodframe';
     card.setAttribute('role', 'status');
-    card.innerHTML = `<div class="moment-inner">
+    card.innerHTML = big ? `<div class="moment-inner">
+      ${icon ? `<span class="moment-art">${icon}</span>` : ''}
+      <span class="moment-kicker">${escapeFlock(kicker)}</span>
+      ${name ? `<span class="moment-name">${escapeFlock(name)}</span>` : ''}
+      ${more}
+      ${feathers ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${feathers}</span>` : ''}
+    </div>` : `<div class="moment-inner">
       ${icon ? `<span class="moment-icon">${icon}</span>` : ''}
       <span class="moment-text">
         <span class="moment-kicker">${escapeFlock(kicker)}</span>
@@ -4221,17 +4298,17 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
     </div>`;
     card.style.animationDuration = `${MOMENT.arrive}ms`;
     document.body.appendChild(card);
-    const fromEl = from && from.isConnected ? from : null;
+    const fromEl = from && from.isConnected && !big ? from : null;
     const r = fromEl ? fromEl.getBoundingClientRect() : null;
     const cx = r && r.width ? r.left + r.width / 2 : innerWidth / 2;
     const cy = r && r.height ? r.top + r.height / 2 : innerHeight * 0.42;
     const w = card.offsetWidth, h = card.offsetHeight;
     card.style.left = `${Math.max(12, Math.min(innerWidth - 12 - w, cx - w / 2))}px`;
-    card.style.top = `${Math.max(60, Math.min(innerHeight - 140 - h, cy - h / 2))}px`;
+    card.style.top = `${Math.max(big ? 12 : 60, Math.min(innerHeight - (big ? 90 : 140) - h, cy - h / 2))}px`;
     const still = reducedMotion();
     if (!still) setTimeout(() => {
       const b = card.getBoundingClientRect();
-      burstLeaves(b.left + b.width / 2, b.top + b.height / 2);
+      burstLeaves(b.left + b.width / 2, b.top + b.height / 2, big ? 2 : 1);
     }, MOMENT.arrive / 3);
 
     let gone = false;
@@ -4259,7 +4336,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       }, still ? 300 : MOMENT.home);
     };
     card.onclick = goHome;
-    const holdTimer = setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold));
+    const holdTimer = setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold) * (big ? 3 : 1));
   }));
   return momentQueue;
 }
@@ -4267,7 +4344,6 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
 // The disc pictures, so every moment of a kind looks alike wherever it fires.
 const MOMENT_ICONS = {
   trophy: t => `<img src="/static/emblem-${t.key}-v1.webp" alt="">`,
-  rank:   () => '<img src="/static/tree-leaf1-v2.webp" alt="">',
   pack:   p => `<img src="/static/pack-${p.art}-badge-v2.webp" alt="">`,
   challenge: () => '<img src="/static/tick-v1.webp" alt="">',
   week:   () => '<img src="/static/challenge-icon-v1.webp" alt="">',
@@ -4281,10 +4357,16 @@ function celebrateTrophy(t, from) {
     name: `${t.name} · level ${t.level}`, icon: MOMENT_ICONS.trophy(t),
     feathers: t.feathers || 0, from, home: 'navTrophies' });
 }
+// A new rank is the one moment at full size: the new seal, big, and the
+// ladder underneath with the step just climbed lit up.
 function celebrateRank(rank, from) {
   if (currentProfile) currentProfile.rank = rank;
-  return celebrate({ kicker: 'New birder rank!', name: `You're a ${rank.name} now!`,
-    icon: MOMENT_ICONS.rank(), from, home: 'navTrophies' });
+  const ladder = (rank.ladder || []).map((step, i) =>
+    `<span class="moment-step${i === rank.index ? ' now' : ''}">${rankSeal(i, step.key, 30, i > rank.index)}</span>`).join('');
+  const next = rank.next_name ? `Next: ${rank.next_name} at ${rank.next_at} leaves` : 'The very top rank!';
+  return celebrate({ kicker: 'New birder rank!', name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
+    icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'navTrophies',
+    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>` });
 }
 function celebratePack(p, from) {
   return celebrate({ kicker: 'Pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
@@ -4328,8 +4410,87 @@ function paintHomeRank() {
   const el = document.getElementById('homeRank');
   const r = currentProfile && currentProfile.rank;
   if (!el || !r) return;
+  el.querySelector('.home-rank-seal').innerHTML = rankSeal(r.index, r.key, 26);
   el.querySelector('.home-rank-name').textContent = r.name;
   el.hidden = false;
+}
+
+// Each rank has its own look: a wooden seal with the rank's number on its
+// cream face and a wreath round it that grows a pair of leaves with every
+// rank, the way a trophy's sockets fill - green up to Warden, then gold for
+// the two at the top (the trophy leaves turning gold, the one other thing
+// gold means in Warble). When a painting arrives as
+// static/icon-rank-<key>-v1.webp it takes the seal's place
+// (design-brief-rank-badges-v1.md).
+const RANK_PAIRS = [1, 2, 3, 4, 5, 6, 6, 7];
+const RANK_GOLD_FROM = 6;
+function rankSeal(index, key, size = 64, locked = false) {
+  const cls = `rank-seal${index >= RANK_GOLD_FROM ? ' gold' : ''}${locked ? ' locked' : ''}`;
+  const painted = paintedIcons['rank-' + key];
+  if (painted) return `<span class="${cls} painted" style="--s:${size}px"><img src="${painted}" alt=""></span>`;
+  let leaves = '';
+  for (let p = 0; p < (RANK_PAIRS[index] || 1); p++) {
+    // Up the circle from the bottom, a pair at a time, each leaf lying along
+    // the wreath. The painted leaf leans 31 degrees; the right-hand one is
+    // its mirror image.
+    const th = 28 + p * 24, rad = th * Math.PI / 180;
+    for (const side of [-1, 1]) {
+      const x = 50 + side * 40 * Math.sin(rad), y = 50 + 40 * Math.cos(rad);
+      const turn = side < 0 ? `rotate(${th - 59}deg)` : `rotate(${59 - th}deg) scaleX(-1)`;
+      leaves += `<img src="/static/tree-leaf2-v2.webp" alt="" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%;transform:translate(-50%,-50%) ${turn}">`;
+    }
+  }
+  return `<span class="${cls}" style="--s:${size}px">${leaves}<span class="rank-face">${index + 1}</span></span>`;
+}
+
+// The whole ladder, over Awards: every rank from Hatchling at the bottom to
+// the top one, the ones climbed in colour with a tick, this one in green
+// with how far to the next, and the rest still to come. The words on how to
+// climb come from the server (rank.message).
+function openRankLadder() {
+  const r = currentProfile && currentProfile.rank;
+  if (!r || !r.ladder || document.getElementById('rankSheet')) return;
+  const span = r.next_at != null ? r.next_at - r.ladder[r.index].at : 1;
+  const done = r.next_at != null ? Math.max(0, Math.min(1, (r.leaves - r.ladder[r.index].at) / span)) : 1;
+  const rows = r.ladder.map((step, i) => {
+    const state = i < r.index ? 'climbed' : i === r.index ? 'here' : 'ahead';
+    return `<div class="rank-row ${state}">
+      ${rankSeal(i, step.key, 54, state === 'ahead')}
+      <span class="rank-row-text">
+        <span class="rank-row-name">${escapeFlock(step.name)}</span>
+        <span class="rank-row-at">${state === 'here' ? `You're here! · ${r.leaves} ${r.leaves === 1 ? 'leaf' : 'leaves'}`
+          : step.at ? `${step.at} leaves` : 'Where everyone starts'}</span>
+        ${state === 'here' && r.next_at != null ? `<span class="rank-row-bar"><span style="width:${(done * 100).toFixed(0)}%"></span></span>` : ''}
+      </span>
+      ${state === 'climbed' ? `<span class="rank-row-tick">${PAINTED_TICK}</span>` : ''}
+    </div>`;
+  }).reverse().join('');
+  const veil = document.createElement('div');
+  veil.className = 'rank-sheet-veil';
+  veil.id = 'rankSheet';
+  veil.innerHTML = `<div class="rank-sheet woodframe" role="dialog" aria-label="Birder ranks">
+    <div class="rank-sheet-inner">
+      <div class="rank-sheet-head">
+        <span class="rank-sheet-title">Birder ranks</span>
+        <button class="rank-sheet-close" aria-label="Close">${icon('close')}</button>
+      </div>
+      <div class="rank-sheet-msg">${escapeFlock(r.message || '')}</div>
+      <div class="rank-ladder">${rows}</div>
+    </div>
+  </div>`;
+  document.body.appendChild(veil);
+  const close = () => {
+    document.removeEventListener('keydown', onKey);
+    veil.classList.add('closing');
+    setTimeout(() => veil.remove(), reducedMotion() ? 0 : 200);
+  };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  veil.onclick = e => { if (e.target === veil || e.target.closest('.rank-sheet-close')) close(); };
+  // Open on this rank, with the next one above it in view.
+  const here = veil.querySelector('.rank-row.here');
+  const list = veil.querySelector('.rank-ladder');
+  if (here && list) list.scrollTop = Math.max(0, here.offsetTop - list.offsetTop - here.offsetHeight * 1.5);
 }
 
 // --- Animation 2: card shrinks away into the My Birds tab
@@ -4361,8 +4522,9 @@ const ORIGAMI_SVG = `
 // consts of the same name is a SyntaxError that kills the whole script.
 const BURST_LEAF_COLORS = ['#7EC8A4', '#5FB88F', '#A9DCBF', '#E8845C', '#3F7C5C'];
 
-function burstLeaves(cx, cy) {
-  for (let i = 0; i < 14; i++) {
+function burstLeaves(cx, cy, size = 1) {
+  const n = Math.round(14 * size);
+  for (let i = 0; i < n; i++) {
     const leaf = document.createElement('div');
     leaf.className = 'burst-leaf';
     const c = BURST_LEAF_COLORS[i % BURST_LEAF_COLORS.length];
@@ -4375,8 +4537,8 @@ function burstLeaves(cx, cy) {
 
     // Thrown outward and upward, then gravity takes them down - so they burst
     // rather than simply radiating evenly like a firework.
-    const angle = (Math.PI * 2 * i) / 14 + (Math.random() - 0.5) * 0.5;
-    const dist = 55 + Math.random() * 65;
+    const angle = (Math.PI * 2 * i) / n + (Math.random() - 0.5) * 0.5;
+    const dist = (55 + Math.random() * 65) * size;
     const dx = Math.cos(angle) * dist;
     const dy = Math.sin(angle) * dist * 0.65 - 30;
     const spin = (Math.random() - 0.5) * 720;
@@ -6706,6 +6868,7 @@ const TUTORIALS = {
   ],
   trophies: [
     { target: '#trophyCarousel', text: "As you discover birds you'll also earn awards. Every trophy level wins a leaf and extra feathers, and your leaves add up to your birder rank!" },
+    { target: '#awardsRank', text: 'This is your birder rank. Tap it to see every rank, and how many leaves until the next one!' },
   ],
   dressup: [
     { target: '#dressUpAvatarStage', text: 'This is you! Tap the arrows to choose your bird.' },
@@ -9656,10 +9819,16 @@ async function renderTrophies(focusKey) {
     const levelsGot = allTrophiesRaw.reduce((n, t) => n + (t.level || 0), 0);
     const levelsTotal = allTrophiesRaw.reduce((n, t) => n + (t.level_count || 7), 0);
     // The rank from all the leaves together, and how far to the next one.
+    // The rank is a wooden tag that opens the whole ladder over the trophies.
     const r = data.rank;
-    document.getElementById('trophyCount').textContent = r
-      ? `${r.name} · ${levelsGot} of ${levelsTotal} leaves` + (r.next_name ? ` · ${r.to_go} more to ${r.next_name}` : '')
-      : `${levelsGot} of ${levelsTotal} levels earned`;
+    const countEl = document.getElementById('trophyCount');
+    if (r) {
+      countEl.innerHTML = `<button class="home-rank awards-rank" id="awardsRank" aria-label="See all the birder ranks">
+          <span class="home-rank-seal">${rankSeal(r.index, r.key, 26)}</span><span class="home-rank-name">${escapeFlock(r.name)}</span>
+        </button>
+        <span class="awards-leaves">${levelsGot} of ${levelsTotal} leaves</span>`;
+      document.getElementById('awardsRank').onclick = openRankLadder;
+    } else countEl.textContent = `${levelsGot} of ${levelsTotal} levels earned`;
     if (r && currentProfile) currentProfile.rank = r;
 
     // Coming back from a trophy's card, that trophy goes back to the front.

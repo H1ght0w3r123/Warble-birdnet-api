@@ -35,7 +35,13 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   was introduced were deliberately not back-paid. Every level is a leaf, and
   the leaves together give a **birder rank** (`BIRDER_RANKS`: Hatchling at 0
   up to Master Birder at 115 of the 147), shown on Home and Awards and
-  celebrated when it goes up. Summer Squad was removed (its first level
+  celebrated when it goes up. Each rank has its own look, `rankSeal()`: a
+  wooden seal with the rank's number and a wreath of the painted leaf that
+  grows a pair per rank, gold for the top two (Expert, Master Birder) -
+  replaced by a painting when `icon-rank-<key>` arrives
+  (`design-brief-rank-badges-v1.md`). The rank tag on Home and Awards opens
+  the whole ladder over Awards (`openRankLadder()`); `birder_rank()` sends
+  the ladder and the "how to climb" words (`message`) with the rank. Summer Squad was removed (its first level
   needed all 13 summer visitors in one summer); High Five (weeks with all
   five challenges done) was added. Forager is capped at 100 species, Empty
   Nester only counts quiet recordings of a minute or more, and Wingman
@@ -171,7 +177,10 @@ then flies home - Awards, Collections, Home, the game's stars or Next level
 button - while its feathers fly to the counter. They queue one at a time; a
 tap sends one home early. The new bird's reveal card is the same moment at
 full size (same burst, "New bird!" in the kicker's style, flies to My
-Flock). On the Done screen the birds' own feathers are tapped to collect,
+Flock), and so is a new birder rank (`celebrate({big: true})`: the screen
+dims, the new seal is large, the ladder underneath lights the step just
+climbed, a double burst and three times the hold) - big is kept for that
+one, the rarest reward. On the Done screen the birds' own feathers are tapped to collect,
 then the recording's other rewards play as moments, and only then "Go
 again" - so nothing is cut short. A new avatar bird stays a banner: it's a
 door to Dress Up, not a payout. The server has always banked the feathers
@@ -202,7 +211,7 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
 - *Text links* stay text, one colour: brown (`--wood-edge`) on cream, white
   on a scene. Never orange.
 - *Colour has meaning:* **gold only for rare birds and the trophy leaves
-  that turn gold** (`--rare`; there is no general gold token any more, and
+  that turn gold** - on the trophies, and in the top two ranks' wreaths (`--rare`; there is no general gold token any more, and
   `--sun` is only for the sky gradients). **Green (`--sage`) for leaves,
   anything selected, anything finished and progress.** **Every glow is
   cream** (`rgba(var(--glow), a)`). **Feather amounts are feather blue**:

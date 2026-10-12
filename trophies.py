@@ -404,18 +404,34 @@ def is_before_sunrise(lat: float, lng: float, moment_utc: datetime.datetime) -> 
 
 # Birder rank: what all the trophies add up to. Every trophy level is a leaf,
 # and the leaves together give the child a title - shown on Home and on the
-# Awards page. Thresholds are total leaves (140 in all).
+# Awards page, where the whole ladder opens over the trophies. Thresholds are
+# total leaves (147 in all). Each rank has its own look in the page
+# (rankSeal), and a painting, when one arrives, as icon-rank-<key>.
 BIRDER_RANKS = [
     (0, "Hatchling"), (5, "Spotter"), (12, "Tracker"), (25, "Scout"),
     (40, "Ranger"), (60, "Warden"), (85, "Expert"), (115, "Master Birder"),
 ]
 
 
+def rank_key(name: str) -> str:
+    """"Master Birder" -> "master-birder": the name of the rank's picture."""
+    return name.lower().replace(" ", "-")
+
+
 def birder_rank(leaves: int) -> dict:
-    """The rank for a number of leaves, and how far it is to the next."""
+    """The rank for a number of leaves, how far it is to the next, and the
+    whole ladder - so the page never keeps a copy of the thresholds."""
     i = max(k for k, (need, _) in enumerate(BIRDER_RANKS) if leaves >= need)
     nxt = BIRDER_RANKS[i + 1] if i + 1 < len(BIRDER_RANKS) else None
-    return {"name": BIRDER_RANKS[i][1], "index": i, "leaves": leaves,
+    to_go = (nxt[0] - leaves) if nxt else 0
+    return {"name": BIRDER_RANKS[i][1], "key": rank_key(BIRDER_RANKS[i][1]),
+            "index": i, "leaves": leaves,
             "next_name": nxt[1] if nxt else None,
             "next_at": nxt[0] if nxt else None,
-            "to_go": (nxt[0] - leaves) if nxt else 0}
+            "to_go": to_go,
+            # How to climb, in the child's words (shown on the ladder).
+            "message": (f"Win {to_go} more {'leaf' if to_go == 1 else 'leaves'} to be "
+                        f"{'an' if nxt[1][0] in 'AEIOU' else 'a'} {nxt[1]}. "
+                        "Every trophy level wins a leaf.") if nxt
+                       else f"You're a {BIRDER_RANKS[-1][1]} - the very top!",
+            "ladder": [{"name": n, "key": rank_key(n), "at": need} for need, n in BIRDER_RANKS]}
