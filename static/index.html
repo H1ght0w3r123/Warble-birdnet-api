@@ -7399,7 +7399,7 @@ const PROTO_ONLY = true;
 // baked for the OLD ten colours. The colours in AVATAR_SWATCHES have no such
 // files, so the legacy birds would 404 until they are re-baked.
 const AVATAR_SPECIES_FULL = [
-  { id: 'default',  name: 'Classic' },
+  { id: 'default',  name: 'Robin' },
   { id: 'cardinal', name: 'Cardinal' },
   { id: 'owl',      name: 'Owl' },
   { id: 'penguin',  name: 'Penguin' },
@@ -7408,7 +7408,9 @@ const AVATAR_SPECIES_FULL = [
   { id: 'bluebird', name: 'Bluebird' },
 ];
 const AVATAR_SPECIES = PROTO_ONLY
-  ? [{ id: 'classic', name: 'Classic' }, { id: 'cardinal', name: 'Cardinal' },
+  // 'classic' is the Robin: its id stays (saved profiles, bought birds and its
+  // picture files all use it), only the name a child sees changed.
+  ? [{ id: 'classic', name: 'Robin' }, { id: 'cardinal', name: 'Cardinal' },
      { id: 'parrot', name: 'Parrot' }, { id: 'kingfisher', name: 'Kingfisher' },
      { id: 'owl', name: 'Owl' }, { id: 'duckling', name: 'Duckling' },
      { id: 'penguin', name: 'Penguin' }, { id: 'woodpecker', name: 'Woodpecker' }]

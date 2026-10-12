@@ -5,7 +5,7 @@
 A child's avatar is a bird they dress up in the Hoot-tique. Three are free
 from the start (Cardinal, Parrot, Penguin). The rest are UK birds the child
 has to **find** - hear the real bird, or one of its family, out on a warble -
-and then buy for 30 feathers. Five exist already: Classic (the robin),
+and then buy for 30 feathers. Five exist already: the Robin,
 Duckling, Woodpecker, Owl and Kingfisher.
 
 This brief asks for four more, each a bird a child in the UK can find:
@@ -23,12 +23,13 @@ its files are in.
 
 ## Match the five already painted
 
-Use `static/avatar/classic/`, `static/avatar/kingfisher/` and
+Use `static/avatar/classic/` (the Robin), `static/avatar/kingfisher/` and
 `static/avatar/owl/` as the reference - same size, pose and light:
 
 - Chunky, toy-like, painted, soft bevels, warm light from the top centre.
 - Standing, facing the viewer at a slight three-quarter, feet on the ground
-  line the others stand on, the same height on screen as Classic.
+  line the others stand on, the same height on screen as the Robin
+  (its files are in `static/avatar/classic/`).
 - Cute first, accurate second: a child should know the real bird from it,
   but it's a character, not a field guide.
 

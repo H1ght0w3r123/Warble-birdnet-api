@@ -164,7 +164,7 @@ buy something new (`whatsNew.dressup`).
 
 **Avatar birds: three to start, the rest found then bought.** Cardinal,
 Parrot and Penguin are free (none of them live here). The UK birds -
-Classic (the robin), Duckling, Woodpecker, Owl, Kingfisher - are *found* the
+the Robin (id `classic`; it was called Classic), Duckling, Woodpecker, Owl, Kingfisher - are *found* the
 first time the child hears the real bird or one of its family
 (`AVATAR_UNLOCKS` in `main.py`: a robin, stonechat or redstart; any
 duck/goose/swan; any woodpecker; any owl; a Kingfisher) and then bought for

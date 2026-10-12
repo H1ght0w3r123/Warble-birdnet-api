@@ -523,7 +523,7 @@ def award_trophy_levels():
 # ("owned", kept as an "avatar:<id>" row with the Dress Up items, not counted
 # by Preener). So each one is a souvenir of a find and a thing saved up for.
 # When this arrived, a family that had been playing kept, free, everything
-# it already had: Classic, any bird the old rules had unlocked, and the bird
+# it already had: the Robin, any bird the old rules had unlocked, and the bird
 # in use ("avatars:priced" marks that done).
 AVATAR_STARTERS = {"cardinal", "parrot", "penguin"}
 AVATAR_PRICE = 30
@@ -557,13 +557,14 @@ for _rule in list(AVATAR_UNLOCKS.values()) + list(AVATARS_TO_COME.values()):
 
 
 def avatar_id(species: str) -> str:
-    """The profile has always stored Classic as "default"."""
+    """The Robin's id is "classic" (it was called Classic), and the profile
+    has always stored it as "default"."""
     return "classic" if species in ("default", "classic", None, "") else species
 
 
 def _keep_avatars_already_had():
     """Once, when birds started to cost: a family that has been playing
-    keeps Classic, every bird the old rules had unlocked (heard its family),
+    keeps the Robin, every bird the old rules had unlocked (heard its family),
     and the bird it's using, without paying. Run at start-up, never on the
     way through a warble - a brand-new child's first warble would otherwise
     look like a family that had been playing."""
