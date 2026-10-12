@@ -59,7 +59,10 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   Preener, Century or a pack trophy asks for more than exists. The Awards
   scene carries only the front trophy's name and level on the wooden sign
   (a carved "?" until won) and "Tap for more", on the plinth under it;
-  everything else is on the trophy's card (`renderTrophyDetail`), in
+  Awards opens on the trophy that most recently gained a leaf
+  (`last_leaf` from `/trophies`), or the first. Everything else is on the
+  trophy's card (`renderTrophyDetail`) - a layer over Awards that just lifts
+  away when closed, so nothing behind it reloads - in
   this order: picture, name and level, the level's citation, the
   description, then the next level's target with a green bar. A trophy not
   won yet opens too: greyed, a carved "?" for its name, no story, just what

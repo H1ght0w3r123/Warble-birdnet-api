@@ -962,6 +962,17 @@ def get_earned_trophy_keys() -> set:
         return {t.trophy_key for t in session.query(EarnedTrophy).all()}
 
 
+def trophy_leaves_newest_first() -> list:
+    """Trophy keys in the order their levels were won, newest first (one
+    entry per level) - Awards opens on the trophy that last gained a leaf."""
+    if SessionLocal is None:
+        return []
+    with SessionLocal() as session:
+        rows = session.query(EarnedTrophy.trophy_key) \
+            .order_by(EarnedTrophy.earned_at.desc(), EarnedTrophy.id.desc()).all()
+    return [k for (k,) in rows]
+
+
 def get_trophy_levels() -> dict:
     """Highest level reached for each trophy, e.g. {"night_owl": 2}."""
     if SessionLocal is None:

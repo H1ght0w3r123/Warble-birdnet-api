@@ -216,7 +216,7 @@ async def identify(
 # Wikipedia photos + feather maths + saving — all in one call.
 # ============================================================
 
-from database import (
+from database import (trophy_leaves_newest_first, 
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_species_found_far_apart, count_species_first_heard_since, get_bird_sessions,
@@ -1140,7 +1140,10 @@ def list_trophies():
             "citation": t["citations"][level - 1] if level > 0 else None,
         })
     leaves = sum(t["level"] for t in out)
-    return {"trophies": out, "rank": birder_rank(leaves)}
+    # The trophy that most recently gained a leaf (one that still exists),
+    # for Awards to open on.
+    last_leaf = next((k for k in trophy_leaves_newest_first() if k in TROPHY_DEFINITIONS), None)
+    return {"trophies": out, "rank": birder_rank(leaves), "last_leaf": last_leaf}
 
 
 @app.get("/sightings")

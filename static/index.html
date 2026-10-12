@@ -2667,16 +2667,24 @@
   body.awards-on .trophy-slide.front.earned .trophy-light{opacity:1;}
   /* The rest stand outside the beam, with just a soft contact shadow. */
   body.awards-on .trophy-slide:not(.front) .trophy-shadow{opacity:.35;}
-  /* The trophy card over the treehouse: the scene dims a touch and the card
-     floats up in front of it with a deep shadow. */
-  .awards-veil{position:fixed; inset:0; z-index:-1; pointer-events:none;
-    background:rgba(26,17,40,0.38); animation:awardsVeilIn .3s ease both;}
+  /* The trophy card floats up over the treehouse with a deep shadow (its
+     dimmed layer is .trophy-layer, below). */
   @keyframes awardsVeilIn{from{opacity:0;}}
   .trophy-card-hover{position:relative; z-index:2;
     box-shadow:0 18px 40px rgba(10,6,20,0.55), 0 4px 10px rgba(10,6,20,0.35);
     animation:trophyCardHover .38s cubic-bezier(.2,1.25,.45,1) both;}
   @keyframes trophyCardHover{from{transform:translateY(26px) scale(.94); opacity:0;}}
-  @media (prefers-reduced-motion: reduce){ .trophy-card-hover, .awards-veil{animation:none;} }
+  @media (prefers-reduced-motion: reduce){ .trophy-card-hover{animation:none;} }
+  /* The trophy card's layer: over the Awards screen (the nav bar stays
+     usable below it), the scene dimmed behind, the card in the middle. */
+  .trophy-layer{position:fixed; left:0; right:0; top:0; bottom:var(--nav-h, 64px); z-index:800;
+    display:flex; align-items:center; justify-content:center; padding:16px; overflow-y:auto;
+    background:rgba(26,17,40,0.42); cursor:pointer; animation:awardsVeilIn .25s ease both;
+    transition:opacity .2s ease;}
+  .trophy-layer .detail-wood{margin:auto 0;}
+  .trophy-layer.closing{opacity:0;}
+  .trophy-layer.closing .trophy-card-hover{transform:translateY(18px) scale(.96); transition:transform .2s ease;}
+  @media (prefers-reduced-motion: reduce){ .trophy-layer{animation:none; transition:none;} }
   .awards-sign-text{position:fixed; margin:0; height:auto; gap:8px; z-index:1;
     flex-wrap:nowrap; white-space:nowrap;}
   /* --sign-font is set by fitAwardsSign, which shrinks a long name until it
@@ -9903,13 +9911,15 @@ async function renderTrophies(focusKey) {
     const r = data.rank;
     if (r && currentProfile) { currentProfile.rank = r; paintTopRank(); }
 
-    // Coming back from a trophy's card, that trophy goes back to the front.
-    // Otherwise start on the first unearned one - the most useful thing to
-    // be looking at. (renderTrophies is also the nav button's click handler,
-    // so focusKey can be a click event; only a string counts.)
+    // Which trophy is at the front: one asked for by name first, otherwise
+    // the trophy that most recently gained a leaf (the server's last_leaf),
+    // otherwise the first. (renderTrophies is also the nav button's click
+    // handler, so focusKey can be a click event; only a string counts.)
+    // Closing a trophy's card doesn't come back through here at all - the
+    // card lies over Awards and just goes, leaving its trophy at the front.
     const focused = typeof focusKey === 'string' ? allTrophiesRaw.findIndex(t => t.key === focusKey) : -1;
-    const firstLocked = allTrophiesRaw.findIndex(t => !t.earned);
-    trophyIndex = focused >= 0 ? focused : (firstLocked === -1 ? 0 : firstLocked);
+    const lastLeaf = allTrophiesRaw.findIndex(t => t.key === data.last_leaf);
+    trophyIndex = focused >= 0 ? focused : (lastLeaf >= 0 ? lastLeaf : 0);
 
     const carousel = document.getElementById('trophyCarousel');
     carousel.innerHTML = allTrophiesRaw.map((t, i) => `
@@ -10022,7 +10032,6 @@ const AWARDS_BG = {
   tapY: 1080,   // the stump's top, between the trophy's base and its front edge
 };
 let awardsGeom = null;
-let awardsSceneBox = null;   // where the scene was last drawn, for the trophy card
 
 // Full width where the phone has the height for it - a touch wider than
 // the screen, so the cut-off edges stay off it. On a shorter phone it
@@ -10047,8 +10056,7 @@ function layoutAwardsScene() {
   const w = B.w * sc, h = B.h * sc;
   const left = (vw - w) / 2;
   const top = Math.max(navTop - 4 - B.floor * sc, ceiling - B.top * sc);
-  awardsSceneBox = { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' };
-  Object.assign(bg.style, awardsSceneBox);
+  Object.assign(bg.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
   const at = (x, y) => ({ x: left + x * sc, y: top + y * sc });
   awardsGeom = { standY: at(0, B.standY).y, faceY: at(0, B.faceY).y, tapY: at(0, B.tapY).y };
 
@@ -10222,7 +10230,7 @@ async function shareBird(bird) {
 
 function renderTrophyDetail(trophyKey) {
   const trophy = allTrophiesRaw.find(t => t.key === trophyKey);
-  if (!trophy) return;
+  if (!trophy || document.getElementById('trophyLayer')) return;
   // In order: the picture, the name and level, this level's line, the
   // trophy's story, and what the next level needs. A trophy not won yet
   // keeps its secret (a carved "?" for the name, no story) and says what
@@ -10235,14 +10243,15 @@ function renderTrophyDetail(trophyKey) {
        <div class="trophy-card-next-text">${trophy.requirement} · <b>${Math.min(trophy.progress, trophy.next_target)}/${trophy.next_target}</b></div>
        <span class="rank-row-bar"><span style="width:${(done * 100).toFixed(0)}%"></span></span>`;
 
-  // No Back button: like the bird card, a tap anywhere goes back - to the
-  // trophy row, with this trophy still at the front.
-  // The treehouse stays where it was, dimmed a little, and the card hovers
-  // in front of it.
-  stage.innerHTML = `
-    <div class="awards-bg" id="awardsBg"><div class="awards-beam"></div><div class="awards-off"></div></div>
-    <div class="awards-veil"></div>
-    <div class="woodframe detail-wood trophy-card-hover" data-bird-detail>
+  // The card lies over the Awards screen rather than replacing it: the
+  // treehouse dims behind it, and closing it (a tap anywhere, or Escape)
+  // just lifts it away - nothing behind it reloads or moves. It lives in
+  // the stage, so leaving Awards by the nav bar takes it with it.
+  const layer = document.createElement('div');
+  layer.className = 'trophy-layer';
+  layer.id = 'trophyLayer';
+  layer.innerHTML = `
+    <div class="woodframe detail-wood trophy-card-hover">
     <div class="detail-card" style="--tier-color:var(--sage-dk);">
       <div class="trophy-hero ${won ? '' : 'locked'}">
         <div class="trophy-hero-art">${trophyArt(trophy)}</div>
@@ -10255,10 +10264,25 @@ function renderTrophyDetail(trophyKey) {
         <div class="trophy-card-next">${next}</div>
       </div>
     </div>
-    </div>
-  `;
-  if (awardsSceneBox) Object.assign(document.getElementById('awardsBg').style, awardsSceneBox);
-  setDetailBack(() => renderTrophies(trophyKey));
+    </div>`;
+  stage.appendChild(layer);
+  const openedAt = performance.now();
+  const close = () => {
+    document.removeEventListener('keydown', onKey);
+    if (!layer.isConnected) return;
+    if (reducedMotion()) { layer.remove(); return; }
+    layer.classList.add('closing');
+    setTimeout(() => layer.remove(), 220);
+  };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  layer.addEventListener('click', e => {
+    // The tap that opened the card (a trophy's pointerup) sends its click
+    // a moment later, onto the card - ignore that one.
+    if (performance.now() - openedAt < 450) return;
+    if (e.target.closest('button, a')) return;
+    close();
+  });
 }
 </script>
 
