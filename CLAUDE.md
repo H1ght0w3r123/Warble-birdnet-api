@@ -57,8 +57,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   5 to 60 and must never mean "the whole shop", which changes with every
   restock; `TROPHY_CEILINGS` in `main.py` stops the server starting if
   Preener, Century or a pack trophy asks for more than exists. The Awards
-  scene carries no words but "Tap for more", on the plinth under the front
-  trophy; everything else is on the trophy's card (`renderTrophyDetail`), in
+  scene carries only the front trophy's name and level on the wooden sign
+  (a carved "?" until won) and "Tap for more", on the plinth under it;
+  everything else is on the trophy's card (`renderTrophyDetail`), in
   this order: picture, name and level, the level's citation, the
   description, then the next level's target with a green bar. A trophy not
   won yet opens too: greyed, a carved "?" for its name, no story, just what

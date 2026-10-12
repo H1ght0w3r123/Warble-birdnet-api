@@ -9977,9 +9977,13 @@ function renderTrophyCaption() {
   // that hasn't.
   const scene = document.getElementById('awardsBg');
   if (t && scene) scene.classList.toggle('lights-off', !t.earned);
-  // All the words are on the trophy's card now: the sign stays bare and
-  // the only line on the scene is "Tap for more", on the plinth.
-  if (title) title.innerHTML = '';
+  // The front trophy's name and level on the wooden sign (a carved "?"
+  // until it's won); the only other words on the scene are "Tap for more",
+  // on the plinth. Everything else is on the trophy's card.
+  if (t && title) {
+    title.innerHTML = `<span class="trophy-caption-name">${t.earned ? t.name : icon('mystery')}</span>
+      ${t.earned ? `<span class="trophy-level">Level ${t.level}</span>` : ''}`;
+  }
   if (t && caption) {
     caption.innerHTML = `<button class="trophy-caption-tap" id="trophyTap">Tap for more</button>`;
     document.getElementById('trophyTap').onclick = () => renderTrophyDetail(t.key);
