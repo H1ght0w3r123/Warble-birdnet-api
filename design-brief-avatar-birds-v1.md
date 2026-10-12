@@ -35,37 +35,72 @@ Use `static/avatar/classic/` (the Robin), `static/avatar/kingfisher/` and
 
 ## The layers (the important part)
 
-Each bird is drawn as separate layers so it can be recoloured, dance and
-wear hats and glasses. Deliver every layer as its own PNG, all on the same
-**800 x 800** canvas, lined up exactly (stack them and they make the bird):
+Deliver each bird exactly as the Kingfisher was delivered: separate layers so
+the app can recolour it, flap its wings and dress it up. Every layer is on the
+same **1000 x 1000** canvas, already in its final position - stack them and
+they make the bird, nothing to nudge.
 
-| Layer | What's on it |
+**`layers/`** - numbered back to front:
+
+| File | What's on it | Painted in |
+|---|---|---|
+| `00_tail_fixed.png` | a tail that shows behind the body (if it has one) | its own colours |
+| `01_foot_left_fixed.png`, `02_foot_right_fixed.png` | each leg and foot | its own colours |
+| `03_body_fixed.png` | the body: chest, belly, flanks | its own colours |
+| `04_wing_left_dynamic.png`, `05_wing_right_dynamic.png` | each wing in its resting position (they flap, so separately) | **neutral grey** |
+| `06_head_colourable.png` | the head's feathered dome: crown, cheeks, nape | **neutral grey** |
+| `07_face_fixed_overlay.png` | eyes, beak and the bird's own markings - nothing else | its own colours |
+
+**`masks/`** - one per grey layer, same canvas:
+
+| File | What it marks |
 |---|---|
-| `body` | the body and tail, without the head or wings (a long tail can be its own `tail` layer, as the Kingfisher's is) |
-| `head` | the head |
-| `face` | eyes and beak only |
-| `wing-l`, `wing-r` | each wing, separately (they flap) |
-| `foot-l`, `foot-r` | each foot |
-| `wash-head`, `wash-wing-l`, `wash-wing-r` | a grey version of the parts the child's chosen colour tints - the head's cap/crown and the wings. Light grey where the colour shows bright, dark grey where it's in shadow; transparent everywhere else |
+| `head_wash_mask.png`, `wing_left_wash_mask.png`, `wing_right_wash_mask.png` | white where the child's chosen colour shows on that layer, transparent where it doesn't; a soft edge is fine |
 
-The child picks the bird's colour from 18 swatches, and the `wash` layers
-are what takes it. So: the bird's own markings (the Blue Tit's white cheeks,
-the Magpie's black and white, the Blackbird's beak) stay painted in; the
-areas that carry the child's colour are painted in **greys** on the wash
-layers. Look at the Kingfisher's wash layers for how much to give over.
+Why grey: the child picks the bird's colour from 18 swatches, and the app
+tints the grey layers through their masks. **Neutral grey** means equal red,
+green and blue at every pixel, carrying all the shading and highlights - a
+warm or cool cast comes out wrong on half the swatches. The bird's own
+markings (the Blue Tit's white cheeks, the Magpie's black and white, the
+Blackbird's orange beak) belong on the fixed layers, so they stay whatever
+colour the child picks.
 
-Hats sit on the head and glasses on the eyes, so keep the top of the head
-clear (no tall crest - the Blue Tit's cap is fine) and the eyes where the
-other birds' eyes are.
+- **The face layer is only eyes, beak and markings.** Held up on its own you
+  should see straight through where the head was. A coloured head on the
+  face layer would never change colour.
+- **Overlap, don't butt-join.** Where a fixed part meets grey plumage, carry
+  the plumage 2-3 px underneath it, or a hairline shows when the colour
+  changes.
+- **Roughly half to two-thirds of the bird should take the colour.** Less
+  and the swatches barely change it; much more and it has no face left in
+  near-black.
+
+## Size and placement
+
+Match the Kingfisher, measured on its 1000 x 1000 canvas:
+
+| | Kingfisher |
+|---|---|
+| Top of the head | y 110 (an owl's ear tufts can rise to about y 50) |
+| Head and body, side to side | x 210 to 790 |
+| Wings | y 480 to 770, hanging from the shoulders |
+| Bottom of the feet (the ground) | y 920 - every bird stands on this line |
+
+Hats sit on the head and glasses on the eyes; each bird's fit is set once its
+files are in, so keep the top of the head clear (no tall crest - the Blue
+Tit's cap is fine) and the eyes level, a little above halfway down the head.
 
 ## File delivery specification
 
-1. **One layer per file**, named `<folder>-<layer>_800x800.png`
-   (for example `bluetit-wing-l_800x800.png`). A picture of the whole bird
-   assembled is welcome too, named `PREVIEW-ONLY`.
-2. **The file's pixel size IS the canvas:** exactly 800 x 800, every layer.
+1. **One folder per bird** - `bluetit/`, `blackbird/`, `magpie/`, `seagull/` -
+   each holding its `layers/` and `masks/` folders, named exactly as above. A
+   picture of the whole bird assembled is welcome too, named `PREVIEW-ONLY`.
+2. **The file's pixel size IS the canvas:** exactly 1000 x 1000, every layer
+   and every mask, 8-bit RGBA.
 3. **Real transparency.** A true alpha channel, not a painted checkerboard.
    Test on solid red: no squares, no white fringe.
 4. **Lined up.** Every layer of a bird in its exact place on the canvas.
-5. **Nothing on the art that isn't art.** No text, no guides.
-6. **PNG, sRGB.** The app converts them itself.
+5. **Nothing on the art that isn't art.** No text, no guides, no baked
+   shadow.
+6. **PNG, sRGB.** The app makes its own smaller copies
+   (`tools/export_bird_layers.py` shrinks them to 800 x 800 for the phone).
