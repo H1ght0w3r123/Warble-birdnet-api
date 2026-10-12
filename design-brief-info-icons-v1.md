@@ -3,7 +3,7 @@
 ## What this is
 
 Warble's design language is painted art, never emoji. Almost everything is
-painted already. These 19 small icons are the last places that still show a
+painted already. These 24 small icons are the last places that still show a
 phone emoji, and each is waiting for a painting.
 
 **Nothing in the app needs changing when they arrive.** Each one appears the
@@ -11,7 +11,7 @@ moment its file is in `static/` as `icon-<name>-v1.webp` (from the PNG you
 deliver). Until then the emoji stays as a stand-in. A later redraw is
 `-v2`, and the newest version always wins.
 
-## The 19 icons
+## The 24 icons
 
 | File name | Stands in for | Where it shows | Idea |
 |---|---|---|---|
@@ -34,6 +34,11 @@ deliver). Until then the emoji stays as a stand-in. A later redraw is
 | `pin` | 📍 | Before a place's name ("📍 Back Garden") | A wooden map pin |
 | `lock` | 🔒 | Corner of a locked Guess the Song level | A small wooden padlock |
 | `camera` | 📷 | Corner of a game tile showing the child's own photo | A chunky toy camera |
+| `back` | ← | "Back" at the top of inner screens | A carved wooden arrow pointing left |
+| `forward` | → | "Learn more", "More warbling tips", "Collection card" | The same arrow pointing right |
+| `close` | ✕ | Removing a named place in Settings | A small carved cross |
+| `pause` | ⏸ | "Stop" while a bird's call is playing | Two chunky wooden bars, to pair with the painted play button |
+| `mystery` | ??? | The name sign of a trophy not yet won | A question mark carved in wood, or a closed seed pod |
 
 ## Style: match what's already painted
 

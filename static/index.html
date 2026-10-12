@@ -19,6 +19,17 @@
        language in CLAUDE.md. */
     --sun:#F2C94C;
     --glow:251,234,209;
+    /* Brown ink on cream: --ink-brown for words, --ink-soft for small labels
+       and notes, var(--wood-edge) for names and titles. --cream-lt is a box
+       sitting inside a cream card (fact tiles, sheet options). */
+    --ink-brown:#4A2408; --ink-soft:#8A5A30; --cream-lt:#FFF6E6;
+    /* The carved wood rim, for anything with a cream face: put it after the
+       face as the border-box layers and give the element a transparent
+       border - background: linear-gradient(var(--disc-cream),var(--disc-cream))
+       padding-box, var(--wood-rim); border:3px solid transparent; */
+    --wood-rim:
+      repeating-linear-gradient(91deg, rgba(255,255,255,0.06) 0 1px, rgba(116,50,6,0.06) 1px 3px) border-box,
+      linear-gradient(180deg, #E59450 0%, #D87A38 52%, #B8632A 100%) border-box;
     --feather:#1A6FB0; --feather-lt:#9AD6FF;
     --sage:#7EC8A4; --sage-dk:#3F7C5C;
     --mist:#C4BFDF; --mist-dk:#8E87B8;
@@ -252,7 +263,7 @@
   .top-settings-btn{background:transparent;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;}
   .top-settings-btn svg{width:23px;height:23px;}
   .top-settings-btn img{width:100%;height:100%;object-fit:contain;display:block;}
-  .top-profile-btn{background:#fff;border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  .top-profile-btn{background:var(--disc-cream);border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
   .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Poppins';font-weight:900;font-size:17px;color:var(--feather-lt);text-shadow:0 1px 3px rgba(0,0,0,0.35);}
   /* Shared feather icon - height:1em means it always matches whatever
@@ -316,7 +327,7 @@
      phone; as "Hoot-tique" it fits at the same size as the rest. */
   .nav-tab > span:last-child{white-space:nowrap;}
   .nav-tab .nav-icon-svg{width:39.8px; height:39.8px; color:#fff;}
-  .nav-tab.active .nav-icon-svg{color:var(--terra);}
+  .nav-tab.active .nav-icon-svg{color:var(--sage);}
   /* The whole bar came down 20%: icons 49.8 -> 39.8, the Home badge
      96.6 -> 77.3 and its lift with it, the padding round them, and the
      labels as far as they could go and stay readable. The wrap matches the
@@ -555,7 +566,7 @@
   .welcome-dots{display:flex; gap:6px;}
   .welcome-dots .tut-dot{background:rgba(255,255,255,0.35);}
   .welcome-dots .tut-dot.on{background:var(--sage);}
-  .welcome-eyebrow{font-family:'Poppins'; font-weight:800; font-size:14px; color:var(--disc-cream); letter-spacing:.02em;}
+  .welcome-eyebrow{font-family:'Poppins'; font-weight:700; font-size:14px; color:var(--disc-cream); letter-spacing:.02em;}
   .welcome-title-row{display:flex; align-items:center; gap:10px;}
   .welcome-title{margin:0; font-family:'Poppins'; font-weight:900; font-size:clamp(24px, 7vw, 30px); color:#fff; text-align:center;
     text-shadow:0 2px 0 var(--wood-edge), 0 4px 12px rgba(26,17,40,0.5);}
@@ -584,7 +595,7 @@
   .welcome-name{max-width:280px; text-align:center; font-size:20px;}
   .welcome-hint{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9); margin-top:-6px;}
   .welcome-actions{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; max-width:320px; margin-top:4px;}
-  .welcome-back{border:none; background:none; color:#fff; font-family:'Poppins'; font-weight:800; font-size:15px;
+  .welcome-back{border:none; background:none; color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
     padding:10px 6px; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}
   @media (prefers-reduced-motion: reduce){ .welcome-bird-btn, .welcome-swatch{transition:none;} }
 
@@ -624,10 +635,8 @@
   .tut-dot.on{background:var(--sage-dk);}
   .tut-ok{
     flex:0 0 auto; min-width:104px; padding:11px 18px; border:none; border-radius:30px; cursor:pointer;
-    background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:900; font-size:16px;
-    box-shadow:0 4px 0 var(--terra-dk);
+    font-family:'Poppins'; font-weight:900; font-size:16px;
   }
-  .tut-ok:active{transform:translateY(3px); box-shadow:0 1px 0 var(--terra-dk);}
   .tut-ok:focus{outline:none;}
   .tut-ok:focus-visible{outline:3px solid var(--sage); outline-offset:2px;}
   /* The tail: a wooden point on whichever side faces the lit thing. */
@@ -774,7 +783,7 @@
   }
   .sg-tile img.stock{filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .sg-blank{display:flex; align-items:center; justify-content:center; font-size:30px;}
-  .sg-name{font-family:'Poppins'; font-size:11.5px; font-weight:700; padding:6px 4px; color:var(--ink);
+  .sg-name{font-family:'Poppins'; font-size:11.5px; font-weight:700; padding:6px 4px; color:var(--ink-brown);
     line-height:1.2; background:var(--parch); border-radius:0 0 var(--inner) var(--inner);
     flex:1; display:flex; align-items:center; justify-content:center;
     /* In a small card a long name breaks with a hyphen ("Yellow-hammer")
@@ -848,19 +857,19 @@
   .timer{font-family:'Poppins';font-weight:700;font-size:22px;color:#fff;margin-top:14px;}
 
   /* --- Warbling Tips --- */
-  .season-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 13px;margin-bottom:6px;}
+  .season-row{display:flex;align-items:center;gap:10px;background:var(--disc-cream);border-radius:12px;padding:10px 13px;margin-bottom:6px;}
   .season-row.season-away{background:rgba(255,255,255,0.45);}
   .season-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--mist);}
   .season-here .season-dot{background:var(--sage);}
   .season-leaving .season-dot{background:var(--terra);}
   .season-arriving .season-dot{background:var(--sage);}
-  .season-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
-  .season-away .season-name{color:var(--mist-dk);}
-  .season-label{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--mist-dk);flex-shrink:0;}
+  .season-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--wood-edge);min-width:0;}
+  .season-away .season-name{color:var(--ink-soft);}
+  .season-label{font-family:'Poppins';font-weight:700;font-size:10.5px;color:var(--ink-soft);flex-shrink:0;}
   .season-leaving .season-label{color:var(--terra-dk);}
   .season-row.tappable{cursor:pointer;}
   .season-row.tappable:active{opacity:0.8;}
-  .season-chevron{color:var(--mist-dk);font-size:14px;flex-shrink:0;margin-left:2px;}
+  .season-chevron{color:var(--ink-soft);font-size:14px;flex-shrink:0;margin-left:2px;}
 
   /* --- Migrator card: a real map (Wikimedia Commons "Continents vide
      couleurs", CC BY-SA 3.0/GFDL, cropped to Europe/Africa/Middle East),
@@ -870,7 +879,7 @@
      projection math on this end, just CSS stacking. */
   .migration-title{font-family:'Poppins';font-weight:900;font-size:22px;color:#fff;text-align:center;}
   .migration-subtitle{font-size:12.5px;color:rgba(255,255,255,0.82);text-align:center;margin-top:2px;margin-bottom:14px;}
-  .migration-map-panel{width:100%;max-width:280px;margin:0 auto;position:relative;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,0.25);}
+  .migration-map-panel{width:100%;max-width:280px;margin:0 auto;position:relative;background:var(--disc-cream);border-radius:16px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,0.25);}
   .migration-map-img{display:block;width:100%;}
   .migration-map-overlay{position:absolute;inset:0;width:100%;height:100%;}
   .migration-credit{font-size:9.5px;color:rgba(255,255,255,0.55);text-align:center;margin-top:6px;}
@@ -885,7 +894,7 @@
   .challenge-card{--frame:4px; --inner:10px; width:100%; margin-bottom:8px;}
   .challenge-inner{background:var(--disc-cream); border-radius:var(--inner); padding:8px 12px 9px;}
   .challenge-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
-  .challenge-text{font-family:'Poppins';font-weight:800;font-size:13.5px;line-height:1.25;
+  .challenge-text{font-family:'Poppins';font-weight:700;font-size:13.5px;line-height:1.25;
     color:var(--wood-edge);display:flex;align-items:center;gap:8px;}
   /* Bigger than the line it sits on, so it overhangs a little rather than
      making a finished card taller - all six still fit without scrolling. */
@@ -911,8 +920,8 @@
      per-button with --x/--y so the arc is defined in one place. */
   .tip-card{width:100%;background:var(--disc-cream);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-top:10px;}
   .tip-icon{font-size:22px;flex-shrink:0;}
-  .tip-title{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);margin-bottom:3px;}
-  .tip-text{font-size:12.5px;line-height:1.5;color:var(--ink);}
+  .tip-title{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--wood-edge);margin-bottom:3px;}
+  .tip-text{font-size:12.5px;line-height:1.5;color:var(--ink-brown);}
   /* The same card, but a button: on the no-birds screen it is the way
      through to the rest of the tips, which is otherwise a dead end now that
      Home no longer carries one. */
@@ -965,7 +974,7 @@
     box-shadow:0 0 14px rgba(var(--glow),0.8); animation:jokeRing .6s ease-out forwards;}
   @keyframes jokeRing{from{transform:scale(.5); opacity:1;} to{transform:scale(2.4); opacity:0; border-width:1px;}}
   .joke-spark{position:absolute; left:50%; top:50%; width:18px; height:18px; margin:-9px 0 0 -9px;
-    box-shadow:0 0 8px rgba(255,255,255,0.7);
+    box-shadow:0 0 8px rgba(var(--glow),0.85);
     border-radius:50%; background:var(--spark, var(--disc-cream)); pointer-events:none;
     animation:jokeSpark .75s cubic-bezier(.15,.7,.4,1) forwards;}
   @keyframes jokeSpark{
@@ -997,19 +1006,22 @@
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
   .progress{font-family:'Poppins';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;animation:statFadeUp 0.35s ease both;}
+  /* The new-bird moment at full size: a carved wood frame round a cream
+     face, like every card. A rare bird's frame is gold instead. */
   .card{
-    width:100%; max-width:300px; background:#fff; border-radius:20px;
+    width:100%; max-width:300px; border-radius:20px;
     overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.18);
-    border:3px solid var(--tier-color, var(--sage));
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
+    border:6px solid transparent;
     animation:cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
     transform-style:preserve-3d;
   }
   /* A Rare find gets a violet halo as well as the border, so it announces
      itself before the tier label is even read. */
   .collector-strip{margin-top:12px;padding-top:11px;border-top:1px dashed var(--parch-dk);}
-  .collector-label{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .collector-label{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
   .collector-pips{display:flex;gap:5px;justify-content:center;}
-  .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--dusk);font-family:'Poppins';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
+  .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--wood-edge);font-family:'Poppins';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
   /* Same bleed-through mistake as the emoji fix below: opacity on the whole
      .fan-card lets the page behind it show through the frame's own
      transparent bits. An "away" bird is always also unfound, so fold the
@@ -1021,7 +1033,7 @@
   /* The seasonal ribbon sits over the bottom of the nameplate, so give the
      name less room on those cards rather than letting it run underneath. */
   .fan-card.away .fan-name{height:25px;}
-  .season-surprise{background:#FFF6E6;border:2px solid var(--wood);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);}
+  .season-surprise{background:#FFF6E6;border:2px solid var(--wood);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-edge);}
   /* Rare cards: a gold band across the bottom of the bird window, a gold
      trim round the whole card, and the pack mark in the corners in gold.
      The band sits under the frame layer (z-index 1, after the photo) and runs
@@ -1054,12 +1066,14 @@
   }
   .collector-pip{
     flex:1; font-family:'Poppins'; font-weight:700; font-size:9.5px; padding:4px 0;
-    border-radius:12px; border:2px solid var(--tier-color); color:var(--mist-dk);
+    border-radius:12px; border:2px solid var(--tier-color); color:var(--ink-soft);
     opacity:.4; text-align:center;
   }
   .collector-pip.got{background:var(--tier-color);color:#fff;opacity:1;}
   .collector-pip.got:nth-child(3){color:var(--ink);}
-  .card.rare-card{box-shadow:0 12px 34px rgba(255,195,0,0.6), 0 0 0 6px rgba(255,195,0,0.2);}
+  .card.rare-card{box-shadow:0 12px 34px rgba(255,195,0,0.6), 0 0 0 6px rgba(255,195,0,0.2);
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box,
+      linear-gradient(135deg,#FFF0A8 0%,#E9B52C 30%,#B07D0E 55%,#F6D063 78%,#B88412 100%) border-box;}
   /* White text on bright gold is 1.6:1 - unreadable. Ink is 11.3:1. */
   @keyframes cardReveal{
     0%{transform:scale(0.35) rotateY(180deg); opacity:0;}
@@ -1068,18 +1082,18 @@
   }
   .card-photo{width:100%;height:200px;object-fit:cover;object-position:var(--bird-crop);background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .card-body{padding:16px 18px 20px;}
-  .card-name{font-family:'Poppins';font-weight:900;font-size:22px;color:var(--dusk);}
-  .card-sci{font-size:12px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
+  .card-name{font-family:'Poppins';font-weight:900;font-size:22px;color:var(--wood-edge);}
+  .card-sci{font-size:12px;font-style:italic;color:var(--ink-soft);margin-top:2px;}
   .card-tags{display:flex;gap:8px;margin-top:10px;animation:statFadeUp 0.4s ease 0.45s both;}
   .tag{font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
   /* Worded and coloured like a moment's kicker: the reveal card is the
      new-bird moment at full size. */
   .tag.new{background:var(--disc-cream); color:var(--wood-edge); font-weight:900; font-size:12px;
     box-shadow:inset 0 0 0 2px var(--wood);}
-  .tag.dup{background:var(--parch-dk); color:var(--mist-dk);}
+  .tag.dup{background:var(--parch-dk); color:var(--ink-soft);}
   .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:15px;color:var(--feather);animation:statFadeUp 0.4s ease 0.6s both;}
   /* Heard again the same day: no feathers, said plainly rather than "+0". */
-  .feather-row.none{font-size:12.5px;color:var(--mist-dk);}
+  .feather-row.none{font-size:12.5px;color:var(--ink-soft);}
   @keyframes statFadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
   /* --- Session Results: the fanned, unrevealed hand of cards --- */
@@ -1088,8 +1102,9 @@
   .silhouette-row{display:flex;justify-content:center;align-items:flex-end;margin-top:30px;min-height:110px;}
   .silhouette-card{
     position:relative;
-    width:64px; height:94px; border-radius:12px; background:#fff;
-    border:3px solid var(--tier-color, var(--sage));
+    width:64px; height:94px; border-radius:12px;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
+    border:4px solid transparent;
     margin-left:-20px; box-shadow:0 6px 14px rgba(0,0,0,0.18);
     display:flex; align-items:center; justify-content:center; font-size:22px;
     animation:cardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -1097,18 +1112,12 @@
   .silhouette-card:first-child{margin-left:0;}
   .reveal-hint{font-family:'Poppins';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);margin-top:22px;text-align:center;animation:statFadeUp 0.4s ease 0.3s both;}
   .silhouette-card.tappable{cursor:pointer;animation:cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1) both, revealPulse 1.6s ease-in-out 0.8s infinite;}
-  @keyframes revealPulse{0%,100%{box-shadow:0 6px 14px rgba(0,0,0,0.18);}50%{box-shadow:0 6px 22px rgba(255,255,255,0.55);}}
-  .reveal-btn{
-    margin-top:30px; width:100%; max-width:280px; padding:15px 0;
-    background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
-    border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
-    animation:statFadeUp 0.4s ease 0.3s both;
-  }
+  @keyframes revealPulse{0%,100%{box-shadow:0 6px 14px rgba(0,0,0,0.18);}50%{box-shadow:0 6px 22px rgba(var(--glow),0.75);}}
   .collect-hint{font-family:'Poppins';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);text-align:center;margin-top:16px;min-height:16px;animation:statFadeUp .4s ease both;}
   .card.collectable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;}
   @keyframes collectGlow{
     0%,100%{box-shadow:0 12px 30px rgba(45,27,105,0.18);}
-    50%{box-shadow:0 12px 34px rgba(255,255,255,0.6);}
+    50%{box-shadow:0 12px 34px rgba(var(--glow),0.85);}
   }
   .flying-feather{position:fixed;z-index:960;font-size:20px;pointer-events:none;will-change:transform,opacity;}
   /* The moment - every reward's celebration (celebrate() in the script):
@@ -1151,37 +1160,6 @@
   @keyframes oriFlapR{0%{transform:rotate(34deg) scaleY(.42);}50%{transform:rotate(-12deg) scaleY(1.06);}100%{transform:rotate(34deg) scaleY(.42);}}
   .nav-pop{animation:navPop .5s cubic-bezier(.34,1.56,.64,1);}
   @keyframes navPop{0%,100%{transform:scale(1);}40%{transform:scale(1.28);}}
-  .card-nav-row{display:flex;gap:10px;width:100%;max-width:300px;margin-top:22px;animation:statFadeUp 0.4s ease 0.7s both;}
-  .next-btn{
-    flex:1; padding:15px 0;
-    background:var(--terra); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
-    border:none; border-radius:30px; box-shadow:0 4px 0 var(--terra-dk); cursor:pointer;
-  }
-  /* --- Controls that sit straight on the scene ------------------------
-     Six of these: prev-btn, the Hoot-tique reset, "Use bird" on My Profile,
-     the Settings reset buttons, the Collections pack arrows and the Awards
-     bonus rows. All of them are white type on a thin film of white, which
-     worked when the only thing behind them was a dark purple gradient and
-     stopped working the moment a daylit photograph went behind them instead.
-     They were the reason the blurred veil had to sit as dark as it did - the
-     measurement pass named the "Use bird" pill specifically.
-     brightness() on the backdrop rather than a different background colour:
-     it darkens whatever is actually behind each control, so the film of
-     white still reads as a lifted panel instead of turning into a smoked
-     one, and the control no longer depends on what the scene is doing.
-     Where backdrop-filter is not supported this is simply ignored and the
-     behaviour is what it was before. */
-  .prev-btn, .photo-btn-clear,
-  .reset-btn, .pack-more{
-    backdrop-filter:brightness(0.58) saturate(0.9);
-    -webkit-backdrop-filter:brightness(0.58) saturate(0.9);
-  }
-  .prev-btn{
-    flex:0 0 auto; padding:15px 20px;
-    background:rgba(255,255,255,0.18); color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
-    border:none; border-radius:30px; cursor:pointer;
-  }
-
   /* --- Done --- */
   .done-icon{width:120px;display:block;margin:0 auto;}
   .done-title{font-family:'Poppins';font-weight:900;font-size:22px;color:#fff;margin-top:10px;}
@@ -1271,14 +1249,13 @@
     font-family:'Poppins'; font-weight:900; font-size:13px; color:var(--parch); cursor:pointer;
   }
   .flock-searchbtn{
-    flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:none; cursor:pointer;
-    background:#7E4B29; color:var(--parch);
-    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 1px 2px rgba(26,17,40,0.25);
+    flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:2.5px solid transparent; cursor:pointer;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim); color:var(--wood-edge);
+    box-shadow:0 2px 0 var(--wood-edge), 0 3px 5px rgba(26,17,40,0.25);
     align-items:center; justify-content:center; padding:0;
   }
   .flock-searchbtn.on{
-    background:linear-gradient(180deg, #9AD7B8, var(--sage)); color:var(--ink);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), inset 0 0 0 1px rgba(63,124,92,0.6);
+    background:linear-gradient(180deg, #9AD7B8, var(--sage)) padding-box, var(--wood-rim); color:var(--ink);
   }
 
   /* The seg control and the field itself fold away when stuck, which is the
@@ -1304,50 +1281,48 @@
   @media (max-width:340px){
     .flock-bar.stuck .flock-compact-title{display:none;}
   }
-  /* Every control below shares one palette: a wash of --wood over the dark
-     background at rest, --parch when it is the chosen one. No plain white
-     anywhere - white read as a different design system sitting on top of the
-     wooden cards rather than part of them. */
+  /* Every control below is the app's one material: a carved wood rim round
+     a cream face with brown words, and green when it is the chosen one. */
   .flock-search{
     display:flex; align-items:center; gap:7px; width:100%;
-    background:#6E4226; border-radius:22px; padding:0 12px; height:38px;
-    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.14), inset 0 2px 5px rgba(26,17,40,0.3);
-    color:var(--parch);
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim); border:3px solid transparent;
+    border-radius:22px; padding:0 12px; height:40px;
+    box-shadow:inset 0 2px 4px rgba(116,50,6,0.18), 0 2px 5px rgba(26,17,40,0.25);
+    color:var(--wood-edge);
   }
   .flock-bar.stuck .flock-search.tucked{display:none;}
   .flock-search svg{width:15px;height:15px;flex:0 0 auto;opacity:.8;}
   .flock-search input{
     flex:1 1 auto; min-width:0; background:none; border:none; outline:none;
-    font-family:'Poppins'; font-weight:600; font-size:13.5px; color:var(--parch);
+    font-family:'Poppins'; font-weight:400; font-size:13.5px; color:var(--ink-brown);
   }
-  .flock-search input::placeholder{color:rgba(245,237,214,0.55);font-weight:500;}
+  .flock-search input::placeholder{color:var(--ink-soft);font-weight:400;}
   .flock-clear{
     flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:none; cursor:pointer;
-    background:var(--parch); color:var(--wood-edge); font-size:14px; line-height:1;
+    background:var(--wood); color:var(--disc-cream); font-size:14px; line-height:1;
     display:none; align-items:center; justify-content:center;
   }
   .flock-search.has-text .flock-clear{display:flex;}
   .flock-ctls{display:flex; align-items:center; gap:6px; width:100%; margin-top:8px;}
   .flock-bar.stuck .flock-ctls{margin-top:0;}
   .flock-ctl{
-    background:#7E4B29; color:var(--parch); border:none; border-radius:18px;
-    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 1px 2px rgba(26,17,40,0.25);
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim); color:var(--wood-edge); border:2.5px solid transparent; border-radius:18px;
+    box-shadow:0 2px 0 var(--wood-edge), 0 3px 5px rgba(26,17,40,0.25);
     padding:0 12px; height:32px; font-family:'Poppins'; font-weight:700; font-size:11.5px;
     cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px;
     max-width:100%; overflow:hidden;
   }
   /* Chosen: green with a lit top edge - selected is green everywhere. */
   .flock-ctl.on{
-    background:linear-gradient(180deg, #9AD7B8, var(--sage));
+    background:linear-gradient(180deg, #9AD7B8, var(--sage)) padding-box, var(--wood-rim);
     color:var(--ink);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), inset 0 0 0 1px rgba(63,124,92,0.6);
   }
   .flock-ctl-label{overflow:hidden;text-overflow:ellipsis;}
   .flock-spacer{flex:1 1 auto;}
   .flock-density{
-    flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:none; cursor:pointer;
-    background:#7E4B29; color:var(--parch);
-    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.16), 0 1px 2px rgba(26,17,40,0.25);
+    flex:0 0 auto; width:32px; height:32px; border-radius:16px; border:2.5px solid transparent; cursor:pointer;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim); color:var(--wood-edge);
+    box-shadow:0 2px 0 var(--wood-edge), 0 3px 5px rgba(26,17,40,0.25);
     display:flex; align-items:center; justify-content:center; gap:2px;
   }
   .flock-density svg, .flock-searchbtn svg{
@@ -1355,18 +1330,18 @@
     /* A shadow cast onto the wood behind, so the icon sits on the button
        rather than being printed on it - the same carved read as the card
        frames' lip. */
-    filter:drop-shadow(0 1px 0 rgba(116,50,6,0.55));
+    filter:drop-shadow(0 1px 0 rgba(255,255,255,0.6));
   }
   /* Segmented Birds | History - one species per card, or every detection */
   .flock-seg{
-    display:flex; width:100%; background:#6E4226;
-    border-radius:20px; padding:3px; margin-bottom:8px;
-    box-shadow:inset 0 0 0 1px rgba(245,237,214,0.14), inset 0 2px 5px rgba(26,17,40,0.3);
+    display:flex; width:100%; background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim); border:3px solid transparent;
+    border-radius:22px; padding:3px; margin-bottom:8px;
+    box-shadow:inset 0 2px 4px rgba(116,50,6,0.18), 0 2px 5px rgba(26,17,40,0.25);
   }
   .flock-seg button{
     flex:1 1 0; background:none; border:none; border-radius:17px; cursor:pointer;
     padding:7px 0; font-family:'Poppins'; font-weight:700; font-size:12.5px;
-    color:rgba(245,237,214,0.78); transition:background .18s ease, color .18s ease;
+    color:var(--ink-soft); transition:background .18s ease, color .18s ease;
   }
   /* The one green element in the bar, so which view you are in is the
      first thing you see - selected is green everywhere. */
@@ -1383,19 +1358,19 @@
   }
   .sheet{
     width:100%; max-width:420px; max-height:82vh; overflow-y:auto;
-    background:#fff; border-radius:22px 22px 0 0; padding:16px 16px 22px;
+    background:var(--disc-cream); border-radius:22px 22px 0 0; padding:16px 16px 22px;
     box-shadow:0 -10px 34px rgba(45,27,105,0.3);
     animation:sheetUp .26s cubic-bezier(.22,.9,.3,1.03);
   }
   @keyframes sheetUp{from{transform:translateY(24px);opacity:0;}to{transform:none;opacity:1;}}
   .sheet-grip{width:38px;height:4px;border-radius:2px;background:var(--mist);margin:0 auto 12px;}
-  .sheet-title{font-family:'Poppins';font-weight:900;font-size:15px;color:var(--dusk);margin-bottom:10px;}
+  .sheet-title{font-family:'Poppins';font-weight:900;font-size:15px;color:var(--wood-edge);margin-bottom:10px;}
   .sheet-group{font-family:'Poppins';font-weight:900;font-size:11px;letter-spacing:.06em;
-    text-transform:uppercase;color:var(--mist-dk);margin:14px 0 7px;}
+    text-transform:uppercase;color:var(--ink-soft);margin:14px 0 7px;}
   .sheet-opt{
     display:flex; align-items:center; gap:9px; width:100%; text-align:left;
     background:var(--parch); border:none; border-radius:13px; padding:11px 12px;
-    font-family:'Poppins'; font-weight:700; font-size:13px; color:var(--dusk);
+    font-family:'Poppins'; font-weight:700; font-size:13px; color:var(--wood-edge);
     cursor:pointer; margin-bottom:6px; min-height:44px;
   }
   .sheet-opt.on{background:#EAF5EE;outline:2px solid var(--sage);}
@@ -1403,16 +1378,16 @@
   .sheet-chips{display:flex;flex-wrap:wrap;gap:6px;}
   .sheet-chip{
     background:var(--parch); border:none; border-radius:15px; padding:8px 12px; min-height:34px;
-    font-family:'Poppins'; font-weight:700; font-size:12px; color:var(--dusk); cursor:pointer;
+    font-family:'Poppins'; font-weight:700; font-size:12px; color:var(--wood-edge); cursor:pointer;
   }
   .sheet-chip.on{background:var(--sage-dk);color:#fff;}
   .sheet-actions{
     display:flex; gap:8px; align-items:center; margin-top:18px;
-    position:sticky; bottom:-22px; background:#fff; padding:10px 0 0;
+    position:sticky; bottom:-22px; background:var(--disc-cream); padding:10px 0 0;
   }
   .sheet-reset{
     background:none; border:none; font-family:'Poppins'; font-weight:700; font-size:13px;
-    color:var(--mist-dk); cursor:pointer; padding:12px 4px;
+    color:var(--wood-edge); cursor:pointer; padding:12px 4px;
   }
   .sheet-done{
     flex:1 1 auto; border-radius:16px;
@@ -1471,7 +1446,7 @@
   .collection-grid.large .ci-blank{height:118px;}
   /* The nameplate finishes the inner panel, so photo and name read as one
      recessed shape rather than two things stacked in a box. */
-  .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink);line-height:1.25;
+  .ci-name{font-size:10px;font-weight:700;padding:5px 4px;text-align:center;color:var(--ink-brown);line-height:1.25;
     overflow-wrap:anywhere;background:var(--parch);
     border-radius:0 0 var(--inner) var(--inner);min-height:calc(100% - 70px);
     display:flex;align-items:center;justify-content:center;}
@@ -1494,7 +1469,7 @@
   .hist-group:first-child .hist-day{margin-top:2px;}
   .hist-day-count{
     font-weight:700; font-size:11px; letter-spacing:0; text-transform:none;
-    color:var(--parch); background:#7E4B29; border-radius:10px;
+    color:var(--wood-edge); background:var(--disc-cream); border-radius:10px;
     padding:2px 8px; min-width:22px; text-align:center;
   }
   .hist-chev{
@@ -1526,23 +1501,23 @@
      "18:42" and a 12-hour one "06:30 PM", and the second must not wrap. */
   .hist-time{
     flex:0 0 auto; font-family:'Poppins'; font-weight:900; font-size:12.5px;
-    color:var(--mist-dk); min-width:42px; white-space:nowrap;
+    color:var(--ink-soft); min-width:42px; white-space:nowrap;
   }
   .hist-text{display:flex;flex-direction:column;min-width:0;gap:2px;}
-  .hist-name{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--ink);
+  .hist-name{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--ink-brown);
     line-height:1.2;overflow-wrap:anywhere;}
-  .hist-meta{font-size:11px;color:var(--mist-dk);line-height:1.2;overflow-wrap:anywhere;}
+  .hist-meta{font-size:11px;color:var(--ink-soft);line-height:1.2;overflow-wrap:anywhere;}
 
   /* --- Bird detail --- */
   .detail-card{
-    width:100%; max-width:340px; background:#fff; border-radius:20px;
+    width:100%; max-width:340px; background:var(--disc-cream); border-radius:20px;
     overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.14);
     border:3px solid var(--parch-dk);
   }
   .detail-photo{width:100%;height:220px;object-fit:cover;object-position:var(--bird-crop);background:var(--parch-dk);display:block;filter:url(#watercolor-filter) saturate(1.25) contrast(0.94);}
   .detail-body{padding:18px 20px 22px;}
-  .detail-name{font-family:'Poppins';font-weight:900;font-size:24px;color:var(--dusk);}
-  .detail-sci{font-size:13px;font-style:italic;color:var(--mist-dk);margin-top:2px;}
+  .detail-name{font-family:'Poppins';font-weight:900;font-size:24px;color:var(--wood-edge);}
+  .detail-sci{font-size:13px;font-style:italic;color:var(--ink-soft);margin-top:2px;}
   /* The badge of the collection pack this bird belongs to. Tapping it
      reveals which card this is; tapping that line opens the pack in
      Collections with this bird's card at the front. */
@@ -1587,9 +1562,9 @@
   }
   @media (prefers-reduced-motion: reduce){ .detail-pack-btn.rare::after{animation:none; background-position:50% 0; opacity:.5;} }
   .detail-pack-btn:active{transform:scale(.9);}
-  .detail-desc{font-size:13px;line-height:1.55;color:var(--ink);margin-top:14px;}
+  .detail-desc{font-size:13px;line-height:1.55;color:var(--ink-brown);margin-top:14px;}
   /* A sentence or two about the bird (birds.py ABOUT), under the badges. */
-  .detail-about{font-size:14.5px;line-height:1.5;color:var(--ink);margin-top:12px;}
+  .detail-about{font-size:14.5px;line-height:1.5;color:var(--ink-brown);margin-top:12px;}
 
   /* --- Self-taken photos, on the bird detail card --- */
   /* The hero photo becomes a horizontally-scrolling strip once there's more
@@ -1646,16 +1621,16 @@
     background:rgba(255,255,255,0.5); box-shadow:0 1px 3px rgba(0,0,0,0.35);
     transition:background .2s ease, transform .2s ease;
   }
-  .detail-photo-dot.active{background:#fff; transform:scale(1.3);}
+  .detail-photo-dot.active{background:var(--sage); transform:scale(1.3);}
 
   /* --- Facts dashboard --- */
-  .tt-block{width:100%;background:#fff;border-radius:14px;padding:12px 14px;margin-top:12px;}
-  .tt-title{font-family:'Poppins';font-weight:900;font-size:10px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+  .tt-block{width:100%;background:var(--cream-lt);border-radius:14px;padding:12px 14px;margin-top:12px;}
+  .tt-title{font-family:'Poppins';font-weight:900;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
   .tt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .tt-label{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--dusk);width:64px;flex-shrink:0;}
+  .tt-label{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-edge);width:64px;flex-shrink:0;}
   .tt-bar{flex:1;height:9px;background:var(--parch-dk);border-radius:5px;overflow:hidden;}
   .tt-fill{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--sage-dk));border-radius:5px;}
-  .tt-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--dusk);width:24px;text-align:right;flex-shrink:0;}
+  .tt-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--wood-edge);width:24px;text-align:right;flex-shrink:0;}
   .fact-num-sm{font-size:11px !important;line-height:1.25;}
   .facts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
   /* The three measurements share a row; where it lives and what it eats
@@ -1665,9 +1640,9 @@
   .facts-grid.measures + .facts-grid{margin-top:10px;}
   .fact-tile{background:var(--parch);border-radius:12px;padding:10px 12px;}
   .fact-icon{font-size:20px;}
-  .fact-num{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--dusk);margin-top:2px;}
-  .fact-label{font-size:10px;color:var(--mist-dk);text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
-  .fact-compare{font-size:11px;color:var(--ink);margin-top:4px;line-height:1.3;}
+  .fact-num{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--wood-edge);margin-top:2px;}
+  .fact-label{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+  .fact-compare{font-size:11px;color:var(--ink-brown);margin-top:4px;line-height:1.3;}
   .habitat-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
   .habitat-tag{display:flex;align-items:center;gap:4px;background:var(--sage);color:#fff;font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
   /* Conservation status, as a disc in the badge row: a shield in the list's
@@ -1700,10 +1675,10 @@
   .badge-note.status-red{color:#A83232;}
   .badge-note.migrate-note{color:#2C6E8F;}
   .pack-note-go{border:none; background:none; padding:0; cursor:pointer; text-align:left;
-    font:inherit; color:var(--terra-dk);}
+    font:inherit; color:var(--wood-edge);}
   .pack-note-go.rare{color:#A8760A;}
   @media (prefers-reduced-motion: reduce){ .badge-note{transition:none;} }
-  .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--terra-dk);text-decoration:none;}
+  .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--wood-edge);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
 
   /* --- Recording tree: pulses, and its canopy clusters rustle with real audio --- */
@@ -1812,7 +1787,9 @@
      at a glance rather than needing the colours to be learned. */
   .find-normal{box-shadow:0 4px 10px rgba(0,0,0,0.22), 0 0 0 3px rgba(126,200,164,0.35);}
   .find-rare{box-shadow:0 4px 14px rgba(255,195,0,0.75), 0 0 0 4px rgba(255,195,0,0.3);}
-  .silhouette-card.find-rare{box-shadow:0 6px 20px rgba(255,195,0,0.7);}
+  .silhouette-card.find-rare{box-shadow:0 6px 20px rgba(255,195,0,0.7);
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box,
+      linear-gradient(135deg,#FFF0A8 0%,#E9B52C 30%,#B07D0E 55%,#F6D063 78%,#B88412 100%) border-box;}
   .rec-location{
     font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9);
     text-align:center; margin-top:18px; min-height:17px;
@@ -1823,7 +1800,7 @@
 
   /* --- Profile --- */
   .avatar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;width:100%;}
-  .avatar-option{background:#fff;border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  .avatar-option{background:var(--disc-cream);border:3px solid transparent;border-radius:14px;padding:6px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 
   /* --- Dress Up: bird species picker (coverflow row) --- */
   /* The white circle (avatar-frame-wrap, above) is fixed dead-centre of the
@@ -1912,7 +1889,7 @@
      nothing here to darken with. */
   .hoot-greet{
     position:fixed; left:5%; right:5%; z-index:901; pointer-events:none;
-    text-align:center; font-family:'Poppins'; font-weight:800;
+    text-align:center; font-family:'Poppins'; font-weight:900;
     font-size:19px; line-height:1.3; letter-spacing:.005em;
     color:#fff; opacity:0;
     text-shadow:0 2px 12px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.95);
@@ -1936,12 +1913,11 @@
      that swatch's own luminance; white on the cream one was invisible. */
   .color-wheel .color-swatch.is-on{
     transform:translateY(-3px);
-    box-shadow:0 0 0 3px var(--terra), 0 4px 9px rgba(0,0,0,0.4);
+    box-shadow:0 0 0 3px var(--sage), 0 4px 9px rgba(0,0,0,0.4);
   }
   .color-wheel .color-swatch.is-on::after{
-    content:'\2713'; position:absolute; inset:0; display:flex;
-    align-items:center; justify-content:center;
-    font-size:13px; font-weight:900; line-height:1;
+    content:''; position:absolute; inset:0; display:flex;
+    background:url('/static/tick-v1.webp') center / 72% no-repeat;
   }
 
   /* Category icons: no circles, just the white pictograms, spread across
@@ -1981,11 +1957,13 @@
   }
   .dress-util{
     width:38px; height:38px; border-radius:50%; border:none; cursor:pointer;
-    background:rgba(255,255,255,0.16); color:#fff; padding:0;
+    /* A small wooden disc: you tap it and it does one thing. */
+    background:radial-gradient(circle at 50% 42%, var(--disc-cream), #F2D3A6 70%); color:var(--wood-edge); padding:0;
+    box-shadow:0 0 0 3px var(--wood), 0 0 0 4.5px var(--wood-edge), 0 3px 7px rgba(0,0,0,0.35);
     display:flex; align-items:center; justify-content:center;
-    transition:transform .12s ease, background .15s ease;
+    transition:transform .12s ease;
   }
-  .dress-util:active{transform:scale(.9); background:rgba(255,255,255,0.3);}
+  .dress-util:active{transform:scale(.9);}
   .dress-util svg{width:19px; height:19px; display:block;}
 
   /* Three different things happen to the bird and each needs its own
@@ -2070,16 +2048,16 @@
   .room-chevron{
     position:absolute; top:52%; transform:translateY(-50%);
     width:34px; height:34px; border-radius:50%; z-index:4; padding:0;
-    border:2px solid rgba(255,255,255,0.7);
-    background:rgba(28,10,46,0.76); color:#fff; cursor:pointer;
+    border:none;
+    background:radial-gradient(circle at 50% 42%, var(--disc-cream), #F2D3A6 70%); color:var(--wood-edge); cursor:pointer;
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 3px 10px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.25);
-    transition:transform .14s ease, background .14s ease;
+    box-shadow:0 0 0 3px var(--wood), 0 0 0 4.5px var(--wood-edge), 0 3px 7px rgba(0,0,0,0.35);
+    transition:transform .14s ease;
   }
   .room-chevron.prev{left:18.6%;}
   .room-chevron.next{right:18.6%;}
   .room-chevron[hidden]{display:none;}
-  .room-chevron:active{background:rgba(232,132,92,0.9); transform:translateY(-50%) scale(.88);}
+  .room-chevron:active{transform:translateY(-50%) scale(.88);}
   .room-chevron svg{width:19px; height:19px; display:block;}
   @media (max-width:360px){
     .room-chevron{width:30px; height:30px;}
@@ -2109,12 +2087,12 @@
   /* Tapping an unowned item lifts it out of the row and makes room for Buy */
   .carousel-item.expanded{
     width:96px; transform:translateY(-10px) scale(1.06); z-index:5;
-    box-shadow:0 10px 22px rgba(0,0,0,0.32); border-color:var(--terra);
+    box-shadow:0 10px 22px rgba(0,0,0,0.32); border-color:var(--sage);
   }
   .item-buy-btn{
-    margin-top:5px; width:100%; background:var(--terra); color:#fff; border:none;
+    margin-top:5px; width:100%;
     border-radius:10px; padding:5px 4px; font-family:'Poppins'; font-weight:900;
-    font-size:10px; cursor:pointer; box-shadow:0 2px 0 var(--terra-dk);
+    font-size:10px; cursor:pointer;
   }
   .item-buy-btn.cant-afford{font-size:8.5px;}
   .carousel-item .item-icon-wrap{width:60px;height:60px;line-height:1;}
@@ -2123,13 +2101,13 @@
   /* Corner badge for unowned items only - owned items show no price at all */
   .carousel-item-price-badge{
     position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); white-space:nowrap; display:flex; align-items:center; gap:2px;
-    background:#fff; border-radius:8px; padding:2px 5px 2px 4px;
+    background:var(--disc-cream); border-radius:8px; padding:2px 5px 2px 4px;
     font-family:'Poppins'; font-weight:700; font-size:8.6px; line-height:1.2;
     box-shadow:0 1px 4px rgba(0,0,0,0.25);
   }
   .carousel-item-price-badge .feather-icon{width:9px;height:9px;}
   .carousel-item-price-badge.affordable{color:var(--feather);}
-  .carousel-item-price-badge.unaffordable{color:var(--mist-dk);opacity:0.75;}
+  .carousel-item-price-badge.unaffordable{color:var(--ink-soft);opacity:0.75;}
   .avatar-option.selected{border-color:var(--sage);}
   .swatch-row{display:flex;gap:10px;width:100%;flex-wrap:wrap;margin-top:2px;}
   /* The dressing room. The white circle and its wooden ring are gone: the
@@ -2224,33 +2202,33 @@
     transition:transform .16s cubic-bezier(.34,1.5,.64,1), box-shadow .16s ease;
   }
   .profile-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px;}
-  .profile-photo-preview{width:104px;height:104px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,0.22);}
+  .profile-photo-preview{width:104px;height:104px;border-radius:50%;background:var(--disc-cream);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,0.22);}
   .profile-photo-preview img{width:100%;height:100%;object-fit:cover;}
   .profile-photo-actions{display:flex;gap:8px;}
   .photo-btn{background:var(--dusk);color:#fff;font-family:'Poppins';font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:20px;cursor:pointer;}
   .photo-btn-clear{background:rgba(255,255,255,0.2);}
   .nav-avatar-photo{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;}
-  .remove-bird-btn{display:block;width:100%;margin-top:16px;background:none;border:none;font-family:'Poppins';font-weight:700;font-size:11.5px;color:var(--mist-dk);cursor:pointer;text-decoration:underline;}
+  .remove-bird-btn{display:block;width:100%;margin-top:16px;background:none;border:none;font-family:'Poppins';font-weight:700;font-size:11.5px;color:var(--wood-edge);cursor:pointer;text-decoration:underline;}
   .danger-title{color:#FFD9D2;}
   .feather-set-row{display:flex;gap:8px;width:100%;align-items:stretch;margin-bottom:6px;}
   .feather-set-btn{margin:0;padding:12px 22px;flex-shrink:0;}
   .reset-note{font-size:11px;color:rgba(255,255,255,0.75);margin-bottom:10px;width:100%;}
   .reset-btn{width:100%;background:rgba(255,255,255,0.16);color:#fff;border:none;border-radius:12px;padding:12px 14px;margin-bottom:8px;font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;text-align:left;}
   .reset-btn:disabled{opacity:.6;}
-  .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:11px 14px;width:100%;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);cursor:pointer;}
-  .toggle-row input{width:20px;height:20px;accent-color:var(--terra);cursor:pointer;}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--disc-cream);border-radius:10px;padding:11px 14px;width:100%;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--wood-edge);cursor:pointer;}
+  .toggle-row input{width:20px;height:20px;accent-color:var(--sage-dk);cursor:pointer;}
   .location-row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
-  .location-map-link{color:var(--dusk);text-decoration:none;}
+  .location-map-link{color:var(--wood-edge);text-decoration:none;}
   .location-map-link:hover{text-decoration:underline;}
-  .location-delete-btn{background:none;border:none;color:var(--mist-dk);font-size:15px;font-weight:700;cursor:pointer;padding:2px 6px;line-height:1;}
-  .stat-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:6px;width:100%;}
-  .stat-label{font-family:'Poppins';font-weight:700;font-size:12px;color:var(--mist-dk);}
-  .stat-value{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--dusk);text-align:right;}
+  .location-delete-btn{background:none;border:none;color:var(--wood-edge);font-size:15px;font-weight:700;cursor:pointer;padding:2px 6px;line-height:1;}
+  .stat-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--disc-cream);border-radius:10px;padding:10px 14px;margin-bottom:6px;width:100%;}
+  .stat-label{font-family:'Poppins';font-weight:700;font-size:12px;color:var(--ink-soft);}
+  .stat-value{font-family:'Poppins';font-weight:700;font-size:13px;color:var(--wood-edge);text-align:right;}
   .stat-empty{font-size:12px;color:rgba(255,255,255,0.85);text-align:center;padding:10px 0;}
-  .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
-  .location-row-name{font-size:13px;font-weight:700;color:var(--ink);font-family:'Poppins';}
-  .location-spots{font-size:11px;font-weight:700;color:var(--mist-dk);font-family:'Poppins';margin-left:6px;white-space:nowrap;}
-  .location-edit-btn{background:none;border:none;color:var(--terra-dk);font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
+  .location-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--disc-cream);border-radius:10px;padding:10px 14px;margin-top:8px;width:100%;}
+  .location-row-name{font-size:13px;font-weight:700;color:var(--ink-brown);font-family:'Poppins';}
+  .location-spots{font-size:11px;font-weight:700;color:var(--ink-soft);font-family:'Poppins';margin-left:6px;white-space:nowrap;}
+  .location-edit-btn{background:none;border:none;color:var(--wood-edge);font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;}
   .profile-section-title{font-family:'Poppins';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-top:24px;margin-bottom:4px;width:100%;text-align:left;}
   .location-input{
     margin-top:18px;width:100%;max-width:280px;padding:13px 16px;border-radius:12px;border:none;
@@ -2262,41 +2240,41 @@
     background:var(--disc-cream);border:none;border-radius:14px;padding:13px 16px;cursor:pointer;
     box-shadow:0 4px 12px rgba(26,17,40,0.18);text-align:left;}
   .nearby-place:active{transform:scale(.97);}
-  .nearby-place-name{font-family:'Poppins';font-weight:700;font-size:15px;color:var(--dusk);}
-  .nearby-place-dist{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--mist-dk);white-space:nowrap;}
+  .nearby-place-name{font-family:'Poppins';font-weight:700;font-size:15px;color:var(--wood-edge);}
+  .nearby-place-dist{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--ink-soft);white-space:nowrap;}
   .nearby-or{margin-top:18px;}
-  .skip-btn{background:none;border:none;color:rgba(255,255,255,0.85);font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
+  .skip-btn{background:none;border:none;color:#fff;font-family:'Poppins';font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;text-decoration:underline;}
   /* Where you've heard this bird: one row per place, most-visited first. */
   .places-body{padding:18px 18px 16px;}
-  .places-title{font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);line-height:1.2;}
-  .places-sub{font-size:12px;color:var(--mist-dk);margin-top:3px;}
+  .places-title{font-family:'Poppins';font-weight:900;font-size:18px;color:var(--wood-edge);line-height:1.2;}
+  .places-sub{font-size:12px;color:var(--ink-soft);margin-top:3px;}
   .place-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--parch-dk);}
   .place-row:first-of-type{margin-top:12px;}
   .place-pin{width:34px;height:34px;flex:0 0 auto;display:block;}
   .place-text{flex:1;min-width:0;}
-  .place-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--dusk);}
-  .place-name.unnamed{font-weight:400;font-style:italic;color:var(--mist-dk);}
-  .place-when{font-size:11.5px;color:var(--mist-dk);margin-top:1px;}
-  .place-count{flex:0 0 auto;text-align:center;font-family:'Poppins';font-weight:900;font-size:18px;color:var(--dusk);line-height:1;}
-  .place-count small{display:block;font-size:9.5px;font-weight:700;color:var(--mist-dk);margin-top:2px;}
-  .places-hint{text-align:center;font-size:11px;color:var(--mist-dk);margin-top:12px;}
+  .place-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--wood-edge);}
+  .place-name.unnamed{font-weight:400;color:var(--ink-soft);}
+  .place-when{font-size:11.5px;color:var(--ink-soft);margin-top:1px;}
+  .place-count{flex:0 0 auto;text-align:center;font-family:'Poppins';font-weight:900;font-size:18px;color:var(--wood-edge);line-height:1;}
+  .place-count small{display:block;font-size:9.5px;font-weight:700;color:var(--ink-soft);margin-top:2px;}
+  .places-hint{text-align:center;font-size:11px;color:var(--ink-soft);margin-top:12px;}
 
   /* --- Trophies --- */
   /* Trophy carousel: slides are absolutely positioned and depth is faked with
      scale + spacing, so the front trophy is genuinely larger and the ones
      either side recede. Real 3D perspective behaves inconsistently across
      mobile browsers, and reads no better at this size. */
-  .habitat-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;width:100%;}
+  .habitat-card{background:var(--disc-cream);border-radius:14px;padding:12px 14px;margin-bottom:10px;width:100%;}
   .habitat-card.complete{background:#EAF5EE;border:2px solid var(--sage-dk);}
   .habitat-top{display:flex;justify-content:space-between;align-items:baseline;}
-  .habitat-name{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--dusk);}
-  .habitat-count{font-family:'Poppins';font-weight:700;font-size:12px;color:var(--mist-dk);}
+  .habitat-name{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--wood-edge);}
+  .habitat-count{font-family:'Poppins';font-weight:700;font-size:12px;color:var(--ink-soft);}
   .habitat-bar{height:6px;background:var(--parch-dk);border-radius:3px;overflow:hidden;margin-top:7px;}
   .habitat-bar-fill{height:100%;background:var(--sage);border-radius:3px;transition:width .5s ease;}
   .habitat-dots{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
   .hab-dot{width:11px;height:11px;border-radius:50%;background:var(--mist);opacity:.45;}
   .hab-dot.found{background:var(--sage);opacity:1;}
-  .habitat-reward{font-size:10.5px;color:var(--mist-dk);margin-top:7px;font-family:'Poppins';font-weight:700;}
+  .habitat-reward{font-size:10.5px;color:var(--ink-soft);margin-top:7px;font-family:'Poppins';font-weight:700;}
   .habitat-done{font-size:10.5px;color:var(--sage-dk);margin-top:7px;font-family:'Poppins';font-weight:900;text-transform:uppercase;letter-spacing:.05em;}
   .habitat-card{cursor:pointer;}
   /* Collections layout: a single row of pill-button pack tabs across the top
@@ -2324,10 +2302,12 @@
   }
   .pack-more{
     flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:3px;
-    width:34px;height:24px;border-radius:12px;background:rgba(255,255,255,0.18);
-    transition:background .15s ease, transform .12s ease;
+    width:38px;height:26px;border-radius:13px;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
+    border:2.5px solid transparent; box-shadow:0 2px 0 var(--wood-edge), 0 3px 6px rgba(26,17,40,0.3);
+    transition:transform .12s ease;
   }
-  .pack-more i{width:4.5px;height:4.5px;border-radius:50%;background:#fff;display:block;}
+  .pack-more i{width:4.5px;height:4.5px;border-radius:50%;background:var(--wood-edge);display:block;}
   .pack-current:active .pack-more{background:rgba(255,255,255,0.32);transform:scale(.92);}
 
   /* Tap the pack name for all ten at once, rather than arrowing round. */
@@ -2359,7 +2339,7 @@
     flex:1 1 auto;min-width:0;}
   .all-pack-name{height:19px;width:auto;max-width:100%;flex:1 1 58px;min-width:0;object-fit:contain;
     object-position:left center;display:block;}
-  .all-pack-count{font-family:'Poppins';font-weight:900;font-size:10.5px;color:var(--mist-dk);
+  .all-pack-count{font-family:'Poppins';font-weight:900;font-size:10.5px;color:var(--ink-soft);
     white-space:nowrap;line-height:19px;}
   .all-pack.done .all-pack-count{color:var(--sage-dk);}
 
@@ -2375,7 +2355,7 @@
   /* One line, always: bold capitals, never wrapping. The blurbs are written
      short enough to fit a small phone; fitBlurb() shrinks the type a touch if
      a bigger system font would still push one over. */
-  .pack-blurb{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  .pack-blurb{font-size:12.5px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
     color:rgba(255,255,255,0.92);text-align:center;line-height:1.45;margin:15px auto 4px;
     max-width:340px;padding:0 10px;white-space:nowrap;overflow:hidden;}
   /* Cover-flow carousel: the centred card is the hero, its neighbours peek
@@ -2413,8 +2393,8 @@
     border:1.5px solid rgba(255,255,255,0.75);background:transparent;
     transition:transform .18s ease, background .18s ease;
   }
-  .card-dot.found{background:#fff;}
-  .card-dot.now{transform:scale(1.55);border-color:#fff;}
+  .card-dot.found{background:var(--sage); border-color:var(--sage);}
+  .card-dot.now{transform:scale(1.55);border-color:var(--sage);}
   /* The pack's two rares are always gold: a gold ring until found, then
      filled in. The card itself stays grey until then like any other. */
   .card-dot.rare, .card-dot.rare.now{border-color:#F2C230;}
@@ -2480,7 +2460,7 @@
      hole in the frame art rather than painted-in card colour. */
   .fan-photo-emoji{opacity:.3;}
   /* Nameplate area of the frame art, measured the same way as the window. */
-  .fan-name{position:absolute;z-index:3;left:2.83px;top:61.90px;width:60.33px;height:36.00px;font-family:'Poppins';font-weight:700;font-size:8.5px;color:var(--dusk);text-align:center;line-height:1.1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box;}
+  .fan-name{position:absolute;z-index:3;left:2.83px;top:61.90px;width:60.33px;height:36.00px;font-family:'Poppins';font-weight:700;font-size:8.5px;color:var(--wood-edge);text-align:center;line-height:1.1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0 2px;box-sizing:border-box;}
   .fan-pips{display:flex;gap:3px;justify-content:center;padding:2px 0;}
   .fan-pip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--tier-color);opacity:.3;}
   .fan-pip.got{background:var(--tier-color);opacity:1;}
@@ -2499,16 +2479,16 @@
   /* An empty pack's "how to start" line, above the card's own hint. */
   .pack-empty{text-align:center;font-family:'Poppins';font-weight:900;font-size:14px;
     color:#fff;line-height:1.3;margin:10px auto 0;max-width:300px;padding:0 10px;}
-  .habitat-tap{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--mist-dk);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
+  .habitat-tap{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--ink-soft);margin-top:7px;text-transform:uppercase;letter-spacing:.05em;}
   .hab-list{width:100%;display:flex;flex-direction:column;gap:6px;}
-  .hab-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:7px 12px 7px 8px;}
+  .hab-row{display:flex;align-items:center;gap:10px;background:var(--disc-cream);border-radius:12px;padding:7px 12px 7px 8px;}
   .hab-row.mystery{background:rgba(255,255,255,0.42);}
-  .hab-row-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--mist-dk);width:18px;text-align:center;flex-shrink:0;}
+  .hab-row-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--ink-soft);width:18px;text-align:center;flex-shrink:0;}
   .hab-row-thumb{width:38px;height:38px;border-radius:9px;object-fit:cover;object-position:var(--bird-crop);flex-shrink:0;background:var(--parch-dk);display:flex;align-items:center;justify-content:center;}
   .hab-row-silhouette{font-size:19px;filter:grayscale(1) brightness(.4);opacity:.45;}
-  .hab-row-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--dusk);min-width:0;}
-  .hab-row.mystery .hab-row-name{color:var(--mist-dk);font-weight:400;font-style:italic;}
-  .hab-row-mark{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--mist-dk);flex-shrink:0;}
+  .hab-row-name{flex:1;font-family:'Poppins';font-weight:700;font-size:12.5px;color:var(--wood-edge);min-width:0;}
+  .hab-row.mystery .hab-row-name{color:var(--ink-soft);font-weight:400;}
+  .hab-row-mark{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--ink-soft);flex-shrink:0;}
   .hab-row-mark.found{color:var(--sage-dk);}
   /* Laid out exactly like the Collections deck: the same 242px box, starting
      the same distance down the screen (Awards has one line of header where
@@ -2578,7 +2558,7 @@
   .detail-card.bird-card{background:var(--disc-cream);}
   /* The fact tiles were parchment on white; on the cream they'd all but
      vanish, so here they go the near-white of the stats panel below them. */
-  .bird-card .fact-tile{background:#FFF9EF;}
+  .bird-card .fact-tile{background:var(--cream-lt);}
   .trophy-hero{
     height:236px; background:#FFF6E6;
     display:flex; align-items:center; justify-content:center;
@@ -2716,7 +2696,7 @@
   .done-spot-in .stage-label{color:var(--wood-edge); font-size:20px; text-shadow:none;}
   .done-spot-in .stage-sub{color:var(--wood-dk); text-shadow:none;}
   .done-spot-in .again-btn{margin-top:10px;}
-  .done-spot-in .skip-btn{color:var(--wood-dk); text-shadow:none;}
+  .done-spot-in .skip-btn{color:var(--wood-edge); text-shadow:none;}
   /* The scene's legibility shadow (body.scene-on ...) outranks the three
      lines above, and on cream it smudged every letter of "New spot!". */
   body.scene-on .done-spot-in .stage-label, body.scene-on .done-spot-in .stage-sub,
@@ -2757,8 +2737,8 @@
   .trophy-banner-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px;}
   .trophy-banner-emoji{font-size:24px;}
   .trophy-banner-text{text-align:left;}
-  .trophy-banner-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--dusk);}
-  .trophy-banner-citation{font-size:11px;color:var(--mist-dk);}
+  .trophy-banner-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--wood-edge);}
+  .trophy-banner-citation{font-size:11px;color:var(--ink-soft);}
   .avatar-banner{display:block; font:inherit; cursor:pointer;}
   .avatar-banner-bird{width:56px; height:56px; border-radius:50%; overflow:hidden; flex:0 0 auto;
     background:var(--disc-cream); box-shadow:0 0 0 2px var(--wood);}
@@ -2774,11 +2754,8 @@
      so it wins. A new text button joins this list rather than picking a
      colour of its own. */
   .again-btn:not(.mic-again-btn), .tut-ok, .photo-btn, .photo-btn-clear,
-  .reset-btn, .play-call-btn, .sheet-done, .item-buy-btn{
-    background:
-      linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box,
-      repeating-linear-gradient(91deg, rgba(255,255,255,0.06) 0 1px, rgba(116,50,6,0.06) 1px 3px) border-box,
-      linear-gradient(180deg, var(--wood-lit) 0%, var(--wood) 52%, var(--wood-dk) 100%) border-box;
+  .reset-btn, .play-call-btn, .sheet-done, .item-buy-btn, .grownup > summary{
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
     border:3px solid transparent;
     color:var(--wood-edge); font-weight:900; text-shadow:none;
     box-shadow:0 3px 0 var(--wood-edge), 0 4px 8px rgba(26,17,40,0.28);
@@ -2789,6 +2766,11 @@
   .reset-btn:active, .play-call-btn:active, .sheet-done:active, .item-buy-btn:active{
     transform:translateY(2px); box-shadow:0 1px 0 var(--wood-edge), 0 2px 4px rgba(26,17,40,0.28);
   }
+  /* Settings' grown-up corner: a full-width wood button that opens it. */
+  .grownup{width:100%; margin-top:22px;}
+  .grownup > summary{list-style:none; cursor:pointer; text-align:center; border-radius:12px;
+    padding:12px 14px; font-family:'Poppins'; font-size:13px;}
+  .grownup > summary::-webkit-details-marker{display:none;}
   /* The one that can't be undone says so in its words' colour, not a red slab. */
   .reset-btn.danger{color:#A3261C;}
   /* Not enough feathers yet: the same wood, greyed like anything locked. */
@@ -2876,6 +2858,7 @@ const ICON_STANDINS = {
   'tip-sunrise': '🌅', 'tip-quiet': '🤫', 'tip-places': '📍', 'tip-close': '🎧',
   'tip-rain': '🌦️', 'tip-calm': '🧘',
   pin: '📍', lock: '🔒', camera: '📷',
+  back: '←', forward: '→', close: '✕', pause: '⏸', mystery: '???',
 };
 let paintedIcons = {};
 fetch('/painted-icons').then(r => r.ok ? r.json() : {}).then(d => { paintedIcons = d.icons || {}; }).catch(() => {});
@@ -2885,6 +2868,7 @@ function icon(name) {
 // Two that are painted already.
 const PAINTED_TICK = '<img class="ico" src="/static/tick-v1.webp" alt="done">';
 const PAINTED_BIRD = '<img class="ico" src="/static/live-bird-v2.webp" alt="">';
+const PAINTED_PLAY = '<img class="ico" src="/static/btn-play-v1.webp" alt="">';
 const featherCountEl = document.getElementById('featherCount');
 
 // Untiered birds - ones BirdNET knows that Warble does not collect - used to
@@ -3128,7 +3112,7 @@ async function renderWhatsHere() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
-      <button class="back-btn" id="backBtn">← Back</button>
+      <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
     <div class="collection-title" style="margin-bottom:4px;">Here Right Now</div>
     <div class="collection-count">Some birds only visit for part of the year</div>
@@ -3201,7 +3185,7 @@ async function renderMigrationCard(commonName, onBack) {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
-      <button class="back-btn" id="backBtn">← Back</button>
+      <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
     <div class="migration-title">${birdName(commonName)}</div>
     <div class="migration-subtitle" id="migrationSubtitle">Loading...</div>
@@ -3867,7 +3851,7 @@ function renderTips() {
   `).join('');
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:14px;">
-      <button class="back-btn" id="backBtn">← Back</button>
+      <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
     <div class="collection-title" style="margin-bottom:4px;">Warbling Tips</div>
     <div class="collection-count">Get better at hearing birds</div>
@@ -4139,8 +4123,8 @@ function renderCard() {
           ${bird.feathers
             ? `<div class="feather-row"><img class="feather-icon" src="/static/feather.webp" alt=""> +${bird.feathers}</div>`
             : `<div class="feather-row none">Feathers already won for this one today</div>`}
-          ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">▶ Hear its call</button>` : ''}
-          <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
+          ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">${PAINTED_PLAY} Hear its call</button>` : ''}
+          <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more ${icon('forward')}</a>
         </div>
       </div>
       <div class="collect-hint" id="collectHint"></div>
@@ -4608,7 +4592,7 @@ function renderNoBirds() {
       <div>
         <div class="tip-title">${escapeFlock(tip.title)}</div>
         <div class="tip-text">${escapeFlock(tip.text)}</div>
-        <div class="tip-more">More warbling tips →</div>
+        <div class="tip-more">More warbling tips ${icon('forward')}</div>
       </div>
     </button>
   `;
@@ -4932,6 +4916,11 @@ function setSortLabel() {
     bar.classList.contains('stuck') ? rule.short : 'Sort: ' + rule.label;
 }
 
+// "31 birds · heard 61 times" - a child's words for species and detections.
+function flockCountWords(birds, heard) {
+  return `<b>${birds}</b> bird${birds === 1 ? '' : 's'} · heard <b>${heard}</b> time${heard === 1 ? '' : 's'}`;
+}
+
 function paintFlockStats() {
   const el = document.getElementById('flockStats');
   const compact = document.getElementById('flockCompactTitle');
@@ -4942,12 +4931,12 @@ function paintFlockStats() {
 
   if (flockView === 'history') {
     el.innerHTML = narrowed
-      ? `<b>${shown}</b> of ${allSightingsRaw.length} detections`
-      : `<b>${species}</b> species · <b>${allSightingsRaw.length}</b> detections`;
+      ? `<b>${shown}</b> of ${allSightingsRaw.length} times heard`
+      : flockCountWords(species, allSightingsRaw.length);
   } else {
     el.innerHTML = narrowed
-      ? `<b>${shown}</b> of ${species} species`
-      : `<b>${species}</b> species · <b>${allSightingsRaw.length}</b> detections`;
+      ? `<b>${shown}</b> of ${species} birds`
+      : flockCountWords(species, allSightingsRaw.length);
   }
   if (compact) compact.textContent = `My Flock · ${narrowed ? shown : species}`;
 }
@@ -5246,7 +5235,7 @@ function openFilterSheet() {
       </div>`;
   }).join('');
 
-  const body = (groups || `<div style="color:var(--mist-dk);font-size:13px;">
+  const body = (groups || `<div style="color:var(--ink-soft);font-size:13px;">
       There is not enough in your flock to filter yet — hear a few more birds.</div>`) +
     `<div class="sheet-actions">
        <button class="sheet-reset" id="flockReset">Reset</button>
@@ -5406,13 +5395,13 @@ function renderBirdDetail(commonName, onBack) {
           ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(birdName(latest.common_name), latest.bird.migration)}</p></div></div>` : ''}
         <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
         <div class="badge-note heard-note" id="heardNote"><div><p><button class="pack-note-go" id="heardNoteGo">
-          ${heardLine(matches)}<span aria-hidden="true"> →</span></button></p></div></div>
+          ${heardLine(matches)}<span aria-hidden="true"> ${icon('forward')}</span></button></p></div></div>
         ${latest.bird?.about ? `<div class="detail-about">${latest.bird.about}</div>` : ''}
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
         ${buildConservation(latest.bird)}
         ${(!latest.bird?.about && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
-        <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more →</a>
+        <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more ${icon('forward')}</a>
         <button class="remove-bird-btn" id="removeBirdBtn">Not this bird? Remove it</button>
       </div>
     </div>
@@ -5551,7 +5540,7 @@ async function showDetailPack(commonName) {
   // line opens the collection with this bird's card at the front.
   const note = document.getElementById('packNote');
   note.querySelector('p').innerHTML = `<button class="pack-note-go ${rare ? 'rare' : ''}">
-      Collection card · ${rare ? 'Rare' : 'Common'} · ${p.name}<span aria-hidden="true"> →</span></button>`;
+      Collection card · ${rare ? 'Rare' : 'Common'} · ${p.name}<span aria-hidden="true"> ${icon('forward')}</span></button>`;
   el.querySelector('.detail-pack-btn').onclick = () => toggleBadgeNote('packNote');
   note.querySelector('.pack-note-go').onclick = () => {
     selectedPack = packAt;
@@ -5669,7 +5658,7 @@ async function saveBirdPhoto(commonName, dataUrl) {
 
 let currentlyPlayingAudio = null;
 let currentlyPlayingBtn = null;
-let currentlyPlayingLabel = '▶ Hear its call';
+let currentlyPlayingLabel = `${PAINTED_PLAY} Hear its call`;
 
 function stopAnyPlayingAudio() {
   if (currentlyPlayingAudio) {
@@ -5679,7 +5668,7 @@ function stopAnyPlayingAudio() {
   if (currentlyPlayingBtn) {
     // A picture button shows that it's playing by pulsing, not by text.
     if (currentlyPlayingBtn.classList.contains('photo-icon-btn')) currentlyPlayingBtn.classList.remove('playing');
-    else currentlyPlayingBtn.textContent = currentlyPlayingLabel;
+    else currentlyPlayingBtn.innerHTML = currentlyPlayingLabel;
     currentlyPlayingBtn.disabled = false;
   }
   currentlyPlayingAudio = null;
@@ -5703,8 +5692,8 @@ function playBirdCall(url, btnEl) {
   if (btnEl.classList.contains('photo-icon-btn')) {
     btnEl.classList.add('playing');
   } else {
-    currentlyPlayingLabel = btnEl.textContent;
-    btnEl.textContent = '⏸ Stop';
+    currentlyPlayingLabel = btnEl.innerHTML;
+    btnEl.innerHTML = `${icon('pause')} Stop`;
   }
   audio.play().catch(() => stopAnyPlayingAudio());
   audio.onended = () => stopAnyPlayingAudio();
@@ -7590,7 +7579,7 @@ async function renderSettings() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
-      <button class="back-btn" id="backBtn">← Back</button>
+      <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
     <div class="collection-title" style="margin-bottom:14px;">Settings</div>
 
@@ -7604,20 +7593,6 @@ async function renderSettings() {
       <input type="checkbox" id="sciNamesToggle">
     </label>
 
-    <div class="profile-section-title">Sound check</div>
-    <div id="micCheck" style="width:100%;"></div>
-
-    <div class="profile-section-title">Feathers</div>
-    <div class="feather-set-row">
-      <input type="number" id="featherInput" class="location-input feather-input"
-             min="0" max="99999" placeholder="Feathers">
-      <button class="again-btn feather-set-btn" id="setFeathersBtn">Set</button>
-    </div>
-    <div class="reset-note" id="featherSetNote">For testing — sets your balance to any number.</div>
-
-    <div class="profile-section-title">Developer</div>
-    <div class="reset-note">Preview the tree and bird-reveal animations without recording or hearing a real bird.</div>
-    <button class="again-btn" id="openAnimPreviewBtn">Animation preview</button>
 
     <div class="profile-section-title">Tutorials</div>
     <div class="reset-note">Start again from the welcome (bird, colour, name), then every "how to" bubble, as if Warble were brand new.</div>
@@ -7633,6 +7608,27 @@ async function renderSettings() {
     <button class="reset-btn" data-scope="feathers">Reset feathers</button>
     <button class="reset-btn" data-scope="sightings">Reset birds, habitats &amp; trophies</button>
     <button class="reset-btn danger" data-scope="everything">Reset everything</button>
+
+    <!-- For grown-ups: the microphone diagnostics and the testing tools. Shut
+         until opened, so a child scrolling Settings never meets a box that
+         sets their feathers to any number. -->
+    <details class="grownup">
+      <summary>For grown-ups</summary>
+      <div class="profile-section-title">Sound check</div>
+      <div id="micCheck" style="width:100%;"></div>
+
+      <div class="profile-section-title">Feathers</div>
+      <div class="feather-set-row">
+        <input type="number" id="featherInput" class="location-input feather-input"
+               min="0" max="99999" placeholder="Feathers">
+        <button class="again-btn feather-set-btn" id="setFeathersBtn">Set</button>
+      </div>
+      <div class="reset-note" id="featherSetNote">For testing — sets the feather balance to any number.</div>
+
+      <div class="profile-section-title">Animation preview</div>
+      <div class="reset-note">Preview the tree and bird-reveal animations without recording or hearing a real bird.</div>
+      <button class="again-btn" id="openAnimPreviewBtn">Animation preview</button>
+    </details>
   `;
   document.getElementById('backBtn').onclick = () => {
     stage.classList.remove('top-aligned');
@@ -7756,7 +7752,7 @@ function renderAnimationPreview() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
-      <button class="back-btn" id="backBtn">← Back</button>
+      <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
     <div class="collection-title" style="margin-bottom:4px;">Animation Preview</div>
     <div class="collection-count" style="margin-bottom:14px;">Debug only - nothing here is saved</div>
@@ -7878,8 +7874,8 @@ async function loadDetectionStats() {
     // Any stat with no data yet is simply omitted rather than shown as a
     // placeholder - e.g. favourite location needs at least one named spot.
     const rows = [
-      ['Total detections', String(s.total_detections)],
-      s.top_bird && ['Most detected bird', `${birdName(s.top_bird.name)} (${s.top_bird.count})`],
+      ['Birds heard', String(s.total_detections)],
+      s.top_bird && ['Heard the most', `${birdName(s.top_bird.name)} (${s.top_bird.count})`],
       s.top_location && ['Favourite spot', `${s.top_location.name} (${s.top_location.count})`],
       s.top_time && ['Favourite time', `${s.top_time.name} (${s.top_time.count})`],
     ].filter(Boolean);
@@ -8444,7 +8440,7 @@ async function loadProfileLocations() {
            target="_blank" rel="noopener">${icon('pin')} <span class="location-name-text">${loc.name}</span></a>${loc.spots > 1 ? `<span class="location-spots">${loc.spots} spots</span>` : ''}
         <span class="location-row-actions">
           <button class="location-edit-btn" data-id="${loc.id}">Edit</button>
-          <button class="location-delete-btn" data-id="${loc.id}" aria-label="Delete ${loc.name}">✕</button>
+          <button class="location-delete-btn" data-id="${loc.id}" aria-label="Delete ${loc.name}">${icon('close')}</button>
         </span>
       </div>
     `).join('');
@@ -9762,7 +9758,7 @@ function renderTrophyCaption() {
   const scene = document.getElementById('awardsBg');
   if (t && scene) scene.classList.toggle('lights-off', !t.earned);
   if (t && title) {
-    title.innerHTML = `<span class="trophy-caption-name">${t.earned ? t.name : '???'}</span>
+    title.innerHTML = `<span class="trophy-caption-name">${t.earned ? t.name : icon('mystery')}</span>
       ${t.earned ? `<span class="trophy-level">Level ${t.level}</span>` : ''}`;
   }
   if (t && caption) {

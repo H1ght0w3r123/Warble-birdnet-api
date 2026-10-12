@@ -189,24 +189,43 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   under a dusk veil elsewhere.
 - *Material:* everything a child touches is carved orange wood round a cream
   face. Round disc = taps to do one thing; framed card = something to collect
-  or look at; **every text button is wood** (the shared rule at the end of
-  the `<style>`: add a new button's class to that list, never give it a
-  colour of its own).
+  or look at (the reveal card too - gold frame if rare); **every text button
+  is wood** (the shared rule at the end of the `<style>`: add a new button's
+  class to that list, never give it a colour of its own). The wood is one
+  token, `--wood-rim`: a cream face is `background:linear-gradient(var(--disc-cream),
+  var(--disc-cream)) padding-box, var(--wood-rim)` with a transparent border.
+  Panels are cream, never white; a box inside a cream card is `--cream-lt`.
+  No see-through "glass" controls.
+- *Text links* stay text, one colour: brown (`--wood-edge`) on cream, white
+  on a scene. Never orange.
 - *Colour has meaning:* **gold only for rare birds and the trophy leaves
   that turn gold** (`--rare`; there is no general gold token any more, and
   `--sun` is only for the sky gradients). **Green (`--sage`) for leaves,
   anything selected, anything finished and progress.** **Every glow is
   cream** (`rgba(var(--glow), a)`). **Feather amounts are feather blue**:
   `--feather` on cream, `--feather-lt` on a scene. Dusk purple is night and
-  the veil; words are brown ink on cream, white on a scene.
+  the veil, never text. Words on cream are brown: `--wood-edge` for names and
+  titles, `--ink-brown` for body, `--ink-soft` for small labels; on a scene,
+  white.
+- *Exceptions, because they mean something outside Warble:* the UK
+  conservation shields (red / amber / green list), the Guess the Song timer
+  (green to orange to red), each pack's own colour on its card corners, and
+  the orange "leaving soon" season dot.
 - *Type:* Poppins 900 for titles, names and numbers, 700 for labels and
-  buttons. Painted wordmarks only for the five nav tabs; screens inside them
-  use plain white Poppins.
+  buttons, 400 only for a quiet line or typed text. Italic only for
+  scientific names. Painted wordmarks only for the five nav tabs; screens
+  inside them use plain white Poppins.
 - *Pictures:* painted, never emoji. The last few emoji are stand-ins in
   `ICON_STANDINS`, shown through `icon(name)`; each switches to its painting
   as soon as `static/icon-<name>-v<N>.webp` exists (`/painted-icons` lists
   them). The art is briefed in `design-brief-info-icons-v1.md`. A new small
-  icon gets a name there, not an emoji in a template.
+  icon gets a name there, not an emoji in a template - and that includes
+  arrows, crosses and "???" (`icon('back')`, `'forward'`, `'close'`,
+  `'pause'`, `'mystery'`). The painted play button and tick already exist
+  (`PAINTED_PLAY`, `PAINTED_TICK`).
+- *Words for children:* "31 birds · heard 61 times", never species or
+  detections. Grown-up tools (sound check, the feather setter, animation
+  preview) live in Settings' "For grown-ups" section, shut until opened.
 - *Motion and voice:* see the reward moment below, and "Locked and empty
   states" above.
 
