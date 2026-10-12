@@ -157,7 +157,8 @@ refuses a locked bird on `POST /profile`.
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. The whole ladder is at the top of the reward section of `main.py`:
 1 a bird heard again (rare 3) - **once per bird per day** - or one outside
-the 100; 3 a new bird; 5 a trophy level or a new game star; 15 a new rare
+the 100; +1 on top for a migrator, one of the 14 that come and go
+(`MIGRATOR_BONUS`, on the same once-per-bird-per-day terms); 3 a new bird; 5 a trophy level or a new game star; 15 a new rare
 bird; 25 a pack completed or all five weekly challenges. Dress Up 5–75.
 Don't inflate them. They're balanced against the prices to one target: a
 new child can buy something after their very first warble (Fledgling level
@@ -180,7 +181,8 @@ button - while its feathers fly to the counter. They queue one at a time; a
 tap sends one home early. The new bird's reveal card is the same moment at
 full size (same burst, flies to My Flock). It wears the bird card's design (`renderCard`) but not its
 facts: the photo with play, share and add-a-photo, the name, and two
-badges - the collection it's in and the feathers it won - each nudging down
+badges - the collection it's in, migration if it migrates, and the feathers
+it won - each nudging down
 one line (`toggleBadgeNote`). A tap anywhere else collects it, and so is a new birder rank (`celebrate({big: true})`: the screen
 dims, the new seal is large, the ladder underneath lights the step just
 climbed, a double burst and three times the hold; it flies into the top-bar

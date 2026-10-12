@@ -453,6 +453,8 @@ def get_wikipedia_info(scientific_name: str):
 
 # Reward tuning - the whole ladder, so it can be read in one place:
 #   1  a bird heard again (once per bird per day), or one outside the 100
+#  +1  on top, for a migrator (one of the 14 that come and go) - the same
+#      once per bird per day, so a new migrator pays 3 + 1
 #   3  a new bird (a rare one heard again: 3, once a day)
 #   5  a trophy level, or a new star in Guess the Song
 #  15  a new rare bird
@@ -468,6 +470,9 @@ TROPHY_LEVEL_FEATHERS = 5
 # is worth up to 15, and getting better pays, not just being perfect. Stars
 # held before this was introduced were never back-paid.
 SONG_GAME_STAR_FEATHERS = 5
+# A bird that migrates is only here part of the year, so hearing one pays a
+# feather more - on the same once-per-bird-per-day terms as the bird itself.
+MIGRATOR_BONUS = 1
 
 
 def total_leaves() -> int:
@@ -666,7 +671,12 @@ async def analyze_session(
         # again that day. Otherwise a garden with five regulars pays five
         # feathers every time record is tapped, however often that is.
         first_today = award_bonus_once(f"heard:{now.date().isoformat()}:{common_name}")
-        feathers = calculate_feathers(tier, is_duplicate) if (first_today or not is_duplicate) else 0
+        pays_today = first_today or not is_duplicate
+        feathers = calculate_feathers(tier, is_duplicate) if pays_today else 0
+        # The migration badge on the reveal card, and its extra feather.
+        migration = (bird_data(common_name) or {}).get("migration")
+        migrator_bonus = MIGRATOR_BONUS if (migration and pays_today) else 0
+        feathers += migrator_bonus
         photo_url, description = get_wikipedia_info(scientific_name)
 
         call_url = get_cached_call_url(common_name)
@@ -686,6 +696,8 @@ async def analyze_session(
             "season": season_state(common_name, now.month) if is_seasonal(common_name) else None,
             "is_duplicate": is_duplicate,
             "feathers": feathers,
+            "migration": migration,
+            "migrator_bonus": migrator_bonus,
             "call_url": call_url,
             "photo_url": photo_url,
             "description": description,

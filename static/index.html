@@ -4134,14 +4134,15 @@ function sortForReveal(birds) {
 
 // The reveal card follows the bird card's look, kept to what a find is
 // about: the photo with its play, share and add-a-photo buttons, the name,
-// and two badges - the feathers it won and the collection it belongs to -
-// each nudging down one line (toggleBadgeNote, as on the bird card). A tap
-// anywhere else on the card collects it.
+// and its badges - the collection it belongs to, the migration badge if it
+// comes and goes, and the feathers it won - each nudging down one line
+// (toggleBadgeNote, as on the bird card). A tap anywhere else collects it.
 function revealFeatherLine(bird) {
   if (!bird.feathers) return "You've already won feathers for this bird today. Hear it again tomorrow!";
   const why = !bird.is_duplicate ? (bird.tier === 'Rare' ? 'a new rare bird' : 'a new bird')
     : (bird.tier === 'Rare' ? 'hearing a rare bird again' : 'hearing it again');
-  return `<b>+${bird.feathers} ${bird.feathers === 1 ? 'feather' : 'feathers'}</b> for ${why}. You'll collect them at the end.`;
+  const extra = bird.migrator_bonus ? `, and ${bird.migrator_bonus} more because it migrates` : '';
+  return `<b>+${bird.feathers} ${bird.feathers === 1 ? 'feather' : 'feathers'}</b> for ${why}${extra}. You'll collect them at the end.`;
 }
 
 function renderCard() {
@@ -4170,10 +4171,13 @@ function renderCard() {
           <div class="detail-name">${name}</div>
           ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${bird.scientific_name}</div>` : ''}
           <div class="detail-pack" id="detailPack">
+            ${migrationDisc(bird.migration ? { migration: bird.migration } : null)}
             <button class="feather-disc ${bird.feathers ? '' : 'none'}" id="featherDisc" aria-label="Feathers for this bird">
               <img class="feather-icon" src="/static/feather.webp" alt="">${bird.feathers ? `<span>+${bird.feathers}</span>` : ''}</button>
           </div>
           <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
+          ${bird.migration ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(name, bird.migration)}
+            Finding a bird that migrates wins an extra feather, once a day.</p></div></div>` : ''}
           <div class="badge-note feather-note" id="featherNote"><div><p>${revealFeatherLine(bird)}</p></div></div>
         </div>
       </div>
@@ -4188,6 +4192,8 @@ function renderCard() {
     if (e.target.files && e.target.files[0]) handleBirdPhotoChosen(e.target.files[0], bird.common_name);
   };
   document.getElementById('featherDisc').onclick = () => toggleBadgeNote('featherNote');
+  const migrateDisc = document.getElementById('migrateDisc');
+  if (migrateDisc) migrateDisc.onclick = () => toggleBadgeNote('migrateNote');
   // The collection badge, as on the bird card (it goes first, before the
   // feathers), but its line only says which pack:
   // leaving for Collections mid-reveal would lose the cards still to come.
