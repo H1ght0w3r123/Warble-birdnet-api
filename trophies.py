@@ -359,9 +359,11 @@ def is_before_sunrise(lat: float, lng: float, moment_utc: datetime.datetime) -> 
 # bar beside the feathers on every screen, and opens the whole ladder. Thresholds are
 # total leaves (147 in all). Each rank has its own look in the page
 # (rankSeal), and a painting, when one arrives, as icon-rank-<key>.
+# Lowered in October 2026 (from 5/12/25/40/60/85/115) when three trophies
+# went and the leaves on offer fell from 147 to 126.
 BIRDER_RANKS = [
-    (0, "Hatchling"), (5, "Lark"), (12, "Eavesdropper"), (25, "Trill Seeker"),
-    (40, "Glider"), (60, "Flockstar"), (85, "Elder"), (115, "Warbler"),
+    (0, "Hatchling"), (5, "Lark"), (10, "Eavesdropper"), (20, "Trill Seeker"),
+    (32, "Glider"), (48, "Flockstar"), (68, "Elder"), (95, "Warbler"),
 ]
 
 

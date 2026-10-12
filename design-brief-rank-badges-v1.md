@@ -25,12 +25,12 @@ the built seal everywhere.
 |---|---|---|---|
 | Hatchling | 0 | `hatchling` | A cracked egg in a nest, a beak poking out |
 | Lark | 5 | `lark` | A small lark singing on a grass stem |
-| Eavesdropper | 12 | `eavesdropper` | A big cupped ear peeping round a leaf, or an old ear trumpet |
-| Trill Seeker | 25 | `trill-seeker` | A magnifying glass over a curl of music notes |
-| Glider | 40 | `glider` | A bird gliding with its wings spread wide |
-| Flockstar | 60 | `flockstar` | A wooden star with feathers, or a little V of birds |
-| Elder | 85 | `elder` | A wise old owl in spectacles |
-| Warbler | 115 | `warbler` | A golden warbler mid-song, in a crown of leaves |
+| Eavesdropper | 10 | `eavesdropper` | A big cupped ear peeping round a leaf, or an old ear trumpet |
+| Trill Seeker | 20 | `trill-seeker` | A magnifying glass over a curl of music notes |
+| Glider | 32 | `glider` | A bird gliding with its wings spread wide |
+| Flockstar | 48 | `flockstar` | A wooden star with feathers, or a little V of birds |
+| Elder | 68 | `elder` | A wise old owl in spectacles |
+| Warbler | 95 | `warbler` | A golden warbler mid-song, in a crown of leaves |
 
 The ideas are only starting points. What matters is the **ladder**:
 

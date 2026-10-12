@@ -35,7 +35,7 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   was introduced were deliberately not back-paid. Every level is a leaf, and
   the leaves together give a **birder rank** (`BIRDER_RANKS`: Hatchling at 0
   - Lark, Eavesdropper, Trill Seeker, Glider, Flockstar, Elder - up to
-  Warbler at 115 of the 126), shown as its badge in the top bar
+  Warbler at 95 of the 126), shown as its badge in the top bar
   beside the feathers on every screen, and celebrated when it goes up. Each rank has its own look, `rankSeal()`: a
   wooden seal with the rank's number and a wreath of the painted leaf that
   grows a pair per rank, gold for the top two (Elder, Warbler) -
