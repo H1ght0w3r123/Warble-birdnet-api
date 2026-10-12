@@ -192,7 +192,8 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   or look at (the reveal card too - gold frame if rare); **every text button
   is wood** (the shared rule at the end of the `<style>`: add a new button's
   class to that list, never give it a colour of its own). The wood is one
-  token, `--wood-rim`: a cream face is `background:linear-gradient(var(--disc-cream),
+  solid colour - no grain, no light-to-dark shading, which read as banding
+  on a phone - and one token, `--wood-rim`: a cream face is `background:linear-gradient(var(--disc-cream),
   var(--disc-cream)) padding-box, var(--wood-rim)` with a transparent border.
   Panels are cream, never white; a box inside a cream card is `--cream-lt`.
   No see-through "glass" controls.

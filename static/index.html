@@ -27,9 +27,9 @@
        face as the border-box layers and give the element a transparent
        border - background: linear-gradient(var(--disc-cream),var(--disc-cream))
        padding-box, var(--wood-rim); border:3px solid transparent; */
-    --wood-rim:
-      repeating-linear-gradient(91deg, rgba(255,255,255,0.06) 0 1px, rgba(116,50,6,0.06) 1px 3px) border-box,
-      linear-gradient(180deg, #E59450 0%, #D87A38 52%, #B8632A 100%) border-box;
+    /* One solid wood colour: the grain stripes and the light-to-dark
+       gradient read as banding on a phone screen. */
+    --wood-rim: linear-gradient(#D87A38, #D87A38) border-box;
     --feather:#1A6FB0; --feather-lt:#9AD6FF;
     --sage:#7EC8A4; --sage-dk:#3F7C5C;
     --mist:#C4BFDF; --mist-dk:#8E87B8;
@@ -1420,12 +1420,9 @@
   .woodframe{
     position:relative; border-radius:calc(var(--inner) + var(--frame));
     padding:var(--frame); overflow:hidden;
-    background:
-      /* grain: fine vertical stripes, barely there, angled a degree off so
-         they never line up with the pixel grid and shimmer */
-      repeating-linear-gradient(91deg,
-        rgba(255,255,255,0.055) 0 1px, rgba(116,50,6,0.05) 1px 3px),
-      linear-gradient(180deg, var(--wood-lit) 0%, var(--wood) 52%, var(--wood-dk) 100%);
+    /* Solid wood: the grain stripes and gradient this used to have read as
+       banding on a phone screen. The carved lip below gives the depth. */
+    background:var(--wood);
     box-shadow:0 2px 5px rgba(26,17,40,0.3);
   }
   /* The carved lip: a dark line and a light one either side of the hole's
@@ -1593,6 +1590,10 @@
     transition:transform .12s ease;
   }
   .photo-icon-btn img{width:100%; height:100%; display:block; pointer-events:none;}
+  .photo-icon-btn{position:relative;}
+  .disc-stop{position:absolute; left:50%; top:50%; width:34%; height:34%; transform:translate(-50%,-50%);
+    border-radius:3px; background:#B4561B; box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.35), inset 0 -1.5px 0 rgba(74,36,8,0.4);
+    pointer-events:none;}
   .photo-icon-btn:active{transform:scale(.9);}
   /* While the call is playing the play button pulses; tapping it again
      stops it (playBirdCall). */
@@ -1602,7 +1603,7 @@
     50%{transform:scale(1.1); filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 6px rgba(255,195,0,0.95));}
   }
   @media (prefers-reduced-motion: reduce){
-    .photo-icon-btn.playing{animation:none; filter:drop-shadow(0 0 5px rgba(255,195,0,0.95));}
+    .photo-icon-btn.playing{animation:none; filter:drop-shadow(0 0 5px rgba(var(--glow),0.95));}
   }
   .add-photo-btn{
     flex:0 0 auto;
@@ -1634,20 +1635,16 @@
   .tt-bar{flex:1;height:9px;background:var(--parch-dk);border-radius:5px;overflow:hidden;}
   .tt-fill{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--sage-dk));border-radius:5px;}
   .tt-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--wood-edge);width:24px;text-align:right;flex-shrink:0;}
-  .fact-num-sm{font-size:11px !important;line-height:1.25;}
-  .facts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+
   /* The three measurements share a row; where it lives and what it eats
      keep the wider pair below, since they're words rather than numbers. */
-  .facts-grid.measures{grid-template-columns:repeat(3, 1fr);}
-  .facts-grid.measures .fact-tile{padding:10px 9px;}
-  .facts-grid.measures + .facts-grid{margin-top:10px;}
-  .fact-tile{background:var(--parch);border-radius:12px;padding:10px 12px;}
-  .fact-icon{font-size:20px;}
-  .fact-num{font-family:'Poppins';font-weight:900;font-size:17px;color:var(--wood-edge);margin-top:2px;}
-  .fact-label{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
-  .fact-compare{font-size:11px;color:var(--ink-brown);margin-top:4px;line-height:1.3;}
-  .habitat-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-  .habitat-tag{display:flex;align-items:center;gap:4px;background:var(--sage);color:#fff;font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
+  .fact-list{margin-top:14px; background:var(--cream-lt); border-radius:12px; padding:2px 12px;}
+  .fact-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid rgba(116,50,6,0.12);}
+  .fact-row:first-child{border-top:none;}
+  .fact-icon{flex:0 0 30px; font-size:24px; text-align:center; line-height:1;}
+  .fact-label{flex:0 0 auto; font-family:'Poppins'; font-size:12px; font-weight:700; color:var(--ink-soft);}
+  .fact-value{flex:1 1 auto; min-width:0; text-align:right; font-family:'Poppins'; font-weight:900;
+    font-size:15px; line-height:1.25; color:var(--wood-edge);}
   /* Conservation status, as a disc in the badge row: a shield in the list's
      own colour on the plain wooden disc. Tapping it says in a few words what
      the colour means. */
@@ -1673,15 +1670,18 @@
   .badge-note > div{overflow:hidden; min-height:0;}
   .badge-note > div > p{margin:8px 0 0;}
   .badge-note.show{grid-template-rows:1fr; opacity:1;}
-  .badge-note.status-green{color:#3F7F4C;}
-  .badge-note.status-amber{color:var(--terra-dk);}
-  .badge-note.status-red{color:#A83232;}
+  /* The shield note explains, calmly: brown body text, and only the line
+     about this bird's colour in that colour. */
+  .badge-note.status-green, .badge-note.status-amber, .badge-note.status-red{color:var(--ink-brown); font-weight:400;}
+  .badge-note.status-green b{color:#3F7F4C;}
+  .badge-note.status-amber b{color:var(--terra-dk);}
+  .badge-note.status-red b{color:#A83232;}
   .badge-note.migrate-note{color:#2C6E8F;}
   .pack-note-go{border:none; background:none; padding:0; cursor:pointer; text-align:left;
     font:inherit; color:var(--wood-edge);}
   .pack-note-go.rare{color:#A8760A;}
   @media (prefers-reduced-motion: reduce){ .badge-note{transition:none;} }
-  .learn-more{display:inline-block;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--wood-edge);text-decoration:none;}
+  .learn-more{display:inline-block;margin-top:8px;font-family:'Poppins';font-weight:700;font-size:12px;color:var(--wood-edge);text-decoration:none;}
   .learn-more:hover{text-decoration:underline;}
 
   /* --- Recording tree: pulses, and its canopy clusters rustle with real audio --- */
@@ -2561,7 +2561,7 @@
   .detail-card.bird-card{background:var(--disc-cream);}
   /* The fact tiles were parchment on white; on the cream they'd all but
      vanish, so here they go the near-white of the stats panel below them. */
-  .bird-card .fact-tile{background:var(--cream-lt);}
+
   .trophy-hero{
     height:236px; background:#FFF6E6;
     display:flex; align-items:center; justify-content:center;
@@ -2872,6 +2872,9 @@ function icon(name) {
 const PAINTED_TICK = '<img class="ico" src="/static/tick-v1.webp" alt="done">';
 const PAINTED_BIRD = '<img class="ico" src="/static/live-bird-v2.webp" alt="">';
 const PAINTED_PLAY = '<img class="ico" src="/static/btn-play-v1.webp" alt="">';
+// The play disc's partner: the plain wooden disc with a stop square carved
+// in, the way the read-aloud disc has its speaker carved in.
+const PAINTED_STOP_DISC = '<img src="/static/btn-blank-v1.webp" alt=""><span class="disc-stop" aria-hidden="true"></span>';
 const featherCountEl = document.getElementById('featherCount');
 
 // Untiered birds - ones BirdNET knows that Warble does not collect - used to
@@ -5393,18 +5396,17 @@ function renderBirdDetail(commonName, onBack) {
                   aria-label="Heard ${matches.length === 1 ? 'once' : `${matches.length} times`}">${matches.length}</button>
         </div>
         ${CONSERVATION[latest.bird?.conservation_status]
-          ? `<div class="badge-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote"><div><p>${CONSERVATION[latest.bird.conservation_status].note}</p></div></div>` : ''}
+          ? `<div class="badge-note ${CONSERVATION[latest.bird.conservation_status].cls}" id="statusNote"><div><p>${CONSERVATION_INTRO} <b>${CONSERVATION[latest.bird.conservation_status].note}</b></p></div></div>` : ''}
         ${latest.bird?.migration
           ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(birdName(latest.common_name), latest.bird.migration)}</p></div></div>` : ''}
         <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
         <div class="badge-note heard-note" id="heardNote"><div><p><button class="pack-note-go" id="heardNoteGo">
           ${heardLine(matches)}<span aria-hidden="true"> ${icon('forward')}</span></button></p></div></div>
         ${latest.bird?.about ? `<div class="detail-about">${latest.bird.about}</div>` : ''}
+        ${(!latest.bird?.about && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
+        <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Find out more ${icon('forward')}</a>
         ${buildCoreTiles(latest.bird)}
         ${buildStatBars(latest.bird)}
-        ${buildConservation(latest.bird)}
-        ${(!latest.bird?.about && latest.description) ? `<div class="detail-desc">${latest.description}</div>` : ''}
-        <a class="learn-more" href="${wikipediaUrl(latest.scientific_name)}" target="_blank" rel="noopener">Learn more ${icon('forward')}</a>
         <button class="remove-bird-btn" id="removeBirdBtn">Not this bird? Remove it</button>
       </div>
     </div>
@@ -5543,7 +5545,7 @@ async function showDetailPack(commonName) {
   // line opens the collection with this bird's card at the front.
   const note = document.getElementById('packNote');
   note.querySelector('p').innerHTML = `<button class="pack-note-go ${rare ? 'rare' : ''}">
-      Collection card · ${rare ? 'Rare' : 'Common'} · ${p.name}<span aria-hidden="true"> ${icon('forward')}</span></button>`;
+      ${p.name} Collection: ${rare ? 'Rare' : 'Common'}</button>`;
   el.querySelector('.detail-pack-btn').onclick = () => toggleBadgeNote('packNote');
   note.querySelector('.pack-note-go').onclick = () => {
     selectedPack = packAt;
@@ -5669,8 +5671,12 @@ function stopAnyPlayingAudio() {
     currentlyPlayingAudio.currentTime = 0;
   }
   if (currentlyPlayingBtn) {
-    // A picture button shows that it's playing by pulsing, not by text.
-    if (currentlyPlayingBtn.classList.contains('photo-icon-btn')) currentlyPlayingBtn.classList.remove('playing');
+    // A picture button turns into a stop button while it plays, then back.
+    if (currentlyPlayingBtn.classList.contains('photo-icon-btn')) {
+      currentlyPlayingBtn.classList.remove('playing');
+      if (currentlyPlayingBtn.dataset.playHtml) currentlyPlayingBtn.innerHTML = currentlyPlayingBtn.dataset.playHtml;
+      currentlyPlayingBtn.setAttribute('aria-label', 'Hear its call');
+    }
     else currentlyPlayingBtn.innerHTML = currentlyPlayingLabel;
     currentlyPlayingBtn.disabled = false;
   }
@@ -5694,6 +5700,9 @@ function playBirdCall(url, btnEl) {
   currentlyPlayingBtn = btnEl;
   if (btnEl.classList.contains('photo-icon-btn')) {
     btnEl.classList.add('playing');
+    btnEl.dataset.playHtml = btnEl.innerHTML;
+    btnEl.innerHTML = PAINTED_STOP_DISC;
+    btnEl.setAttribute('aria-label', 'Stop');
   } else {
     currentlyPlayingLabel = btnEl.innerHTML;
     btnEl.innerHTML = `${icon('pause')} Stop`;
@@ -5708,11 +5717,6 @@ function playBirdCall(url, btnEl) {
 // remember to add a stop-call to every single screen function.
 const stageAudioObserver = new MutationObserver(() => stopAnyPlayingAudio());
 stageAudioObserver.observe(stage, { childList: true });
-
-const HABITAT_ICONS = {
-  'Garden & Parks': 'garden-parks', 'Woodland': 'woodland', 'Wetland & Coast': 'wetland-coast',
-  'Farmland': 'farmland', 'Towns & Cities': 'towns',
-};
 
 // Mirrors STAT_LABELS in birds.py. Kept in a fixed order so the bars
 // always read the same way down every card.
@@ -5752,32 +5756,28 @@ function buildCoreTiles(bird) {
     [icon('habitat'), bird.habitat, 'Where it lives'],
     [icon('diet'), bird.diet, 'What it eats'],
   ];
-  const grid = (cls, tiles) => `<div class="facts-grid ${cls}">${tiles.map(([icon, num, label]) => `
-    <div class="fact-tile">
-      <div class="fact-icon">${icon}</div>
-      <div class="fact-num ${String(num).length > 8 ? 'fact-num-sm' : ''}">${num}</div>
-      <div class="fact-label">${label}</div>
+  // One row each, the full width of the card: the icon and what it is
+  // first, then the answer - long answers ("Woodland edges and gardens")
+  // get the whole line instead of a third of it.
+  return `<div class="fact-list">${[...measures, ...words].map(([pic, value, label]) => `
+    <div class="fact-row">
+      <span class="fact-icon">${pic}</span>
+      <span class="fact-label">${label}</span>
+      <span class="fact-value">${value}</span>
     </div>`).join('')}</div>`;
-  return grid(measures.length === 3 ? 'measures' : '', measures) + grid('', words);
 }
 
-// Only the researched birds carry a conservation status and habitat tags.
-function buildConservation(bird) {
-  if (!bird) return '';
-  const tags = (bird.habitat_tags || [])
-    .map(h => `<span class="habitat-tag">${icon(HABITAT_ICONS[h] || 'pin')} ${h}</span>`)
-    .join('');
-  return tags ? `<div class="habitat-tags">${tags}</div>` : '';
-}
-
-// The UK conservation lists, in words a child can hold on to.
+// The UK conservation lists, in words a child can hold on to. "Amber list"
+// means nothing on its own, so the note says what the lists are first, then
+// what this colour means - plainly, and without alarm.
+const CONSERVATION_INTRO = 'This shield shows how this bird is doing in the UK. Bird experts count the birds every few years and give each one a colour.';
 const CONSERVATION = {
   Green: { cls: 'status-green', fill: '#4E9E5E', dark: '#2F6B3B',
-           note: 'Green list: this bird is doing well.' },
+           note: 'Green means it is doing well, with plenty of them about.' },
   Amber: { cls: 'status-amber', fill: '#E9A23B', dark: '#A8661A',
-           note: 'Amber list: there are fewer of these birds than there used to be.' },
+           note: 'Amber means there are fewer than there used to be, so people are keeping an eye on it.' },
   Red:   { cls: 'status-red',   fill: '#CF4A40', dark: '#8E2A23',
-           note: 'Red list: this bird is in real trouble and needs our help.' },
+           note: 'Red means there are a lot fewer than there used to be, so people are working to help it.' },
 };
 
 function conservationDisc(bird) {

@@ -3,6 +3,10 @@
 > **Delivered** - all 24, as one sheet. Cut into `static/icon-<name>-v1.webp`
 > by `tools/build_icons.py` (background made transparent, the printed names
 > left off, each 128px tall in its own shape). A redraw of any one is `-v2`.
+>
+> Since then the bird card's habitat tags were removed (where a bird lives is
+> already in its facts), so the five habitat icons (`garden-parks`, `woodland`,
+> `wetland-coast`, `farmland`, `towns`) are in `static/` but not shown anywhere.
 
 ## What this is
 
