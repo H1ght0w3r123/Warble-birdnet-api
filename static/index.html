@@ -1677,7 +1677,12 @@
   .fact-list{margin-top:14px; background:var(--cream-lt); border-radius:12px; padding:2px 12px;}
   .fact-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid rgba(116,50,6,0.12);}
   .fact-row:first-child{border-top:none;}
-  .fact-icon{flex:0 0 30px; font-size:24px; text-align:center; line-height:1;}
+  /* Every icon in the same box, fitted inside it, so a wide one can't push
+     its label along: the labels form one column and the values another.
+     The box is wider than it is tall because the wingspan's wings are
+     (2:1); the rest are near square and fill its height. */
+  .fact-icon{flex:0 0 48px; width:48px; height:32px; display:grid; place-items:center; font-size:24px; line-height:1;}
+  .fact-icon .ico{width:auto; height:auto; max-width:48px; max-height:32px; vertical-align:0;}
   .fact-label{flex:0 0 auto; font-family:'Poppins'; font-size:12px; font-weight:700; color:var(--ink-soft);}
   .fact-value{flex:1 1 auto; min-width:0; text-align:right; font-family:'Poppins'; font-weight:900;
     font-size:15px; line-height:1.25; color:var(--wood-edge);}
