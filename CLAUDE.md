@@ -215,11 +215,13 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   buttons, 400 only for a quiet line or typed text. Italic only for
   scientific names. Painted wordmarks only for the five nav tabs; screens
   inside them use plain white Poppins.
-- *Pictures:* painted, never emoji. The last few emoji are stand-ins in
-  `ICON_STANDINS`, shown through `icon(name)`; each switches to its painting
-  as soon as `static/icon-<name>-v<N>.webp` exists (`/painted-icons` lists
-  them). The art is briefed in `design-brief-info-icons-v1.md`. A new small
-  icon gets a name there, not an emoji in a template - and that includes
+- *Pictures:* painted, never emoji. Small icons go through `icon(name)`,
+  which shows `static/icon-<name>-v<N>.webp` (newest version; `/painted-icons`
+  lists them, read once at server start) and falls back to its stand-in in
+  `ICON_STANDINS` only if the file is missing. All 24 in
+  `design-brief-info-icons-v1.md` are painted and in; `tools/build_icons.py`
+  cuts a delivered sheet into the files (read its docstring first). A new
+  small icon gets a name there and a painting, not an emoji in a template - and that includes
   arrows, crosses and "???" (`icon('back')`, `'forward'`, `'close'`,
   `'pause'`, `'mystery'`). The painted play button and tick already exist
   (`PAINTED_PLAY`, `PAINTED_TICK`).

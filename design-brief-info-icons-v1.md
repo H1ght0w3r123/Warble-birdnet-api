@@ -1,5 +1,9 @@
 # Design Brief: small information icons (v1)
 
+> **Delivered** - all 24, as one sheet. Cut into `static/icon-<name>-v1.webp`
+> by `tools/build_icons.py` (background made transparent, the printed names
+> left off, each 128px tall in its own shape). A redraw of any one is `-v2`.
+
 ## What this is
 
 Warble's design language is painted art, never emoji. Almost everything is
