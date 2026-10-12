@@ -168,9 +168,10 @@ the Robin (id `classic`; it was called Classic), Duckling, Woodpecker, Owl, King
 first time the child hears the real bird or one of its family
 (`AVATAR_UNLOCKS` in `main.py`: a robin, stonechat or redstart; any
 duck/goose/swan; any woodpecker; any owl; a Kingfisher) and then bought for
-`AVATAR_PRICE` (30) in the Hoot-tique ("Be one for 30"); a found bird shows
-in its colours with its price, one still to find as a dark shape with how
-to find it. Bought birds are `avatar:<id>` rows with the Dress Up items (not
+`AVATAR_PRICE` (30) in the Hoot-tique. A bird still to find isn't shown
+anywhere (`shownSpecies()`: finding it is the surprise); a found one joins
+the carousel showing just its price - a wood button with the feather and
+30, no other words. The welcome offers only birds the child can already be. Bought birds are `avatar:<id>` rows with the Dress Up items (not
 counted by Preener). Not trophies - an avatar is who the child is, so it
 comes from the birds. When the price arrived, a family already playing kept
 free whatever it had (`_keep_avatars_already_had`, run once at start-up,
@@ -185,10 +186,9 @@ when the art is in, move each into `AVATAR_UNLOCKS` and the page's
 among them, so the first warble still buys something - then 8, 8, 10, 12,
 8, 4, 2; the showiest 75s last). A batch is hidden until its rank (a new
 rank is a delivery); `/accessories` sends only open items (and anything
-owned) plus how many the next rank brings (`next_batch.message`, shown
-under the shop), purchase refuses an item not open yet, the rank-up moment
-says "New in the Hoot-tique: 8 things to wear!", and each batch lights the
-nav bar. A restock adds its items to a batch.
+owned) - no words about what the next rank brings - purchase refuses an
+item not open yet, the rank-up moment says "New accessories drop in the
+Hoot-tique!", and each batch lights the nav bar. A restock adds its items to a batch.
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. The whole ladder is at the top of the reward section of `main.py`:
@@ -229,7 +229,8 @@ badge, which changes as it lands) - big is kept for that
 one, the rarest reward. On the Done screen the birds' own feathers are tapped to collect,
 then the recording's other rewards play as moments, and only then "Go
 again" - so nothing is cut short. A newly found avatar bird stays a banner
-("Be a Kingfisher for 30"): it's a door to the Hoot-tique, not a payout. The server has always banked the feathers
+("You've unlocked Kingfisher in the Hoot-tique"): a door to the Hoot-tique,
+not a payout. The server has always banked the feathers
 already; `/analyze-session` and `/song-game/result` itemise them
 (`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a
 recording goes through `award_trophy_levels()` and challenge pay through

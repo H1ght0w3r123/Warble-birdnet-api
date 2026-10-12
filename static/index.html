@@ -1871,6 +1871,7 @@
   .avatar-frame.locked-bird.found-bird svg{filter:saturate(.85);}
   .bird-buy-btn{display:inline-flex; align-items:center; gap:5px; margin:8px auto 0; padding:7px 16px;
     border-radius:20px; font-family:'Poppins'; font-size:14px; cursor:pointer;}
+  .bird-price{display:inline-flex; padding:7px 4px 0; font-size:15px;}
   .hint-feathers{display:inline-flex; align-items:center; gap:3px; font-weight:900; color:var(--feather);}
   .dressup-hint .hint-feathers{color:var(--feather-lt);}
   .bird-buy-btn .hint-feathers{color:var(--feather);}
@@ -1974,9 +1975,6 @@
   /* The hint is the only element here that appears and disappears, so it
      reserves its line whether or not it has anything to say - otherwise
      randomising nudges everything above it upward. */
-  .shop-next{font-family:'Poppins'; font-weight:700; font-size:12px; line-height:16px; color:#fff;
-    text-align:center; margin-top:6px; text-shadow:0 1px 3px rgba(0,0,0,0.5);}
-  .shop-next:empty{display:none;}
   .dressup-hint{
     font-family:'Poppins'; font-size:12px; line-height:16px; min-height:16px;
     color:rgba(255,255,255,0.9); text-align:center; margin-top:4px;
@@ -4423,7 +4421,7 @@ function celebrateRank(rank, from) {
     `<span class="moment-step${i === rank.index ? ' now' : ''}">${rankSeal(i, step.key, 30, i > rank.index)}</span>`).join('');
   const next = rank.next_name ? `Next: ${rank.next_name} at ${rank.next_at} leaves` : 'The very top rank!';
   // Each rank opens a new batch in the Hoot-tique.
-  const shop = rank.shop_new ? `<span class="moment-next moment-shop">New in the Hoot-tique: ${rank.shop_new} things to wear!</span>` : '';
+  const shop = rank.shop_new ? `<span class="moment-next moment-shop">New accessories drop in the Hoot-tique!</span>` : '';
   return celebrate({ kicker: 'New birder rank!', name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
     icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'topRank',
     more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}` })
@@ -4452,6 +4450,16 @@ function celebrateTrophies(list, fromEl, rankUp) {
 // --- Avatar birds you have to find, and the birder rank -------------------
 // Which birds are still to find comes from the server (/profile "avatars"):
 // a lockable bird opens the first time its real counterpart is heard.
+// The profile stores the Robin as "default"; the carousel calls it "classic".
+const avatarIdOf = sp => (!sp || sp === 'default') ? 'classic' : sp;
+
+// The birds a child can see: every one they own or have found. A bird
+// still to find isn't shown anywhere - finding it is the surprise.
+function shownSpecies() {
+  return AVATAR_SPECIES.filter(sp => { const st = avatarLock(sp.id); return !st || st.state !== 'locked'; });
+}
+let trackSpecies = [];   // the Hoot-tique carousel's birds, set when it's built
+
 function avatarLock(id) {
   const st = currentProfile && currentProfile.avatars && currentProfile.avatars[id];
   return st && !st.unlocked ? st : null;
@@ -6038,15 +6046,12 @@ function sessionAvatarBannersHtml() {
     const sp = AVATAR_SPECIES.find(x => x.id === a.id);
     return `
     <button class="trophy-banner avatar-banner" data-go="dressup">
-      <div class="trophy-banner-title">You found a new bird to be!</div>
       <div class="trophy-banner-row">
         <div class="avatar-banner-bird">${avatarSvg(currentProfile.avatar_body, 56, null, false, a.id)}</div>
         <div class="trophy-banner-text">
-          <div class="trophy-banner-name">Be ${/^[aeiou]/i.test(sp ? sp.name : '') ? 'an' : 'a'} ${sp ? sp.name : a.id} for <span class="hint-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${(currentProfile.avatars && currentProfile.avatars[a.id] && currentProfile.avatars[a.id].price) || 30}</span></div>
-          <div class="trophy-banner-citation">${a.heard ? `Because you heard a ${escapeFlock(birdName(a.heard))}.` : ''}</div>
+          <div class="trophy-banner-name">You've unlocked ${sp ? sp.name : a.id} in the Hoot-tique</div>
         </div>
       </div>
-      <div class="trophy-banner-tap">Tap to see it in the Hoot-tique</div>
     </button>`;
   }).join('');
 }
@@ -7196,7 +7201,7 @@ function renderWelcome(step = 0) {
   setSceneFocus(false);
   stage.classList.add('top-aligned');
   const picker = step === 0
-    ? `<div class="welcome-birds" role="radiogroup" aria-label="Birds">${AVATAR_SPECIES.map(sp => {
+    ? `<div class="welcome-birds" role="radiogroup" aria-label="Birds">${AVATAR_SPECIES.filter(sp => !avatarLock(sp.id)).map(sp => {
         const lock = avatarLock(sp.id);
         return `
         <button class="welcome-bird-btn ${sp.id === d.species ? 'on' : ''} ${lock ? 'locked' : ''}" data-species="${sp.id}"
@@ -7205,7 +7210,7 @@ function renderWelcome(step = 0) {
           ${avatarSvg(d.body, 58, null, false, sp.id)}
           ${lock ? '<span class="bird-lock" aria-hidden="true">?</span>' : ''}
         </button>`; }).join('')}</div>
-       <div class="welcome-hint" id="welcomeLockHint">Three to start, more to find!</div>`
+       <div class="welcome-hint" id="welcomeLockHint"></div>`
     : step === 1
     ? `<div class="welcome-swatches" role="radiogroup" aria-label="Colours">${AVATAR_SWATCHES.filter(c => !colourCost(c.hex)).map(c => `
         <button class="welcome-swatch ${c.hex.toUpperCase() === d.body.toUpperCase() ? 'on' : ''}" data-hex="${c.hex}"
@@ -8364,6 +8369,7 @@ function stepSpecies(dir) {
 }
 
 function initDressUpAvatarPicker() {
+  trackSpecies = shownSpecies();
   const track = document.getElementById('speciesTrack');
   const circle = document.querySelector('#dressUpAvatarStage .avatar-frame');
   if (!track) return;
@@ -8371,7 +8377,7 @@ function initDressUpAvatarPicker() {
 
   let html = '';
   for (let copy = 0; copy < SPECIES_LOOP_COPIES; copy++) {
-    html += AVATAR_SPECIES.map(sp => `
+    html += trackSpecies.map(sp => `
       <button class="species-silhouette-btn" data-species="${sp.id}" aria-label="Switch to ${sp.name}">
         <img src="/static/avatar/silhouette_${sp.id}.webp" alt="">
       </button>`).join('');
@@ -8391,9 +8397,9 @@ function initDressUpAvatarPicker() {
   // to a *change* - the actual preview/swatches render is done explicitly
   // below regardless, so it can't be skipped the way it was before.
   const current = currentProfile.avatar_species || 'default';
-  const startIdx = Math.max(0, AVATAR_SPECIES.findIndex(sp => sp.id === current));
+  const startIdx = Math.max(0, trackSpecies.findIndex(sp => sp.id === avatarIdOf(current)));
   const middleCopyButtons = track.querySelectorAll('.species-silhouette-btn');
-  const startBtn = middleCopyButtons[AVATAR_SPECIES.length + startIdx];
+  const startBtn = middleCopyButtons[trackSpecies.length + startIdx];
   if (startBtn) {
     startBtn.scrollIntoView({ inline: 'center', block: 'nearest' });
     setActiveSilhouette(startBtn);
@@ -8483,7 +8489,7 @@ function rewrapToMiddleCopy(track, centred) {
   if (!centred) return;
   const buttons = track.querySelectorAll('.species-silhouette-btn');
   const idx = Array.prototype.indexOf.call(buttons, centred);
-  const n = AVATAR_SPECIES.length;
+  const n = trackSpecies.length;
   const copyIndex = Math.floor(idx / n);       // 0, 1, or 2 of the 3 copies
   const middleCopyIndex = Math.floor(SPECIES_LOOP_COPIES / 2); // 1
   if (copyIndex === middleCopyIndex) return;   // already in the safe middle copy
@@ -8555,9 +8561,9 @@ function commitSpeciesSelection(id) {
 // Which way the new bird came in: the shorter way round the looping
 // carousel from the old one. 1 = from the right, -1 = from the left.
 function speciesDirection(from, to) {
-  const n = AVATAR_SPECIES.length;
-  const a = AVATAR_SPECIES.findIndex(sp => sp.id === from);
-  const b = AVATAR_SPECIES.findIndex(sp => sp.id === to);
+  const n = trackSpecies.length;
+  const a = trackSpecies.findIndex(sp => sp.id === avatarIdOf(from));
+  const b = trackSpecies.findIndex(sp => sp.id === to);
   if (a < 0 || b < 0) return 1;
   let d = ((b - a) % n + n) % n;
   if (d > n / 2) d -= n;
@@ -8765,7 +8771,6 @@ async function renderDressUp() {
       <button class="dress-util" id="resetAccessoriesBtn" aria-label="Reset outfit" title="Reset outfit">${RESET_ICON}</button>
     </div>
     <div class="dressup-hint" id="dressUpHint"></div>
-    <div class="shop-next" id="shopNext"></div>
     </div>
   `;
 
@@ -8777,11 +8782,6 @@ async function renderDressUp() {
     ]);
     const accData = await accRes.json();
     accessoryCatalog = accData.accessories || [];
-    // The shop opens a batch at a time, one per birder rank; what the next
-    // rank brings is a surprise, but not how many (the words are the
-    // server's).
-    const shopNext = document.getElementById('shopNext');
-    if (shopNext) shopNext.textContent = (accData.next_batch && accData.next_batch.message) || '';
     dressUpCategories = accData.categories || [];
     currentProfile = await profRes.json();
     const featherData = await featherRes.json();
@@ -8796,7 +8796,7 @@ async function renderDressUp() {
     document.getElementById('randomiseBtn').onclick = randomiseOutfit;
     // With one bird in the list there is nowhere to step to, so the chevrons
     // are taken off rather than left there doing nothing.
-    const onlyOne = AVATAR_SPECIES.length < 2;
+    const onlyOne = trackSpecies.length < 2;
     document.getElementById('speciesPrev').hidden = onlyOne;
     document.getElementById('speciesNext').hidden = onlyOne;
     document.getElementById('speciesPrev').onclick = () => stepSpecies(-1);
@@ -9142,34 +9142,33 @@ function selectCategory(categoryId) {
 // A bird the child has found: what it costs, and a wood button to buy it
 // (or how many feathers are still to save). Buying makes it their bird.
 function showBirdBuy(id, name, st) {
+  // Just the price: a wood button to buy it, or the price on its own while
+  // the child is still saving.
   const hintEl = document.getElementById('dressUpHint');
   if (!hintEl) return;
-  const a = /^[aeiou]/i.test(name) ? 'an' : 'a';
-  const feather = '<img class="feather-icon" src="/static/feather.webp" alt="">';
+  const price = `<span class="hint-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${st.price}</span>`;
   if (currentFeatherTotal < st.price) {
-    hintEl.innerHTML = `You found the ${escapeFlock(name)}! Save <span class="hint-feathers">${feather} ${st.price}</span> to be one - ${Math.round(st.price - currentFeatherTotal)} more to go`;
+    hintEl.innerHTML = `<span class="bird-price">${price}</span>`;
     return;
   }
-  hintEl.innerHTML = `You found the ${escapeFlock(name)}!
-    <button class="bird-buy-btn" id="birdBuyBtn">Be one for <span class="hint-feathers">${feather} ${st.price}</span></button>`;
+  hintEl.innerHTML = `<button class="bird-buy-btn" id="birdBuyBtn" aria-label="Buy the ${escapeFlock(name)} for ${st.price} feathers">${price}</button>`;
   document.getElementById('birdBuyBtn').onclick = async () => {
     try {
       const data = await (await fetch(`/avatars/${id}/purchase`, { method: 'POST' })).json();
-      if (data.status !== 'ok') { setDressUpHint("That didn't work - try again"); return; }
+      if (data.status !== 'ok') return;
       currentProfile.avatars[id].state = 'owned';
       currentProfile.avatars[id].unlocked = true;
       currentFeatherTotal = data.new_total;
       animateFeatherCount(currentFeatherTotal);
       const el = document.getElementById('dressUpPreview');
       if (el) el.classList.remove('locked-bird', 'found-bird');
-      const from = currentProfile.avatar_species;
       currentProfile.avatar_species = id;
-      setDressUpHint(`You're ${a} ${name} now!`);
+      setDressUpHint('');
       renderDressUpPreview();
       flashAvatar('tint');
       updateNavAvatarIcon();
       refreshWhatsNew();
-    } catch (e) { setDressUpHint("That didn't work - try again"); }
+    } catch (e) { /* stays for sale; the child can tap again */ }
   };
 }
 
