@@ -178,8 +178,12 @@ where it was won with a burst of leaves, holds (kicker, name, +feathers),
 then flies home - Awards, Collections, Home, the game's stars or Next level
 button - while its feathers fly to the counter. They queue one at a time; a
 tap sends one home early. The new bird's reveal card is the same moment at
-full size (same burst, "New bird!" in the kicker's style, flies to My
-Flock), and so is a new birder rank (`celebrate({big: true})`: the screen
+full size (same burst, flies to My Flock). It is the bird card simplified
+(`renderCard`): the photo with play, share and add-a-photo, the name, and a
+row of badges - pack, UK shield, migration, "New" or times heard, feathers
+won - each nudging down one line (`toggleBadgeNote`); every fact on it is a
+badge, and a tap anywhere else collects it. `/analyze-session` sends each
+bird's facts (`bird`) and `heard` for it, and so is a new birder rank (`celebrate({big: true})`: the screen
 dims, the new seal is large, the ladder underneath lights the step just
 climbed, a double burst and three times the hold; it flies into the top-bar
 badge, which changes as it lands) - big is kept for that

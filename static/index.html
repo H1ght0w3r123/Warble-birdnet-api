@@ -1061,22 +1061,6 @@
   /* --- Card --- */
   .card-wrap{width:100%;display:flex;flex-direction:column;align-items:center;}
   .progress{font-family:'Poppins';font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;animation:statFadeUp 0.35s ease both;}
-  /* The new-bird moment at full size: a carved wood frame round a cream
-     face, like every card. A rare bird's frame is gold instead. */
-  .card{
-    width:100%; max-width:300px; border-radius:20px;
-    overflow:hidden; box-shadow:0 12px 30px rgba(45,27,105,0.18);
-    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
-    border:6px solid transparent;
-    animation:cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    transform-style:preserve-3d;
-  }
-  /* A Rare find gets a violet halo as well as the border, so it announces
-     itself before the tier label is even read. */
-  .collector-strip{margin-top:12px;padding-top:11px;border-top:1px dashed var(--parch-dk);}
-  .collector-label{font-family:'Poppins';font-weight:700;font-size:9.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
-  .collector-pips{display:flex;gap:5px;justify-content:center;}
-  .pack-chip{display:inline-block;background:var(--parch-dk);color:var(--wood-edge);font-family:'Poppins';font-weight:700;font-size:10.5px;padding:4px 12px;border-radius:12px;}
   /* Same bleed-through mistake as the emoji fix below: opacity on the whole
      .fan-card lets the page behind it show through the frame's own
      transparent bits. An "away" bird is always also unfound, so fold the
@@ -1088,7 +1072,6 @@
   /* The seasonal ribbon sits over the bottom of the nameplate, so give the
      name less room on those cards rather than letting it run underneath. */
   .fan-card.away .fan-name{height:25px;}
-  .season-surprise{background:#FFF6E6;border:2px solid var(--wood);border-radius:10px;padding:7px 10px;margin-top:10px;font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-edge);}
   /* Rare cards: a gold band across the bottom of the bird window, a gold
      trim round the whole card, and the pack mark in the corners in gold.
      The band sits under the frame layer (z-index 1, after the photo) and runs
@@ -1119,36 +1102,11 @@
     background:linear-gradient(135deg,#F8D25A 0%,#D9A21B 50%,#A9740A 100%);
     filter:drop-shadow(0 0 .3px rgba(90,59,0,.6));
   }
-  .collector-pip{
-    flex:1; font-family:'Poppins'; font-weight:700; font-size:9.5px; padding:4px 0;
-    border-radius:12px; border:2px solid var(--tier-color); color:var(--ink-soft);
-    opacity:.4; text-align:center;
-  }
-  .collector-pip.got{background:var(--tier-color);color:#fff;opacity:1;}
-  .collector-pip.got:nth-child(3){color:var(--ink);}
-  .card.rare-card{box-shadow:0 12px 34px rgba(255,195,0,0.6), 0 0 0 6px rgba(255,195,0,0.2);
-    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box,
-      linear-gradient(135deg,#FFF0A8 0%,#E9B52C 30%,#B07D0E 55%,#F6D063 78%,#B88412 100%) border-box;}
-  /* White text on bright gold is 1.6:1 - unreadable. Ink is 11.3:1. */
   @keyframes cardReveal{
     0%{transform:scale(0.35) rotateY(180deg); opacity:0;}
     60%{transform:scale(1.06) rotateY(0deg); opacity:1;}
     100%{transform:scale(1) rotateY(0deg); opacity:1;}
   }
-  .card-photo{width:100%;height:200px;object-fit:cover;object-position:var(--bird-crop);background:var(--parch-dk);display:block;}
-  .card-body{padding:16px 18px 20px;}
-  .card-name{font-family:'Poppins';font-weight:900;font-size:22px;color:var(--wood-edge);}
-  .card-sci{font-size:12px;font-style:italic;color:var(--ink-soft);margin-top:2px;}
-  .card-tags{display:flex;gap:8px;margin-top:10px;animation:statFadeUp 0.4s ease 0.45s both;}
-  .tag{font-family:'Poppins';font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;}
-  /* Worded and coloured like a moment's kicker: the reveal card is the
-     new-bird moment at full size. */
-  .tag.new{background:var(--disc-cream); color:var(--wood-edge); font-weight:900; font-size:12px;
-    box-shadow:inset 0 0 0 2px var(--wood);}
-  .tag.dup{background:var(--parch-dk); color:var(--ink-soft);}
-  .feather-row{display:flex;align-items:center;gap:6px;margin-top:14px;font-family:'Poppins';font-weight:700;font-size:15px;color:var(--feather);animation:statFadeUp 0.4s ease 0.6s both;}
-  /* Heard again the same day: no feathers, said plainly rather than "+0". */
-  .feather-row.none{font-size:12.5px;color:var(--ink-soft);}
   @keyframes statFadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
   /* --- Session Results: the fanned, unrevealed hand of cards --- */
@@ -1169,7 +1127,6 @@
   .silhouette-card.tappable{cursor:pointer;animation:cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1) both, revealPulse 1.6s ease-in-out 0.8s infinite;}
   @keyframes revealPulse{0%,100%{box-shadow:0 6px 14px rgba(0,0,0,0.18);}50%{box-shadow:0 6px 22px rgba(var(--glow),0.75);}}
   .collect-hint{font-family:'Poppins';font-weight:700;font-size:12px;color:rgba(255,255,255,0.9);text-align:center;margin-top:16px;min-height:16px;animation:statFadeUp .4s ease both;}
-  .card.collectable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;}
   @keyframes collectGlow{
     0%,100%{box-shadow:0 12px 30px rgba(45,27,105,0.18);}
     50%{box-shadow:0 12px 34px rgba(var(--glow),0.85);}
@@ -1573,6 +1530,23 @@
     transition:transform .12s ease;
   }
   .heard-disc.long{font-size:16px;}
+  /* On the reveal card: "New" for a bird never heard before. */
+  .heard-disc.new{font-size:13px;}
+  /* The reveal card's feathers badge: the feather and what it won, in
+     feather blue; just the feather (faded) when it won none today. */
+  .feather-disc{
+    width:46px; height:46px; padding:0; border:none; cursor:pointer;
+    background:url('/static/btn-blank-v1.webp') center / contain no-repeat;
+    filter:drop-shadow(0 3px 5px rgba(45,27,105,0.28));
+    display:flex; align-items:center; justify-content:center; gap:1px;
+    font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1; color:var(--feather);
+    transition:transform .12s ease;
+  }
+  .feather-disc .feather-icon{height:15px;}
+  .feather-disc.none .feather-icon{height:20px; opacity:.45;}
+  .feather-disc:active{transform:scale(.9);}
+  .badge-note.feather-note, .badge-note.heard-note{color:var(--ink-brown);}
+  .badge-note.feather-note b{color:var(--feather);}
   .heard-disc:active{transform:scale(.9);}
   .detail-pack-btn{
     display:block; width:46px; height:46px; padding:0; border:none; background:none;
@@ -2612,6 +2586,16 @@
      height is fixed rather than fitted, so a long citation cannot move the
      trophy up the screen. */
   .detail-wood{--frame:7px; --inner:16px; width:100%; max-width:340px;}
+  /* The reveal card: the bird card at a size that leaves room for the hint
+     under it, turning over as it arrives; a rare bird's frame is gold.
+     Waiting to be collected it breathes a cream glow. */
+  .reveal-wood{max-width:320px; animation:cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;}
+  .reveal-wood .detail-photo{height:190px;}
+  .reveal-wood .detail-body{padding:14px 18px 16px;}
+  .reveal-wood.rare{background:linear-gradient(135deg,#FFF0A8 0%,#E9B52C 30%,#B07D0E 55%,#F6D063 78%,#B88412 100%);
+    box-shadow:0 12px 34px rgba(255,195,0,0.55), 0 2px 5px rgba(26,17,40,0.3);}
+  .reveal-wood.collectable{cursor:pointer;
+    animation:cardReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both, collectGlow 1.8s ease-in-out .6s infinite;}
   .detail-wood .detail-card{
     width:100%; max-width:none; border:none; border-radius:var(--inner);
     box-shadow:none;
@@ -4150,47 +4134,89 @@ function sortForReveal(birds) {
   });
 }
 
-// Which pack this bird belongs to. A bird has one fixed rarity now, so there
-// is no set of tiers to collect - just the pack it counts towards.
-function packStripHtml(bird) {
-  if (!bird.pack_name) return '';
-  return `
-    <div class="collector-strip">
-      <div class="collector-label">Collection</div>
-      <div class="pack-chip">${bird.pack_name}</div>
-    </div>`;
+// The reveal card is the bird card, simplified: the same photo with its
+// play, share and add-a-photo buttons, the name, and a row of badges. Every
+// fact is a badge, and each badge nudges down one line about it (the same
+// toggleBadgeNote as the bird card): the pack, the UK shield, migration,
+// new or how many times heard, and the feathers it won. A tap anywhere else
+// on the card collects it.
+function revealHeardLine(bird) {
+  const h = bird.heard || {};
+  if (!bird.is_duplicate) return `A new bird for your flock! This is the first time you've heard ${/^[AEIOU]/i.test(birdName(bird.common_name)) ? 'an' : 'a'} ${birdName(bird.common_name)}.`;
+  const first = h.first ? new Date(h.first).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  return `Heard ${h.times || 2} times now.${first ? ` First heard ${first}.` : ''}`;
+}
+function revealFeatherLine(bird) {
+  if (!bird.feathers) return "You've already won feathers for this bird today. Hear it again tomorrow!";
+  const why = !bird.is_duplicate ? (bird.tier === 'Rare' ? 'a new rare bird' : 'a new bird')
+    : (bird.tier === 'Rare' ? 'hearing a rare bird again' : 'hearing it again');
+  return `<b>+${bird.feathers} ${bird.feathers === 1 ? 'feather' : 'feathers'}</b> for ${why}. You'll collect them at the end.`;
 }
 
 function renderCard() {
   if (sessionResults.length === 0) { renderNoBirds(); return; }
   const bird = sessionResults[cardIndex];
-  const tierColor = tierColorOf(bird.tier);
+  const facts = bird.bird || null;
+  const name = birdName(bird.common_name);
+  const rare = bird.tier === 'Rare';
+  const status = facts && CONSERVATION[facts.conservation_status];
+  const away = bird.season && bird.season.state === 'away';
+  const surprise = away ? `Unusual! ${name}s have normally left by now. ` : '';
+  const migrate = facts && facts.migration ? migrationLine(name, facts.migration) : '';
   stage.innerHTML = `
     <div class="card-wrap">
-      <div class="progress">Bird ${cardIndex + 1} of ${sessionResults.length}</div>
-      <div class="card ${bird.tier === 'Rare' ? 'rare-card' : ''}" id="revealCard" style="--tier-color:${tierColor}">
-        ${bird.photo_url ? `<img class="card-photo" ${birdImg(bird.photo_url, 800)}>` : `<div class="card-photo"></div>`}
-        <div class="card-body">
-          <div class="card-name">${birdName(bird.common_name)}</div>
-          ${currentProfile.show_scientific_names !== false ? `<div class="card-sci">${bird.scientific_name}</div>` : ''}
-          <div class="card-tags">
-            <span class="tag ${bird.is_duplicate ? 'dup' : 'new'}">${bird.is_duplicate ? 'Already heard' : 'New bird!'}</span>
+      <div class="progress">${bird.is_duplicate ? 'Bird' : 'New bird! ·'} ${cardIndex + 1} of ${sessionResults.length}</div>
+      <div class="woodframe detail-wood reveal-wood ${rare ? 'rare' : ''}" id="revealCard">
+      <div class="detail-card bird-card">
+        <div class="detail-photo-wrap">
+          <div class="detail-photo-strip" id="detailPhotoStrip">
+            ${bird.photo_url ? `<img class="detail-photo" ${birdImg(bird.photo_url, 800)}>` : `<div class="detail-photo"></div>`}
           </div>
-          ${bird.season && bird.season.state === 'away'
-            ? `<div class="season-surprise">Unusual! ${birdName(bird.common_name)}s have normally left by now.</div>` : ''}
-          ${packStripHtml(bird)}
-          ${bird.feathers
-            ? `<div class="feather-row"><img class="feather-icon" src="/static/feather.webp" alt=""> +${bird.feathers}</div>`
-            : `<div class="feather-row none">Feathers already won for this one today</div>`}
-          ${bird.call_url ? `<button class="play-call-btn" data-call-url="${bird.call_url}">${PAINTED_PLAY} Hear its call</button>` : ''}
-          <a class="learn-more" href="${wikipediaUrl(bird.scientific_name)}" target="_blank" rel="noopener">Learn more ${icon('forward')}</a>
+          <div class="detail-photo-dots" id="detailPhotoDots"></div>
+          <div class="photo-actions">
+            ${bird.call_url ? `<button class="photo-icon-btn play-call-btn-icon" data-call-url="${bird.call_url}" aria-label="Hear its call"><img src="/static/btn-play-v1.webp" alt=""></button>` : ''}
+            <button class="photo-icon-btn" id="shareBirdBtn" aria-label="Share this bird"><img src="/static/btn-share-v1.webp" alt=""></button>
+            <label class="add-photo-btn" for="birdPhotoInput" aria-label="Add a photo">+</label>
+          </div>
+          <input type="file" id="birdPhotoInput" accept="image/*" style="display:none">
         </div>
+        <div class="detail-body">
+          <div class="detail-name">${name}</div>
+          ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${bird.scientific_name}</div>` : ''}
+          <div class="detail-pack" id="detailPack">
+            ${conservationDisc(facts)}
+            ${migrationDisc(facts)}
+            <button class="heard-disc ${bird.is_duplicate ? '' : 'new'} ${(bird.heard && bird.heard.times > 99) ? 'long' : ''}" id="heardDisc"
+                    aria-label="${bird.is_duplicate ? 'How many times you have heard it' : 'A new bird'}">${bird.is_duplicate ? ((bird.heard && bird.heard.times) || '') : 'New'}</button>
+            <button class="feather-disc ${bird.feathers ? '' : 'none'}" id="featherDisc" aria-label="Feathers for this bird">
+              <img class="feather-icon" src="/static/feather.webp" alt="">${bird.feathers ? `<span>+${bird.feathers}</span>` : ''}</button>
+          </div>
+          ${status ? `<div class="badge-note ${status.cls}" id="statusNote"><div><p>${CONSERVATION_INTRO} <b>${status.note}</b></p></div></div>` : ''}
+          ${migrate ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${surprise}${migrate}</p></div></div>` : ''}
+          <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
+          <div class="badge-note heard-note" id="heardNote"><div><p>${revealHeardLine(bird)}${!migrate ? ` ${surprise}` : ''}</p></div></div>
+          <div class="badge-note feather-note" id="featherNote"><div><p>${revealFeatherLine(bird)}</p></div></div>
+        </div>
+      </div>
       </div>
       <div class="collect-hint" id="collectHint"></div>
     </div>
   `;
-  const playBtn = stage.querySelector('.play-call-btn');
-  if (playBtn) playBtn.onclick = (e) => { e.stopPropagation(); playBirdCall(playBtn.dataset.callUrl, playBtn); };
+  const playBtn = stage.querySelector('.play-call-btn-icon');
+  if (playBtn) playBtn.onclick = () => playBirdCall(playBtn.dataset.callUrl, playBtn);
+  document.getElementById('shareBirdBtn').onclick = () => shareBird(bird);
+  document.getElementById('birdPhotoInput').onchange = (e) => {
+    if (e.target.files && e.target.files[0]) handleBirdPhotoChosen(e.target.files[0], bird.common_name);
+  };
+  [['statusDisc', 'statusNote'], ['migrateDisc', 'migrateNote'], ['heardDisc', 'heardNote'], ['featherDisc', 'featherNote']]
+    .forEach(([discId, noteId]) => {
+      const disc = document.getElementById(discId);
+      if (disc) disc.onclick = () => toggleBadgeNote(noteId);
+    });
+  // The pack badge, as on the bird card, but its line only says which pack:
+  // leaving for Collections mid-reveal would lose the cards still to come.
+  showDetailPack(bird.common_name, { go: false });
+  loadBirdPhotos(bird.common_name);
 
   const cardEl = document.getElementById('revealCard');
   const hint = document.getElementById('collectHint');
@@ -4202,15 +4228,17 @@ function renderCard() {
     burstLeaves(r.left + r.width / 2, r.top + r.height * 0.35);
   }, MOMENT.arrive);
 
-  // The card is tappable as soon as it's revealed. One tap drives the whole
-  // sequence: feathers fly to the counter, then the card flies to My Birds.
+  // A tap on the card - anywhere but a button or badge - collects it:
+  // a new bird flies to My Flock, one heard before spins away.
   cardEl.classList.add('collectable');
   if (hint) hint.textContent = bird.is_duplicate
-    ? 'Tap to carry on'
-    : 'Tap to add to your collection';
+    ? 'Tap the card to carry on'
+    : 'Tap the card to add it to your flock';
   showTutorial('results', 800);
-  cardEl.onclick = () => {
+  cardEl.onclick = (e) => {
+    if (e.target.closest('button, a, label, input')) return;
     cardEl.onclick = null;                   // one tap only, mid-flight taps ignored
+    stopAnyPlayingAudio();
     cardEl.classList.remove('collectable');
     if (hint) hint.textContent = '';
     // Feathers are collected once, on the Done screen - not per card.
@@ -5677,7 +5705,7 @@ document.addEventListener('click', (e) => {
 // are already in memory if Collections has been opened; otherwise they're
 // fetched once. Birds outside Warble's hundred aren't in any pack, so they
 // simply get no badge.
-async function showDetailPack(commonName) {
+async function showDetailPack(commonName, { go = true } = {}) {
   if (!allPacksRaw.length) {
     try { allPacksRaw = (await (await fetch('/collector-packs')).json()).packs || []; }
     catch (e) { return; }
@@ -5699,10 +5727,11 @@ async function showDetailPack(commonName) {
   // The badge reveals which collection the card belongs to; tapping that
   // line opens the collection with this bird's card at the front.
   const note = document.getElementById('packNote');
-  note.querySelector('p').innerHTML = `<button class="pack-note-go ${rare ? 'rare' : ''}">
-      ${p.name} Collection: ${rare ? 'Rare' : 'Common'}</button>`;
+  note.querySelector('p').innerHTML = go ? `<button class="pack-note-go ${rare ? 'rare' : ''}">
+      ${p.name} Collection: ${rare ? 'Rare' : 'Common'}</button>`
+    : `<span class="pack-note-go ${rare ? 'rare' : ''}">${p.name} Collection: ${rare ? 'Rare' : 'Common'}</span>`;
   el.querySelector('.detail-pack-btn').onclick = () => toggleBadgeNote('packNote');
-  note.querySelector('.pack-note-go').onclick = () => {
+  if (go) note.querySelector('.pack-note-go').onclick = () => {
     selectedPack = packAt;
     selectedCard = cardAt;
     renderHabitats({ keepCard: true });
@@ -6869,7 +6898,8 @@ const TUTORIALS = {
     { target: '#stopBtn', text: "Tap stop when you've finished listening." },
   ],
   results: [
-    { target: '.feather-row', text: 'Every bird you hear wins feathers! Spend them dressing up your bird in the Hoot-tique.' },
+    { target: '#detailPack', text: 'Tap the badges to find out about your bird - and the feather shows how many feathers it won!' },
+    { target: '.photo-actions', text: 'Hear its song, share it, or add your own photo. Then tap the card to collect it.' },
   ],
   collection: [
     { target: '.collection-item', text: "Every bird you've heard lives in My Flock. Tap one to see its card." },
@@ -7911,6 +7941,18 @@ async function renderSettings() {
 // touches real data - the "bird" is a hardcoded placeholder card, and the
 // tree's quiver is driven by synthetic random levels (see startDemoQuiver)
 // rather than the microphone.
+// The reveal card as it really is, with a blank photo and made-up bird.
+function previewCardHtml(isNew) {
+  return `<div class="woodframe detail-wood reveal-wood" id="previewCard">
+    <div class="detail-card bird-card">
+      <div class="detail-photo"></div>
+      <div class="detail-body">
+        <div class="detail-name">Preview Bird</div>
+        <div class="detail-pack"><span class="heard-disc ${isNew ? 'new' : ''}">${isNew ? 'New' : '2'}</span></div>
+      </div>
+    </div></div>`;
+}
+
 function renderAnimationPreview() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
@@ -7932,13 +7974,7 @@ function renderAnimationPreview() {
     <div class="profile-section-title">Bird reveal</div>
     <div class="collection-count" style="margin-bottom:10px;">Tap a button - the card below animates the same way a real reveal does.</div>
     <div style="display:flex; justify-content:center; margin:8px 0 14px;">
-      <div class="card" id="previewCard" style="--tier-color:#E8845C;">
-        <div class="card-photo"></div>
-        <div class="card-body">
-          <div class="card-name">Preview Bird</div>
-          <div class="card-tags"><span class="tag new" id="previewTag">New!</span></div>
-        </div>
-      </div>
+      ${previewCardHtml(true)}
     </div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
       <button class="again-btn" id="demoNewBirdBtn">New bird (flies to My Flock)</button>
@@ -7971,16 +8007,9 @@ function renderAnimationPreview() {
   // mutates and eventually removes the element it's given.
   function freshPreviewCard(isNew) {
     const old = document.getElementById('previewCard');
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.id = 'previewCard';
-    card.style.setProperty('--tier-color', '#E8845C');
-    card.innerHTML = `
-      <div class="card-photo"></div>
-      <div class="card-body">
-        <div class="card-name">Preview Bird</div>
-        <div class="card-tags"><span class="tag ${isNew ? 'new' : 'dup'}">${isNew ? 'New!' : 'Already heard'}</span></div>
-      </div>`;
+    const holder = document.createElement('div');
+    holder.innerHTML = previewCardHtml(isNew);
+    const card = holder.firstElementChild;
     old.replaceWith(card);
     return card;
   }
