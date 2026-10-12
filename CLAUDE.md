@@ -195,6 +195,8 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   solid colour - no grain, no light-to-dark shading, which read as banding
   on a phone - and one token, `--wood-rim`: a cream face is `background:linear-gradient(var(--disc-cream),
   var(--disc-cream)) padding-box, var(--wood-rim)` with a transparent border.
+  Boxes a child types in are wood too: every one is `.location-input`
+  (the My Flock search has its own wood bar), with a cream glow while typing.
   Panels are cream, never white; a box inside a cream card is `--cream-lt`.
   No see-through "glass" controls.
 - *Text links* stay text, one colour: brown (`--wood-edge`) on cream, white
