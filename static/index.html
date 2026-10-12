@@ -5918,8 +5918,8 @@ function buildCoreTiles(bird) {
   // Wingspan: tip to tip with the wings stretched out.
   if (bird.wingspan_cm) measures.push([icon('wingspan'), `${bird.wingspan_cm}cm`, 'Wingspan']);
   const words = [
-    [icon('habitat'), bird.habitat, 'Where it lives'],
-    [icon('diet'), bird.diet, 'What it eats'],
+    [icon('habitat'), bird.habitat, 'Habitat'],
+    [icon('diet'), bird.diet, 'Diet'],
   ];
   // One row each, the full width of the card: the icon and what it is
   // first, then the answer - long answers ("Woodland edges and gardens")
