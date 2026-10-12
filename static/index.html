@@ -1196,55 +1196,30 @@
   /* --- My Flock controls ---------------------------------------------
      The big title and the species/detection line scroll away; everything
      you actually operate stays stuck to the top, so a long collection is
-     mostly bird photos rather than chrome. The page itself is the scroller
-     (body scrolls, there is no inner pane), so position:sticky is enough. */
+     mostly bird photos rather than chrome. #scroller is the pane that
+     scrolls, so position:sticky is enough. */
   .flock-stats{font-size:12.5px;color:rgba(245,237,214,0.82);text-align:center;margin-bottom:12px;}
   .flock-stats b{font-weight:700;color:var(--parch);}
-  /* No colour of its own any more - it used to be a slab of rgba(45,27,105)
-     which read as a purple box sitting on the scene. The work is done by the
-     backdrop instead of a fill, so what is left reads as frosted glass.
-     It still needs a fill when it is stuck, and the reason is worth writing
-     down: on a 50px-tall element Chromium's backdrop blur does far less
-     than the radius suggests, because that band is all the backdrop it has
-     to sample. blur(30px) with no fill left the grid's card labels plainly
-     readable through the bar. Measuring that properly took three goes -
-     mean-absolute-difference across the bar said the grid had gone while
-     the words were still there to read. What settles it is hiding the
-     labels and diffing: the contrast of what shows through. The purple bar
-     that shipped scored 1.025, near enough invisible, and it got there on
-     coverage rather than blur. So the fill stays and the colour goes.
-     Two strengths. At rest the only thing behind it is the already-blurred
-     scene, so 0.20 is enough and the bar all but disappears - which is the
-     state you are looking at when you arrive on the screen, and the state
-     the purple slab was most obvious in. Stuck, it has the grid running
-     underneath and needs 0.72 to match what the purple one hid (measured
-     1.044 against its 1.025). Dark ink rather than rgba(45,27,105): it
-     reads as the bar dimming what is behind it, the same ink as every other
-     scrim in the app, instead of a coloured panel of its own. */
+  /* No box behind the controls, at rest or stuck: the buttons are wood and
+     stand on their own, and a see-through panel behind them read as two
+     shaded boxes (the bar and a full-width copy under it). top:-20px takes
+     off #scroller's 20px top padding - a sticky element counts "top" from
+     inside its scroller's padding, so top:0 left a strip of cards showing
+     above the stuck bar instead of sitting flush with the top of the screen. */
   .flock-bar{
-    position:sticky; top:0; z-index:40; width:100%;
+    position:sticky; top:-20px; z-index:40; width:100%;
     padding:8px 0 10px; margin-bottom:10px;
-    background:var(--flock-veil, rgba(26,17,40,0.20));
-    backdrop-filter:blur(10px) saturate(1.05);
-    -webkit-backdrop-filter:blur(10px) saturate(1.05);
-    transition:background-color .2s ease;
   }
-  .flock-bar.stuck{
-    background:rgba(26,17,40,0.72);
-    backdrop-filter:blur(18px) saturate(1.02);
-    -webkit-backdrop-filter:blur(18px) saturate(1.02);
-  }
-  /* Pulled out to the full page width so the blur covers the gutter too,
-     then padded back in, rather than a 16px strip of unblurred card
-     showing down each side. */
-  .flock-bar::before{
-    content:''; position:absolute; top:0; bottom:0; left:-16px; right:-16px;
-    background:inherit; backdrop-filter:inherit; -webkit-backdrop-filter:inherit;
-    z-index:-1;
-  }
+  /* Collapsing takes ~100px off the bar. By default the browser "anchors"
+     the scroll to keep the cards still, scrolling back up by the same
+     amount - which pulled the just-collapsed bar back down the screen, where
+     it unfolded and collapsed again. Off on My Flock, so it stays at the top. */
+  #scroller:has(#flockBar){overflow-anchor:none;}
   /* Collapsed, these two join the control row so the whole bar is one line. */
+  /* The little "My Flock" title is never shown: stuck, the bar floats over
+     the bird photos, where white words can't be read, so the sort pill gets
+     the room instead. */
   .flock-compact-title, .flock-searchbtn{display:none;}
-  .flock-bar.stuck .flock-compact-title{display:block;}
   .flock-bar.stuck .flock-searchbtn{display:flex;}
   .flock-compact-title{
     flex:0 1 auto; min-width:0; text-align:left; background:none; border:none;
@@ -1269,21 +1244,13 @@
   .flock-bar.stuck.searching .flock-search{display:flex;margin-top:8px;order:2;}
   .flock-bar.stuck .flock-ctls{order:1;}
   .flock-bar.stuck{display:flex;flex-direction:column;}
-  /* Stuck, the spacer would push the density button off on a narrow phone. */
-  .flock-bar.stuck .flock-spacer{display:none;}
   .flock-bar.stuck .flock-ctls{gap:5px;}
   /* Filter has to stay readable - "Filter (2)" ellipsised to "Filte..." is
-     not a control. Only the title and the sort pill give ground. */
+     not a control. Only the sort pill gives ground. */
   .flock-bar.stuck #flockFilterBtn,
   .flock-bar.stuck .flock-searchbtn,
   .flock-bar.stuck .flock-density{flex:0 0 auto;}
   .flock-bar.stuck #flockSortBtn{flex:0 1 auto;min-width:0;}
-  /* On the narrowest phones the longest sort name and two active filters
-     still will not fit beside the title. The title is the one thing there
-     that is a label rather than a control, so it is what goes. */
-  @media (max-width:340px){
-    .flock-bar.stuck .flock-compact-title{display:none;}
-  }
   /* Every control below is the app's one material: a carved wood rim round
      a cream face with brown words, and green when it is the chosen one. */
   .flock-search{
@@ -4818,8 +4785,12 @@ const DENSITY_ICON = {
 function watchFlockBar() {
   const bar = document.getElementById('flockBar');
   if (!bar || !window.IntersectionObserver) return;
+  // In the flow, directly above the bar, taking no room (the -1px margin
+  // cancels its 1px). It used to be position:absolute, but an absolute child
+  // of a flex column sits at the top of the column, not where it was put, so
+  // the bar collapsed while it was still well down the screen.
   const mark = document.createElement('div');
-  mark.style.cssText = 'position:absolute;height:1px;width:1px;';
+  mark.style.cssText = 'height:1px;margin-bottom:-1px;width:1px;flex:0 0 auto;';
   bar.parentNode.insertBefore(mark, bar);
   // root is the pane, not the viewport. An IntersectionObserver left on its
   // default root watches the window, and the window no longer scrolls - the
