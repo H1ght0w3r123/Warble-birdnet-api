@@ -331,18 +331,6 @@ def has_existing_sighting(common_name: str, tier: str = None) -> bool:
         return q.first() is not None
 
 
-def heard_count(common_name: str) -> dict:
-    """How many times this bird has been heard, and when first - for the
-    reveal card's heard badge."""
-    if SessionLocal is None:
-        return {"times": 0, "first": None}
-    from sqlalchemy import func
-    with SessionLocal() as session:
-        n, first = session.query(func.count(Sighting.id), func.min(Sighting.created_at)) \
-            .filter_by(common_name=common_name).one()
-        return {"times": n or 0, "first": first.isoformat() if first else None}
-
-
 def count_complete_summers(summer_species: list) -> int:
     """How many separate years every summer visitor was found within its
     season. Drives the Summer Squad trophy - the only goal in the app you can

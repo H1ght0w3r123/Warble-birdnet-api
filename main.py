@@ -216,7 +216,7 @@ async def identify(
 # Wikipedia photos + feather maths + saving — all in one call.
 # ============================================================
 
-from database import (heard_count, 
+from database import (
     init_db, has_existing_sighting, save_sighting, get_trophy_levels,
     count_pre_sunrise_sessions, count_rainy_sessions, best_pre_sunrise_session,
     count_species_found_far_apart, count_species_first_heard_since, get_bird_sessions,
@@ -688,10 +688,6 @@ async def analyze_session(
             "feathers": feathers,
             "call_url": call_url,
             "photo_url": photo_url,
-            # What the reveal card's badges open: the bird's facts (shield,
-            # migration) and how many times it's been heard, this one included.
-            "bird": bird_data(common_name),
-            "heard": heard_count(common_name),
             "description": description,
             # Extra context, unused today — kept ready for trophy logic later:
             "detected_at": now.isoformat(),

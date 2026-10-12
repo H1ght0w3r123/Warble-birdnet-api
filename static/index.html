@@ -1530,8 +1530,6 @@
     transition:transform .12s ease;
   }
   .heard-disc.long{font-size:16px;}
-  /* On the reveal card: "New" for a bird never heard before. */
-  .heard-disc.new{font-size:13px;}
   /* The reveal card's feathers badge: the feather and what it won, in
      feather blue; just the feather (faded) when it won none today. */
   .feather-disc{
@@ -1545,7 +1543,7 @@
   .feather-disc .feather-icon{height:15px;}
   .feather-disc.none .feather-icon{height:20px; opacity:.45;}
   .feather-disc:active{transform:scale(.9);}
-  .badge-note.feather-note, .badge-note.heard-note{color:var(--ink-brown);}
+  .badge-note.feather-note{color:var(--ink-brown);}
   .badge-note.feather-note b{color:var(--feather);}
   .heard-disc:active{transform:scale(.9);}
   .detail-pack-btn{
@@ -4134,18 +4132,11 @@ function sortForReveal(birds) {
   });
 }
 
-// The reveal card is the bird card, simplified: the same photo with its
-// play, share and add-a-photo buttons, the name, and a row of badges. Every
-// fact is a badge, and each badge nudges down one line about it (the same
-// toggleBadgeNote as the bird card): the pack, the UK shield, migration,
-// new or how many times heard, and the feathers it won. A tap anywhere else
-// on the card collects it.
-function revealHeardLine(bird) {
-  const h = bird.heard || {};
-  if (!bird.is_duplicate) return `A new bird for your flock! This is the first time you've heard ${/^[AEIOU]/i.test(birdName(bird.common_name)) ? 'an' : 'a'} ${birdName(bird.common_name)}.`;
-  const first = h.first ? new Date(h.first).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-  return `Heard ${h.times || 2} times now.${first ? ` First heard ${first}.` : ''}`;
-}
+// The reveal card follows the bird card's look, kept to what a find is
+// about: the photo with its play, share and add-a-photo buttons, the name,
+// and two badges - the feathers it won and the collection it belongs to -
+// each nudging down one line (toggleBadgeNote, as on the bird card). A tap
+// anywhere else on the card collects it.
 function revealFeatherLine(bird) {
   if (!bird.feathers) return "You've already won feathers for this bird today. Hear it again tomorrow!";
   const why = !bird.is_duplicate ? (bird.tier === 'Rare' ? 'a new rare bird' : 'a new bird')
@@ -4156,13 +4147,8 @@ function revealFeatherLine(bird) {
 function renderCard() {
   if (sessionResults.length === 0) { renderNoBirds(); return; }
   const bird = sessionResults[cardIndex];
-  const facts = bird.bird || null;
   const name = birdName(bird.common_name);
   const rare = bird.tier === 'Rare';
-  const status = facts && CONSERVATION[facts.conservation_status];
-  const away = bird.season && bird.season.state === 'away';
-  const surprise = away ? `Unusual! ${name}s have normally left by now. ` : '';
-  const migrate = facts && facts.migration ? migrationLine(name, facts.migration) : '';
   stage.innerHTML = `
     <div class="card-wrap">
       <div class="progress">${bird.is_duplicate ? 'Bird' : 'New bird! ·'} ${cardIndex + 1} of ${sessionResults.length}</div>
@@ -4184,17 +4170,10 @@ function renderCard() {
           <div class="detail-name">${name}</div>
           ${currentProfile.show_scientific_names !== false ? `<div class="detail-sci">${bird.scientific_name}</div>` : ''}
           <div class="detail-pack" id="detailPack">
-            ${conservationDisc(facts)}
-            ${migrationDisc(facts)}
-            <button class="heard-disc ${bird.is_duplicate ? '' : 'new'} ${(bird.heard && bird.heard.times > 99) ? 'long' : ''}" id="heardDisc"
-                    aria-label="${bird.is_duplicate ? 'How many times you have heard it' : 'A new bird'}">${bird.is_duplicate ? ((bird.heard && bird.heard.times) || '') : 'New'}</button>
             <button class="feather-disc ${bird.feathers ? '' : 'none'}" id="featherDisc" aria-label="Feathers for this bird">
               <img class="feather-icon" src="/static/feather.webp" alt="">${bird.feathers ? `<span>+${bird.feathers}</span>` : ''}</button>
           </div>
-          ${status ? `<div class="badge-note ${status.cls}" id="statusNote"><div><p>${CONSERVATION_INTRO} <b>${status.note}</b></p></div></div>` : ''}
-          ${migrate ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${surprise}${migrate}</p></div></div>` : ''}
           <div class="badge-note pack-note" id="packNote"><div><p></p></div></div>
-          <div class="badge-note heard-note" id="heardNote"><div><p>${revealHeardLine(bird)}${!migrate ? ` ${surprise}` : ''}</p></div></div>
           <div class="badge-note feather-note" id="featherNote"><div><p>${revealFeatherLine(bird)}</p></div></div>
         </div>
       </div>
@@ -4208,12 +4187,9 @@ function renderCard() {
   document.getElementById('birdPhotoInput').onchange = (e) => {
     if (e.target.files && e.target.files[0]) handleBirdPhotoChosen(e.target.files[0], bird.common_name);
   };
-  [['statusDisc', 'statusNote'], ['migrateDisc', 'migrateNote'], ['heardDisc', 'heardNote'], ['featherDisc', 'featherNote']]
-    .forEach(([discId, noteId]) => {
-      const disc = document.getElementById(discId);
-      if (disc) disc.onclick = () => toggleBadgeNote(noteId);
-    });
-  // The pack badge, as on the bird card, but its line only says which pack:
+  document.getElementById('featherDisc').onclick = () => toggleBadgeNote('featherNote');
+  // The collection badge, as on the bird card (it goes first, before the
+  // feathers), but its line only says which pack:
   // leaving for Collections mid-reveal would lose the cards still to come.
   showDetailPack(bird.common_name, { go: false });
   loadBirdPhotos(bird.common_name);
@@ -6898,7 +6874,7 @@ const TUTORIALS = {
     { target: '#stopBtn', text: "Tap stop when you've finished listening." },
   ],
   results: [
-    { target: '#detailPack', text: 'Tap the badges to find out about your bird - and the feather shows how many feathers it won!' },
+    { target: '#featherDisc', text: 'Every bird you hear wins feathers! Spend them dressing up your bird in the Hoot-tique.' },
     { target: '.photo-actions', text: 'Hear its song, share it, or add your own photo. Then tap the card to collect it.' },
   ],
   collection: [
@@ -7948,7 +7924,7 @@ function previewCardHtml(isNew) {
       <div class="detail-photo"></div>
       <div class="detail-body">
         <div class="detail-name">Preview Bird</div>
-        <div class="detail-pack"><span class="heard-disc ${isNew ? 'new' : ''}">${isNew ? 'New' : '2'}</span></div>
+        <div class="detail-pack"><span class="feather-disc"><img class="feather-icon" src="/static/feather.webp" alt=""><span>+${isNew ? 3 : 1}</span></span></div>
       </div>
     </div></div>`;
 }
