@@ -40,7 +40,9 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   grows a pair per rank, gold for the top two (Expert, Master Birder) -
   replaced by a painting when `icon-rank-<key>` arrives
   (`design-brief-rank-badges-v1.md`). Tapping the top-bar badge opens the
-  whole ladder over whatever screen is showing (`openRankLadder()`); `birder_rank()` sends
+  whole ladder over whatever screen is showing (`openRankLadder()`), as does
+  the "My rank" card on My Profile (leaves won of all of them, a bar to the
+  next rank, `paintProfileRank()`); `birder_rank()` sends
   the ladder and the "how to climb" words (`message`) with the rank. Summer Squad was removed (its first level
   needed all 13 summer visitors in one summer); High Five (weeks with all
   five challenges done) was added. Forager is capped at 100 species, Empty
