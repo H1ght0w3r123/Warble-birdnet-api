@@ -9123,7 +9123,8 @@ async function trySpecialColour(hex, name, cost) {
     colourPreview = hex;
     const el = document.getElementById('dressUpPreview');
     avatarSwapGen++;
-    if (el) el.innerHTML = avatarSvg(hex, 252, currentProfile.equipped, false, currentProfile.avatar_species);
+    const framed = framedSpecies();
+    if (el) el.innerHTML = avatarSvg(hex, 252, framed === currentProfile.avatar_species ? currentProfile.equipped : null, false, framed);
     setDressUpHint(currentFeatherTotal >= cost
       ? `${name}: ${cost} feathers. Tap it again to buy!`
       : `${name} costs ${cost} feathers - ${Math.round(cost - currentFeatherTotal)} more to go`);
@@ -9147,12 +9148,28 @@ async function trySpecialColour(hex, name, cost) {
   } catch (e) { setDressUpHint("That didn't work - try again"); }
 }
 
+// The bird in the Hoot-tique's frame right now. Usually the child's own, but
+// while the carousel rests on a found bird not bought yet it's that one -
+// and a colour picked then has to show on it, not snap back to their own.
+function framedSpecies() {
+  const id = activeSpeciesBtn && activeSpeciesBtn.isConnected && activeSpeciesBtn.dataset.species;
+  return id && avatarLock(id) ? id : currentProfile.avatar_species;
+}
+
 function renderDressUpPreview() {
   // Always the avatar here, regardless of any profile photo - this is the
   // bird being dressed, so the accessories have something to sit on.
   const el = document.getElementById('dressUpPreview');
   avatarSwapGen++;   // a plain re-render ends any bird swap in progress
   colourPreview = null;   // ...and any special colour being tried on
+  const framed = framedSpecies();
+  if (framed !== currentProfile.avatar_species) {
+    // A found bird on show: in the colour, without the outfit (it isn't theirs yet).
+    if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, framed);
+    const sp = AVATAR_SPECIES.find(x => x.id === framed);
+    showBirdBuy(framed, sp ? sp.name : framed, avatarLock(framed));   // its price stays under it
+    return;
+  }
   if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, currentProfile.avatar_species);
 }
 
