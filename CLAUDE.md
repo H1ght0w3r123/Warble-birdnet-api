@@ -72,10 +72,21 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   longer count as leaves; their feathers were kept).
 - `accessories.py` — 70 Dress Up items priced 5, 10, 15, 20, 30, 40, 50 or 75
   (1,880 for the lot). Four seasonal restocks a year are planned:
-  `design-brief-shop-restock-v1.md`. Feather colours: nine free, nine
+  `design-brief-shop-restock-v1.md`. Feather colours: every bird starts
+  **Natural** - its own plumage, no colour change (`NATURAL`, stored as
+  `avatar_body`; the first swatch on the wheel, a cream one with the
+  feather). Changing colour unlocks at the third birder rank
+  (`COLOUR_UNLOCK_RANK` = 2, Eavesdropper, the seal numbered 3): until then
+  the wheel isn't shown and the server refuses any other colour; the rank-up
+  moment says so (`colours_new`) and the Hoot-tique lights. A family that
+  had coloured its bird before this keeps that colour. Then nine free, nine
   special at 10 each (`SPECIAL_COLOURS` in `main.py`), bought as
-  `colour:#HEX` rows in the owned-items table (not counted by Preener). Hats are
-  fitted per bird (see its docstring).
+  `colour:#HEX` rows in the owned-items table (not counted by Preener). A
+  bird delivered with natural-colour layers (`nat` in `PROTO_BIRDS`; the
+  Blue Tit so far) draws them for Natural; the rest wash their grey layers
+  with their nearest real colour (`NATURAL_TINT`) until theirs arrive. Hats are
+  fitted per bird (see its docstring); a bird can wear another's fitted set
+  (`hats:` in `PROTO_BIRDS` - the Blue Tit wears the Kingfisher's).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
   Pitched so a child warbling about four times a week (after school, a
   weekend morning, garden plus one other place) finishes all five most
@@ -152,7 +163,7 @@ also be in `TUTORIAL_KEYS` in `main.py`. "Something new here" is an area in
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
-pick a bird, a colour, then an optional first name. It's skipped for a
+pick a bird, then an optional first name (no colour: every bird starts Natural). It's skipped for a
 profile that already has a name or a non-default bird, and the tutorials
 wait for it (`welcomeDecided`). The first mic tap shows "Warble needs to
 listen" (`renderMicIntro`, tutorial key `mic_intro`) before the browser's
@@ -164,10 +175,10 @@ buy something new (`whatsNew.dressup`).
 
 **Avatar birds: three to start, the rest found then bought.** Cardinal,
 Parrot and Penguin are free (none of them live here). The UK birds -
-the Robin (id `classic`; it was called Classic), Duckling, Woodpecker, Owl, Kingfisher - are *found* the
+the Robin (id `classic`; it was called Classic), Duckling, Woodpecker, Owl, Kingfisher, Blue Tit - are *found* the
 first time the child hears the real bird or one of its family
 (`AVATAR_UNLOCKS` in `main.py`: a robin, stonechat or redstart; any
-duck/goose/swan; any woodpecker; any owl; a Kingfisher) and then bought for
+duck/goose/swan; any woodpecker; any owl; a Kingfisher; any tit) and then bought for
 `AVATAR_PRICE` (30) in the Hoot-tique. A bird still to find isn't shown
 anywhere (`shownSpecies()`: finding it is the surprise); a found one joins
 the carousel showing just its price - a wood button with the feather and
@@ -176,8 +187,8 @@ counted by Preener). Not trophies - an avatar is who the child is, so it
 comes from the birds. When the price arrived, a family already playing kept
 free whatever it had (`_keep_avatars_already_had`, run once at start-up,
 `avatars:priced` mark). The server refuses a bird the child doesn't own on
-`POST /profile`. Four more are being painted (`AVATARS_TO_COME`,
-`design-brief-avatar-birds-v1.md`: Blue Tit, Blackbird, Magpie, Seagull);
+`POST /profile`. Three more are being painted (`AVATARS_TO_COME`,
+`design-brief-avatar-birds-v1.md`: Blackbird, Magpie, Seagull);
 when the art is in, move each into `AVATAR_UNLOCKS` and the page's
 `AVATAR_SPECIES`.
 

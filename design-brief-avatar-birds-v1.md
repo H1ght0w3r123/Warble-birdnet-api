@@ -8,11 +8,13 @@ has to **find** - hear the real bird, or one of its family, out on a warble -
 and then buy for 30 feathers. Five exist already: the Robin,
 Duckling, Woodpecker, Owl and Kingfisher.
 
-This brief asks for four more, each a bird a child in the UK can find:
+This brief asked for four more, each a bird a child in the UK can find.
+**The Blue Tit is delivered and in the app** - deliver the other three the
+way it came, natural-colour layers included (see "Natural colour" below):
 
 | Avatar | File folder | Found by hearing | Character |
 |---|---|---|---|
-| Blue Tit | `bluetit` | any tit: Blue, Great, Coal, Marsh or Willow Tit | Tiny, round, cheeky; blue cap, white cheeks, dark eye-stripe |
+| Blue Tit (delivered) | `bluetit` | any tit: Blue, Great, Coal, Marsh or Willow Tit | Tiny, round, cheeky; blue cap, white cheeks, dark eye-stripe |
 | Blackbird | `blackbird` | a Blackbird or a thrush: Song Thrush, Mistle Thrush, Redwing, Ring Ouzel | Sleek, glossy, a bright orange beak and eye-ring |
 | Magpie | `magpie` | a crow: Magpie, Jay, Jackdaw, Carrion Crow, Rook, Raven | Clever and showy; long tail, a blue-green sheen on the black |
 | Seagull | `seagull` | any gull: Herring, Black-headed, Common or Great Black-backed | Big, cheerful, a yellow beak; the seaside one |
@@ -74,6 +76,22 @@ colour the child picks.
 - **Roughly half to two-thirds of the bird should take the colour.** Less
   and the swatches barely change it; much more and it has no face left in
   near-black.
+
+### Natural colour
+
+Every bird starts in its own plumage: "Natural" is the first feather swatch,
+and picking another colour only opens at the third birder rank. So each
+bird also needs its colourable layers painted in the real bird's colours,
+in a `natural-colour/` folder, same canvas and position as the grey ones:
+
+| File | Replaces, for Natural |
+|---|---|
+| `natural_head.png` | the grey head |
+| `natural_wing_left.png`, `natural_wing_right.png` | the grey wings |
+
+The Blue Tit's set is the model. The eight birds already in the app will
+get theirs too; until then the app tints their grey layers with the nearest
+real colour.
 
 ## Size and placement
 

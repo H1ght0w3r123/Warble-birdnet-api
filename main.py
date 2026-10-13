@@ -480,6 +480,8 @@ def rank_now(leaves: int) -> dict:
     (shop_new) - the rank-up moment says so."""
     r = birder_rank(leaves)
     r["shop_new"] = len(SHOP_BATCHES[r["index"]]) if 0 < r["index"] < len(SHOP_BATCHES) else 0
+    # The rank that opens the colour wheel says so too.
+    r["colours_new"] = r["index"] == COLOUR_UNLOCK_RANK
     return r
 
 
@@ -538,12 +540,12 @@ AVATAR_UNLOCKS = {
     "owl":        {"hint": "Hear an owl to find it",
                    "species": {"Tawny Owl", "Barn Owl", "Little Owl", "Long-eared Owl"}},
     "kingfisher": {"hint": "Hear a Kingfisher to find it", "species": {"Common Kingfisher"}},
+    "bluetit":    {"hint": "Hear a tit to find it",
+                   "species": {"Eurasian Blue Tit", "Great Tit", "Coal Tit", "Marsh Tit", "Willow Tit"}},
 }
 # Painting now (design-brief-avatar-birds-v1.md). When a bird's art is in,
 # move it into AVATAR_UNLOCKS and add it to AVATAR_SPECIES in the page.
 AVATARS_TO_COME = {
-    "bluetit":    {"hint": "Hear a tit to find it",
-                   "species": {"Eurasian Blue Tit", "Great Tit", "Coal Tit", "Marsh Tit", "Willow Tit"}},
     "blackbird":  {"hint": "Hear a blackbird or a thrush to find it",
                    "species": {"Eurasian Blackbird", "Song Thrush", "Mistle Thrush", "Redwing", "Ring Ouzel"}},
     "magpie":     {"hint": "Hear a magpie or a crow to find it",
@@ -602,6 +604,15 @@ def avatar_states(heard: set = None) -> dict:
 
 
 # --- Feather colours ---------------------------------------------------------
+# Every bird starts as itself: NATURAL, its own plumage, no colour change.
+# Changing the colour is something a child grows into - the wheel opens at
+# the third birder rank (COLOUR_UNLOCK_RANK is the rank's index: 2 is
+# Eavesdropper, the seal numbered 3), and the rank-up moment says so. Natural
+# stays on the wheel after that, first, and is always allowed.
+# A family already colouring its bird before this keeps that colour on the
+# bird whatever its rank; it just can't pick another until the wheel opens.
+NATURAL = "NATURAL"
+COLOUR_UNLOCK_RANK = 2
 # Nine everyday colours are free; the nine bolder ones cost feathers - so
 # there is always something left to spend on, alongside the shop. Bought
 # colours are kept with the Dress Up items as "colour:#HEX" (they don't count
@@ -624,8 +635,16 @@ def colour_states(owned: set = None) -> dict:
             for hx in SPECIAL_COLOURS}
 
 
+def colour_change_open(rank: int = None) -> bool:
+    return (shop_rank() if rank is None else rank) >= COLOUR_UNLOCK_RANK
+
+
 def colour_is_open(hx: str) -> bool:
     hx = (hx or "").upper()
+    if hx == NATURAL:
+        return True
+    if not colour_change_open():
+        return False
     return hx not in SPECIAL_COLOURS or colour_states()[hx]["owned"]
 
 
@@ -1153,7 +1172,7 @@ async def rename_location_endpoint(location_id: int, name: str = Form(...)):
 @app.get("/profile")
 def profile():
     return {**get_profile(), "avatars": avatar_states(), "colours": colour_states(),
-            "rank": rank_now(total_leaves())}
+            "colour_change": colour_change_open(), "rank": rank_now(total_leaves())}
 
 
 @app.post("/profile")
@@ -1445,8 +1464,9 @@ def whats_new_items() -> dict:
                     if aid not in owned and a["cost"] <= feathers and shop_is_open(aid, rank, owned)}
                    | {f"batch:{n}" for n in range(1, rank + 1)}
                    | {f"avatar:{sp}" for sp, st in avatar_states(heard).items() if st["state"] != "locked"}
+                   | ({"colours"} if colour_change_open(rank) else set())
                    | {f"colour:{hx}" for hx, st in colour_states(owned).items()
-                      if not st["owned"] and st["cost"] <= feathers},
+                      if colour_change_open(rank) and not st["owned"] and st["cost"] <= feathers},
         # Things on Home (Home itself never lights up)
         # A new week's set counts as new, as does each challenge finished
         "challenges": {f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done}
@@ -1545,6 +1565,9 @@ async def purchase_colour(hex_code: str):
     hx = "#" + hex_code.strip("#").upper()
     if hx not in SPECIAL_COLOURS:
         return JSONResponse(status_code=404, content={"status": "error", "message": "Not a colour you buy."})
+    if not colour_change_open():
+        return {"status": "failed", "new_total": get_total_feathers(), "newly_earned_trophies": [],
+                "trophy_feathers": 0, "rank_up": None}
     success = purchase_accessory(f"colour:{hx}", SPECIAL_COLOUR_COST, "colour")
     if success:
         update_profile(avatar_body=hx)

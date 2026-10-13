@@ -644,16 +644,12 @@
     font-family:'Poppins'; font-weight:900; font-size:13px; line-height:1;}
   .welcome-bird-btn.nudge{animation:birdNudge .35s ease;}
   @keyframes birdNudge{25%{transform:translateX(-4px);} 75%{transform:translateX(4px);}}
-  .welcome-swatches{display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; width:100%; max-width:260px;}
-  .welcome-swatch{aspect-ratio:1; border-radius:50%; border:3px solid rgba(255,255,255,0.85); background:var(--sw);
-    cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.35); transition:transform .12s ease;}
-  .welcome-swatch.on{transform:scale(1.15); border-color:var(--sage); box-shadow:0 0 0 3px var(--wood-edge), 0 0 12px 3px rgba(var(--glow),0.8);}
   .welcome-name{max-width:280px; text-align:center; font-size:20px;}
   .welcome-hint{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9); margin-top:-6px;}
   .welcome-actions{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; max-width:320px; margin-top:4px;}
   .welcome-back{border:none; background:none; color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
     padding:10px 6px; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}
-  @media (prefers-reduced-motion: reduce){ .welcome-bird-btn, .welcome-swatch{transition:none;} }
+  @media (prefers-reduced-motion: reduce){ .welcome-bird-btn{transition:none;} }
 
   /* --- Tutorial bubbles ----------------------------------------------
      The screen dims, the thing being explained stays lit inside a cream
@@ -2220,6 +2216,9 @@
     background:var(--disc-cream) url('/static/feather.webp') center / 9px no-repeat;
     box-shadow:0 0 0 1.5px var(--wood), 0 1px 2px rgba(0,0,0,0.3);
   }
+  .color-wheel[hidden]{display:none;}
+  /* Natural: no colour change - a cream swatch with the painted feather. */
+  .color-wheel .color-swatch.natural{background:var(--disc-cream) url('/static/feather.webp') center / 62% no-repeat;}
   .color-wheel .color-swatch{
     position:relative; flex:0 0 auto; width:var(--sw); height:var(--sw); border-radius:50%;
     border:2px solid #fff; cursor:pointer; padding:0; scroll-snap-align:start;
@@ -4422,9 +4421,12 @@ function celebrateRank(rank, from) {
   const next = rank.next_name ? `Next: ${rank.next_name} at ${rank.next_at} leaves` : 'The very top rank!';
   // Each rank opens a new batch in the Hoot-tique.
   const shop = rank.shop_new ? `<span class="moment-next moment-shop">New accessories drop in the Hoot-tique!</span>` : '';
+  // ...and one opens the colour wheel.
+  if (rank.colours_new && currentProfile) currentProfile.colour_change = true;
+  const colours = rank.colours_new ? `<span class="moment-next moment-shop">Now you can change the colour of your feathers!</span>` : '';
   return celebrate({ kicker: 'New birder rank!', name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
     icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'topRank',
-    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}` })
+    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}${colours}` })
     .then(r => { landed(); return r; });
 }
 function celebratePack(p, from) {
@@ -7158,18 +7160,23 @@ loadAccessoryCache();
 // name. Shown once, only while the profile is still untouched; a family that
 // has already chosen a name or a bird never sees it. Settings > Tutorials >
 // "Show tutorials again" brings it back.
+// No colour step: every bird starts as itself (Natural), and colouring it is
+// something the child grows into (the wheel opens at the third birder rank).
+// DEFAULT_BODY is the old default colour, still stored by profiles made
+// before Natural existed - it counts as untouched too.
 const DEFAULT_BODY = '#9CAF88';
 const WELCOME_STEPS = [
   { title: 'Which bird are you?', say: 'Welcome to Warble! Which bird are you? Tap one.' },
-  { title: 'Pick your colour', say: 'Pick a colour for your feathers.' },
   { title: "What's your name?", say: "What's your name? Ask a grown-up to help you type it." },
 ];
+const WELCOME_LAST = WELCOME_STEPS.length - 1;
 let welcomeDraft = null;
 
 function profileIsUntouched() {
   const sp = currentProfile.avatar_species || 'default';
+  const body = currentProfile.avatar_body;
   return !firstNameOrDefault() && (sp === 'default' || sp === 'classic') &&
-    (currentProfile.avatar_body || DEFAULT_BODY).toUpperCase() === DEFAULT_BODY;
+    (isNatural(body) || body.toUpperCase() === DEFAULT_BODY);
 }
 
 welcomeDecided = (async () => {
@@ -7192,7 +7199,7 @@ function renderWelcome(step = 0) {
     welcomeDraft = {
       species: AVATAR_SPECIES.some(s => s.id === sp) && !avatarLock(sp) ? sp
         : (AVATAR_SPECIES.find(s => !avatarLock(s.id)) || AVATAR_SPECIES[0]).id,
-      body: currentProfile.avatar_body || DEFAULT_BODY,
+      body: NATURAL,
       name: firstNameOrDefault(),
     };
   }
@@ -7211,11 +7218,6 @@ function renderWelcome(step = 0) {
           ${lock ? '<span class="bird-lock" aria-hidden="true">?</span>' : ''}
         </button>`; }).join('')}</div>
        <div class="welcome-hint" id="welcomeLockHint"></div>`
-    : step === 1
-    ? `<div class="welcome-swatches" role="radiogroup" aria-label="Colours">${AVATAR_SWATCHES.filter(c => !colourCost(c.hex)).map(c => `
-        <button class="welcome-swatch ${c.hex.toUpperCase() === d.body.toUpperCase() ? 'on' : ''}" data-hex="${c.hex}"
-                style="--sw:${c.hex}" role="radio" aria-checked="${c.hex.toUpperCase() === d.body.toUpperCase()}"
-                aria-label="${c.name}"></button>`).join('')}</div>`
     : `<input type="text" id="welcomeName" class="location-input welcome-name" placeholder="First name"
               maxlength="24" autocomplete="given-name" value="${escapeFlock(d.name)}">
        <div class="welcome-hint">Ask a grown-up to help you type it</div>`;
@@ -7233,8 +7235,8 @@ function renderWelcome(step = 0) {
       ${picker}
       <div class="welcome-actions">
         ${step > 0 ? '<button class="welcome-back" id="welcomeBack">Back</button>' : '<span></span>'}
-        ${step === 2 ? '<button class="welcome-back" id="welcomeSkip">Skip</button>' : ''}
-        <button class="tut-ok" id="welcomeNext">${step === 2 ? "That's me!" : 'Next'}</button>
+        ${step === WELCOME_LAST ? '<button class="welcome-back" id="welcomeSkip">Skip</button>' : ''}
+        <button class="tut-ok" id="welcomeNext">${step === WELCOME_LAST ? "That's me!" : 'Next'}</button>
       </div>
     </div>`;
 
@@ -7256,13 +7258,6 @@ function renderWelcome(step = 0) {
     });
     redraw();
   });
-  stage.querySelectorAll('.welcome-swatch').forEach(b => b.onclick = () => {
-    d.body = b.dataset.hex;
-    stage.querySelectorAll('.welcome-swatch').forEach(x => {
-      x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b);
-    });
-    redraw();
-  });
   const speak = document.getElementById('welcomeSpeak');
   if (speak) speak.onclick = () => speakAloud(st.say, speak);
   const name = document.getElementById('welcomeName');
@@ -7272,7 +7267,7 @@ function renderWelcome(step = 0) {
   const skip = document.getElementById('welcomeSkip');
   if (skip) skip.onclick = () => finishWelcome(false);
   document.getElementById('welcomeNext').onclick = () =>
-    step < WELCOME_STEPS.length - 1 ? renderWelcome(step + 1) : finishWelcome(true);
+    step < WELCOME_LAST ? renderWelcome(step + 1) : finishWelcome(true);
 }
 
 async function finishWelcome(withName) {
@@ -7341,6 +7336,8 @@ const AVATAR_SWATCHES = [
   { hex: '#7B3FB5', name: 'Purple' },
   { hex: '#D0309A', name: 'Magenta' },
 ].sort((a, b) => swatchHueKey(a.hex) - swatchHueKey(b.hex));
+// First on the wheel: Natural, the bird in its own colours.
+AVATAR_SWATCHES.unshift({ hex: 'NATURAL', name: 'Natural' });
 
 // Where a colour sits going round the spectrum. The wheel is turned so the
 // reds just short of 360 count as the start, not the end, and the two with no
@@ -7418,7 +7415,8 @@ const AVATAR_SPECIES = PROTO_ONLY
   ? [{ id: 'classic', name: 'Robin' }, { id: 'cardinal', name: 'Cardinal' },
      { id: 'parrot', name: 'Parrot' }, { id: 'kingfisher', name: 'Kingfisher' },
      { id: 'owl', name: 'Owl' }, { id: 'duckling', name: 'Duckling' },
-     { id: 'penguin', name: 'Penguin' }, { id: 'woodpecker', name: 'Woodpecker' }]
+     { id: 'penguin', name: 'Penguin' }, { id: 'woodpecker', name: 'Woodpecker' },
+     { id: 'bluetit', name: 'Blue Tit' }]
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
@@ -7461,6 +7459,24 @@ let accessoryFitCache = {};
 //   wash the mask marking which of that layer's pixels take the child's
 //        colour. Omit it and the layer never recolours.
 const PROTO_BIRDS = {
+  // Delivered with its own colours too: nat names the layer drawn instead of
+  // a grey one when the child picks Natural (see protoAvatarSvg). The wing
+  // overlays keep the olive shoulders and white wing bars on top of the
+  // wings, and flap with them. Its head is the Kingfisher's shape (crown
+  // y 10.8 against 11.1, face x 21-79), so it wears the Kingfisher's hats
+  // until it has its own (hats: 'kingfisher').
+  bluetit: { dir: '/static/avatar/bluetit/', shiftY: 4.8, scale: 1.2, wingY: 50.5, hats: 'kingfisher', stack: [
+    { f: 'tail.webp',        grp: 'under' },
+    { f: 'foot-l.webp',      grp: 'under' },
+    { f: 'foot-r.webp',      grp: 'under' },
+    { f: 'body.webp',        grp: 'torso' },
+    { f: 'wing-l.webp',      grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-l-over.webp', grp: 'wingL' },
+    { f: 'wing-r.webp',      grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'wing-r-over.webp', grp: 'wingR' },
+    { f: 'head.webp',        grp: 'over',  wash: 'wash-head.webp',   nat: 'natural-head.webp' },
+    { f: 'face.webp',        grp: 'over' },
+  ]},
   classic: { dir: '/static/avatar/classic/', shiftY: 5.0, scale: 1.2, stack: [
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
@@ -7585,6 +7601,18 @@ function protoWashFilter(id, hex) {
     </filter>`;
 }
 
+// The feather colour that means "no colour change": the bird as it really
+// looks. Stored as the profile's avatar_body like any swatch.
+const NATURAL = 'NATURAL';
+const isNatural = body => !body || String(body).toUpperCase() === NATURAL;
+// Each bird's nearest real colour, for its grey layers until its natural
+// layers are delivered (the Blue Tit's are in, so it never uses this).
+const NATURAL_TINT = {
+  classic: '#8B5A2B', cardinal: '#F91E27', parrot: '#6DAA44', penguin: '#1A1128',
+  duckling: '#F2C94C', woodpecker: '#1A1128', kingfisher: '#0197B8', owl: '#8B5A2B',
+  bluetit: '#2F5FD0',
+};
+
 function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer, lift, crest) {
   const bird = protoBird(species);
   const d = bird.dir;
@@ -7592,14 +7620,19 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
   // on the page at once, and url(#id) would otherwise resolve to whichever was
   // written first.
   const u = 'p' + (++protoUid);
-  const hex = (body || '#9CAF88').replace('#', '').toUpperCase();
+  // Natural: the bird in its own colours. A bird delivered with natural
+  // layers draws those instead of its grey ones; until a bird's arrive, its
+  // grey ones are washed with the nearest real colour (NATURAL_TINT).
+  const natural = isNatural(body);
+  const hex = (natural ? (NATURAL_TINT[species] || NATURAL_TINT.classic) : (body || '#9CAF88'))
+    .replace('#', '').toUpperCase();
   const img = (file, extra) => `<image xlink:href="${d}${file}" href="${d}${file}" x="0" y="0" width="100" height="100" preserveAspectRatio="none"${extra || ''}/>`;
   const maskId = i => `${u}m${i}`;
 
   // The plain layer, then a washed copy of the same layer laid over it through
   // the mask - so the fixed parts show the original paint, only the plumage
   // takes the colour, and the mask's own soft edge blends the two.
-  const plain = (lay, i) => img(lay.f) +
+  const plain = (lay, i) => (natural && lay.nat) ? img(lay.nat) : img(lay.f) +
     (lay.wash ? `<g mask="url(#${maskId(i)})">${img(lay.f, ` filter="url(#${u}f)"`)}</g>` : '');
   // Under most hats the head and face are cut by the bird's crest mask, so
   // the crest doesn't show through the hat. Body, wings and feet never are.
@@ -7668,7 +7701,7 @@ function avatarSvg(body, size, equipped, dancing, species) {
     // canvas, so they go inside the bird's shift-and-scale like the shoes do.
     // Most also come with a mask that hides the bird's crest or tuft, which
     // would otherwise poke up through the hat.
-    const birdKey = PROTO_BIRDS[species] ? species : 'classic';
+    const birdKey = PROTO_BIRDS[species] ? (PROTO_BIRDS[species].hats || species) : 'classic';
     const fit = equipped.hats && accessoryFitCache[equipped.hats];
     const hatLayer = cat => (cat === 'hats' && fit)
       ? `<g transform="${protoTransform(protoBird(species))}"><image xlink:href="/static/accessories/hats/${birdKey}/${fit.art}.webp" href="/static/accessories/hats/${birdKey}/${fit.art}.webp" x="0" y="0" width="100" height="100"/></g>`
@@ -8222,6 +8255,7 @@ async function saveAvatarColors() {
 // Relative luminance of a hex swatch, for deciding what colour a mark laid
 // on top of it has to be.
 function swatchLuminance(hex) {
+  if (isNatural(hex)) return 1;   // the Natural swatch is cream
   const v = i => {
     const c = parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) / 255;
     return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -8279,6 +8313,11 @@ function centreSwatch(wheel, hex, tries) {
 function renderSwatchRows() {
   const wheel = document.getElementById('colorWheel');
   if (!wheel) return;
+  // Colour change opens at the third birder rank (COLOUR_UNLOCK_RANK in
+  // main.py). Until then the wheel isn't there at all - a new rank is a
+  // delivery, like the Hoot-tique's batches - and the bird is itself.
+  wheel.hidden = !(currentProfile && currentProfile.colour_change);
+  if (wheel.hidden) return;
   const current = (currentProfile.avatar_body || '').toUpperCase();
 
   if (wheel.dataset.built !== String(AVATAR_SWATCHES.length)) {
@@ -8287,9 +8326,9 @@ function renderSwatchRows() {
     for (let copy = 0; copy < SWATCH_COPIES; copy++) {
       AVATAR_SWATCHES.forEach(({ hex, name }) => {
         const btn = document.createElement('button');
-        btn.className = 'color-swatch';
+        btn.className = 'color-swatch' + (isNatural(hex) ? ' natural' : '');
         btn.dataset.hex = hex;
-        btn.style.background = hex;
+        if (!isNatural(hex)) btn.style.background = hex;
         btn.style.borderColor = '#fff';
         btn.setAttribute('aria-label', name + ' feathers');
         // Only the middle copy is real to a screen reader or the Tab key;

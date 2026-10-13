@@ -146,7 +146,7 @@ class Profile(Base):
     # scene picks its own dawn/day/dusk/night variant from the clock.
     home_scene = Column(String, default="none")
     # Sage green: the starting feather colour, and one of the nine swatches.
-    avatar_body = Column(String, default="#9CAF88")
+    avatar_body = Column(String, default="NATURAL")
     avatar_face = Column(String, default="#E8845C")
     avatar_beak = Column(String, default="#8E87B8")
     avatar_species = Column(String, default="default")  # 'default' or one of the bird-selector species
@@ -282,7 +282,7 @@ def init_db():
             session.commit()
         existing_profile = session.query(Profile).first()
         if existing_profile is None:
-            session.add(Profile(name="Explorer", avatar_body="#9CAF88", avatar_face="#E8845C", avatar_beak="#8E87B8"))
+            session.add(Profile(name="Explorer", avatar_body="NATURAL", avatar_face="#E8845C", avatar_beak="#8E87B8"))
             session.commit()
         else:
             # One-time migration: "Breast" was renamed to "Face" - avatar_breast
@@ -1081,7 +1081,7 @@ def save_location_name(lat: float, lng: float, name: str):
 def get_profile():
     default = {
         "first_name": "Explorer", "last_name": None,
-        "avatar_body": "#9CAF88", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
+        "avatar_body": "NATURAL", "avatar_face": "#E8845C", "avatar_beak": "#8E87B8",
         "avatar_species": "default",
         "avatar_photo": None, "show_scientific_names": True, "home_scene": "none",
         "equipped": {"hats": None, "neck": None, "held": None, "glasses": None, "shoes": None},
@@ -1091,7 +1091,7 @@ def get_profile():
     with SessionLocal() as session:
         p = session.query(Profile).first()
         if p is None:
-            p = Profile(first_name="Explorer", avatar_body="#9CAF88", avatar_face="#E8845C", avatar_beak="#8E87B8")
+            p = Profile(first_name="Explorer", avatar_body="NATURAL", avatar_face="#E8845C", avatar_beak="#8E87B8")
             session.add(p)
             session.commit()
         # One-time migration: the name used to be a single field. Carry it into
@@ -1102,7 +1102,7 @@ def get_profile():
         return {
             "first_name": p.first_name or "Explorer",
             "last_name": p.last_name,
-            "avatar_body": p.avatar_body or "#9CAF88",
+            "avatar_body": p.avatar_body or "NATURAL",
             "avatar_face": p.avatar_face or "#E8845C",
             "avatar_beak": p.avatar_beak or "#8E87B8",
             "avatar_species": p.avatar_species or "default",
