@@ -8559,13 +8559,16 @@ function setActiveSilhouette(btn) {
 function commitSpeciesSelection(id) {
   const lock = avatarLock(id);
   const el = document.getElementById('dressUpPreview');
+  // The bird in the frame now, which may be a found one being looked at.
+  const shown = (el && el.dataset.shown) || currentProfile.avatar_species;
   if (lock && lock.state === 'found') {
     // Found but not bought: the bird in its colours, and what it costs.
-    // Nothing is saved until it's bought.
+    // Nothing is saved until it's bought. It slides in and bumps like any
+    // other bird, just without the outfit (it isn't theirs yet).
     const sp = AVATAR_SPECIES.find(x => x.id === id);
     if (el) {
-      el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, id);
       el.classList.add('locked-bird', 'found-bird');
+      if (shown !== id) swapAvatar(shown, id, null);
     }
     showBirdBuy(id, sp ? sp.name : id, lock);
     return;
@@ -8586,13 +8589,12 @@ function commitSpeciesSelection(id) {
   if (el && el.classList.contains('locked-bird')) {
     el.classList.remove('locked-bird', 'found-bird');
     setDressUpHint('');
-    if (currentProfile.avatar_species === id) { renderDressUpPreview(); return; }
-    el.innerHTML = '';
+    // Back from a found bird to their own: the same swipe, not a jump.
+    if (currentProfile.avatar_species === id) { swapAvatar(shown, id); return; }
   }
   if (currentProfile.avatar_species === id) return;
-  const from = currentProfile.avatar_species;
   currentProfile.avatar_species = id;
-  swapAvatar(from, id);
+  swapAvatar(shown, id);
   updateNavAvatarIcon();
   saveSpeciesSelection(id);
 }
@@ -8628,10 +8630,11 @@ function preloadBird(species) {
 // avatarSwapGen is bumped by every swap and every plain re-render, so a step
 // from an older swap that fires late does nothing.
 let avatarSwapGen = 0;
-function swapAvatar(from, to) {
+function swapAvatar(from, to, equipped = currentProfile.equipped) {
   const el = document.getElementById('dressUpPreview');
   if (!el) return;
-  const html = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, to);
+  el.dataset.shown = to;
+  const html = avatarSvg(currentProfile.avatar_body, 252, equipped, false, to);
   const oldSvg = el.querySelector('.swap-in svg') || el.querySelector(':scope > svg');
   const gen = ++avatarSwapGen;
   if (!oldSvg || reducedMotion()) { el.innerHTML = html; return; }
@@ -9163,6 +9166,7 @@ function renderDressUpPreview() {
   avatarSwapGen++;   // a plain re-render ends any bird swap in progress
   colourPreview = null;   // ...and any special colour being tried on
   const framed = framedSpecies();
+  if (el) el.dataset.shown = framed;
   if (framed !== currentProfile.avatar_species) {
     // A found bird on show: in the colour, without the outfit (it isn't theirs yet).
     if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, framed);
