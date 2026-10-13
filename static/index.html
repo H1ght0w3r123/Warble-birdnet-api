@@ -8557,11 +8557,12 @@ function commitSpeciesSelection(id) {
   if (lock && lock.state === 'found') {
     // Found but not bought: the bird in its colours, and what it costs.
     // Nothing is saved until it's bought. It slides in and bumps like any
-    // other bird, just without the outfit (it isn't theirs yet).
+    // other bird, wearing the child's outfit - trying it on is how they
+    // decide - and anything they put on or take off shows on it too.
     const sp = AVATAR_SPECIES.find(x => x.id === id);
     if (el) {
       el.classList.add('locked-bird', 'found-bird');
-      if (shown !== id) swapAvatar(shown, id, null);
+      if (shown !== id) swapAvatar(shown, id);
     }
     showBirdBuy(id, sp ? sp.name : id, lock);
     return;
@@ -8627,11 +8628,11 @@ function preloadBird(species) {
 // avatarSwapGen is bumped by every swap and every plain re-render, so a step
 // from an older swap that fires late does nothing.
 let avatarSwapGen = 0;
-function swapAvatar(from, to, equipped = currentProfile.equipped) {
+function swapAvatar(from, to) {
   const el = document.getElementById('dressUpPreview');
   if (!el) return;
   el.dataset.shown = to;
-  const html = avatarSvg(currentProfile.avatar_body, 252, equipped, false, to);
+  const html = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, to);
   const oldSvg = el.querySelector('.swap-in svg') || el.querySelector(':scope > svg');
   const gen = ++avatarSwapGen;
   if (!oldSvg || reducedMotion()) { el.innerHTML = html; return; }
@@ -9124,7 +9125,7 @@ async function trySpecialColour(hex, name, cost) {
     const el = document.getElementById('dressUpPreview');
     avatarSwapGen++;
     const framed = framedSpecies();
-    if (el) el.innerHTML = avatarSvg(hex, 252, framed === currentProfile.avatar_species ? currentProfile.equipped : null, false, framed);
+    if (el) el.innerHTML = avatarSvg(hex, 252, currentProfile.equipped, false, framed);
     setDressUpHint(currentFeatherTotal >= cost
       ? `${name}: ${cost} feathers. Tap it again to buy!`
       : `${name} costs ${cost} feathers - ${Math.round(cost - currentFeatherTotal)} more to go`);
@@ -9165,8 +9166,8 @@ function renderDressUpPreview() {
   const framed = framedSpecies();
   if (el) el.dataset.shown = framed;
   if (framed !== currentProfile.avatar_species) {
-    // A found bird on show: in the colour, without the outfit (it isn't theirs yet).
-    if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, framed);
+    // A found bird on show: in their colour and outfit, with its price under it.
+    if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, framed);
     const sp = AVATAR_SPECIES.find(x => x.id === framed);
     showBirdBuy(framed, sp ? sp.name : framed, avatarLock(framed));   // its price stays under it
     return;
