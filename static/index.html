@@ -2217,8 +2217,8 @@
     box-shadow:0 0 0 1.5px var(--wood), 0 1px 2px rgba(0,0,0,0.3);
   }
   .color-wheel[hidden]{display:none;}
-  /* Natural: no colour change - a cream swatch with the painted feather. */
-  .color-wheel .color-swatch.natural{background:var(--disc-cream) url('/static/feather.webp') center / 62% no-repeat;}
+  /* Natural: no colour change - just the ring, see-through. */
+  .color-wheel .color-swatch.natural{background:transparent;}
   .color-wheel .color-swatch{
     position:relative; flex:0 0 auto; width:var(--sw); height:var(--sw); border-radius:50%;
     border:2px solid #fff; cursor:pointer; padding:0; scroll-snap-align:start;
@@ -7481,25 +7481,25 @@ const PROTO_BIRDS = {
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
-    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp', nat: 'natural-head.webp' },
   ]},
   cardinal: { dir: '/static/avatar/cardinal/', shiftY: 4.9, scale: 1.2, stack: [
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
-    { f: 'body.webp',   grp: 'torso', wash: 'wash-body.webp' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
-    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'body.webp',   grp: 'torso', wash: 'wash-body.webp', nat: 'natural-body.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp', nat: 'natural-head.webp' },
   ]},
   parrot: { dir: '/static/avatar/parrot/', shiftY: 4.8, scale: 1.2, wingY: 51.0, stack: [
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
-    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp', nat: 'natural-head.webp' },
     { f: 'face.webp',   grp: 'over' },
   ]},
   // The only bird with a tail, and the only one whose washable head is just the
@@ -7509,9 +7509,9 @@ const PROTO_BIRDS = {
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
-    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp', nat: 'natural-head.webp' },
     { f: 'face.webp',   grp: 'over' },
   ]},
   // The one bird whose wings sit IN FRONT of its head. Lifted, the shoulder
@@ -7524,10 +7524,10 @@ const PROTO_BIRDS = {
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso' },
-    { f: 'head.webp',   grp: 'torso', wash: 'wash-head.webp' },
+    { f: 'head.webp',   grp: 'torso', wash: 'wash-head.webp', nat: 'natural-head.webp' },
     { f: 'face.webp',   grp: 'torso' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
   ]},
   // Built like the Owl - wings in front of the head, so the head and face go
   // in the torso group - with a tail behind the feet like the Kingfisher.
@@ -7536,10 +7536,10 @@ const PROTO_BIRDS = {
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso' },
-    { f: 'head.webp',   grp: 'torso', wash: 'wash-head.webp' },
+    { f: 'head.webp',   grp: 'torso', wash: 'wash-head.webp', nat: 'natural-head.webp' },
     { f: 'face.webp',   grp: 'torso' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
   ]},
   // Flippers instead of wings, head on top of them like the Classic. The body
   // washes too, but only the grey sides - its mask fades to nothing across
@@ -7549,10 +7549,10 @@ const PROTO_BIRDS = {
   penguin: { dir: '/static/avatar/penguin/', shiftY: 4.9, scale: 1.2, wingY: 52.0, stack: [
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
-    { f: 'body.webp',   grp: 'torso', wash: 'wash-body.webp' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
-    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'body.webp',   grp: 'torso', wash: 'wash-body.webp', nat: 'natural-body.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp', nat: 'natural-head.webp' },
     { f: 'face.webp',   grp: 'over' },
   ]},
   // Took the Bluebird's place in the cast. Built like the Parrot - wings under
@@ -7564,9 +7564,9 @@ const PROTO_BIRDS = {
     { f: 'foot-l.webp', grp: 'under' },
     { f: 'foot-r.webp', grp: 'under' },
     { f: 'body.webp',   grp: 'torso' },
-    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp' },
-    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp' },
-    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp', nat: 'natural-head.webp' },
     { f: 'face.webp',   grp: 'over' },
   ]},
 };
@@ -7605,13 +7605,6 @@ function protoWashFilter(id, hex) {
 // looks. Stored as the profile's avatar_body like any swatch.
 const NATURAL = 'NATURAL';
 const isNatural = body => !body || String(body).toUpperCase() === NATURAL;
-// Each bird's nearest real colour, for its grey layers until its natural
-// layers are delivered (the Blue Tit's are in, so it never uses this).
-const NATURAL_TINT = {
-  classic: '#8B5A2B', cardinal: '#F91E27', parrot: '#6DAA44', penguin: '#1A1128',
-  duckling: '#F2C94C', woodpecker: '#1A1128', kingfisher: '#0197B8', owl: '#8B5A2B',
-  bluetit: '#2F5FD0',
-};
 
 function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer, lift, crest) {
   const bird = protoBird(species);
@@ -7620,12 +7613,12 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
   // on the page at once, and url(#id) would otherwise resolve to whichever was
   // written first.
   const u = 'p' + (++protoUid);
-  // Natural: the bird in its own colours. A bird delivered with natural
-  // layers draws those instead of its grey ones; until a bird's arrive, its
-  // grey ones are washed with the nearest real colour (NATURAL_TINT).
+  // Natural: the bird in its own colours - each colourable layer is drawn
+  // from its natural copy (nat) instead of being tinted. Every bird has them
+  // (tools/cut_natural_layers.py made the first eight's from one picture
+  // each); a new bird without them would show plain grey, which is the cue.
   const natural = isNatural(body);
-  const hex = (natural ? (NATURAL_TINT[species] || NATURAL_TINT.classic) : (body || '#9CAF88'))
-    .replace('#', '').toUpperCase();
+  const hex = (natural ? '#9CAF88' : body).replace('#', '').toUpperCase();
   const img = (file, extra) => `<image xlink:href="${d}${file}" href="${d}${file}" x="0" y="0" width="100" height="100" preserveAspectRatio="none"${extra || ''}/>`;
   const maskId = i => `${u}m${i}`;
 
@@ -7633,7 +7626,7 @@ function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLaye
   // the mask - so the fixed parts show the original paint, only the plumage
   // takes the colour, and the mask's own soft edge blends the two.
   const plain = (lay, i) => (natural && lay.nat) ? img(lay.nat) : img(lay.f) +
-    (lay.wash ? `<g mask="url(#${maskId(i)})">${img(lay.f, ` filter="url(#${u}f)"`)}</g>` : '');
+    (lay.wash && !natural ? `<g mask="url(#${maskId(i)})">${img(lay.f, ` filter="url(#${u}f)"`)}</g>` : '');
   // Under most hats the head and face are cut by the bird's crest mask, so
   // the crest doesn't show through the hat. Body, wings and feet never are.
   const draw = (lay, i) => (crest && (lay.f === 'head.webp' || lay.f === 'face.webp'))
@@ -8255,7 +8248,7 @@ async function saveAvatarColors() {
 // Relative luminance of a hex swatch, for deciding what colour a mark laid
 // on top of it has to be.
 function swatchLuminance(hex) {
-  if (isNatural(hex)) return 1;   // the Natural swatch is cream
+  if (isNatural(hex)) return 0;   // the Natural swatch is see-through, over the dark room
   const v = i => {
     const c = parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) / 255;
     return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -8617,7 +8610,11 @@ function speciesDirection(from, to) {
 function preloadBird(species) {
   const bird = protoBird(species);
   const files = [];
-  bird.stack.forEach(l => { files.push(l.f); if (l.wash) files.push(l.wash); });
+  const natural = isNatural(currentProfile.avatar_body);
+  bird.stack.forEach(l => {
+    if (natural && l.nat) { files.push(l.nat); return; }
+    files.push(l.f); if (l.wash) files.push(l.wash);
+  });
   const all = Promise.all(files.map(f => new Promise(res => {
     const im = new Image();
     im.onload = im.onerror = res;

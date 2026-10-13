@@ -89,9 +89,10 @@ in a `natural-colour/` folder, same canvas and position as the grey ones:
 | `natural_head.png` | the grey head |
 | `natural_wing_left.png`, `natural_wing_right.png` | the grey wings |
 
-The Blue Tit's set is the model. The eight birds already in the app will
-get theirs too; until then the app tints their grey layers with the nearest
-real colour.
+The Blue Tit's set is the model. (One finished picture of the bird in its
+own colours, on the same canvas, also works - that's how the first eight
+came - but separate layers are better: the parts hidden under the head and
+wings then don't have to be guessed.)
 
 ## Size and placement
 

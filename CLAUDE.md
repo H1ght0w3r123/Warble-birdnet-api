@@ -74,17 +74,20 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   (1,880 for the lot). Four seasonal restocks a year are planned:
   `design-brief-shop-restock-v1.md`. Feather colours: every bird starts
   **Natural** - its own plumage, no colour change (`NATURAL`, stored as
-  `avatar_body`; the first swatch on the wheel, a cream one with the
-  feather). Changing colour unlocks at the third birder rank
+  `avatar_body`; the first swatch on the wheel, an empty see-through
+  ring). Changing colour unlocks at the third birder rank
   (`COLOUR_UNLOCK_RANK` = 2, Eavesdropper, the seal numbered 3): until then
   the wheel isn't shown and the server refuses any other colour; the rank-up
   moment says so (`colours_new`) and the Hoot-tique lights. A family that
   had coloured its bird before this keeps that colour. Then nine free, nine
   special at 10 each (`SPECIAL_COLOURS` in `main.py`), bought as
-  `colour:#HEX` rows in the owned-items table (not counted by Preener). A
-  bird delivered with natural-colour layers (`nat` in `PROTO_BIRDS`; the
-  Blue Tit so far) draws them for Natural; the rest wash their grey layers
-  with their nearest real colour (`NATURAL_TINT`) until theirs arrive. Hats are
+  `colour:#HEX` rows in the owned-items table (not counted by Preener).
+  Natural draws each colourable layer from its natural copy (`nat` in
+  `PROTO_BIRDS`, `natural-<layer>.webp`); every bird has them. The Blue Tit
+  came with its own; the first eight came as one finished picture each,
+  cut into layers by `tools/cut_natural_layers.py` (read its docstring - a
+  layer's hidden parts have to be coloured, or they show when a wing
+  flaps). A new bird needs them too, or Natural shows it grey. Hats are
   fitted per bird (see its docstring); a bird can wear another's fitted set
   (`hats:` in `PROTO_BIRDS` - the Blue Tit wears the Kingfisher's).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
