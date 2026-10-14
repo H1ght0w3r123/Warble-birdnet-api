@@ -9,13 +9,14 @@ and then buy for 30 feathers. Five exist already: the Robin,
 Duckling, Woodpecker, Owl and Kingfisher.
 
 This brief asked for four more, each a bird a child in the UK can find.
-**The Blue Tit is delivered and in the app** - deliver the other three the
-way it came, natural-colour layers included (see "Natural colour" below):
+**The Blue Tit and Blackbird are delivered and in the app** - deliver the
+other two the way the Blue Tit came, natural-colour layers included (see
+"Natural colour" below):
 
 | Avatar | File folder | Found by hearing | Character |
 |---|---|---|---|
 | Blue Tit (delivered) | `bluetit` | any tit: Blue, Great, Coal, Marsh or Willow Tit | Tiny, round, cheeky; blue cap, white cheeks, dark eye-stripe |
-| Blackbird | `blackbird` | a Blackbird or a thrush: Song Thrush, Mistle Thrush, Redwing, Ring Ouzel | Sleek, glossy, a bright orange beak and eye-ring |
+| Blackbird (delivered) | `blackbird` | a Blackbird or a thrush: Song Thrush, Mistle Thrush, Redwing, Ring Ouzel | Sleek, glossy, a bright orange beak and eye-ring |
 | Magpie | `magpie` | a crow: Magpie, Jay, Jackdaw, Carrion Crow, Rook, Raven | Clever and showy; long tail, a blue-green sheen on the black |
 | Seagull | `seagull` | any gull: Herring, Black-headed, Common or Great Black-backed | Big, cheerful, a yellow beak; the seaside one |
 

@@ -542,12 +542,12 @@ AVATAR_UNLOCKS = {
     "kingfisher": {"hint": "Hear a Kingfisher to find it", "species": {"Common Kingfisher"}},
     "bluetit":    {"hint": "Hear a tit to find it",
                    "species": {"Eurasian Blue Tit", "Great Tit", "Coal Tit", "Marsh Tit", "Willow Tit"}},
+    "blackbird":  {"hint": "Hear a blackbird or a thrush to find it",
+                   "species": {"Eurasian Blackbird", "Song Thrush", "Mistle Thrush", "Redwing", "Ring Ouzel"}},
 }
 # Painting now (design-brief-avatar-birds-v1.md). When a bird's art is in,
 # move it into AVATAR_UNLOCKS and add it to AVATAR_SPECIES in the page.
 AVATARS_TO_COME = {
-    "blackbird":  {"hint": "Hear a blackbird or a thrush to find it",
-                   "species": {"Eurasian Blackbird", "Song Thrush", "Mistle Thrush", "Redwing", "Ring Ouzel"}},
     "magpie":     {"hint": "Hear a magpie or a crow to find it",
                    "species": {"Eurasian Magpie", "Eurasian Jay", "Eurasian Jackdaw", "Carrion Crow",
                                "Rook", "Common Raven"}},

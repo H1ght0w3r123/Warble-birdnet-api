@@ -7416,7 +7416,7 @@ const AVATAR_SPECIES = PROTO_ONLY
      { id: 'parrot', name: 'Parrot' }, { id: 'kingfisher', name: 'Kingfisher' },
      { id: 'owl', name: 'Owl' }, { id: 'duckling', name: 'Duckling' },
      { id: 'penguin', name: 'Penguin' }, { id: 'woodpecker', name: 'Woodpecker' },
-     { id: 'bluetit', name: 'Blue Tit' }]
+     { id: 'bluetit', name: 'Blue Tit' }, { id: 'blackbird', name: 'Blackbird' }]
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
@@ -7476,6 +7476,19 @@ const PROTO_BIRDS = {
     { f: 'wing-r-over.webp', grp: 'wingR' },
     { f: 'head.webp',        grp: 'over',  wash: 'wash-head.webp',   nat: 'natural-head.webp' },
     { f: 'face.webp',        grp: 'over' },
+  ]},
+  // Delivered grey with five colourable parts (tail and body too); its
+  // natural layers are its own grey ones taken down to glossy black
+  // (tools/natural_from_grey.py). Its head is the Kingfisher's shape too.
+  blackbird: { dir: '/static/avatar/blackbird/', shiftY: 5.0, scale: 1.2, wingY: 51.0, hats: 'kingfisher', stack: [
+    { f: 'tail.webp',   grp: 'under', wash: 'wash-tail.webp',   nat: 'natural-tail.webp' },
+    { f: 'foot-l.webp', grp: 'under' },
+    { f: 'foot-r.webp', grp: 'under' },
+    { f: 'body.webp',   grp: 'torso', wash: 'wash-body.webp',   nat: 'natural-body.webp' },
+    { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
+    { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp',   nat: 'natural-head.webp' },
+    { f: 'face.webp',   grp: 'over' },
   ]},
   classic: { dir: '/static/avatar/classic/', shiftY: 5.0, scale: 1.2, stack: [
     { f: 'foot-l.webp', grp: 'under' },

@@ -87,9 +87,12 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
   came with its own; the first eight came as one finished picture each,
   cut into layers by `tools/cut_natural_layers.py` (read its docstring - a
   layer's hidden parts have to be coloured, or they show when a wing
-  flaps). A new bird needs them too, or Natural shows it grey. Hats are
+  flaps); the Blackbird, plain black, had its own grey layers taken down to
+  glossy black by `tools/natural_from_grey.py`. A new bird needs them too,
+  or Natural shows it grey. Hats are
   fitted per bird (see its docstring); a bird can wear another's fitted set
-  (`hats:` in `PROTO_BIRDS` - the Blue Tit wears the Kingfisher's).
+  (`hats:` in `PROTO_BIRDS` - the Blue Tit and Blackbird wear the
+  Kingfisher's: same head).
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
   Pitched so a child warbling about four times a week (after school, a
   weekend morning, garden plus one other place) finishes all five most
@@ -178,10 +181,10 @@ buy something new (`whatsNew.dressup`).
 
 **Avatar birds: three to start, the rest found then bought.** Cardinal,
 Parrot and Penguin are free (none of them live here). The UK birds -
-the Robin (id `classic`; it was called Classic), Duckling, Woodpecker, Owl, Kingfisher, Blue Tit - are *found* the
+the Robin (id `classic`; it was called Classic), Duckling, Woodpecker, Owl, Kingfisher, Blue Tit, Blackbird - are *found* the
 first time the child hears the real bird or one of its family
 (`AVATAR_UNLOCKS` in `main.py`: a robin, stonechat or redstart; any
-duck/goose/swan; any woodpecker; any owl; a Kingfisher; any tit) and then bought for
+duck/goose/swan; any woodpecker; any owl; a Kingfisher; any tit; a blackbird or thrush) and then bought for
 `AVATAR_PRICE` (30) in the Hoot-tique. A bird still to find isn't shown
 anywhere (`shownSpecies()`: finding it is the surprise); a found one joins
 the carousel showing just its price - a wood button with the feather and
@@ -190,8 +193,8 @@ counted by Preener). Not trophies - an avatar is who the child is, so it
 comes from the birds. When the price arrived, a family already playing kept
 free whatever it had (`_keep_avatars_already_had`, run once at start-up,
 `avatars:priced` mark). The server refuses a bird the child doesn't own on
-`POST /profile`. Three more are being painted (`AVATARS_TO_COME`,
-`design-brief-avatar-birds-v1.md`: Blackbird, Magpie, Seagull);
+`POST /profile`. Two more are being painted (`AVATARS_TO_COME`,
+`design-brief-avatar-birds-v1.md`: Magpie, Seagull);
 when the art is in, move each into `AVATAR_UNLOCKS` and the page's
 `AVATAR_SPECIES`.
 
