@@ -1251,10 +1251,10 @@
   /* It twirls in: two turns round, growing from small, a little bounce to
      finish (AVATAR_SPIN in the script fires the leaves as it lands). */
   .moment-bird{perspective:600px;}
-  /* A painted dance (AVATAR_DANCES): as tall as the disc, its wings reach
-     past the cream circle as they flap (their tips fade out - the card's
-     edge would cut them). */
-  .moment-dance{display:block; width:186px; height:auto; pointer-events:none;}
+  /* A painted dance (AVATAR_DANCES): as tall as the disc - sized by height,
+     as each video frames its bird differently - its wings reaching past the
+     cream circle as they flap (their tips fade out). */
+  .moment-dance{display:block; height:174px; width:auto; max-width:230px; object-fit:contain; pointer-events:none;}
   .moment-bird-spin{display:block; animation:birdSpin 1100ms cubic-bezier(.25,.75,.35,1.15) 200ms both;}
   @keyframes birdSpin{
     0%{transform:scale(.15) rotateY(0); opacity:0;}
@@ -2929,7 +2929,7 @@
   .done-avatar{margin-bottom:4px;}
   /* A painted dance on the Done screen: a little wider than the layered
      bird it stands in for, as its wings flap out. */
-  .done-dance{display:block; width:172px; height:auto; margin:0 auto; pointer-events:none;}
+  .done-dance{display:block; height:168px; width:auto; max-width:240px; object-fit:contain; margin:0 auto; pointer-events:none;}
   .trophy-banner-tap{font-family:'Poppins';font-weight:700;font-size:10px;color:var(--sage-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
   /* Just the words, breathing slowly - an invitation to tap. */
   .done-feathers.tappable{cursor:pointer;animation:feathersPulse 2.4s ease-in-out infinite;padding:6px 18px;}
@@ -4689,7 +4689,7 @@ const AVATAR_SPIN = { delay: 200, spin: 1100 };   // ms: matches .moment-bird-sp
 // a second (12 looked jerky): a see-through WebM video, small and smooth,
 // and an animated WebP for iPhones and Safari, which can't show a
 // see-through WebM. A bird without one dances the usual way.
-const AVATAR_DANCES = { blackbird: '/static/avatar/blackbird/dance-v2' };
+const AVATAR_DANCES = { blackbird: '/static/avatar/blackbird/dance-v3' };
 // Safari, and every browser on an iPhone or iPad (they're all Safari inside).
 const IS_APPLE_WEBKIT = /iPad|iPhone|iPod/.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)

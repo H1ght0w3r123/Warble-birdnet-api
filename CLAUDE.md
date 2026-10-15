@@ -319,7 +319,7 @@ the bird large and dancing in its natural plumage (whatever colour the
 child's own bird is) - it twirls in from small (two turns,
 `AVATAR_SPIN`) and leaves burst over everything as it lands (`onShow`,
 `burstLeaves(..., above)`); a bird with a painted dance plays that instead
-(`AVATAR_DANCES`: the Blackbird's, `static/avatar/blackbird/dance-v2.webm`
+(`AVATAR_DANCES`: the Blackbird's, `static/avatar/blackbird/dance-v3.webm`
 and `.webp` - a looping see-through video at 24 frames a second, the WebP
 for iPhones and Safari, cut from a dance video by
 `tools/dance_from_video.py`; read its docstring: the videos come on black,
