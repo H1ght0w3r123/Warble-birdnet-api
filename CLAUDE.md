@@ -244,12 +244,13 @@ it won - each nudging down
 one line (`toggleBadgeNote`). A tap anywhere else collects it, and so is a new birder rank (`celebrate({big: true})`: the screen
 dims, the new seal is large, the ladder underneath lights the step just
 climbed, a double burst and three times the hold; it flies into the top-bar
-badge, which changes as it lands) - big is kept for that
-one, the rarest reward. On the Done screen the birds' own feathers are tapped to collect,
+badge, which changes as it lands) - big is kept for the rarest rewards:
+that, and a newly found avatar bird (`celebrateAvatar`, last of a
+recording's moments): "You've unlocked / Kingfisher / in the Hoot-tique!",
+the bird large and dancing; it waits for a tap (`tap: true`, no hold timer)
+and flies into the Hoot-tique tab. On the Done screen the birds' own feathers are tapped to collect,
 then the recording's other rewards play as moments, and only then "Go
-again" - so nothing is cut short. A newly found avatar bird stays a banner
-("You've unlocked Kingfisher in the Hoot-tique"): a door to the Hoot-tique,
-not a payout. The server has always banked the feathers
+again" - so nothing is cut short. The server has always banked the feathers
 already; `/analyze-session` and `/song-game/result` itemise them
 (`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a
 recording goes through `award_trophy_levels()` and challenge pay through

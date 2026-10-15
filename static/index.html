@@ -1166,6 +1166,10 @@
   @keyframes stepNow{from{transform:scale(.4);}}
   .moment-next{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft); margin-top:8px;}
   .moment-shop{color:var(--wood-edge); margin-top:4px;}
+  /* A new bird to be: the bird itself, dancing, on a cream disc. */
+  .moment-bird{display:grid; place-items:center; width:170px; height:170px; margin:0 auto; border-radius:50%;
+    background:var(--cream-lt); box-shadow:inset 0 0 0 3px rgba(var(--glow),0.9);}
+  .moment-tap{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft); margin-top:10px;}
   @media (prefers-reduced-motion: reduce){ .moment{animation:none;} .moment-step.now{animation:none;} }
   .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
   .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:96px;height:96px;will-change:transform,opacity;}
@@ -2816,9 +2820,6 @@
   .trophy-banner-text{text-align:left;}
   .trophy-banner-name{font-family:'Poppins';font-weight:700;font-size:14px;color:var(--wood-edge);}
   .trophy-banner-citation{font-size:11px;color:var(--ink-soft);}
-  .avatar-banner{display:block; font:inherit; cursor:pointer;}
-  .avatar-banner-bird{width:56px; height:56px; border-radius:50%; overflow:hidden; flex:0 0 auto;
-    background:var(--disc-cream); box-shadow:0 0 0 2px var(--wood);}
   /* --- Every text button is wood ------------------------------------------
      The design language (CLAUDE.md): one material for everything a child
      touches. A text button is a carved wood rim round a cream face with the
@@ -4330,7 +4331,8 @@ let momentQueue = Promise.resolve();
 // big: the same moment at full size, in the middle of the screen - a large
 // picture in place of the disc, `more` (markup) under the name, a bigger
 // burst and three times the hold. For the rarest rewards only (a new birder rank).
-function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '' }) {
+// tap: it waits for a tap instead of going home on its own (a reveal).
+function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false }) {
   momentQueue = momentQueue.then(() => new Promise(resolve => {
     const card = document.createElement('div');
     card.className = big ? 'moment moment-big woodframe' : 'moment woodframe';
@@ -4376,10 +4378,14 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       const dx = t ? (t.left + t.width / 2) - (b.left + b.width / 2) : 0;
       const dy = t ? (t.top + t.height / 2) - (b.top + b.height / 2) : 0;
       card.style.animation = 'none';
+      // The big one's dimmed screen is its own shadow, which would otherwise
+      // shrink with it into a grey box chasing it across the screen: it
+      // lifts as the card sets off.
       card.style.transition = still ? 'opacity .3s ease'
-        : `transform ${MOMENT.home}ms cubic-bezier(.55,0,.65,1), opacity ${MOMENT.home * .4}ms ease ${MOMENT.home * .6}ms`;
+        : `transform ${MOMENT.home}ms cubic-bezier(.55,0,.65,1), opacity ${MOMENT.home * .4}ms ease ${MOMENT.home * .6}ms, box-shadow ${MOMENT.home * .3}ms ease`;
       requestAnimationFrame(() => {
         if (!still) card.style.transform = `translate(${dx}px, ${dy}px) scale(${t ? .1 : .5})`;
+        if (big) card.style.boxShadow = '0 0 0 100vmax rgba(26,17,40,0), 0 14px 34px rgba(0,0,0,0.5)';
         card.style.opacity = '0';
       });
       setTimeout(() => {
@@ -4389,7 +4395,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       }, still ? 300 : MOMENT.home);
     };
     card.onclick = goHome;
-    const holdTimer = setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold) * (big ? 3 : 1));
+    const holdTimer = tap ? null : setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold) * (big ? 3 : 1));
   }));
   return momentQueue;
 }
@@ -4428,6 +4434,17 @@ function celebrateRank(rank, from) {
     icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'topRank',
     more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}${colours}` })
     .then(r => { landed(); return r; });
+}
+// A bird the child can now be: revealed at full size, dancing, and it waits
+// for a tap - then flies into the Hoot-tique, where it now waits with its
+// price. Big like the rank, because a new bird to be is as rare.
+function celebrateAvatar(a) {
+  const sp = AVATAR_SPECIES.find(x => x.id === a.id);
+  return celebrate({ kicker: "You've unlocked", name: sp ? sp.name : a.id, big: true, tap: true,
+    icon: `<span class="moment-bird">${avatarSvg(currentProfile.avatar_body, 150, null, true, a.id)}</span>`,
+    more: `<span class="moment-next moment-shop">in the Hoot-tique!</span>
+           <span class="moment-tap">Tap to send it there</span>`,
+    home: 'navDressUp' });
 }
 function celebratePack(p, from) {
   return celebrate({ kicker: 'Pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
@@ -4815,7 +4832,6 @@ function renderNoBirds() {
   // Empty Nester): its moments play once the screen has settled.
   const moments = takeSessionMoments();
   setTimeout(() => moments(stage.querySelector('.done-title')), 700);
-  sessionNewAvatars = [];
   document.getElementById('againBtn').onclick = () => {
     // Location naming still has to happen first if it's pending, but once
     // that's done, go straight into recording rather than back to Home.
@@ -6023,39 +6039,24 @@ function migrationLine(name, m) {
 }
 
 // Everything a recording won besides its birds, as moments, in the order
-// the server paid them: packs, challenges (and the week), trophies, rank.
+// the server paid them: packs, challenges (and the week), trophies, rank -
+// then any bird the child can now be, revealed.
 // Shared by the Done screen and the "no birds" one, since a quiet session
 // can win a trophy too. Takes the session's state and clears it, so a
 // screen re-rendered later can't celebrate the same things twice; the
 // returned function plays them, and its promise settles when they're done.
 function takeSessionMoments() {
   const packs = sessionPacks, challenges = sessionChallenges, week = sessionWeekBonus;
-  const trophies = newlyEarnedTrophies, rank = sessionRankUp;
-  sessionPacks = []; sessionChallenges = []; sessionWeekBonus = 0;
+  const trophies = newlyEarnedTrophies, rank = sessionRankUp, avatars = sessionNewAvatars;
+  sessionPacks = []; sessionChallenges = []; sessionWeekBonus = 0; sessionNewAvatars = [];
   newlyEarnedTrophies = []; sessionRankUp = null; sessionBonuses = []; sessionFeatherTotal = 0;
   return (from) => {
     packs.forEach(p => celebratePack(p, from));
     celebrateChallenges(challenges, week, from);
     celebrateTrophies(trophies, from, rank);
+    avatars.forEach(celebrateAvatar);   // last: the reveal waits for a tap
     return momentQueue;
   };
-}
-
-// A bird the child can now be: not a payout but a door, so it stays on the
-// Done screen as a button to try it on.
-function sessionAvatarBannersHtml() {
-  return sessionNewAvatars.map(a => {
-    const sp = AVATAR_SPECIES.find(x => x.id === a.id);
-    return `
-    <button class="trophy-banner avatar-banner" data-go="dressup">
-      <div class="trophy-banner-row">
-        <div class="avatar-banner-bird">${avatarSvg(currentProfile.avatar_body, 56, null, false, a.id)}</div>
-        <div class="trophy-banner-text">
-          <div class="trophy-banner-name">You've unlocked ${sp ? sp.name : a.id} in the Hoot-tique</div>
-        </div>
-      </div>
-    </button>`;
-  }).join('');
 }
 
 function renderDone() {
@@ -6072,14 +6073,11 @@ function renderDone() {
   const newCount = sessionResults.filter(b => !b.is_duplicate).length;
   const n = sessionResults.length;
 
-  const avatarBanners = sessionAvatarBannersHtml();
-
   stage.innerHTML = `
     <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, 140, currentProfile.equipped, true, currentProfile.avatar_species)}</div>
     <div class="done-title">${pickDoneMessage(n, newCount, tierCounts)}</div>
     <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
     ${total ? '' : `<div class="done-sub">You've already won feathers for these birds today</div>`}
-    ${avatarBanners}
     <div class="done-feathers-slot">
       <div class="done-feathers ${total ? 'tappable' : ''}" id="doneFeathers">${total
         ? `<img class="feather-icon" src="/static/feather.webp" alt=""> ${total} feathers earned` : ''}</div>
@@ -6099,8 +6097,6 @@ function renderDone() {
     </div>
     <div class="collect-hint" id="doneHint">${total ? 'Tap your feathers to collect them' : ''}</div>
   `;
-
-  stage.querySelectorAll('.avatar-banner').forEach(el => { el.onclick = renderDressUp; });
 
   scheduleDoneLeafBurst(stage.querySelector('.done-avatar'));
 
@@ -6134,8 +6130,6 @@ function renderDone() {
       afterFeathers();
     });
   };
-
-  sessionNewAvatars = [];
 }
 
 // After the feathers are in: name a new spot first, if there is one, then
@@ -6701,8 +6695,10 @@ function stopRecording() {
       newlyEarnedTrophies = data.newly_earned_trophies || [];
       sessionRankUp = data.rank_up || null;
       sessionNewAvatars = data.new_avatars || [];
+      // Found, not bought: it joins the carousel with its price.
       sessionNewAvatars.forEach(a => {
-        if (currentProfile.avatars && currentProfile.avatars[a.id]) currentProfile.avatars[a.id].unlocked = true;
+        const st = currentProfile.avatars && currentProfile.avatars[a.id];
+        if (st && st.state === 'locked') st.state = 'found';
       });
       needsLocationName = data.needs_location_name || false;
       sessionNearbyPlaces = data.nearby_places || [];
