@@ -1146,7 +1146,31 @@
   .moment-text{display:flex; flex-direction:column; min-width:0;}
   .moment-kicker{font-family:'Poppins'; font-weight:900; font-size:16px; line-height:1.15; color:var(--wood-edge);}
   .moment-name{font-family:'Poppins'; font-weight:700; font-size:12.5px; line-height:1.25; color:#4A2408; opacity:.8;}
-  .moment-tap-small{font-family:'Poppins'; font-weight:700; font-size:11px; color:var(--ink-soft); margin-top:3px;}
+  /* Progress on a moment: a green bar, no numbers, that grows from where it
+     was to where it is now. */
+  .moment-bar{display:block; height:8px; border-radius:4px; background:var(--cream-lt); margin-top:5px;
+    box-shadow:inset 0 0 0 1.5px rgba(139,90,48,0.35); overflow:hidden; min-width:150px;}
+  .moment-big .moment-bar{width:80%; margin:8px auto 2px; height:10px; border-radius:5px;}
+  .moment-bar-fill{display:block; height:100%; background:var(--sage); border-radius:inherit;
+    transition:width .7s cubic-bezier(.3,.8,.3,1);}
+  /* A new birder rank: its words pulse. */
+  .moment-kicker.pulse{animation:kickerPulse 1.1s ease-in-out infinite; display:inline-block;}
+  @keyframes kickerPulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.1);}}
+  /* The Done screen's one line, at the bottom, all the while there's
+     something to collect - over a big moment's dimmed screen too. */
+  .done-tap-hint{position:fixed; left:0; right:0; bottom:calc(var(--nav-h, 86px) + 30px); z-index:955;
+    text-align:center; font-family:'Poppins'; font-weight:700; font-size:14px; color:#fff;
+    text-shadow:0 1px 4px rgba(26,17,40,0.6); pointer-events:none;}
+  /* Where a reward landed: the same twitching leaf as "something new". */
+  .nav-tab.landed .nav-icon-wrap::after, #topRank.landed::after{
+    content:''; position:absolute; width:34px; height:34px; left:22px; top:-4px; z-index:1;
+    background:url('/static/tree-leaf1-v2.webp') center / contain no-repeat;
+    filter:drop-shadow(0 1px 2px rgba(26,17,40,0.45));
+    transform-origin:31% 26%; --stand:-118deg; transform:rotate(var(--stand));
+    animation:leafTwitch 2.6s ease-in-out infinite; pointer-events:none;
+  }
+  #topRank{position:relative;}
+  #topRank.landed::after{width:26px; height:26px; left:20px; top:-8px;}
   /* Waiting for a tap: a gentle nudge so it reads as something to press. */
   .moment.waiting{animation:momentIn 350ms cubic-bezier(.34,1.56,.64,1) both, momentNudge 1.6s ease-in-out 1.2s infinite;}
   @keyframes momentNudge{0%,100%{transform:none;} 50%{transform:scale(1.04);}}
@@ -1173,7 +1197,6 @@
   /* A new bird to be: the bird itself, dancing, on a cream disc. */
   .moment-bird{display:grid; place-items:center; width:170px; height:170px; margin:0 auto; border-radius:50%;
     background:var(--cream-lt); box-shadow:inset 0 0 0 3px rgba(var(--glow),0.9);}
-  .moment-tap{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft); margin-top:10px;}
   /* It twirls in: two turns round, growing from small, a little bounce to
      finish (AVATAR_SPIN in the script fires the leaves as it lands). */
   .moment-bird{perspective:600px;}
@@ -1185,7 +1208,8 @@
     100%{transform:scale(1) rotateY(720deg);}
   }
   @media (prefers-reduced-motion: reduce){ .moment-bird-spin{animation:none;} }
-  @media (prefers-reduced-motion: reduce){ .moment{animation:none;} .moment-step.now{animation:none;} }
+  @media (prefers-reduced-motion: reduce){ .moment{animation:none;} .moment-step.now{animation:none;}
+    .moment-kicker.pulse, .done-feathers.tappable{animation:none;} }
   .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
   .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:96px;height:96px;will-change:transform,opacity;}
   .origami{display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.35));}
@@ -2783,15 +2807,6 @@
   .done-next-item{display:flex; flex-direction:column; align-items:center; gap:6px;
     font-family:'Poppins'; font-weight:900; font-size:15px; color:#fff;}
   .done-next-item .mic-again-btn{margin-top:0;}
-  .done-shop-disc{width:84px; height:84px; border-radius:50%; border:none; padding:0; cursor:pointer; overflow:hidden;
-    display:grid; place-items:center; background:radial-gradient(circle at 50% 42%, var(--disc-cream), #F2D3A6 70%);
-    box-shadow:0 0 0 4px var(--wood), 0 0 0 6px var(--wood-edge), 0 4px 10px rgba(0,0,0,0.35);
-    animation:shopInvite 1.6s ease-in-out .6s infinite;}
-  .done-shop-disc:active{transform:scale(.94);}
-  @keyframes shopInvite{
-    0%,100%{transform:scale(1);}
-    50%{transform:scale(1.07); box-shadow:0 0 0 4px var(--wood), 0 0 0 6px var(--wood-edge), 0 0 18px 6px rgba(var(--glow),0.8);}
-  }
   /* "New spot!" inside the Done screen, after the feathers. */
   .done-spot{--frame:5px; --inner:14px; width:100%; max-width:340px; margin-top:12px;}
   .done-spot-in{background:var(--disc-cream); border-radius:var(--inner); padding:14px 14px 10px;
@@ -2804,7 +2819,6 @@
      lines above, and on cream it smudged every letter of "New spot!". */
   body.scene-on .done-spot-in .stage-label, body.scene-on .done-spot-in .stage-sub,
   body.scene-on .done-spot-in .skip-btn, body.scene-on .done-spot-in .nearby-or{text-shadow:none;}
-  @media (prefers-reduced-motion: reduce){ .done-shop-disc{animation:none;} }
   /* Dancing avatar on the Done screen: av-torso (body + both wings) adds a
      small shimmy, and each wing wave pivots at the shoulder joint where it
      meets the body - same wave shape/timing as a resting flap, just offset
@@ -2831,7 +2845,9 @@
   @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-45deg);}}
   .done-avatar{margin-bottom:4px;}
   .trophy-banner-tap{font-family:'Poppins';font-weight:700;font-size:10px;color:var(--sage-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
-  .done-feathers.tappable{cursor:pointer;animation:collectGlow 1.8s ease-in-out infinite;border-radius:20px;padding:6px 18px;}
+  /* Just the words, breathing slowly - an invitation to tap. */
+  .done-feathers.tappable{cursor:pointer;animation:feathersPulse 2.4s ease-in-out infinite;padding:6px 18px;}
+  @keyframes feathersPulse{0%,100%{transform:scale(1); opacity:.92;} 50%{transform:scale(1.08); opacity:1;}}
   .trophy-banner{
     width:100%;background:#FFF6E6;border:2px solid var(--wood);border-radius:16px;
     padding:14px;margin-top:16px;text-align:center;
@@ -2990,7 +3006,7 @@ let mediaRecorder, audioChunks = [], recordTimerInterval, recordSeconds = 0;
 let sessionResults = [], cardIndex = 0;
 let sessionBonuses = [], sessionFeatherTotal = 0;
 // What a recording won besides its birds: each gets its moment on Done.
-let sessionPacks = [], sessionChallenges = [], sessionWeekBonus = 0;
+let sessionPacks = [], sessionChallenges = [], sessionWeekBonus = 0, sessionPackBirds = [];
 // Running feather total, kept in step with the counter in the top bar so the
 // per-card fly-and-count animation can add to it without re-fetching.
 let currentFeatherTotal = 0;
@@ -4348,7 +4364,7 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
 // The new bird's reveal card is this same moment at full size: it arrives
 // on MOMENT.arrive with the same burst, and goes home to My Flock.
 // The server has already banked every feather; this is only the showing.
-const MOMENT = { arrive: 350, hold: 1300, shrink: 240, home: 600, gap: 150 };
+const MOMENT = { arrive: 350, hold: 1300, bump: 160, shrink: 320, home: 600, gap: 150 };
 let momentQueue = Promise.resolve();
 // cancelMoments() drops every moment still waiting and the one showing: the
 // debug previews use it, so leaving one doesn't leave its moments queued
@@ -4359,6 +4375,7 @@ let momentGen = 0, momentShowing = null;
 let momentsWaitForTap = false;
 function cancelMoments() {
   momentGen++;
+  document.getElementById('doneHint')?.remove();
   if (momentShowing) { momentShowing.card.remove(); momentShowing.resolve(); momentShowing = null; }
 }
 
@@ -4369,7 +4386,9 @@ function cancelMoments() {
 // burst and three times the hold. For the rarest rewards only (a new birder rank).
 // tap: it waits for a tap instead of going home on its own (a reveal).
 // onShow(card): called as the card appears, for a moment with extra flourish.
-function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false, onShow = null }) {
+// progress: {from, to} (0-1) - a green bar under the name that grows from
+// where it was to where it is now; no numbers. pulse: the kicker pulses.
+function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false, onShow = null, progress = null, pulse = false }) {
   const gen = momentGen;
   tap = tap || momentsWaitForTap;
   momentQueue = momentQueue.then(() => new Promise(resolve => {
@@ -4378,18 +4397,21 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
     momentShowing = { card, resolve };
     card.className = big ? 'moment moment-big woodframe' : 'moment woodframe';
     card.setAttribute('role', 'status');
+    const bar = progress ? `<span class="moment-bar"><span class="moment-bar-fill" style="width:${Math.round(progress.from * 100)}%"></span></span>` : '';
+    const kick = `<span class="moment-kicker${pulse ? ' pulse' : ''}">${escapeFlock(kicker)}</span>`;
     card.innerHTML = big ? `<div class="moment-inner">
       ${icon ? `<span class="moment-art">${icon}</span>` : ''}
-      <span class="moment-kicker">${escapeFlock(kicker)}</span>
+      ${kick}
       ${name ? `<span class="moment-name">${escapeFlock(name)}</span>` : ''}
+      ${bar}
       ${more}
       ${feathers ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${feathers}</span>` : ''}
     </div>` : `<div class="moment-inner">
       ${icon ? `<span class="moment-icon">${icon}</span>` : ''}
       <span class="moment-text">
-        <span class="moment-kicker">${escapeFlock(kicker)}</span>
+        ${kick}
         ${name ? `<span class="moment-name">${escapeFlock(name)}</span>` : ''}
-        ${tap ? '<span class="moment-tap-small">Tap to collect</span>' : ''}
+        ${bar}
       </span>
       ${feathers ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${feathers}</span>` : ''}
     </div>`;
@@ -4408,6 +4430,10 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       burstLeaves(b.left + b.width / 2, b.top + b.height / 2, big ? 2 : 1);
     }, MOMENT.arrive / 3);
     if (onShow) onShow(card, still);
+    if (progress) setTimeout(() => {
+      const f = card.querySelector('.moment-bar-fill');
+      if (f) f.style.width = `${Math.round(progress.to * 100)}%`;
+    }, still ? 0 : MOMENT.arrive + 150);
 
     if (tap && !big && !still) {
       card.classList.add('waiting');
@@ -4433,30 +4459,38 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       // Two steps: it shrinks where it is (MOMENT.shrink), then flies home.
       // The big one's dimmed screen is its own shadow, which would otherwise
       // shrink with it into a grey box: it lifts as the card shrinks.
+      // Three steps: a little bump, then it shrinks and spins once round where
+      // it is, then flies home.
       const small = big ? .42 : .6;
       if (still) {
         card.style.transition = 'opacity .3s ease';
         requestAnimationFrame(() => { card.style.opacity = '0'; });
       } else {
-        card.style.transition = `transform ${MOMENT.shrink}ms cubic-bezier(.3,0,.2,1), box-shadow ${MOMENT.shrink}ms ease`;
-        requestAnimationFrame(() => {
-          card.style.transform = `scale(${small})`;
+        card.style.transition = `transform ${MOMENT.bump}ms cubic-bezier(.3,1.6,.6,1)`;
+        requestAnimationFrame(() => { card.style.transform = 'scale(1.08)'; });
+        setTimeout(() => {
+          if (gen !== momentGen) return;
+          card.style.transition = `transform ${MOMENT.shrink}ms cubic-bezier(.4,0,.2,1), box-shadow ${MOMENT.shrink}ms ease`;
+          card.style.transform = `scale(${small}) rotate(360deg)`;
           if (big) card.style.boxShadow = '0 0 0 100vmax rgba(26,17,40,0), 0 14px 34px rgba(0,0,0,0.5)';
-        });
+        }, MOMENT.bump);
         setTimeout(() => {
           if (gen !== momentGen) return;
           card.style.transition = `transform ${MOMENT.home}ms cubic-bezier(.55,0,.65,1), opacity ${MOMENT.home * .4}ms ease ${MOMENT.home * .6}ms`;
-          card.style.transform = `translate(${dx}px, ${dy}px) scale(${t ? .1 : small * .6})`;
+          card.style.transform = `translate(${dx}px, ${dy}px) scale(${t ? .1 : small * .6}) rotate(360deg)`;
           card.style.opacity = '0';
-        }, MOMENT.shrink);
+        }, MOMENT.bump + MOMENT.shrink);
       }
       setTimeout(() => {
         if (gen !== momentGen) return;   // cancelled mid-flight: already resolved
         card.remove();
         if (momentShowing && momentShowing.card === card) momentShowing = null;
-        if (t) { target.classList.add('nav-pop'); setTimeout(() => target.classList.remove('nav-pop'), 600); }
+        if (t) {
+          target.classList.add('nav-pop', 'landed');
+          setTimeout(() => target.classList.remove('nav-pop'), 600);
+        }
         setTimeout(resolve, MOMENT.gap);
-      }, still ? 300 : MOMENT.shrink + MOMENT.home);
+      }, still ? 300 : MOMENT.bump + MOMENT.shrink + MOMENT.home);
     };
     card.onclick = goHome;
     const holdTimer = tap ? null : setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold) * (big ? 3 : 1));
@@ -4476,8 +4510,11 @@ const MOMENT_ICONS = {
 
 // Each kind of reward, as a moment. `from` is where it was won.
 function celebrateTrophy(t, from) {
+  // The bar is the trophy's leaves: how many of its levels are won.
+  const of = t.level_count || 7;
   return celebrate({ kicker: t.level > 1 ? 'Trophy level up!' : 'Trophy won!',
     name: `${t.name} · level ${t.level}`, icon: MOMENT_ICONS.trophy(t),
+    progress: { from: (t.level - 1) / of, to: t.level / of },
     feathers: t.feathers || 0, from, home: 'navTrophies' });
 }
 // A new rank is the one moment at full size: the new seal, big, and the
@@ -4494,7 +4531,7 @@ function celebrateRank(rank, from) {
   // ...and one opens the colour wheel.
   if (rank.colours_new && currentProfile) currentProfile.colour_change = true;
   const colours = rank.colours_new ? `<span class="moment-next moment-shop">Now you can change the colour of your feathers!</span>` : '';
-  return celebrate({ kicker: 'New birder rank!', name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
+  return celebrate({ kicker: 'New birder rank!', pulse: true, name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
     icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'topRank',
     more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}${colours}` })
     .then(r => { landed(); return r; });
@@ -4509,8 +4546,7 @@ function celebrateAvatar(a) {
     // In its own plumage, whatever colour the child's bird is: this is the
     // bird as it really looks, the one they heard.
     icon: `<span class="moment-bird"><span class="moment-bird-spin">${avatarSvg(NATURAL, 150, null, true, a.id)}</span></span>`,
-    more: `<span class="moment-next moment-shop">in the Hoot-tique!</span>
-           <span class="moment-tap">Tap to send it there</span>`,
+    more: `<span class="moment-next moment-shop">in the Hoot-tique!</span>`,
     home: 'navDressUp',
     // It twirls in from small (AVATAR_SPIN), and leaves burst over
     // everything as it lands - then again, smaller, a beat later.
@@ -4527,17 +4563,27 @@ function celebrateAvatar(a) {
     } });
 }
 function celebratePack(p, from) {
-  return celebrate({ kicker: 'Pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
-    feathers: p.feathers || 0, from, home: 'navHabitats' });
+  return celebrate({ kicker: 'Collection pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
+    progress: { from: 1, to: 1 }, feathers: p.feathers || 0, from, home: 'navHabitats' });
+}
+// A new bird for one of the collection packs: the bar is how much of that
+// pack is found now (it grows by the one just found).
+function celebratePackBird(b, from) {
+  return celebrate({ kicker: 'Collection pack bird found!', name: `${birdName(b.name)} · ${b.pack_name}`,
+    icon: MOMENT_ICONS.pack(b), progress: { from: (b.found - 1) / b.total, to: b.found / b.total },
+    from, home: 'navHabitats' });
 }
 // A single challenge pays nothing, so its moment says how far the week has
 // got instead; the fifth is followed by the week's own moment, which pays.
+// The bar is the week: how many of the five are done.
 function celebrateChallenges(list, weekBonus, from) {
-  (list || []).forEach((c, i) => celebrate({
-    kicker: `Challenge done! ${c.done - (list.length - 1 - i)} of ${c.of}`, name: c.text,
-    icon: MOMENT_ICONS.challenge(), from, home: 'navHome' }));
-  if (weekBonus) celebrate({ kicker: 'All five done!', name: "This week's challenges",
-    icon: MOMENT_ICONS.week(), feathers: weekBonus, from, home: 'navHome' });
+  (list || []).forEach((c, i) => {
+    const done = c.done - (list.length - 1 - i);
+    celebrate({ kicker: 'Weekly challenge complete!', name: c.text, icon: MOMENT_ICONS.challenge(),
+      progress: { from: (done - 1) / c.of, to: done / c.of }, from, home: 'navHome' });
+  });
+  if (weekBonus) celebrate({ kicker: 'Weekly challenges complete!', name: 'All five this week',
+    icon: MOMENT_ICONS.week(), progress: { from: 1, to: 1 }, feathers: weekBonus, from, home: 'navHome' });
 }
 function celebrateTrophies(list, fromEl, rankUp) {
   (list || []).forEach(t => celebrateTrophy(t, fromEl));
@@ -4617,6 +4663,7 @@ function rankSeal(index, key, size = 64, locked = false) {
 // with how far to the next, and the rest still to come. The words on how to
 // climb come from the server (rank.message).
 function openRankLadder() {
+  document.getElementById('topRank')?.classList.remove('landed');
   const r = currentProfile && currentProfile.rank;
   if (!r || !r.ladder || document.getElementById('rankSheet')) return;
   const span = r.next_at != null ? r.next_at - r.ladder[r.index].at : 1;
@@ -4917,7 +4964,9 @@ function renderNoBirds() {
   // A quiet session can still win a trophy level (the very first warble,
   // Empty Nester): its moments play once the screen has settled.
   const moments = takeSessionMoments();
-  setTimeout(() => moments(stage.querySelector('.done-title')), 700);
+  if (moments.count) showTapHint();
+  setTimeout(() => moments(stage.querySelector('.done-title'))
+    .then(() => document.getElementById('doneHint')?.remove()), 700);
   document.getElementById('againBtn').onclick = () => {
     // Location naming still has to happen first if it's pending, but once
     // that's done, go straight into recording rather than back to Home.
@@ -6132,14 +6181,15 @@ function migrationLine(name, m) {
 // screen re-rendered later can't celebrate the same things twice; the
 // returned function plays them, and its promise settles when they're done.
 function takeSessionMoments() {
-  const packs = sessionPacks, challenges = sessionChallenges, week = sessionWeekBonus;
+  const packBirds = sessionPackBirds, packs = sessionPacks, challenges = sessionChallenges, week = sessionWeekBonus;
   const trophies = newlyEarnedTrophies, rank = sessionRankUp, avatars = sessionNewAvatars;
-  sessionPacks = []; sessionChallenges = []; sessionWeekBonus = 0; sessionNewAvatars = [];
+  sessionPackBirds = []; sessionPacks = []; sessionChallenges = []; sessionWeekBonus = 0; sessionNewAvatars = [];
   newlyEarnedTrophies = []; sessionRankUp = null; sessionBonuses = []; sessionFeatherTotal = 0;
   // Every one of them waits for the child's tap (momentsWaitForTap).
-  return (from) => {
+  const play = (from) => {
     momentsWaitForTap = true;
     try {
+      packBirds.forEach(b => celebratePackBird(b, from));
       packs.forEach(p => celebratePack(p, from));
       celebrateChallenges(challenges, week, from);
       celebrateTrophies(trophies, from, rank);
@@ -6147,6 +6197,17 @@ function takeSessionMoments() {
     } finally { momentsWaitForTap = false; }
     return momentQueue;
   };
+  play.count = packBirds.length + packs.length + challenges.length + (week ? 1 : 0) +
+    trophies.length + (rank ? 1 : 0) + avatars.length;
+  return play;
+}
+
+// The Done screen's one "Tap to collect" line, at the bottom while there's
+// anything to collect. On the page itself, not in the screen, so it shows
+// over a big moment's dimmed screen; leaving the screen takes it away.
+function showTapHint() {
+  document.getElementById('doneHint')?.remove();
+  document.body.insertAdjacentHTML('beforeend', '<div class="done-tap-hint" id="doneHint">Tap to collect</div>');
 }
 
 function renderDone() {
@@ -6177,15 +6238,11 @@ function renderDone() {
             <button class="again-btn mic-again-btn" id="againBtn" aria-label="Go again"><img class="mic-icon" src="/static/mic-v2.webp" alt=""></button>
             <span>Go again?</span>
           </div>
-          <div class="done-next-item" id="shopNext" hidden>
-            <button class="done-shop-disc" id="shopNextBtn" aria-label="Spend your feathers in the Hoot-tique">${avatarSvg(currentProfile.avatar_body, 70, currentProfile.equipped, false, currentProfile.avatar_species)}</button>
-            <span>Spend feathers</span>
-          </div>
         </div>
       </div>
       <div class="done-spot woodframe" id="doneSpot" hidden></div>
     </div>
-    <div class="collect-hint" id="doneHint">${total ? 'Tap your feathers to collect them' : ''}</div>
+
   `;
 
   scheduleDoneLeafBurst(stage.querySelector('.done-avatar'));
@@ -6195,12 +6252,14 @@ function renderDone() {
   // events off), so there's nothing to wire up later, just a class to add.
   document.getElementById('againBtn').onclick = startRecording;
 
+  if (total || moments.count) showTapHint();
   const featherEl = document.getElementById('doneFeathers');
-  document.getElementById('shopNextBtn').onclick = renderDressUp;
   // Then the rest of what was won, one moment at a time, and only then
   // what's next - so going again never cuts a celebration short.
   const slot = stage.querySelector('.done-feathers-slot');
+  // "Tap to collect" stays at the bottom until everything has been.
   const afterFeathers = () => moments(slot).then(() => {
+    document.getElementById('doneHint')?.remove();
     refreshFeathers();   // reconcile against the server once animations finish
     showDoneNext();
   });
@@ -6215,8 +6274,6 @@ function renderDone() {
       const b = featherEl.getBoundingClientRect();
       burstLeaves(b.left + b.width / 2, b.top + b.height / 2, 1.6);
     }
-    const hint = document.getElementById('doneHint');
-    if (hint) hint.textContent = '';
     flyFeathersToCounter(featherEl, total, () => {
       // Another go is only offered once the feathers have been collected,
       // so it isn't possible to leave the session's reward on the table.
@@ -6240,7 +6297,6 @@ async function showDoneNext() {
   await refreshWhatsNew();   // the new birds and trophies light up their tabs
   const wrap = document.getElementById('goAgainWrap');
   if (!wrap) return;         // left the screen meanwhile
-  document.getElementById('shopNext').hidden = !whatsNew.dressup;
   wrap.classList.add('visible');
 }
 
@@ -6783,6 +6839,7 @@ function stopRecording() {
       sessionResults = sortForReveal(data.detections || []);
       sessionBonuses = data.bonuses || [];
       sessionFeatherTotal = data.total_feathers_this_session || 0;
+      sessionPackBirds = data.pack_birds || [];
       sessionPacks = data.packs_completed || [];
       sessionChallenges = data.challenges_done || [];
       sessionWeekBonus = data.week_bonus || 0;
@@ -7386,6 +7443,10 @@ function setActiveTab(tabName) {
   document.querySelectorAll('.nav-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
+  document.getElementById('doneHint')?.remove();   // left the Done screen
+  // A reward that flew into this tab left a twitching leaf on it: seen now.
+  const visited = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+  if (visited && !document.querySelector('.moment')) visited.classList.remove('landed');
   // Home pulls its own scene back into focus at the end of renderIdle. Doing
   // it the other way round would leave the scene sharp behind Settings and
   // the recording screen, both of which reach here with 'home' still active.
@@ -8172,7 +8233,7 @@ function debugRank(i) {
 const COLOUR_RANK_INDEX = 2;   // COLOUR_UNLOCK_RANK in main.py
 const debugTrophy = k => {
   const t = debugData.trophies[k % Math.max(1, debugData.trophies.length)] || { key: 'fledgling', name: 'Fledgling' };
-  return { key: t.key, name: t.name, level: Math.min(7, (t.level || 0) + 1), feathers: 5 };
+  return { key: t.key, name: t.name, level: Math.min(7, (t.level || 0) + 1), level_count: t.level_count || 7, feathers: 5 };
 };
 const debugPack = () => {
   const p = debugData.packs[0] || { name: 'Locals', art: 'locals' };
@@ -8187,7 +8248,11 @@ function playDonePreview() {
     return { common_name: 'Preview Bird', tier: rare ? 'Rare' : 'Common', is_duplicate: !isNew,
              feathers: o.paid ? 0 : (isNew ? (rare ? 15 : 3) : (rare ? 3 : 1)) };
   });
-  sessionPacks = o.pack ? [debugPack()] : [];
+  const pk = debugPack();
+  const fresh = sessionResults.filter(b => !b.is_duplicate).length;
+  sessionPackBirds = Array.from({ length: fresh }, (_, i) =>
+    ({ name: 'Preview Bird', pack: 'locals', pack_name: pk.name, art: pk.art, found: Math.min(10, 4 + i + 1), total: 10 }));
+  sessionPacks = o.pack ? [pk] : [];
   const c = +o.challenges;
   sessionChallenges = DEBUG_CHALLENGES.slice(0, c).map(text => ({ text, done: c, of: 5 }));
   sessionWeekBonus = c === 5 ? 25 : 0;
@@ -8252,6 +8317,7 @@ function renderAnimationPreview() {
     <div class="reset-note">One at a time, as they play anywhere in the app.</div>
     <div class="debug-buttons" id="debugMoments">
       <button class="again-btn" data-m="trophy">Trophy level</button>
+      <button class="again-btn" data-m="packbird">Pack bird found</button>
       <button class="again-btn" data-m="pack">Pack complete</button>
       <button class="again-btn" data-m="challenge">Challenge done</button>
       <button class="again-btn" data-m="week">All five</button>
@@ -8302,8 +8368,10 @@ function renderAnimationPreview() {
   stage.querySelectorAll('#debugMoments [data-m]').forEach(btn => btn.onclick = () => {
     const from = btn;
     const m = btn.dataset.m;
-    if (m === 'trophy') celebrateTrophy(debugTrophy(0), from);
+    if (m === 'trophy') celebrateTrophy({ ...debugTrophy(0), level: 3, level_count: 7 }, from);
     if (m === 'pack') celebratePack(debugPack(), from);
+    if (m === 'packbird') { const pk = debugPack();
+      celebratePackBird({ name: 'Common Kingfisher', pack_name: pk.name, art: pk.art, found: 6, total: 10 }, from); }
     if (m === 'challenge') celebrateChallenges([{ text: DEBUG_CHALLENGES[0], done: 3, of: 5 }], 0, from);
     if (m === 'week') celebrateChallenges([{ text: DEBUG_CHALLENGES[4], done: 5, of: 5 }], 25, from);
     if (m === 'star') celebrate({ kicker: 'New star!', name: 'Level 2', icon: MOMENT_ICONS.star(), feathers: 5, from, home: 'navHome' });

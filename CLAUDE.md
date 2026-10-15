@@ -177,9 +177,9 @@ wait for it (`welcomeDecided`). The first mic tap shows "Warble needs to
 listen" (`renderMicIntro`, tutorial key `mic_intro`) before the browser's
 own prompts, unless the microphone is already allowed; a refused microphone
 gets `renderMicBlocked`, written for the child with a line for the grown-up.
-On the Done screen, "New spot!" comes *after* the feathers are collected,
-and a Hoot-tique disc sits beside "Go again?" only when the feathers now
-buy something new (`whatsNew.dressup`).
+On the Done screen, "New spot!" comes *after* the feathers are collected;
+then "Go again?" alone (the "Spend feathers" disc was removed - the
+twitching leaf on the Hoot-tique tab does that job).
 
 **Avatar birds: three to start, the rest found then bought.** Cardinal,
 Parrot and Penguin are free (none of them live here). The UK birds -
@@ -234,7 +234,8 @@ unlock all go through `celebrate()` in `static/index.html` (with
 `celebrateTrophy`, `celebratePack`, `celebrateChallenges`... wrapping it),
 in one shape and one timing (`MOMENT`): a wood-and-cream card pops in over
 where it was won with a burst of leaves, holds (kicker, name, +feathers),
-then shrinks where it is (`MOMENT.shrink`) and flies home - Awards, Collections, Home, the game's stars or Next level
+then, tapped or timed out, bumps (`MOMENT.bump`), shrinks while spinning
+once round where it is (`MOMENT.shrink`) and flies home - Awards, Collections, Home, the game's stars or Next level
 button - while its feathers fly to the counter. They queue one at a time; a
 tap sends one home early. The new bird's reveal card is the same moment at
 full size (same burst, folds small in place, flies to My Flock as an origami
@@ -255,11 +256,22 @@ child's own bird is) - it twirls in from small (two turns,
 `burstLeaves(..., above)`); it waits for a tap (`tap: true`, no hold timer)
 and flies into the Hoot-tique tab. **On the Done screen, everything won is
 collected by a tap, and bursts leaves as it is:** the birds' own feathers
-first, then each of the recording's other rewards as a moment that waits
-("Tap to collect", a gentle nudge) instead of flying off by itself
-(`momentsWaitForTap`, set while `takeSessionMoments` queues them), bursts
-leaves over everything when tapped, then flies home; only then "Go
-again" - so nothing is cut short. Moments elsewhere (the game, the
+first (just the words, pulsing slowly - no box), then each of the
+recording's other rewards as a moment that waits (a gentle nudge) instead
+of flying off by itself (`momentsWaitForTap`, set while
+`takeSessionMoments` queues them), bursts leaves over everything when
+tapped, then flies home; only then "Go again" - so nothing is cut short.
+No card says "tap"; one line, "Tap to collect" (`showTapHint`), sits at the
+bottom of the screen the whole time there's something to collect. In
+order: "Collection pack bird found!" for each new bird of the 100
+(`pack_birds` from `/analyze-session`), "Collection pack complete!",
+"Weekly challenge complete!" for each one and "Weekly challenges
+complete!" for all five, trophy won / level up, the new rank ("New birder
+rank!" pulsing), the new avatar bird. Each that has progress shows it as a
+green bar with no numbers, growing as the card lands: the pack's birds
+found, the five challenges, the trophy's leaves (`progress: {from, to}`).
+Wherever a card lands (a tab, the rank badge) a twitching leaf stays
+(`.landed`) until that place is visited - Home's tab included. Moments elsewhere (the game, the
 Hoot-tique) still go home by themselves. The server has always banked the feathers
 already; `/analyze-session` and `/song-game/result` itemise them
 (`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a

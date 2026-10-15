@@ -805,6 +805,23 @@ async def analyze_session(
     bonuses = []
     packs_completed = []
 
+    # Each new bird's place in its collection pack, for the Done screen's
+    # "Collection pack bird found" moment and its progress bar: how many of
+    # the pack were found once it had been (two new ones in one pack count
+    # up one after the other).
+    pack_birds = []
+    new_by_pack = {}
+    for r in results:
+        if not r["is_duplicate"] and r["pack"]:
+            new_by_pack.setdefault(r["pack"], []).append(r["common_name"])
+    for key, names in new_by_pack.items():
+        species = pack_species(key)
+        found_now = count_species_found_in(species)
+        for i, name in enumerate(names):
+            pack_birds.append({"name": name, "pack": key, "pack_name": PACKS[key]["name"],
+                               "art": PACKS[key]["art"], "found": found_now - len(names) + i + 1,
+                               "total": len(species)})
+
     # The weekly challenges: each one this recording finished, and the
     # week's prize if that was the last of the five.
     challenges_done, week_bonus = award_week_challenges(challenges_before)
@@ -839,6 +856,7 @@ async def analyze_session(
         "total_feathers_this_session": session_feathers,
         "bonuses": bonuses,
         # The same payouts, itemised for the celebrations on the Done screen
+        "pack_birds": pack_birds,
         "packs_completed": packs_completed,
         "challenges_done": challenges_done,
         "week_bonus": week_bonus,
