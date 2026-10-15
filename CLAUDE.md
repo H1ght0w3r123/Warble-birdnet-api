@@ -306,8 +306,15 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   `'pause'`, `'mystery'`). The painted play button and tick already exist
   (`PAINTED_PLAY`, `PAINTED_TICK`).
 - *Words for children:* "31 birds · heard 61 times", never species or
-  detections. Grown-up tools (sound check, the feather setter, animation
-  preview) live in Settings' "For grown-ups" section, shut until opened.
+  detections. Grown-up tools (sound check, the feather setter, and Debug >
+  Animation previews) live in Settings' "For grown-ups" section, shut until
+  opened. The previews (`renderAnimationPreview`) play the real Done screen
+  over a made-up session set up in a form (birds, new, rare, already paid,
+  pack, challenges, trophies, rank, avatar bird, new spot), each reward
+  moment on its own, the recording tree and the bird reveal. They save
+  nothing, put the page's rank and feathers back from the server
+  (`debugRestore`) and cancel leftover moments (`cancelMoments`) on the way
+  out. A new kind of moment gets a button there too.
 - *Motion and voice:* see the reward moment below, and "Locked and empty
   states" above.
 

@@ -2259,6 +2259,13 @@
   .reset-btn:disabled{opacity:.6;}
   .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--disc-cream);border-radius:10px;padding:11px 14px;width:100%;font-family:'Poppins';font-weight:700;font-size:13px;color:var(--wood-edge);cursor:pointer;}
   .toggle-row input{width:20px;height:20px;accent-color:var(--sage-dk);cursor:pointer;}
+  /* Debug > Animation previews: the Done screen's settings, one row each. */
+  .debug-form{display:flex; flex-direction:column; gap:6px; width:100%; margin-bottom:12px;}
+  .debug-form select{font:inherit; font-weight:700; color:var(--wood-edge); background:var(--cream-lt);
+    border:2px solid var(--wood); border-radius:8px; padding:4px 6px; max-width:52%;}
+  .debug-buttons{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:22px;}
+  .debug-buttons .again-btn{padding:8px 14px; font-size:13px;}
+  .debug-back{position:fixed; top:64px; left:14px; z-index:60;}
   .location-row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
   .location-map-link{color:var(--wood-edge);text-decoration:none;}
   .location-map-link:hover{text-decoration:underline;}
@@ -4325,6 +4332,14 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
 // The server has already banked every feather; this is only the showing.
 const MOMENT = { arrive: 350, hold: 1300, home: 600, gap: 150 };
 let momentQueue = Promise.resolve();
+// cancelMoments() drops every moment still waiting and the one showing: the
+// debug previews use it, so leaving one doesn't leave its moments queued
+// in front of the next.
+let momentGen = 0, momentShowing = null;
+function cancelMoments() {
+  momentGen++;
+  if (momentShowing) { momentShowing.card.remove(); momentShowing.resolve(); momentShowing = null; }
+}
 
 // icon: markup for the disc (an <img>, or a little text).
 // home: the element it flies into, or its id; none = it shrinks where it is.
@@ -4333,8 +4348,11 @@ let momentQueue = Promise.resolve();
 // burst and three times the hold. For the rarest rewards only (a new birder rank).
 // tap: it waits for a tap instead of going home on its own (a reveal).
 function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false }) {
+  const gen = momentGen;
   momentQueue = momentQueue.then(() => new Promise(resolve => {
+    if (gen !== momentGen) return resolve();
     const card = document.createElement('div');
+    momentShowing = { card, resolve };
     card.className = big ? 'moment moment-big woodframe' : 'moment woodframe';
     card.setAttribute('role', 'status');
     card.innerHTML = big ? `<div class="moment-inner">
@@ -4368,7 +4386,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
 
     let gone = false;
     const goHome = () => {
-      if (gone) return;
+      if (gone || gen !== momentGen) return;
       gone = true;
       clearTimeout(holdTimer);
       if (feathers) flyFeathersToCounter(card, feathers, () => {});
@@ -4389,7 +4407,9 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
         card.style.opacity = '0';
       });
       setTimeout(() => {
+        if (gen !== momentGen) return;   // cancelled mid-flight: already resolved
         card.remove();
+        if (momentShowing && momentShowing.card === card) momentShowing = null;
         if (t) { target.classList.add('nav-pop'); setTimeout(() => target.classList.remove('nav-pop'), 600); }
         setTimeout(resolve, MOMENT.gap);
       }, still ? 300 : MOMENT.home);
@@ -7894,9 +7914,9 @@ async function renderSettings() {
       </div>
       <div class="reset-note" id="featherSetNote">For testing — sets the feather balance to any number.</div>
 
-      <div class="profile-section-title">Animation preview</div>
-      <div class="reset-note">Preview the tree and bird-reveal animations without recording or hearing a real bird.</div>
-      <button class="again-btn" id="openAnimPreviewBtn">Animation preview</button>
+      <div class="profile-section-title">Debug</div>
+      <div class="reset-note">Animation previews: the Done screen in any scenario, every reward moment, the recording tree and the bird reveal. Nothing is saved.</div>
+      <button class="again-btn" id="openAnimPreviewBtn">Animation previews</button>
     </details>
   `;
   document.getElementById('backBtn').onclick = () => {
@@ -8011,12 +8031,13 @@ async function renderSettings() {
   });
 }
 
-// Debug screen, reachable from Settings > Developer > Animation preview.
-// Lets the tree and bird-reveal animations be checked without needing to
-// actually record something or wait to find a real bird. Nothing here
-// touches real data - the "bird" is a hardcoded placeholder card, and the
-// tree's quiver is driven by synthetic random levels (see startDemoQuiver)
-// rather than the microphone.
+// Debug > Animation previews (Settings > For grown-ups). Every animation
+// can be checked here without recording or finding anything: the Done
+// screen in any scenario, each reward moment on its own, the recording
+// tree and the bird reveal. Nothing is saved - the Done screen preview
+// plays the real renderDone() over made-up session results, and only the
+// page's own copy of the rank and feathers is touched, put back from the
+// server on the way out (debugRestore).
 // The reveal card as it really is, with a blank photo and made-up bird.
 function previewCardHtml(isNew) {
   return `<div class="woodframe detail-wood reveal-wood" id="previewCard">
@@ -8029,20 +8050,130 @@ function previewCardHtml(isNew) {
     </div></div>`;
 }
 
+// The Done screen preview's settings, kept while the page is open so a
+// replay or a trip back keeps them.
+const debugDone = { birds: 3, fresh: 1, rare: false, paid: false, pack: false, challenges: 0,
+                    trophies: 0, rank: '', avatar: '', spot: 'none' };
+let debugData = { trophies: [], packs: [] };
+const DEBUG_CHALLENGES = ['Go warbling 3 times', 'Hear 5 different birds', 'Warble on 2 different days',
+                          'Go warbling in the morning', 'Hear a new bird'];
+const DEBUG_RANKS = ['Hatchling', 'Lark', 'Eavesdropper', 'Trill Seeker', 'Glider', 'Flockstar', 'Elder', 'Warbler'];
+
+// The page's own copies the previews change, put back from the server.
+async function debugRestore() {
+  needsLocationName = false; sessionNearbyPlaces = [];
+  try {
+    const d = await (await fetch('/profile')).json();
+    currentProfile.rank = d.rank; currentProfile.avatars = d.avatars;
+    currentProfile.colour_change = d.colour_change;
+    paintTopRank();
+  } catch (e) { /* keep what we had */ }
+  refreshFeathers();
+}
+
+function debugRank(i) {
+  const ladder = (currentProfile.rank && currentProfile.rank.ladder) ||
+    DEBUG_RANKS.map((n, k) => ({ name: n, key: n.toLowerCase().replace(/ /g, '-'), at: 0 }));
+  const step = ladder[i], next = ladder[i + 1];
+  return { name: step.name, key: step.key, index: i, ladder, leaves: step.at,
+           next_name: next ? next.name : null, next_at: next ? next.at : null,
+           shop_new: i > 0 ? 8 : 0, colours_new: i === COLOUR_RANK_INDEX };
+}
+const COLOUR_RANK_INDEX = 2;   // COLOUR_UNLOCK_RANK in main.py
+const debugTrophy = k => {
+  const t = debugData.trophies[k % Math.max(1, debugData.trophies.length)] || { key: 'fledgling', name: 'Fledgling' };
+  return { key: t.key, name: t.name, level: Math.min(7, (t.level || 0) + 1), feathers: 5 };
+};
+const debugPack = () => {
+  const p = debugData.packs[0] || { name: 'Locals', art: 'locals' };
+  return { name: p.name, art: p.art, feathers: 25 };
+};
+
+// The Done screen, for real, over a made-up session.
+function playDonePreview() {
+  const o = debugDone, n = +o.birds;
+  sessionResults = Array.from({ length: n }, (_, i) => {
+    const isNew = i >= n - Math.min(+o.fresh, n), rare = o.rare && i === n - 1;
+    return { common_name: 'Preview Bird', tier: rare ? 'Rare' : 'Common', is_duplicate: !isNew,
+             feathers: o.paid ? 0 : (isNew ? (rare ? 15 : 3) : (rare ? 3 : 1)) };
+  });
+  sessionPacks = o.pack ? [debugPack()] : [];
+  const c = +o.challenges;
+  sessionChallenges = DEBUG_CHALLENGES.slice(0, c).map(text => ({ text, done: c, of: 5 }));
+  sessionWeekBonus = c === 5 ? 25 : 0;
+  newlyEarnedTrophies = Array.from({ length: +o.trophies }, (_, k) => debugTrophy(k));
+  sessionRankUp = o.rank === '' ? null : debugRank(+o.rank);
+  sessionNewAvatars = o.avatar ? [{ id: o.avatar }] : [];
+  needsLocationName = o.spot !== 'none';
+  sessionNearbyPlaces = o.spot === 'nearby'
+    ? [{ name: 'Back Garden', distance_m: 40 }, { name: 'The Park', distance_m: 260 }] : [];
+  sessionLat = sessionLng = null;   // so naming the spot saves nothing
+  setActiveTab('home');
+  stage.classList.remove('top-aligned');
+  setSceneFocus(false);
+  if (n) renderDone(); else renderNoBirds();
+  // Back to the previews, and Go again plays it again.
+  stage.insertAdjacentHTML('beforeend',
+    `<button class="back-btn debug-back" id="debugBackBtn">${icon('back')} Previews</button>`);
+  document.getElementById('debugBackBtn').onclick = async () => { cancelMoments(); await debugRestore(); renderAnimationPreview(); };
+  // Once it has all played, the real rank badge goes back, however it's left.
+  const next = document.getElementById('goAgainWrap');
+  if (next) new MutationObserver((_, obs) => {
+    if (next.classList.contains('visible')) { obs.disconnect(); debugRestore(); }
+  }).observe(next, { attributes: true });
+  else setTimeout(() => momentQueue.then(debugRestore), 900);
+  document.getElementById('againBtn').onclick = async () => { cancelMoments(); await debugRestore(); playDonePreview(); };
+}
+
 function renderAnimationPreview() {
   stage.classList.add('top-aligned');
+  const opt = (v, label, cur) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${label}</option>`;
+  const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+  const row = (label, control) => `<label class="toggle-row"><span>${label}</span>${control}</label>`;
+  const sel = (key, options) => `<select data-k="${key}">${options}</select>`;
+  const tick = key => `<input type="checkbox" data-k="${key}" ${debugDone[key] ? 'checked' : ''}>`;
+  const o = debugDone;
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
       <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
-    <div class="collection-title" style="margin-bottom:4px;">Animation Preview</div>
+    <div class="collection-title" style="margin-bottom:4px;">Animation previews</div>
     <div class="collection-count" style="margin-bottom:14px;">Debug only - nothing here is saved</div>
+
+    <div class="profile-section-title">Done screen</div>
+    <div class="reset-note">Set up a recording's results, then play its Done screen. "Go again" plays it again.</div>
+    <div class="debug-form" id="debugForm">
+      ${row('Birds heard', sel('birds', range(0, 8).map(v => opt(v, v ? v : '0 (no birds screen)', o.birds)).join('')))}
+      ${row('New birds among them', sel('fresh', range(0, 8).map(v => opt(v, v, o.fresh)).join('')))}
+      ${row('Last one is rare', tick('rare'))}
+      ${row('Feathers already won today', tick('paid'))}
+      ${row('Pack completed', tick('pack'))}
+      ${row('Weekly challenges done', sel('challenges', range(0, 5).map(v => opt(v, v === 5 ? '5 (all five, +25)' : v, o.challenges)).join('')))}
+      ${row('Trophy levels won', sel('trophies', range(0, 3).map(v => opt(v, v, o.trophies)).join('')))}
+      ${row('Birder rank up', sel('rank', opt('', 'None', o.rank) + DEBUG_RANKS.map((n, i) => i ? opt(i, n + (i === COLOUR_RANK_INDEX ? ' (colours)' : ''), o.rank) : '').join('')))}
+      ${row('New avatar bird found', sel('avatar', opt('', 'None', o.avatar) + AVATAR_SPECIES.map(sp => opt(sp.id, sp.name, o.avatar)).join('')))}
+      ${row('New spot', sel('spot', opt('none', 'No', o.spot) + opt('new', 'Yes', o.spot) + opt('nearby', 'Yes, near a known place', o.spot)))}
+    </div>
+    <div class="debug-buttons"><button class="again-btn" id="playDoneBtn">Play the Done screen</button></div>
+
+    <div class="profile-section-title">Reward moments</div>
+    <div class="reset-note">One at a time, as they play anywhere in the app.</div>
+    <div class="debug-buttons" id="debugMoments">
+      <button class="again-btn" data-m="trophy">Trophy level</button>
+      <button class="again-btn" data-m="pack">Pack complete</button>
+      <button class="again-btn" data-m="challenge">Challenge done</button>
+      <button class="again-btn" data-m="week">All five</button>
+      <button class="again-btn" data-m="star">Game star</button>
+      <button class="again-btn" data-m="level">Level unlocked</button>
+      <button class="again-btn" data-m="rank">Birder rank</button>
+      <button class="again-btn" data-m="avatar">New avatar bird</button>
+    </div>
 
     <div class="profile-section-title">Recording tree</div>
     <div style="display:flex; justify-content:center; margin:8px 0 14px; position:relative; height:200px;">
       ${treeSvgMarkup()}
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:22px;">
+    <div class="debug-buttons">
       <button class="again-btn" id="demoQuiverToggleBtn">Start quiver</button>
       <button class="again-btn" id="demoRustleBtn">Trigger rustle</button>
     </div>
@@ -8052,16 +8183,44 @@ function renderAnimationPreview() {
     <div style="display:flex; justify-content:center; margin:8px 0 14px;">
       ${previewCardHtml(true)}
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+    <div class="debug-buttons">
       <button class="again-btn" id="demoNewBirdBtn">New bird (flies to My Flock)</button>
       <button class="again-btn" id="demoDupBirdBtn">Duplicate (shrinks away)</button>
     </div>
   `;
 
-  document.getElementById('backBtn').onclick = () => {
+  document.getElementById('backBtn').onclick = async () => {
     stopDemoQuiver();
+    cancelMoments();
+    await debugRestore();
     renderSettings();
   };
+
+  // Real trophy and pack names and pictures, for the moments.
+  if (!debugData.trophies.length) {
+    fetch('/trophies').then(r => r.json()).then(d => { debugData.trophies = d.trophies || []; }).catch(() => {});
+    fetch('/collector-packs').then(r => r.json()).then(d => { debugData.packs = d.packs || []; }).catch(() => {});
+  }
+
+  stage.querySelectorAll('#debugForm [data-k]').forEach(el => {
+    el.onchange = () => { debugDone[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value; };
+  });
+  document.getElementById('playDoneBtn').onclick = () => { stopDemoQuiver(); cancelMoments(); playDonePreview(); };
+
+  stage.querySelectorAll('#debugMoments [data-m]').forEach(btn => btn.onclick = () => {
+    const from = btn;
+    const m = btn.dataset.m;
+    if (m === 'trophy') celebrateTrophy(debugTrophy(0), from);
+    if (m === 'pack') celebratePack(debugPack(), from);
+    if (m === 'challenge') celebrateChallenges([{ text: DEBUG_CHALLENGES[0], done: 3, of: 5 }], 0, from);
+    if (m === 'week') celebrateChallenges([{ text: DEBUG_CHALLENGES[4], done: 5, of: 5 }], 25, from);
+    if (m === 'star') celebrate({ kicker: 'New star!', name: 'Level 2', icon: MOMENT_ICONS.star(), feathers: 5, from, home: 'navHome' });
+    if (m === 'level') celebrate({ kicker: 'Level unlocked!', name: 'Level 3', icon: MOMENT_ICONS.level(3), from, home: 'navHome' });
+    if (m === 'rank') celebrateRank(debugRank(debugDone.rank === '' ? COLOUR_RANK_INDEX : +debugDone.rank), from);
+    if (m === 'avatar') celebrateAvatar({ id: debugDone.avatar || 'kingfisher' });
+    // The page's rank badge is put back once the moments have played.
+    if (m === 'rank') momentQueue.then(debugRestore);
+  });
 
   let quiverOn = false;
   const quiverBtn = document.getElementById('demoQuiverToggleBtn');
