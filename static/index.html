@@ -4274,6 +4274,12 @@ function renderCard() {
     cardEl.onclick = null;                   // one tap only, mid-flight taps ignored
     stopAnyPlayingAudio();
     cardEl.classList.remove('collectable');
+    // A new bird bursts leaves over everything as it's collected (not one
+    // heard before - that just spins away).
+    if (!bird.is_duplicate && !reducedMotion()) {
+      const r = cardEl.getBoundingClientRect();
+      burstLeaves(r.left + r.width / 2, r.top + r.height / 2, 1.8, true);
+    }
     if (hint) hint.textContent = '';
     // Feathers are collected once, on the Done screen - not per card.
     dismissCard(cardEl, !bird.is_duplicate, advanceReveal);
@@ -4342,7 +4348,7 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
 // The new bird's reveal card is this same moment at full size: it arrives
 // on MOMENT.arrive with the same burst, and goes home to My Flock.
 // The server has already banked every feather; this is only the showing.
-const MOMENT = { arrive: 350, hold: 1300, home: 600, gap: 150 };
+const MOMENT = { arrive: 350, hold: 1300, shrink: 240, home: 600, gap: 150 };
 let momentQueue = Promise.resolve();
 // cancelMoments() drops every moment still waiting and the one showing: the
 // debug previews use it, so leaving one doesn't leave its moments queued
@@ -4424,23 +4430,33 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       const dx = t ? (t.left + t.width / 2) - (b.left + b.width / 2) : 0;
       const dy = t ? (t.top + t.height / 2) - (b.top + b.height / 2) : 0;
       card.style.animation = 'none';
+      // Two steps: it shrinks where it is (MOMENT.shrink), then flies home.
       // The big one's dimmed screen is its own shadow, which would otherwise
-      // shrink with it into a grey box chasing it across the screen: it
-      // lifts as the card sets off.
-      card.style.transition = still ? 'opacity .3s ease'
-        : `transform ${MOMENT.home}ms cubic-bezier(.55,0,.65,1), opacity ${MOMENT.home * .4}ms ease ${MOMENT.home * .6}ms, box-shadow ${MOMENT.home * .3}ms ease`;
-      requestAnimationFrame(() => {
-        if (!still) card.style.transform = `translate(${dx}px, ${dy}px) scale(${t ? .1 : .5})`;
-        if (big) card.style.boxShadow = '0 0 0 100vmax rgba(26,17,40,0), 0 14px 34px rgba(0,0,0,0.5)';
-        card.style.opacity = '0';
-      });
+      // shrink with it into a grey box: it lifts as the card shrinks.
+      const small = big ? .42 : .6;
+      if (still) {
+        card.style.transition = 'opacity .3s ease';
+        requestAnimationFrame(() => { card.style.opacity = '0'; });
+      } else {
+        card.style.transition = `transform ${MOMENT.shrink}ms cubic-bezier(.3,0,.2,1), box-shadow ${MOMENT.shrink}ms ease`;
+        requestAnimationFrame(() => {
+          card.style.transform = `scale(${small})`;
+          if (big) card.style.boxShadow = '0 0 0 100vmax rgba(26,17,40,0), 0 14px 34px rgba(0,0,0,0.5)';
+        });
+        setTimeout(() => {
+          if (gen !== momentGen) return;
+          card.style.transition = `transform ${MOMENT.home}ms cubic-bezier(.55,0,.65,1), opacity ${MOMENT.home * .4}ms ease ${MOMENT.home * .6}ms`;
+          card.style.transform = `translate(${dx}px, ${dy}px) scale(${t ? .1 : small * .6})`;
+          card.style.opacity = '0';
+        }, MOMENT.shrink);
+      }
       setTimeout(() => {
         if (gen !== momentGen) return;   // cancelled mid-flight: already resolved
         card.remove();
         if (momentShowing && momentShowing.card === card) momentShowing = null;
         if (t) { target.classList.add('nav-pop'); setTimeout(() => target.classList.remove('nav-pop'), 600); }
         setTimeout(resolve, MOMENT.gap);
-      }, still ? 300 : MOMENT.home);
+      }, still ? 300 : MOMENT.shrink + MOMENT.home);
     };
     card.onclick = goHome;
     const holdTimer = tap ? null : setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold) * (big ? 3 : 1));
@@ -4763,7 +4779,7 @@ function dismissCard(cardEl, isNew, onDone) {
 
   setTimeout(() => {
     cardEl.style.opacity = '0';   // hidden while edge-on, so nothing flickers back
-    burstLeaves(cx, cy);          // the fold 'shakes loose' a scatter of leaves
+    burstLeaves(cx, cy, 1, true); // the fold 'shakes loose' a scatter of leaves
     // Step 2: the folded card becomes the origami bird, in the same spot
     const bird = document.createElement('div');
     bird.className = 'origami-flyer';

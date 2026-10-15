@@ -234,10 +234,12 @@ unlock all go through `celebrate()` in `static/index.html` (with
 `celebrateTrophy`, `celebratePack`, `celebrateChallenges`... wrapping it),
 in one shape and one timing (`MOMENT`): a wood-and-cream card pops in over
 where it was won with a burst of leaves, holds (kicker, name, +feathers),
-then flies home - Awards, Collections, Home, the game's stars or Next level
+then shrinks where it is (`MOMENT.shrink`) and flies home - Awards, Collections, Home, the game's stars or Next level
 button - while its feathers fly to the counter. They queue one at a time; a
 tap sends one home early. The new bird's reveal card is the same moment at
-full size (same burst, flies to My Flock). It wears the bird card's design (`renderCard`) but not its
+full size (same burst, folds small in place, flies to My Flock as an origami
+bird); a new bird - not one heard before - bursts leaves over everything as
+it's tapped. It wears the bird card's design (`renderCard`) but not its
 facts: the photo with play, share and add-a-photo, the name, and two
 badges - the collection it's in, migration if it migrates, and the feathers
 it won - each nudging down
