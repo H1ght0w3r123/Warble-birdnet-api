@@ -4472,7 +4472,9 @@ const AVATAR_SPIN = { delay: 200, spin: 1100 };   // ms: matches .moment-bird-sp
 function celebrateAvatar(a) {
   const sp = AVATAR_SPECIES.find(x => x.id === a.id);
   return celebrate({ kicker: "You've unlocked", name: sp ? sp.name : a.id, big: true, tap: true,
-    icon: `<span class="moment-bird"><span class="moment-bird-spin">${avatarSvg(currentProfile.avatar_body, 150, null, true, a.id)}</span></span>`,
+    // In its own plumage, whatever colour the child's bird is: this is the
+    // bird as it really looks, the one they heard.
+    icon: `<span class="moment-bird"><span class="moment-bird-spin">${avatarSvg(NATURAL, 150, null, true, a.id)}</span></span>`,
     more: `<span class="moment-next moment-shop">in the Hoot-tique!</span>
            <span class="moment-tap">Tap to send it there</span>`,
     home: 'navDressUp',
