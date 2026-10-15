@@ -123,6 +123,17 @@ top-bar profile button and My Profile.
   Kingfisher's: same head). How much of a bird takes a colour is the
   artist's call, in its masks: the Blackbird all over, the Magpie only its
   head and neck.
+- **Two things on Home arrive with a birder rank** and aren't there at all
+  before (no locked disc): the weekly challenges at the second rank
+  (`CHALLENGES_UNLOCK_RANK` = 1, Lark, seal 2) and Guess the Song at the
+  third (`SONG_GAME_UNLOCK_RANK` = 2, Eavesdropper, seal 3), in `main.py`.
+  Before then the challenges aren't picked, don't count and pay nothing
+  (`evaluate_week_challenges` returns none; a recording that climbs to Lark
+  doesn't count, as they're worked out before its trophies), and the game
+  can't be played (`/song-game` `open`, the result refuses). The page hides
+  the discs by rank (`/profile` `unlocks`, `paintHubUnlocks`), the rank-up
+  moment says "... is on Home!" (`challenges_new`, `game_new`), and the disc
+  glows when it arrives.
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
   Pitched so a child warbling about four times a week (after school, a
   weekend morning, garden plus one other place) finishes all five most

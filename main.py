@@ -499,9 +499,30 @@ def rank_now(leaves: int) -> dict:
     (shop_new) - the rank-up moment says so."""
     r = birder_rank(leaves)
     r["shop_new"] = len(SHOP_BATCHES[r["index"]]) if 0 < r["index"] < len(SHOP_BATCHES) else 0
-    # The rank that opens the colour wheel says so too.
+    # The rank that opens the colour wheel says so too, as do the ranks that
+    # bring the weekly challenges and Guess the Song.
     r["colours_new"] = r["index"] == COLOUR_UNLOCK_RANK
+    r["challenges_new"] = r["index"] == CHALLENGES_UNLOCK_RANK
+    r["game_new"] = r["index"] == SONG_GAME_UNLOCK_RANK
     return r
+
+
+# Two things on Home wait for a birder rank, and until then aren't there at
+# all (no locked disc - finding them is part of climbing): the weekly
+# challenges at the second rank (index 1, Lark, the seal numbered 2) and
+# Guess the Song at the third (index 2, Eavesdropper, seal 3). Before then
+# the challenges aren't picked, don't count and pay nothing; the game can't
+# be played, and "Win a star" is never one of the five.
+CHALLENGES_UNLOCK_RANK = 1
+SONG_GAME_UNLOCK_RANK = 2
+
+
+def challenges_open(rank: int = None) -> bool:
+    return (shop_rank() if rank is None else rank) >= CHALLENGES_UNLOCK_RANK
+
+
+def song_game_open(rank: int = None) -> bool:
+    return (shop_rank() if rank is None else rank) >= SONG_GAME_UNLOCK_RANK
 
 
 def shop_rank() -> int:
@@ -960,7 +981,7 @@ def week_challenges():
     # Playable, not just open: a level with no songs for any of the child's
     # birds can't be played, and a star in it can't be won.
     birds = get_found_curated_species(ALL_CURATED_SPECIES)
-    can_play = (any(b["call_url"] for b in birds)
+    can_play = (song_game_open() and any(b["call_url"] for b in birds)
                 and any(l["unlocked"] for l in song_game_levels(len(birds))))
     picked = get_week_challenges(can_play_game=can_play, finding_new_birds=still_finding_new_birds())
     set_seen_mark(key, ",".join(c["id"] for c in picked))
@@ -1007,7 +1028,12 @@ def award_week_challenges(done_before: set):
 
 def evaluate_week_challenges():
     """This week's five challenges with their live progress. Returns a list of
-    (challenge, is_complete, progress) so callers can award or display."""
+    (challenge, is_complete, progress) so callers can award or display.
+    Nothing until the challenges open (CHALLENGES_UNLOCK_RANK). A recording
+    that climbs to that rank doesn't count towards them: they're worked out
+    before its trophies are, at the rank it started at."""
+    if not challenges_open():
+        return []
     stats = get_week_stats()
     out = []
     for ch in week_challenges():
@@ -1027,6 +1053,7 @@ def weekly_challenges():
             "progress": min(progress, ch["target"]), "complete": done,
         })
     return {
+        "open": challenges_open(),
         "challenges": items,
         "completed": sum(1 for i in items if i["complete"]),
         "all_bonus": ALL_COMPLETE_BONUS,
@@ -1211,6 +1238,8 @@ def profile(request: Request):
     uid = request.cookies.get(EXPLORER_COOKIE) or "1"
     return {**get_profile(), "avatars": avatar_states(), "colours": colour_states(),
             "colour_change": colour_change_open(), "rank": rank_now(total_leaves()),
+            # The ranks that bring the challenges and the game to Home
+            "unlocks": {"challenges": CHALLENGES_UNLOCK_RANK, "game": SONG_GAME_UNLOCK_RANK},
             # Who this is on the "Who's warbling?" page
             "explorer": {"id": int(uid) if str(uid).isdigit() else 1, "name": user_name(uid) or user_name(1)}}
 
@@ -1431,6 +1460,8 @@ def song_game():
     found = len(birds)
     playable = sum(1 for b in birds if b["call_url"])
     return {
+        # Not open yet (SONG_GAME_UNLOCK_RANK): Home doesn't show it at all.
+        "open": song_game_open(),
         "found": found,
         "rounds": SONG_GAME_ROUNDS,
         "message": song_game_message(found, playable),
@@ -1452,7 +1483,7 @@ async def song_game_result(level: int = Form(...), correct: int = Form(...)):
     found = count_curated_species_found(ALL_CURATED_SPECIES)
     levels = song_game_levels(found)
     this = next((l for l in levels if l["level"] == level), None)
-    if this is None or not this["unlocked"]:
+    if this is None or not this["unlocked"] or not song_game_open():
         return JSONResponse({"error": "level not open"}, status_code=400)
     challenges_before = challenges_done_now()
     correct = max(0, min(SONG_GAME_ROUNDS, correct))
@@ -1556,10 +1587,12 @@ def whats_new_items() -> dict:
                       if colour_change_open(rank) and not st["owned"] and st["cost"] <= feathers},
         # Things on Home (Home itself never lights up)
         # A new week's set counts as new, as does each challenge finished
-        "challenges": {f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done}
-                      | {f"{week}:set"},
+        "challenges": ({f"{week}:{ch['id']}" for ch, done, _ in evaluate_week_challenges() if done}
+                       | {f"{week}:set"}) if challenges_open(rank) else set(),
         "joke": {datetime.datetime.utcnow().date().isoformat()} if has_session_today() else set(),
-        "game": {str(l["level"]) for l in song_game_levels(found_curated) if l["unlocked"]},
+        # The game lights up the moment it arrives, then for each level opened
+        "game": ({"open"} | {str(l["level"]) for l in song_game_levels(found_curated) if l["unlocked"]})
+                if song_game_open(rank) else set(),
     }
 
 

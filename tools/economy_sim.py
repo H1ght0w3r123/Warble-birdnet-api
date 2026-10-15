@@ -156,7 +156,9 @@ def one_child(kind: str, weeks: int, seed: int, start: datetime.datetime) -> dic
                                "trophy levels" if " level " in label else "packs"] += b["feathers"]
                     # Guess the Song, spread over the week's last warbles
                     if i >= len(schedule) - GAME_GOES_PER_WEEK[kind]:
-                        levels = [l for l in main.song_game()["levels"] if l["unlocked"]]
+                        # Only once it's on Home (it opens with a birder rank)
+                        game = main.song_game()
+                        levels = [l for l in game["levels"] if l["unlocked"]] if game.get("open", True) else []
                         if levels:
                             level = next((l for l in levels if l["stars"] < 3), levels[-1])
                             g0 = database.get_total_feathers()
@@ -228,7 +230,8 @@ def report(children):
 def report_challenges(children):
     print("\nWeekly challenges (weeks with all five done; then each challenge: done / offered):\n")
     for kind in SCHEDULES:
-        weeks = [w for c in children if c["kind"] == kind for w in c["challenges"]]
+        # Weeks before the challenges open (a birder rank) have none: not counted
+        weeks = [w for c in children if c["kind"] == kind for w in c["challenges"] if w]
         if not weeks:
             continue
         offered, done = collections.Counter(), collections.Counter()

@@ -543,6 +543,8 @@
      so "Weekly Challenges" gets room to stay on one line. */
   .hub-mid{--x:0px; --y:var(--R); width:150px; margin-left:-25px;}
   .hub-right{--x:var(--side-x); --y:var(--side-y);}
+  /* Waiting for a birder rank (paintHubUnlocks): not there at all. */
+  .hub-item.not-yet{display:none;}
   .hub-icon{
     position:relative; width:var(--disc); height:var(--disc); display:block;
     filter:drop-shadow(0 3px 5px rgba(0,0,0,0.35)); transition:transform .12s ease;
@@ -3131,11 +3133,11 @@ function renderIdle() {
         <span class="hub-icon"><img src="/static/joke-icon-v1.webp" alt=""></span>
         <span class="hub-label">Joke Of The Day</span>
       </button>
-      <button class="hub-item hub-mid" id="challengeCard">
+      <button class="hub-item hub-mid not-yet" id="challengeCard">
         <span class="hub-icon"><img src="/static/challenge-icon-v1.webp" alt=""><span class="hub-badge" id="challengeTally"></span></span>
         <span class="hub-label">Weekly Challenges</span>
       </button>
-      <button class="hub-item hub-right" id="gameMini">
+      <button class="hub-item hub-right not-yet" id="gameMini">
         <span class="hub-icon"><img src="/static/song-game-icon-v1.webp" alt=""></span>
         <span class="hub-label">Guess The Song</span>
       </button>
@@ -3151,6 +3153,7 @@ function renderIdle() {
   mic.onclick = () => { wrap.classList.remove('mic-alive'); beginWarble(); };
 
   document.getElementById('challengeCard').onclick = renderChallenges;
+  paintHubUnlocks();
   refreshRank();
   document.getElementById('jokeMini').onclick = renderJokeOfDay;
   document.getElementById('gameMini').onclick = () => renderSongGame();
@@ -4633,9 +4636,12 @@ function celebrateRank(rank, from) {
   // ...and one opens the colour wheel.
   if (rank.colours_new && currentProfile) currentProfile.colour_change = true;
   const colours = rank.colours_new ? `<span class="moment-next moment-shop">Now you can change the colour of your feathers!</span>` : '';
+  // ...and two bring something new to Home.
+  const opens = (rank.challenges_new ? `<span class="moment-next moment-shop">Weekly Challenges are on Home!</span>` : '')
+    + (rank.game_new ? `<span class="moment-next moment-shop">Guess The Song is on Home!</span>` : '');
   return celebrate({ kicker: 'New birder rank!', pulse: true, name: `You're ${/^[AEIOU]/.test(rank.name) ? 'an' : 'a'} ${rank.name}!`,
     icon: rankSeal(rank.index, rank.key, 150), big: true, from, home: 'topRank',
-    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}${colours}` })
+    more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}${colours}${opens}` })
     .then(r => { landed(); return r; });
 }
 const AVATAR_SPIN = { delay: 200, spin: 1100 };   // ms: matches .moment-bird-spin below
@@ -4746,8 +4752,23 @@ async function refreshRank() {
     const d = await (await fetch('/profile')).json();
     currentProfile.rank = d.rank;
     currentProfile.avatars = d.avatars;
+    currentProfile.unlocks = d.unlocks;
     paintTopRank();
+    paintHubUnlocks();
   } catch (e) { /* keep what we had */ }
+}
+
+// The weekly challenges and Guess the Song arrive with a birder rank
+// (unlocks, from /profile: the second and third), and until then their
+// discs on Home aren't there at all - not greyed, not locked. Hidden until
+// the rank is known, so they never flash up for a child who hasn't got them.
+function featureOpen(name) {
+  const r = currentProfile && currentProfile.rank, u = currentProfile && currentProfile.unlocks;
+  return !!(r && u && r.index >= u[name]);
+}
+function paintHubUnlocks() {
+  document.getElementById('challengeCard')?.classList.toggle('not-yet', !featureOpen('challenges'));
+  document.getElementById('gameMini')?.classList.toggle('not-yet', !featureOpen('game'));
 }
 function paintTopRank() {
   const el = document.getElementById('topRank');
@@ -7241,7 +7262,9 @@ async function markSeen(area) {
 const TUTORIALS = {
   home: [
     { target: '#recordBtn', text: 'This is how you listen to birds. If you hear birds singing, get close and tap the mic.' },
-    { target: '.home-hub .hub-item', all: true, text: "Here you'll find some extra challenges and fun to keep things interesting." },
+    // Only the discs that are there: the challenges and the game arrive
+    // with the second and third birder ranks.
+    { target: '.home-hub .hub-item:not(.not-yet)', all: true, text: "Here you'll find a joke every day. As your birder rank grows, more fun things to do turn up here too." },
   ],
   listening: [
     { target: '#recScene', text: 'Keep still and quiet. Every bird you hear is shown above the tree.' },
@@ -7470,6 +7493,7 @@ async function loadProfileForNav() {
     const res = await fetch('/profile');
     currentProfile = await res.json();
     updateNavAvatarIcon();
+    paintHubUnlocks();
     // The screen has already rendered by the time this lands - it runs
     // before the profile is known - so the scene has to be asked for a
     // second time now that there is a saved choice to read. In focus only
@@ -8651,7 +8675,9 @@ function debugRank(i) {
   const step = ladder[i], next = ladder[i + 1];
   return { name: step.name, key: step.key, index: i, ladder, leaves: step.at,
            next_name: next ? next.name : null, next_at: next ? next.at : null,
-           shop_new: i > 0 ? 8 : 0, colours_new: i === COLOUR_RANK_INDEX };
+           shop_new: i > 0 ? 8 : 0, colours_new: i === COLOUR_RANK_INDEX,
+           challenges_new: i === ((currentProfile.unlocks || {}).challenges ?? 1),
+           game_new: i === ((currentProfile.unlocks || {}).game ?? 2) };
 }
 const COLOUR_RANK_INDEX = 2;   // COLOUR_UNLOCK_RANK in main.py
 let debugTrophyLevel = 0;   // the Trophy level button steps through 1-7
