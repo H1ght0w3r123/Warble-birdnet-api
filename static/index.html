@@ -2353,6 +2353,8 @@
   .profile-name-btn .ico{width:22px; height:22px; object-fit:contain;}
   .profile-name-btn.tick .ico{width:26px; height:26px;}
   /* My stats: six cream tiles, a big number over what it counts. */
+  /* Under the tiles: their favourites, one cream row each. */
+  .profile-favourites{width:100%; margin-top:8px;}
   .profile-stats{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; width:100%; margin-top:6px;}
   .profile-stat{display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 4px;
     background:var(--disc-cream); border-radius:12px; box-shadow:0 2px 6px rgba(26,17,40,0.2);}
@@ -8412,6 +8414,7 @@ async function renderProfile() {
 
     <div class="profile-section-title">My stats</div>
     <div class="profile-stats" id="profileStats"></div>
+    <div id="detectionStats" class="profile-favourites"></div>
 
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
@@ -8431,6 +8434,7 @@ async function renderProfile() {
   paintProfileName(false);
   paintProfileRank();
   loadProfileStats();
+  loadDetectionStats();
   loadProfileLocations();
 
   document.getElementById('photoInput').onchange = (e) => {
@@ -8441,9 +8445,9 @@ async function renderProfile() {
 
 async function renderSettings() {
   stage.classList.add('top-aligned');
-  // Each explorer's own: their warbling so far, and the light settings that
-  // are theirs (the picture behind Warble, bird names, tutorials). "Switch
-  // profile" is at the end of My Profile. The
+  // Each explorer's own light settings (the picture behind Warble, bird
+  // names, tutorials). Their stats are all on My Profile, and "Switch
+  // profile" is at the end of it. The
   // grown-up tools - backup, resets, feathers, sound check - are on the
   // start page's "For grown-ups", where any explorer can be chosen.
   stage.innerHTML = `
@@ -8451,9 +8455,6 @@ async function renderSettings() {
       <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
     <div class="collection-title" style="margin-bottom:14px;" id="settingsTitle">Settings</div>
-
-    <div class="profile-section-title">My warbling</div>
-    <div id="detectionStats" style="width:100%;"></div>
 
     <div class="profile-section-title">Background</div>
     <div class="reset-note">Pick a place. It changes through the day on its own — sunrise, daytime, sunset and night. It stays behind every screen, softly blurred away from Home.</div>
@@ -8473,7 +8474,6 @@ async function renderSettings() {
     stage.classList.remove('top-aligned');
     renderIdle();
   };
-  loadDetectionStats();
 
   // Settings can be opened before the profile has been fetched this session,
   // so make sure the toggle reflects what's actually saved.
@@ -8964,8 +8964,8 @@ async function loadDetectionStats() {
     }
     // Any stat with no data yet is simply omitted rather than shown as a
     // placeholder - e.g. favourite location needs at least one named spot.
+    // (How many times birds were heard is a tile above these.)
     const rows = [
-      ['Birds heard', String(s.total_detections)],
       s.top_bird && ['Heard the most', `${birdName(s.top_bird.name)} (${s.top_bird.count})`],
       s.top_location && ['Favourite spot', `${s.top_location.name} (${s.top_location.count})`],
       s.top_time && ['Favourite time', `${s.top_time.name} (${s.top_time.count})`],

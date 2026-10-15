@@ -33,8 +33,8 @@ beside the main one.
 On the page: picking someone (`playAs`) sets the cookie, remembers the pick
 for this tab (`sessionStorage` `warbleWho`) and reloads as them, so every
 cache belongs to one child; closing the app forgets it, so it asks again
-next time. A child's Settings holds their stats ("My warbling") and their
-light settings; My Profile ends with "Switch profile" (`switchExplorer()`,
+next time. A child's Settings holds their light settings (their stats are
+all on My Profile); My Profile ends with "Switch profile" (`switchExplorer()`,
 back to the start page); resets act only on the chosen explorer. "New
 explorer" asks the name first, on its own screen (`renderNewExplorer`, the
 welcome's first dot), makes them with it, and starts Warble as them on the
@@ -54,7 +54,9 @@ a stand-in, in the icon brief) that swaps in a box and the painted tick
 and there's no surname; a small rank card, just the seal and the name,
 that opens the ladder (`paintProfileRank`); "My stats", six tiles from
 `/profile-stats` (warbles, birds, times heard, trophies of 18, packs of 10,
-places); My locations; Switch profile. A head is there to pick as soon as its
+places), then their favourites under them (heard the most, favourite
+spot, favourite time - `/detection-stats`); My locations; Switch profile.
+Every stat is on My Profile; Settings has none. A head is there to pick as soon as its
 bird is found (`head_is_open`, `headOpen`) - the moment it's unlocked in
 the Hoot-tique, bought or not; the three starters always. The welcome's
 pick is also the first Dress Up bird, when it's one they can already be.
