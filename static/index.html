@@ -1251,6 +1251,10 @@
   /* It twirls in: two turns round, growing from small, a little bounce to
      finish (AVATAR_SPIN in the script fires the leaves as it lands). */
   .moment-bird{perspective:600px;}
+  /* A painted dance (AVATAR_DANCES): as tall as the disc, its wings reach
+     past the cream circle as they flap (their tips fade out - the card's
+     edge would cut them). */
+  .moment-dance{display:block; width:186px; height:auto; pointer-events:none;}
   .moment-bird-spin{display:block; animation:birdSpin 1100ms cubic-bezier(.25,.75,.35,1.15) 200ms both;}
   @keyframes birdSpin{
     0%{transform:scale(.15) rotateY(0); opacity:0;}
@@ -4676,15 +4680,26 @@ function celebrateRank(rank, from) {
     .then(r => { landed(); return r; });
 }
 const AVATAR_SPIN = { delay: 200, spin: 1100 };   // ms: matches .moment-bird-spin below
+// A bird with a painted dance plays that in its celebration instead of the
+// layered bird's own wiggle: a looping animated WebP, cut out of a dance
+// video by tools/dance_from_video.py (read its docstring). A bird without
+// one dances the usual way.
+const AVATAR_DANCES = { blackbird: '/static/avatar/blackbird/dance-v1.webp' };
 // A bird the child can now be: revealed at full size, dancing, and it waits
 // for a tap - then flies into the Hoot-tique, where it now waits with its
 // price. Big like the rank, because a new bird to be is as rare.
 function celebrateAvatar(a) {
   const sp = AVATAR_SPECIES.find(x => x.id === a.id);
+  const dance = AVATAR_DANCES[a.id];
+  // Start fetching it now: the card may wait behind the recording's other
+  // moments, and the dance is a few hundred KB.
+  if (dance) new Image().src = dance;
   return celebrate({ kicker: "You've unlocked", name: sp ? sp.name : a.id, big: true, tap: true,
     // In its own plumage, whatever colour the child's bird is: this is the
     // bird as it really looks, the one they heard.
-    icon: `<span class="moment-bird"><span class="moment-bird-spin">${avatarSvg(NATURAL, 150, null, true, a.id)}</span></span>`,
+    icon: `<span class="moment-bird${dance ? ' has-dance' : ''}"><span class="moment-bird-spin">${dance
+      ? `<img class="moment-dance" src="${dance}" alt="">`
+      : avatarSvg(NATURAL, 150, null, true, a.id)}</span></span>`,
     more: `<span class="moment-next moment-shop">in the Hoot-tique!</span>`,
     home: 'navDressUp',
     // It twirls in from small (AVATAR_SPIN), and leaves burst over
