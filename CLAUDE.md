@@ -247,7 +247,9 @@ climbed, a double burst and three times the hold; it flies into the top-bar
 badge, which changes as it lands) - big is kept for the rarest rewards:
 that, and a newly found avatar bird (`celebrateAvatar`, last of a
 recording's moments): "You've unlocked / Kingfisher / in the Hoot-tique!",
-the bird large and dancing; it waits for a tap (`tap: true`, no hold timer)
+the bird large and dancing - it twirls in from small (two turns,
+`AVATAR_SPIN`) and leaves burst over everything as it lands (`onShow`,
+`burstLeaves(..., above)`); it waits for a tap (`tap: true`, no hold timer)
 and flies into the Hoot-tique tab. On the Done screen the birds' own feathers are tapped to collect,
 then the recording's other rewards play as moments, and only then "Go
 again" - so nothing is cut short. The server has always banked the feathers

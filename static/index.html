@@ -1170,6 +1170,17 @@
   .moment-bird{display:grid; place-items:center; width:170px; height:170px; margin:0 auto; border-radius:50%;
     background:var(--cream-lt); box-shadow:inset 0 0 0 3px rgba(var(--glow),0.9);}
   .moment-tap{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft); margin-top:10px;}
+  /* It twirls in: two turns round, growing from small, a little bounce to
+     finish (AVATAR_SPIN in the script fires the leaves as it lands). */
+  .moment-bird{perspective:600px;}
+  .moment-bird-spin{display:block; animation:birdSpin 1100ms cubic-bezier(.25,.75,.35,1.15) 200ms both;}
+  @keyframes birdSpin{
+    0%{transform:scale(.15) rotateY(0); opacity:0;}
+    15%{opacity:1;}
+    80%{transform:scale(1.08) rotateY(720deg);}
+    100%{transform:scale(1) rotateY(720deg);}
+  }
+  @media (prefers-reduced-motion: reduce){ .moment-bird-spin{animation:none;} }
   @media (prefers-reduced-motion: reduce){ .moment{animation:none;} .moment-step.now{animation:none;} }
   .burst-leaf{position:fixed;z-index:290;pointer-events:none;width:12px;height:12px;margin:-6px 0 0 -6px;will-change:transform,opacity;}
   .origami-flyer{position:fixed;z-index:300;pointer-events:none;width:96px;height:96px;will-change:transform,opacity;}
@@ -4344,7 +4355,8 @@ function cancelMoments() {
 // picture in place of the disc, `more` (markup) under the name, a bigger
 // burst and three times the hold. For the rarest rewards only (a new birder rank).
 // tap: it waits for a tap instead of going home on its own (a reveal).
-function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false }) {
+// onShow(card): called as the card appears, for a moment with extra flourish.
+function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false, onShow = null }) {
   const gen = momentGen;
   momentQueue = momentQueue.then(() => new Promise(resolve => {
     if (gen !== momentGen) return resolve();
@@ -4380,6 +4392,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       const b = card.getBoundingClientRect();
       burstLeaves(b.left + b.width / 2, b.top + b.height / 2, big ? 2 : 1);
     }, MOMENT.arrive / 3);
+    if (onShow) onShow(card, still);
 
     let gone = false;
     const goHome = () => {
@@ -4452,16 +4465,30 @@ function celebrateRank(rank, from) {
     more: `${ladder ? `<span class="moment-ladder">${ladder}</span>` : ''}<span class="moment-next">${escapeFlock(next)}</span>${shop}${colours}` })
     .then(r => { landed(); return r; });
 }
+const AVATAR_SPIN = { delay: 200, spin: 1100 };   // ms: matches .moment-bird-spin below
 // A bird the child can now be: revealed at full size, dancing, and it waits
 // for a tap - then flies into the Hoot-tique, where it now waits with its
 // price. Big like the rank, because a new bird to be is as rare.
 function celebrateAvatar(a) {
   const sp = AVATAR_SPECIES.find(x => x.id === a.id);
   return celebrate({ kicker: "You've unlocked", name: sp ? sp.name : a.id, big: true, tap: true,
-    icon: `<span class="moment-bird">${avatarSvg(currentProfile.avatar_body, 150, null, true, a.id)}</span>`,
+    icon: `<span class="moment-bird"><span class="moment-bird-spin">${avatarSvg(currentProfile.avatar_body, 150, null, true, a.id)}</span></span>`,
     more: `<span class="moment-next moment-shop">in the Hoot-tique!</span>
            <span class="moment-tap">Tap to send it there</span>`,
-    home: 'navDressUp' });
+    home: 'navDressUp',
+    // It twirls in from small (AVATAR_SPIN), and leaves burst over
+    // everything as it lands - then again, smaller, a beat later.
+    onShow: (card, still) => {
+      if (still) return;
+      const bird = card.querySelector('.moment-bird');
+      const burst = (size) => {
+        if (!bird.isConnected) return;
+        const r = bird.getBoundingClientRect();
+        burstLeaves(r.left + r.width / 2, r.top + r.height / 2, size, true);
+      };
+      setTimeout(() => burst(2.6), AVATAR_SPIN.delay + AVATAR_SPIN.spin);
+      setTimeout(() => burst(1.4), AVATAR_SPIN.delay + AVATAR_SPIN.spin + 220);
+    } });
 }
 function celebratePack(p, from) {
   return celebrate({ kicker: 'Pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
@@ -4628,7 +4655,8 @@ const ORIGAMI_SVG = `
 // consts of the same name is a SyntaxError that kills the whole script.
 const BURST_LEAF_COLORS = ['#7EC8A4', '#5FB88F', '#A9DCBF', '#E8845C', '#3F7C5C'];
 
-function burstLeaves(cx, cy, size = 1) {
+// above: over the moments too - a big moment dims everything beneath it.
+function burstLeaves(cx, cy, size = 1, above = false) {
   const n = Math.round(14 * size);
   for (let i = 0; i < n; i++) {
     const leaf = document.createElement('div');
@@ -4639,7 +4667,12 @@ function burstLeaves(cx, cy, size = 1) {
       <path d="M6 1 V11" stroke="rgba(0,0,0,.18)" stroke-width="0.7"/></svg>`;
     leaf.style.left = `${cx}px`;
     leaf.style.top = `${cy}px`;
+    if (above) leaf.style.zIndex = '960';
     document.body.appendChild(leaf);
+    // Drawn where it starts before it's told where to go: otherwise the
+    // browser can work out its first look and its last in the same frame,
+    // skip the flight, and the leaf is never seen (it ends faded out).
+    void leaf.offsetWidth;
 
     // Thrown outward and upward, then gravity takes them down - so they burst
     // rather than simply radiating evenly like a firework.
