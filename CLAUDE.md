@@ -269,9 +269,12 @@ order: "Collection pack bird found!" for each new bird of the 100
 (`pack_birds` from `/analyze-session`), "Collection pack complete!",
 "Weekly challenge complete!" for each one and "Weekly challenges
 complete!" for all five, trophy won / level up, the new rank ("New birder
-rank!" pulsing), the new avatar bird. Each that has progress shows it as a
-green bar with no numbers, growing as the card lands: the pack's birds
-found, the five challenges, the trophy's leaves (`progress: {from, to}`).
+rank!" pulsing), the new avatar bird. Progress: a pack bird shows the pack,
+the bird and a count ("6/10"); a challenge shows a green bar of the five,
+with no numbers, growing as the card lands (`progress: {from, to}`); a
+trophy shows its three leaves as its base does - empty sockets at level 1,
+green leaves at 2-4, turning gold at 5-7, the newest popping in
+(`trophyLeavesHtml`).
 Wherever a card lands (a tab, the rank badge) a twitching leaf stays
 (`.landed`) until that place is visited - except Home's tab: the
 challenges fly to Home, but Home never glows (its challenges disc does). Moments elsewhere (the game, the
