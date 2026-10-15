@@ -1146,6 +1146,10 @@
   .moment-text{display:flex; flex-direction:column; min-width:0;}
   .moment-kicker{font-family:'Poppins'; font-weight:900; font-size:16px; line-height:1.15; color:var(--wood-edge);}
   .moment-name{font-family:'Poppins'; font-weight:700; font-size:12.5px; line-height:1.25; color:#4A2408; opacity:.8;}
+  .moment-tap-small{font-family:'Poppins'; font-weight:700; font-size:11px; color:var(--ink-soft); margin-top:3px;}
+  /* Waiting for a tap: a gentle nudge so it reads as something to press. */
+  .moment.waiting{animation:momentIn 350ms cubic-bezier(.34,1.56,.64,1) both, momentNudge 1.6s ease-in-out 1.2s infinite;}
+  @keyframes momentNudge{0%,100%{transform:none;} 50%{transform:scale(1.04);}}
   .moment-feathers{display:flex; align-items:center; gap:4px; flex:0 0 auto; margin-left:2px;
     font-family:'Poppins'; font-weight:900; font-size:18px; color:var(--feather);}
   .moment-feathers .feather-icon{width:20px; height:20px;}
@@ -4344,6 +4348,9 @@ let momentQueue = Promise.resolve();
 // debug previews use it, so leaving one doesn't leave its moments queued
 // in front of the next.
 let momentGen = 0, momentShowing = null;
+// While true, every moment queued waits for a tap (the Done screen: each
+// thing won there is collected by the child, never flies off by itself).
+let momentsWaitForTap = false;
 function cancelMoments() {
   momentGen++;
   if (momentShowing) { momentShowing.card.remove(); momentShowing.resolve(); momentShowing = null; }
@@ -4358,6 +4365,7 @@ function cancelMoments() {
 // onShow(card): called as the card appears, for a moment with extra flourish.
 function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false, onShow = null }) {
   const gen = momentGen;
+  tap = tap || momentsWaitForTap;
   momentQueue = momentQueue.then(() => new Promise(resolve => {
     if (gen !== momentGen) return resolve();
     const card = document.createElement('div');
@@ -4375,6 +4383,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       <span class="moment-text">
         <span class="moment-kicker">${escapeFlock(kicker)}</span>
         ${name ? `<span class="moment-name">${escapeFlock(name)}</span>` : ''}
+        ${tap ? '<span class="moment-tap-small">Tap to collect</span>' : ''}
       </span>
       ${feathers ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${feathers}</span>` : ''}
     </div>`;
@@ -4394,10 +4403,19 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
     }, MOMENT.arrive / 3);
     if (onShow) onShow(card, still);
 
+    if (tap && !big && !still) {
+      card.classList.add('waiting');
+      card.style.animationDuration = `${MOMENT.arrive}ms, 1.6s`;   // the arrival, then the nudge
+    }
     let gone = false;
     const goHome = () => {
       if (gone || gen !== momentGen) return;
       gone = true;
+      // Collected by a tap: leaves burst from it as it sets off, over everything.
+      if (tap && !still) {
+        const b = card.getBoundingClientRect();
+        burstLeaves(b.left + b.width / 2, b.top + b.height / 2, big ? 2.2 : 1.6, true);
+      }
       clearTimeout(holdTimer);
       if (feathers) flyFeathersToCounter(card, feathers, () => {});
       const target = typeof home === 'string' ? document.getElementById(home) : home;
@@ -6102,11 +6120,15 @@ function takeSessionMoments() {
   const trophies = newlyEarnedTrophies, rank = sessionRankUp, avatars = sessionNewAvatars;
   sessionPacks = []; sessionChallenges = []; sessionWeekBonus = 0; sessionNewAvatars = [];
   newlyEarnedTrophies = []; sessionRankUp = null; sessionBonuses = []; sessionFeatherTotal = 0;
+  // Every one of them waits for the child's tap (momentsWaitForTap).
   return (from) => {
-    packs.forEach(p => celebratePack(p, from));
-    celebrateChallenges(challenges, week, from);
-    celebrateTrophies(trophies, from, rank);
-    avatars.forEach(celebrateAvatar);   // last: the reveal waits for a tap
+    momentsWaitForTap = true;
+    try {
+      packs.forEach(p => celebratePack(p, from));
+      celebrateChallenges(challenges, week, from);
+      celebrateTrophies(trophies, from, rank);
+      avatars.forEach(celebrateAvatar);   // last: the bird you can now be
+    } finally { momentsWaitForTap = false; }
     return momentQueue;
   };
 }
@@ -6173,6 +6195,10 @@ function renderDone() {
   } else featherEl.onclick = () => {
     featherEl.onclick = null;
     featherEl.classList.remove('tappable');
+    if (!reducedMotion()) {
+      const b = featherEl.getBoundingClientRect();
+      burstLeaves(b.left + b.width / 2, b.top + b.height / 2, 1.6);
+    }
     const hint = document.getElementById('doneHint');
     if (hint) hint.textContent = '';
     flyFeathersToCounter(featherEl, total, () => {
@@ -8159,6 +8185,8 @@ function playDonePreview() {
   setActiveTab('home');
   stage.classList.remove('top-aligned');
   setSceneFocus(false);
+  // The previews page may have been scrolled down to the Play button.
+  window.scrollTo(0, 0); stage.scrollTop = 0;
   if (n) renderDone(); else renderNoBirds();
   // Back to the previews, and Go again plays it again.
   stage.insertAdjacentHTML('beforeend',

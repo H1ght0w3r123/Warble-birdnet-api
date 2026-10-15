@@ -251,9 +251,14 @@ the bird large and dancing in its natural plumage (whatever colour the
 child's own bird is) - it twirls in from small (two turns,
 `AVATAR_SPIN`) and leaves burst over everything as it lands (`onShow`,
 `burstLeaves(..., above)`); it waits for a tap (`tap: true`, no hold timer)
-and flies into the Hoot-tique tab. On the Done screen the birds' own feathers are tapped to collect,
-then the recording's other rewards play as moments, and only then "Go
-again" - so nothing is cut short. The server has always banked the feathers
+and flies into the Hoot-tique tab. **On the Done screen, everything won is
+collected by a tap, and bursts leaves as it is:** the birds' own feathers
+first, then each of the recording's other rewards as a moment that waits
+("Tap to collect", a gentle nudge) instead of flying off by itself
+(`momentsWaitForTap`, set while `takeSessionMoments` queues them), bursts
+leaves over everything when tapped, then flies home; only then "Go
+again" - so nothing is cut short. Moments elsewhere (the game, the
+Hoot-tique) still go home by themselves. The server has always banked the feathers
 already; `/analyze-session` and `/song-game/result` itemise them
 (`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a
 recording goes through `award_trophy_levels()` and challenge pay through
