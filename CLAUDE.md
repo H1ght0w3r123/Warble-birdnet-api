@@ -278,6 +278,11 @@ green (levels 2-4), then three gold (5-7) - the newest popping in
 Wherever a card lands (a tab, the rank badge) a twitching leaf stays
 (`.landed`) until that place is visited - except Home's tab: the
 challenges fly to Home, but Home never glows (its challenges disc does).
+**Several of one kind are one card** (`celebrate({steps})`): two or more
+trophy levels, pack birds, packs complete, or weekly challenges (the week's
++25 as their last step) show as a single card that moves on to each next
+one by itself (`MOMENT.step` apart), the feathers adding up as it goes;
+one tap collects the lot. The rank and the new avatar bird stay their own.
 **Leaving mid-celebration aborts it** (`abortCelebrations`, on any tab,
 Settings or My Profile tap, during the bird cards or the Done screen):
 nothing more plays, ever; each place a card was still going gets its leaf

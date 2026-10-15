@@ -1154,6 +1154,9 @@
   .moment-bar-fill{display:block; height:100%; background:var(--sage); border-radius:inherit;
     transition:width .7s cubic-bezier(.3,.8,.3,1);}
   /* Under a moment's name: a second line, a count, a trophy's leaves. */
+  /* Several in one card: each next one slides in. */
+  .moment-inner.step-in{animation:stepIn .4s cubic-bezier(.3,1.3,.5,1) both;}
+  @keyframes stepIn{from{opacity:0; transform:translateY(8px) scale(.96);} to{opacity:1; transform:none;}}
   .moment-sub{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:#4A2408; opacity:.8; line-height:1.25;}
   .moment-count{font-family:'Poppins'; font-weight:900; font-size:15px; color:var(--wood-edge); margin-top:2px;}
   .moment-leaves{display:flex; gap:3px; align-items:center; margin-top:5px;}
@@ -4376,7 +4379,7 @@ function flyFeathersToCounter(cardEl, feathers, onDone) {
 // The new bird's reveal card is this same moment at full size: it arrives
 // on MOMENT.arrive with the same burst, and goes home to My Flock.
 // The server has already banked every feather; this is only the showing.
-const MOMENT = { arrive: 350, hold: 1300, bump: 160, shrink: 320, home: 600, gap: 150 };
+const MOMENT = { arrive: 350, hold: 1300, step: 1500, bump: 160, shrink: 320, home: 600, gap: 150 };
 let momentQueue = Promise.resolve();
 // cancelMoments() drops every moment still waiting and the one showing: the
 // debug previews use it, so leaving one doesn't leave its moments queued
@@ -4404,7 +4407,15 @@ function cancelMoments() {
 // progress: {from, to} (0-1) - a green bar under the name that grows from
 // where it was to where it is now; no numbers. pulse: the kicker pulses.
 // below: markup under the name - a count, or a trophy's row of leaves.
-function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false, onShow = null, progress = null, pulse = false, below = '' }) {
+// steps: several of one kind in ONE card - a list of {kicker, name, icon,
+// below, progress, feathers}. It shows the first, then moves on to each
+// next by itself (MOMENT.step apart), the feathers adding up as it goes;
+// one tap collects them all.
+function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false, onShow = null, progress = null, pulse = false, below = '', steps = null }) {
+  if (steps && steps.length) {
+    ({ kicker, name = '', icon = '', below = '', progress = null } = steps[0]);
+    feathers = steps.reduce((n, st) => n + (st.feathers || 0), 0);
+  }
   const gen = momentGen;
   tap = tap || momentsWaitForTap;
   const bound = { home };
@@ -4416,8 +4427,20 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
     momentShowing = { card, resolve };
     card.className = big ? 'moment moment-big woodframe' : 'moment woodframe';
     card.setAttribute('role', 'status');
-    const bar = progress ? `<span class="moment-bar"><span class="moment-bar-fill" style="width:${Math.round(progress.from * 100)}%"></span></span>` : '';
+    const barOf = pr => pr ? `<span class="moment-bar"><span class="moment-bar-fill" style="width:${Math.round(pr.from * 100)}%"></span></span>` : '';
+    const bar = barOf(progress);
     const kick = `<span class="moment-kicker${pulse ? ' pulse' : ''}">${escapeFlock(kicker)}</span>`;
+    const featherSpan = n => n ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${n}</span>` : '';
+    const smallInner = (st, shown) => `<div class="moment-inner">
+      ${st.icon ? `<span class="moment-icon">${st.icon}</span>` : ''}
+      <span class="moment-text">
+        <span class="moment-kicker">${escapeFlock(st.kicker)}</span>
+        ${st.name ? `<span class="moment-name">${escapeFlock(st.name)}</span>` : ''}
+        ${st.below || ''}
+        ${barOf(st.progress)}
+      </span>
+      ${featherSpan(shown)}
+    </div>`;
     card.innerHTML = big ? `<div class="moment-inner">
       ${icon ? `<span class="moment-art">${icon}</span>` : ''}
       ${kick}
@@ -4425,7 +4448,9 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       ${bar}
       ${more}
       ${feathers ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${feathers}</span>` : ''}
-    </div>` : `<div class="moment-inner">
+    </div>` : steps && steps.length
+      ? smallInner(steps[0], steps[0].feathers || 0)
+      : `<div class="moment-inner">
       ${icon ? `<span class="moment-icon">${icon}</span>` : ''}
       <span class="moment-text">
         ${kick}
@@ -4433,7 +4458,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
         ${below}
         ${bar}
       </span>
-      ${feathers ? `<span class="moment-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> +${feathers}</span>` : ''}
+      ${featherSpan(feathers)}
     </div>`;
     card.style.animationDuration = `${MOMENT.arrive}ms`;
     document.body.appendChild(card);
@@ -4441,19 +4466,37 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
     const r = fromEl ? fromEl.getBoundingClientRect() : null;
     const cx = r && r.width ? r.left + r.width / 2 : innerWidth / 2;
     const cy = r && r.height ? r.top + r.height / 2 : innerHeight * 0.42;
-    const w = card.offsetWidth, h = card.offsetHeight;
-    card.style.left = `${Math.max(12, Math.min(innerWidth - 12 - w, cx - w / 2))}px`;
-    card.style.top = `${Math.max(big ? 12 : 60, Math.min(innerHeight - (big ? 90 : 140) - h, cy - h / 2))}px`;
+    const place = () => {
+      const w = card.offsetWidth, h = card.offsetHeight;
+      card.style.left = `${Math.max(12, Math.min(innerWidth - 12 - w, cx - w / 2))}px`;
+      card.style.top = `${Math.max(big ? 12 : 60, Math.min(innerHeight - (big ? 90 : 140) - h, cy - h / 2))}px`;
+    };
+    place();
     const still = reducedMotion();
     if (!still) setTimeout(() => {
       const b = card.getBoundingClientRect();
       burstLeaves(b.left + b.width / 2, b.top + b.height / 2, big ? 2 : 1);
     }, MOMENT.arrive / 3);
     if (onShow) onShow(card, still);
-    if (progress) setTimeout(() => {
+    const growBar = pr => { if (pr) setTimeout(() => {
       const f = card.querySelector('.moment-bar-fill');
-      if (f) f.style.width = `${Math.round(progress.to * 100)}%`;
-    }, still ? 0 : MOMENT.arrive + 150);
+      if (f) f.style.width = `${Math.round(pr.to * 100)}%`;
+    }, still ? 0 : 150); };
+    if (progress) setTimeout(() => growBar(progress), still ? 0 : MOMENT.arrive);
+    // Several in one card: on to each next one by itself.
+    const stepTimers = [];
+    if (steps && steps.length > 1) {
+      let running = steps[0].feathers || 0;
+      steps.slice(1).forEach((st, k) => stepTimers.push(setTimeout(() => {
+        if (gen !== momentGen || !card.isConnected) return;
+        running += st.feathers || 0;
+        card.innerHTML = smallInner(st, running);
+        card.firstElementChild.classList.add('step-in');
+        place();
+        growBar(st.progress);
+      }, MOMENT.arrive + (k + 1) * MOMENT.step)));
+    }
+    const stepsTime = steps && steps.length > 1 ? (steps.length - 1) * MOMENT.step : 0;
 
     if (tap && !big && !still) {
       card.classList.add('waiting');
@@ -4469,6 +4512,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
         burstLeaves(b.left + b.width / 2, b.top + b.height / 2, big ? 2.2 : 1.6, true);
       }
       clearTimeout(holdTimer);
+      stepTimers.forEach(clearTimeout);
       if (feathers) flyFeathersToCounter(card, feathers, () => {});
       const target = typeof home === 'string' ? document.getElementById(home) : home;
       const t = target && target.isConnected && !still ? target.getBoundingClientRect() : null;
@@ -4524,7 +4568,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       }, still ? 300 : MOMENT.bump + MOMENT.shrink + MOMENT.home);
     };
     card.onclick = goHome;
-    const holdTimer = tap ? null : setTimeout(goHome, MOMENT.arrive + (still ? 900 : MOMENT.hold) * (big ? 3 : 1));
+    const holdTimer = tap ? null : setTimeout(goHome, MOMENT.arrive + stepsTime + (still ? 900 : MOMENT.hold) * (big ? 3 : 1));
   }));
   return momentQueue;
 }
@@ -4540,10 +4584,11 @@ const MOMENT_ICONS = {
 };
 
 // Each kind of reward, as a moment. `from` is where it was won.
+const trophyStep = t => ({ kicker: t.level > 1 ? 'Trophy level up!' : 'Trophy won!',
+  name: `${t.name} · level ${t.level}`, icon: MOMENT_ICONS.trophy(t),
+  below: trophyLeavesHtml(t.level), feathers: t.feathers || 0 });
 function celebrateTrophy(t, from) {
-  return celebrate({ kicker: t.level > 1 ? 'Trophy level up!' : 'Trophy won!',
-    name: `${t.name} · level ${t.level}`, icon: MOMENT_ICONS.trophy(t),
-    below: trophyLeavesHtml(t.level), feathers: t.feathers || 0, from, home: 'navTrophies' });
+  return celebrate({ ...trophyStep(t), from, home: 'navTrophies' });
 }
 // A new rank is the one moment at full size: the new seal, big, and the
 // ladder underneath with the step just climbed lit up. It flies into the
@@ -4590,17 +4635,27 @@ function celebrateAvatar(a) {
       setTimeout(() => burst(1.4), AVATAR_SPIN.delay + AVATAR_SPIN.spin + 220);
     } });
 }
+const packStep = p => ({ kicker: 'Collection pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
+  progress: { from: 1, to: 1 }, feathers: p.feathers || 0 });
 function celebratePack(p, from) {
-  return celebrate({ kicker: 'Collection pack complete!', name: p.name, icon: MOMENT_ICONS.pack(p),
-    progress: { from: 1, to: 1 }, feathers: p.feathers || 0, from, home: 'navHabitats' });
+  return celebrate({ ...packStep(p), from, home: 'navHabitats' });
+}
+function celebratePacks(list, from) {
+  if (list.length > 1) celebrate({ steps: list.map(packStep), from, home: 'navHabitats' });
+  else list.forEach(p => celebratePack(p, from));
 }
 // A new bird for one of the collection packs: the pack, the bird, and how
 // many of the pack are found now, as a number out of its ten.
+const packBirdStep = b => ({ kicker: 'Collection pack bird found!', name: b.pack_name,
+  icon: MOMENT_ICONS.pack(b),
+  below: `<span class="moment-sub">${escapeFlock(birdName(b.name))}</span>
+          <span class="moment-count">${b.found}/${b.total}</span>` });
 function celebratePackBird(b, from) {
-  return celebrate({ kicker: 'Collection pack bird found!', name: b.pack_name,
-    icon: MOMENT_ICONS.pack(b), from, home: 'navHabitats',
-    below: `<span class="moment-sub">${escapeFlock(birdName(b.name))}</span>
-            <span class="moment-count">${b.found}/${b.total}</span>` });
+  return celebrate({ ...packBirdStep(b), from, home: 'navHabitats' });
+}
+function celebratePackBirds(list, from) {
+  if (list.length > 1) celebrate({ steps: list.map(packBirdStep), from, home: 'navHabitats' });
+  else list.forEach(b => celebratePackBird(b, from));
 }
 // A trophy's leaves on its moment: six empty slots, one filled per level
 // after the first - three green (levels 2-4), then three gold (5-7). The
@@ -4615,17 +4670,22 @@ function trophyLeavesHtml(level) {
 // A single challenge pays nothing, so its moment says how far the week has
 // got instead; the fifth is followed by the week's own moment, which pays.
 // The bar is the week: how many of the five are done.
+// Several at once - and the week's prize after the fifth - are one card.
 function celebrateChallenges(list, weekBonus, from) {
-  (list || []).forEach((c, i) => {
+  const steps = (list || []).map((c, i) => {
     const done = c.done - (list.length - 1 - i);
-    celebrate({ kicker: 'Weekly challenge complete!', name: c.text, icon: MOMENT_ICONS.challenge(),
-      progress: { from: (done - 1) / c.of, to: done / c.of }, from, home: 'navHome' });
+    return { kicker: 'Weekly challenge complete!', name: c.text, icon: MOMENT_ICONS.challenge(),
+      progress: { from: (done - 1) / c.of, to: done / c.of } };
   });
-  if (weekBonus) celebrate({ kicker: 'Weekly challenges complete!', name: 'All five this week',
-    icon: MOMENT_ICONS.week(), progress: { from: 1, to: 1 }, feathers: weekBonus, from, home: 'navHome' });
+  if (weekBonus) steps.push({ kicker: 'Weekly challenges complete!', name: 'All five this week',
+    icon: MOMENT_ICONS.week(), progress: { from: 1, to: 1 }, feathers: weekBonus });
+  if (steps.length > 1) celebrate({ steps, from, home: 'navHome' });
+  else if (steps.length) celebrate({ ...steps[0], from, home: 'navHome' });
 }
+// Several trophy levels at once are one card, stepping through them.
 function celebrateTrophies(list, fromEl, rankUp) {
-  (list || []).forEach(t => celebrateTrophy(t, fromEl));
+  if ((list || []).length > 1) celebrate({ steps: list.map(trophyStep), from: fromEl, home: 'navTrophies' });
+  else (list || []).forEach(t => celebrateTrophy(t, fromEl));
   if (rankUp) celebrateRank(rankUp, fromEl);
   if ((list || []).length) refreshWhatsNew();
   return momentQueue;
@@ -6276,8 +6336,8 @@ function takeSessionMoments() {
     sessionHomesWaiting = [];
     momentsWaitForTap = true;
     try {
-      packBirds.forEach(b => celebratePackBird(b, from));
-      packs.forEach(p => celebratePack(p, from));
+      celebratePackBirds(packBirds, from);
+      celebratePacks(packs, from);
       celebrateChallenges(challenges, week, from);
       celebrateTrophies(trophies, from, rank);
       avatars.forEach(celebrateAvatar);   // last: the bird you can now be
