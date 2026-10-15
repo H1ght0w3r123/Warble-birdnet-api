@@ -272,8 +272,8 @@ complete!" for all five, trophy won / level up, the new rank ("New birder
 rank!" pulsing), the new avatar bird. Progress: a pack bird shows the pack,
 the bird and a count ("6/10"); a challenge shows a green bar of the five,
 with no numbers, growing as the card lands (`progress: {from, to}`); a
-trophy shows its three leaves as its base does - empty sockets at level 1,
-green leaves at 2-4, turning gold at 5-7, the newest popping in
+trophy shows six leaf slots, one filled per level after the first - three
+green (levels 2-4), then three gold (5-7) - the newest popping in
 (`trophyLeavesHtml`).
 Wherever a card lands (a tab, the rank badge) a twitching leaf stays
 (`.landed`) until that place is visited - except Home's tab: the
