@@ -319,9 +319,11 @@ the bird large and dancing in its natural plumage (whatever colour the
 child's own bird is) - it twirls in from small (two turns,
 `AVATAR_SPIN`) and leaves burst over everything as it lands (`onShow`,
 `burstLeaves(..., above)`); a bird with a painted dance plays that instead
-(`AVATAR_DANCES`: the Blackbird's, `static/avatar/blackbird/dance-v1.webp`,
-a looping WebP cut from a dance video by `tools/dance_from_video.py` - read
-its docstring: the videos come on black, not see-through); it waits for a tap (`tap: true`, no hold timer)
+(`AVATAR_DANCES`: the Blackbird's, `static/avatar/blackbird/dance-v2.webm`
+and `.webp` - a looping see-through video at 24 frames a second, the WebP
+for iPhones and Safari, cut from a dance video by
+`tools/dance_from_video.py`; read its docstring: the videos come on black,
+not see-through); it waits for a tap (`tap: true`, no hold timer)
 and flies into the Hoot-tique tab. **On the Done screen, everything won is
 collected by a tap, and bursts leaves as it is:** the birds' own feathers
 first (just the words, pulsing slowly - no box), then each of the

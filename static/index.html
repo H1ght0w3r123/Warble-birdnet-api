@@ -4681,10 +4681,24 @@ function celebrateRank(rank, from) {
 }
 const AVATAR_SPIN = { delay: 200, spin: 1100 };   // ms: matches .moment-bird-spin below
 // A bird with a painted dance plays that in its celebration instead of the
-// layered bird's own wiggle: a looping animated WebP, cut out of a dance
-// video by tools/dance_from_video.py (read its docstring). A bird without
-// one dances the usual way.
-const AVATAR_DANCES = { blackbird: '/static/avatar/blackbird/dance-v1.webp' };
+// layered bird's own wiggle, cut out of a dance video by
+// tools/dance_from_video.py (read its docstring). Two files, both 24 frames
+// a second (12 looked jerky): a see-through WebM video, small and smooth,
+// and an animated WebP for iPhones and Safari, which can't show a
+// see-through WebM. A bird without one dances the usual way.
+const AVATAR_DANCES = { blackbird: '/static/avatar/blackbird/dance-v2' };
+// Safari, and every browser on an iPhone or iPad (they're all Safari inside).
+const IS_APPLE_WEBKIT = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  || /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
+const DANCE_AS_VIDEO = !IS_APPLE_WEBKIT
+  && !!document.createElement('video').canPlayType('video/webm; codecs="vp9"');
+function danceHtml(base) {
+  return DANCE_AS_VIDEO
+    ? `<video class="moment-dance" src="${base}.webm" autoplay loop muted playsinline disablepictureinpicture
+         aria-hidden="true" onerror="this.outerHTML='<img class=&quot;moment-dance&quot; src=&quot;${base}.webp&quot; alt=&quot;&quot;>'"></video>`
+    : `<img class="moment-dance" src="${base}.webp" alt="">`;
+}
 // A bird the child can now be: revealed at full size, dancing, and it waits
 // for a tap - then flies into the Hoot-tique, where it now waits with its
 // price. Big like the rank, because a new bird to be is as rare.
@@ -4692,13 +4706,13 @@ function celebrateAvatar(a) {
   const sp = AVATAR_SPECIES.find(x => x.id === a.id);
   const dance = AVATAR_DANCES[a.id];
   // Start fetching it now: the card may wait behind the recording's other
-  // moments, and the dance is a few hundred KB.
-  if (dance) new Image().src = dance;
+  // moments, and the dance is 0.7-2 MB.
+  if (dance) fetch(`${dance}.${DANCE_AS_VIDEO ? 'webm' : 'webp'}`).catch(() => {});
   return celebrate({ kicker: "You've unlocked", name: sp ? sp.name : a.id, big: true, tap: true,
     // In its own plumage, whatever colour the child's bird is: this is the
     // bird as it really looks, the one they heard.
     icon: `<span class="moment-bird${dance ? ' has-dance' : ''}"><span class="moment-bird-spin">${dance
-      ? `<img class="moment-dance" src="${dance}" alt="">`
+      ? danceHtml(dance)
       : avatarSvg(NATURAL, 150, null, true, a.id)}</span></span>`,
     more: `<span class="moment-next moment-shop">in the Hoot-tique!</span>`,
     home: 'navDressUp',

@@ -1,6 +1,15 @@
-"""Turn a delivered dance video of an avatar bird into the looping animated
-WebP the "You've unlocked ..." celebration plays (AVATAR_DANCES in
-static/index.html, static/avatar/<bird>/dance-v<N>.webp).
+"""Turn a delivered dance video of an avatar bird into the two looping,
+see-through files the "You've unlocked ..." celebration plays (AVATAR_DANCES
+in static/index.html): static/avatar/<bird>/dance-v<N>.webm and .webp.
+
+Two because no one format does it everywhere, smoothly and small:
+- a WebM (VP9 with transparency), all 24 frames a second, about 0.7 MB -
+  what Chrome, Android, Firefox and Edge play;
+- an animated WebP, all 24 frames, about 2 MB - for iPhones and Safari,
+  which can't show a see-through WebM (Apple's own see-through video, HEVC
+  with alpha, can only be made on a Mac).
+Every frame is kept: halving to 12 a second to save size was tried first,
+and the dance looked jerky.
 
     pip install imageio-ffmpeg numpy pillow opencv-python   (ffmpeg comes with the first)
     python3 tools/dance_from_video.py <video.mp4> <bird> [version]
@@ -25,8 +34,7 @@ loses its edge to this.
 The video frames the bird so tightly that wide wing flaps run off its left
 and right edges; their cut-off tips are faded out over EDGE_FADE pixels so
 they don't end in a straight line. The picture is cropped to the band of
-rows the bird ever uses (worked out over every frame), and every other
-frame is kept (EVERY), at the same speed.
+rows the bird ever uses (worked out over every frame).
 """
 import glob
 import os
@@ -40,11 +48,11 @@ from PIL import Image
 
 BLACK = 6           # background is at most this bright (0-255)
 EDGE_FADE = 36      # px, in the video's own size
-WIDTH = 432         # px wide, about twice the size it's shown at
-QUALITY = 70
-EVERY = 2           # keep every 2nd frame: 12 a second. All 24 at this size
-                    # was 3 MB - too much to fetch on a phone as the card
-                    # opens; 12 is 1.5 MB and still reads as a dance.
+FPS = 24            # the delivered videos' own rate; every frame is kept
+WEBM_WIDTH = 432    # px wide, a bit over twice the size it's shown at
+WEBM_CRF = 36       # VP9 quality (lower is better and bigger)
+WEBP_WIDTH = 372    # an animated WebP compresses frames far worse than video:
+WEBP_QUALITY = 60   # this keeps it near 2 MB
 AVATAR = os.path.join(os.path.dirname(__file__), '..', 'static', 'avatar')
 
 
@@ -76,23 +84,36 @@ def cut(path):
 def main(video, bird, version='1'):
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run([ffmpeg(), '-v', 'error', '-i', video, os.path.join(tmp, 'f%04d.png')], check=True)
-        frames = [cut(p) for p in sorted(glob.glob(os.path.join(tmp, 'f*.png')))[::EVERY]]
+        frames = [cut(p) for p in sorted(glob.glob(os.path.join(tmp, 'f*.png')))]
     h, w = frames[0].shape[:2]
     rows = np.nonzero(np.any(np.stack([f[..., 3] > 8 for f in frames]).any(0), axis=1))[0]
     y0, y1 = max(0, rows[0] - 10), min(h, rows[-1] + 11)
     x = np.arange(w)
     fade = np.clip(np.minimum(x, w - 1 - x) / EDGE_FADE, 0, 1)
-    out_h = round(WIDTH * (y1 - y0) / w)
-    ims = []
+    big = []
     for f in frames:
         f = f[y0:y1].astype(np.float32)
         f[..., 3] *= fade[None, :]
-        ims.append(Image.fromarray(f.round().astype(np.uint8), 'RGBA').resize((WIDTH, out_h), Image.LANCZOS))
-    dest = os.path.join(AVATAR, bird, f'dance-v{version}.webp')
-    fps = 24 / EVERY   # the delivered videos are 24 a second
-    ims[0].save(dest, save_all=True, append_images=ims[1:], duration=round(1000 / fps), loop=0,
-                quality=QUALITY, method=4)
-    print(f'{dest}: {len(ims)} frames, {WIDTH}x{out_h}, {os.path.getsize(dest) // 1024} KB')
+        big.append(Image.fromarray(f.round().astype(np.uint8), 'RGBA'))
+    base = os.path.join(AVATAR, bird, f'dance-v{version}')
+
+    # The WebM, through ffmpeg from a folder of see-through PNGs
+    size = (WEBM_WIDTH, round(WEBM_WIDTH * (y1 - y0) / w))
+    with tempfile.TemporaryDirectory() as tmp:
+        for i, im in enumerate(big):
+            im.resize(size, Image.LANCZOS).save(os.path.join(tmp, f'f{i:04d}.png'))
+        subprocess.run([ffmpeg(), '-v', 'error', '-y', '-framerate', str(FPS), '-i', os.path.join(tmp, 'f%04d.png'),
+                        '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-auto-alt-ref', '0',
+                        '-crf', str(WEBM_CRF), '-b:v', '0', '-row-mt', '1', base + '.webm'], check=True)
+    print(f'{base}.webm: {len(big)} frames, {size[0]}x{size[1]}, {os.path.getsize(base + ".webm") // 1024} KB')
+
+    # The WebP, for Safari
+    size = (WEBP_WIDTH, round(WEBP_WIDTH * (y1 - y0) / w))
+    ims = [im.resize(size, Image.LANCZOS) for im in big]
+    ms = [round((i + 1) * 1000 / FPS) - round(i * 1000 / FPS) for i in range(len(ims))]   # 41/42/42...
+    ims[0].save(base + '.webp', save_all=True, append_images=ims[1:], duration=ms, loop=0,
+                quality=WEBP_QUALITY, alpha_quality=80, method=4)
+    print(f'{base}.webp: {len(ims)} frames, {size[0]}x{size[1]}, {os.path.getsize(base + ".webp") // 1024} KB')
 
 
 if __name__ == '__main__':
