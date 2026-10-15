@@ -6,7 +6,7 @@ import datetime
 from pathlib import Path
 
 import requests
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, Request
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydub import AudioSegment
@@ -257,6 +257,25 @@ from challenges import get_week_challenges, current_week_key, ALL_COMPLETE_BONUS
 from migration_data import get_migration_info
 
 init_db()
+
+# --- Explorers ---------------------------------------------------------------
+# Each child has their own Warble: their own birds, feathers, trophies and
+# everything else, in tables of their own (database.py explains how). The
+# app opens on "Who's warbling?"; picking someone sets the warble_user
+# cookie, and from then on every request is answered from their tables.
+# No cookie (or an unknown one) means the first explorer.
+from database import ensure_registry, list_users, user_schema, user_name, create_user, use_schema, reset_schema
+ensure_registry()
+EXPLORER_COOKIE = "warble_user"
+
+
+@app.middleware("http")
+async def for_this_explorer(request: Request, call_next):
+    token = use_schema(user_schema(request.cookies.get(EXPLORER_COOKIE)))
+    try:
+        return await call_next(request)
+    finally:
+        reset_schema(token)
 
 XENO_CANTO_API_KEY = os.environ.get("XENO_CANTO_API_KEY", "")
 
@@ -1188,9 +1207,57 @@ async def rename_location_endpoint(location_id: int, name: str = Form(...)):
 
 
 @app.get("/profile")
-def profile():
+def profile(request: Request):
+    uid = request.cookies.get(EXPLORER_COOKIE) or "1"
     return {**get_profile(), "avatars": avatar_states(), "colours": colour_states(),
-            "colour_change": colour_change_open(), "rank": rank_now(total_leaves())}
+            "colour_change": colour_change_open(), "rank": rank_now(total_leaves()),
+            # Who this is on the "Who's warbling?" page
+            "explorer": {"id": int(uid) if str(uid).isdigit() else 1, "name": user_name(uid) or user_name(1)}}
+
+
+@app.get("/users")
+def users():
+    """Everyone on this Warble, for "Who's warbling?": their name (the one
+    they gave in the welcome, or the one they were made with), and enough of
+    their bird to draw it."""
+    out = []
+    for u in list_users():
+        token = use_schema(u["schema"])
+        try:
+            p = get_profile()
+            first = p.get("first_name")
+            out.append({"id": u["id"], "name": first if first and first != "Explorer" else u["name"],
+                        "avatar_species": p.get("avatar_species") or "default",
+                        "avatar_body": p.get("avatar_body") or "NATURAL",
+                        "rank": rank_now(total_leaves())["index"]})
+        finally:
+            reset_schema(token)
+    return {"users": out}
+
+
+@app.post("/users")
+def add_user(name: str = Form(...)):
+    """A new explorer, starting from nothing - no birds, no feathers, no
+    trophies. The welcome (pick a bird, a name) greets them on their first
+    go."""
+    name = name.strip()[:24] or "Explorer"
+    uid = create_user(name)
+    token = use_schema(user_schema(uid))
+    try:
+        _keep_avatars_already_had()   # nothing to keep: just marks it done
+    finally:
+        reset_schema(token)
+    return {"id": uid, "name": name}
+
+
+@app.post("/users/{uid}/select")
+def select_user(uid: int):
+    """Play as this explorer from now on (the cookie lasts a year)."""
+    if not any(u["id"] == uid for u in list_users()):
+        return JSONResponse(status_code=404, content={"status": "error", "message": "No such explorer."})
+    resp = JSONResponse({"status": "ok", "id": uid})
+    resp.set_cookie(EXPLORER_COOKIE, str(uid), max_age=365 * 24 * 3600, samesite="lax")
+    return resp
 
 
 @app.post("/profile")

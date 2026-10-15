@@ -16,6 +16,27 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
 - **Deploy:** push to `main` on GitHub → Railway builds. Phil sometimes has to
   redeploy manually, so always say so after pushing.
 
+## Explorers: more than one child
+
+Warble opens on "Who's warbling?" (`renderStart`): each explorer's bird and
+name, "New explorer", and "For grown-ups". Each explorer's data is entirely
+their own - birds, feathers, trophies, Dress Up, settings. The first (Jasper)
+lives in the database's ordinary tables; every one added since gets a
+Postgres schema of their own, `warble_u<id>`, with the same tables, made
+empty (`create_user()` in `database.py`). The registry is `warble_users`.
+Which explorer a request is for comes from the `warble_user` cookie; a
+middleware in `main.py` points every database session at their schema
+(`use_schema`, `schema_translate_map`), so no other code needs to know.
+`init_db()` brings every explorer's tables up to date (new tables, the
+`ADD COLUMN` upgrades). Under SQLite (tests), each explorer is its own file
+beside the main one.
+On the page: picking someone (`playAs`) sets the cookie, remembers the pick
+for this tab (`sessionStorage` `warbleWho`) and reloads as them, so every
+cache belongs to one child; closing the app forgets it, so it asks again
+next time. A child's Settings holds their stats ("My warbling"), their light
+settings and "Switch explorer"; resets act only on the chosen explorer. A
+new explorer gets the welcome (bird, then the name the grown-up typed).
+
 ## The data model, in order of importance
 
 - `curated_species.py` — the UK 100, as **10 themed packs of 10**. Each pack is
@@ -344,11 +365,10 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   `'pause'`, `'mystery'`). The painted play button and tick already exist
   (`PAINTED_PLAY`, `PAINTED_TICK`).
 - *Words for children:* "31 birds · heard 61 times", never species or
-  detections. Grown-up tools (sound check, the feather setter, and Debug >
-  Animation previews) live on Settings' "For grown-ups" page
-  (`renderGrownUps`), behind a wood button at the end of Settings - not a
-  fold-open section: that opened below the bottom of a phone screen and
-  looked like it did nothing. The previews (`renderAnimationPreview`) play the real Done screen
+  detections. Grown-up tools (choosing which explorer, the feather setter,
+  backup, the resets, sound check, and Debug > Animation previews) live on
+  the start page's "For grown-ups" (`renderGrownUps`), behind a times-table
+  sum (`renderGrownUpGate`), never in a child's Settings. The previews (`renderAnimationPreview`) play the real Done screen
   over a made-up session set up in a form (birds, new, rare, already paid,
   pack, challenges, trophies, rank, avatar bird, new spot), each reward
   moment on its own, the recording tree and the bird reveal. They save

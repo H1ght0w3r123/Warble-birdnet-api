@@ -1,17 +1,29 @@
 """
 Real database for Warble, replacing what Bubble's Data API used to do.
-Uses Postgres, via Railway's DATABASE_URL. Two tables: sightings (every
-bird ever found) and player_stats (a single running feather total, for
-now — no accounts yet, so there's just one shared total).
+Uses Postgres, via Railway's DATABASE_URL.
+
+Several explorers (children) can play on one Warble, each with their own
+birds, feathers, trophies and everything else. Each explorer has their own
+copy of every table in a Postgres schema of their own ("warble_u2", ...);
+the first explorer (Jasper) keeps the original tables in the default
+schema, so nothing already there moved. The register of explorers is the
+one table outside them (warble_users). Which explorer a request is for is
+set per request (use_schema, from a cookie - see main.py), and
+SessionLocal() then reads and writes that explorer's tables only: every
+query in this file goes through it, unchanged. Under SQLite (local tests)
+each explorer is a separate database file, attached under the schema's
+name.
 """
 import os
 import math
 import datetime
+import contextvars
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text, UniqueConstraint
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import event
+from sqlalchemy.orm import declarative_base, Session
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
@@ -39,8 +51,64 @@ if DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 engine = create_engine(DATABASE_URL) if DATABASE_URL else None
-SessionLocal = sessionmaker(bind=engine) if engine else None
+IS_SQLITE = DATABASE_URL.startswith("sqlite")
 Base = declarative_base()
+# The register of explorers lives outside every explorer's own tables.
+RegistryBase = declarative_base()
+
+# Which explorer's tables this request uses: None is the default schema
+# (the first explorer's), otherwise e.g. "warble_u2".
+_current_schema = contextvars.ContextVar("warble_schema", default=None)
+_schema_engines = {}
+
+
+def use_schema(schema):
+    """Point SessionLocal at an explorer's tables; returns a token for
+    reset_schema()."""
+    return _current_schema.set(schema)
+
+
+def reset_schema(token):
+    _current_schema.reset(token)
+
+
+def current_schema():
+    return _current_schema.get()
+
+
+def _engine_for(schema):
+    if not schema:
+        return engine
+    if schema not in _schema_engines:
+        _schema_engines[schema] = engine.execution_options(schema_translate_map={None: schema})
+    return _schema_engines[schema]
+
+
+def _session():
+    """A session on the current explorer's tables."""
+    return Session(bind=_engine_for(_current_schema.get()))
+
+
+SessionLocal = _session if engine else None
+
+
+def _sqlite_file(schema):
+    return f"{engine.url.database}.{schema}"
+
+
+if engine is not None and IS_SQLITE:
+    # Each explorer's own database file, attached under their schema's name
+    # to every new connection (creating an explorer refreshes the pool).
+    @event.listens_for(engine, "connect")
+    def _attach_explorers(dbapi_conn, _record):
+        cur = dbapi_conn.cursor()
+        try:
+            cur.execute("SELECT schema_name FROM warble_users WHERE schema_name IS NOT NULL")
+            for (schema,) in cur.fetchall():
+                cur.execute(f"ATTACH DATABASE '{_sqlite_file(schema)}' AS {schema}")
+        except Exception:
+            pass   # no register yet
+        cur.close()
 
 
 LOCATION_PRECISION = 3  # ~110m — same precision Nomad's distinct-location count already uses
@@ -219,62 +287,175 @@ class SongGameLevel(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class WarbleUser(RegistryBase):
+    """An explorer: a child with their own Warble. schema_name is where
+    their tables are; None for the first one (the default schema)."""
+    __tablename__ = "warble_users"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    schema_name = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+def ensure_registry(first_name="Jasper"):
+    """The register exists, and lists the first explorer (the default
+    schema's tables) - named after whoever was already playing."""
+    if engine is None:
+        return
+    RegistryBase.metadata.create_all(engine)
+    with Session(bind=engine) as s:
+        if s.query(WarbleUser).count() == 0:
+            s.add(WarbleUser(id=1, name=first_name, schema_name=None))
+            s.commit()
+    global _users_cache
+    _users_cache = None
+
+
+_users_cache = None
+
+
+def list_users():
+    """Every explorer, oldest first (kept in memory: every request asks)."""
+    global _users_cache
+    if engine is None:
+        return []
+    if _users_cache is None:
+        with Session(bind=engine) as s:
+            _users_cache = [{"id": u.id, "name": u.name, "schema": u.schema_name}
+                            for u in s.query(WarbleUser).order_by(WarbleUser.id)]
+    return _users_cache
+
+
+def user_schema(user_id):
+    """The schema for an explorer id; None (the first explorer's) if it
+    isn't one."""
+    try:
+        uid = int(user_id)
+    except (TypeError, ValueError):
+        return None
+    for u in list_users():
+        if u["id"] == uid:
+            return u["schema"]
+    return None
+
+
+def user_name(user_id):
+    for u in list_users():
+        if str(u["id"]) == str(user_id):
+            return u["name"]
+    return None
+
+
+def create_user(name):
+    """A new explorer, starting from nothing: their own empty tables, a
+    feather total of 0 and a fresh profile. Returns their id."""
+    global _users_cache
+    _users_cache = None
+    with Session(bind=engine) as s:
+        u = WarbleUser(name=name)
+        s.add(u)
+        s.commit()
+        uid = u.id
+        schema = f"warble_u{uid}"
+        u.schema_name = schema
+        s.commit()
+    _users_cache = None
+    if IS_SQLITE:
+        engine.dispose()   # new connections attach the new file
+    else:
+        with engine.begin() as conn:
+            conn.exec_driver_sql(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+    with _engine_for(schema).begin() as conn:
+        Base.metadata.create_all(conn)
+    token = use_schema(schema)
+    try:
+        with SessionLocal() as session:
+            session.add(PlayerStats(total_feathers=0))
+            session.add(Profile(name="Explorer", avatar_body="NATURAL", avatar_face="#E8845C", avatar_beak="#8E87B8"))
+            session.commit()
+    finally:
+        reset_schema(token)
+    return uid
+
+
 def init_db():
     """Create tables if they don't exist yet, and seed one PlayerStats row."""
     if engine is None:
         print("Warning: DATABASE_URL not set — database features disabled.")
         return
     Base.metadata.create_all(engine)
+    ensure_registry()
+    # Every other explorer's tables get the same: any table added since
+    # they were made, and (below) the same column upgrades.
+    others = [u["schema"] for u in list_users() if u["schema"]]
+    for schema in others:
+        with _engine_for(schema).begin() as conn:
+            Base.metadata.create_all(conn)
 
     # create_all only creates missing TABLES, not missing COLUMNS on
     # tables that already exist. Since 'sightings' already has real data
     # in it, new fields need to be added explicitly like this — safe to
     # run every startup, since "IF NOT EXISTS" makes it a no-op once done.
+    # Run on the default schema, then on each other explorer's (search_path
+    # for the length of the transaction).
     from sqlalchemy import text
-    with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS description VARCHAR"))
-        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lat FLOAT"))
-        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lng FLOAT"))
-        conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS call_url VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_accessory VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_body VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_breast VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_face VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_beak VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS first_name VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS last_name VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS show_scientific_names BOOLEAN DEFAULT TRUE"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_photo TEXT"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS home_scene VARCHAR DEFAULT 'none'"))
-        # Birds outside the 100 have no rarity, so tier must accept NULL.
-        # Without this an existing database still rejects them and the whole
-        # session fails with a 500.
-        try:
-            conn.execute(text("ALTER TABLE sightings ALTER COLUMN tier DROP NOT NULL"))
-        except Exception as e:
-            print(f"Note: could not relax sightings.tier NOT NULL: {e}")
-        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS bird_count INTEGER DEFAULT 0"))
-        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS before_sunrise BOOLEAN DEFAULT FALSE"))
-        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS was_raining BOOLEAN DEFAULT FALSE"))
-        conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS duration_s INTEGER"))
-        conn.execute(text("ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS share_count INTEGER DEFAULT 0"))
-        # trophy_key was unique when trophies were one-shot; levels need one row per level
-        conn.execute(text("ALTER TABLE earned_trophies ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1"))
-        try:
-            conn.execute(text("ALTER TABLE earned_trophies DROP CONSTRAINT IF EXISTS earned_trophies_trophy_key_key"))
-        except Exception as e:
-            print(f"Note: could not drop old trophy_key constraint: {e}")
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_held VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_glasses VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_shoes VARCHAR"))
-        conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_species VARCHAR DEFAULT 'default'"))
+    for schema in [None] + others:
+        with engine.begin() as conn:
+            if schema:
+                conn.execute(text(f'SET LOCAL search_path TO "{schema}"'))
+            _upgrade_columns(conn, text)
 
     rename_old_species()
     sync_sighting_rarity()
+    _seed_and_carry_forward()
 
+
+def _upgrade_columns(conn, text):
+    """The columns added since each table was first made (IF NOT EXISTS:
+    a no-op once done)."""
+    conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS description VARCHAR"))
+    conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lat FLOAT"))
+    conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS lng FLOAT"))
+    conn.execute(text("ALTER TABLE sightings ADD COLUMN IF NOT EXISTS call_url VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_accessory VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_body VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_breast VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_face VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_beak VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS first_name VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS last_name VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS show_scientific_names BOOLEAN DEFAULT TRUE"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_photo TEXT"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS home_scene VARCHAR DEFAULT 'none'"))
+    # Birds outside the 100 have no rarity, so tier must accept NULL.
+    # Without this an existing database still rejects them and the whole
+    # session fails with a 500.
+    try:
+        conn.execute(text("ALTER TABLE sightings ALTER COLUMN tier DROP NOT NULL"))
+    except Exception as e:
+        print(f"Note: could not relax sightings.tier NOT NULL: {e}")
+    conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS bird_count INTEGER DEFAULT 0"))
+    conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS before_sunrise BOOLEAN DEFAULT FALSE"))
+    conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS was_raining BOOLEAN DEFAULT FALSE"))
+    conn.execute(text("ALTER TABLE recording_sessions ADD COLUMN IF NOT EXISTS duration_s INTEGER"))
+    conn.execute(text("ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS share_count INTEGER DEFAULT 0"))
+    # trophy_key was unique when trophies were one-shot; levels need one row per level
+    conn.execute(text("ALTER TABLE earned_trophies ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1"))
+    try:
+        conn.execute(text("ALTER TABLE earned_trophies DROP CONSTRAINT IF EXISTS earned_trophies_trophy_key_key"))
+    except Exception as e:
+        print(f"Note: could not drop old trophy_key constraint: {e}")
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_hats VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_neck VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_gear VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_held VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_glasses VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS equipped_shoes VARCHAR"))
+    conn.execute(text("ALTER TABLE profile ADD COLUMN IF NOT EXISTS avatar_species VARCHAR DEFAULT 'default'"))
+
+
+def _seed_and_carry_forward():
+    from sqlalchemy import text
     with SessionLocal() as session:
         existing = session.query(PlayerStats).first()
         if existing is None:
@@ -1458,8 +1639,13 @@ def reset_everything():
     with SessionLocal() as session:
         session.query(PlayerStats).delete()
         session.query(Profile).delete()
+        # The single-row defaults again, for this explorer only. (It used to
+        # call init_db(), whose old one-off migrations read the first
+        # explorer's tables directly - on anyone else's reset they would
+        # have copied the first explorer's things across.)
+        session.add(PlayerStats(total_feathers=0))
+        session.add(Profile(name="Explorer", avatar_body="NATURAL", avatar_face="#E8845C", avatar_beak="#8E87B8"))
         session.commit()
-    init_db()   # recreate the single-row PlayerStats and Profile defaults
 
 
 def get_detection_stats():

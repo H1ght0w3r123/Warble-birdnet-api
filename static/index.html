@@ -651,6 +651,32 @@
     padding:10px 6px; cursor:pointer; text-decoration:underline; text-underline-offset:3px;}
   @media (prefers-reduced-motion: reduce){ .welcome-bird-btn{transition:none;} }
 
+  /* --- Who's warbling? (the start page) -------------------------------
+     Before anything else: each explorer's bird on a cream disc in wood,
+     their name under it. Full screen like the welcome. The grown-ups'
+     page opens from here too, and keeps the bars hidden. */
+  body.start-on .top, body.start-on .bottom-nav{visibility:hidden;}
+  .start-who{display:flex; flex-wrap:wrap; justify-content:center; gap:18px 22px; width:100%; margin-top:10px;}
+  .start-explorer{border:none; background:none; padding:0; cursor:pointer; display:flex; flex-direction:column;
+    align-items:center; gap:8px; width:112px;}
+  .start-explorer-disc{width:104px; height:104px; border-radius:50%; display:grid; place-items:center; overflow:hidden;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
+    border:5px solid transparent; box-shadow:0 4px 0 var(--wood-edge), 0 6px 14px rgba(26,17,40,0.35);
+    transition:transform .1s ease;}
+  .start-explorer:active .start-explorer-disc{transform:translateY(3px) scale(.97);}
+  .start-explorer-name{font-family:'Poppins'; font-weight:900; font-size:17px; color:#fff; line-height:1.15;
+    text-align:center; overflow-wrap:anywhere; text-shadow:0 2px 6px rgba(26,17,40,0.55);}
+  .start-new{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; margin-top:8px;}
+  .start-new .location-input{margin-top:0; text-align:center; font-size:18px;}
+  .start-new-actions{display:flex; gap:12px; align-items:center; justify-content:center;}
+  .start-gate{display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;}
+  .start-gate .location-input{margin-top:0; max-width:160px; text-align:center; font-size:22px;}
+  .start-gate.nope .location-input{animation:birdNudge .35s ease;}
+  /* Grown-ups: which explorer the tools below act on. Selected is green. */
+  .who-chips{display:flex; flex-wrap:wrap; gap:8px; width:100%; margin-bottom:6px;}
+  .who-chips .again-btn{margin:0; padding:8px 16px; font-size:14px;}
+  .who-chips .again-btn.on{box-shadow:0 0 0 3px var(--sage), 0 3px 0 var(--wood-edge), 0 0 12px 3px rgba(var(--glow),0.6);}
+
   /* --- Tutorial bubbles ----------------------------------------------
      The screen dims, the thing being explained stays lit inside a cream
      ring, and a speech bubble in the app's wood and cream points at it.
@@ -2895,7 +2921,7 @@
   .reset-btn:active, .play-call-btn:active, .sheet-done:active, .item-buy-btn:active, .bird-buy-btn:active{
     transform:translateY(2px); box-shadow:0 1px 0 var(--wood-edge), 0 2px 4px rgba(26,17,40,0.28);
   }
-  /* Settings' grown-up corner: a full-width wood button to its own page. */
+  /* The start page's grown-up corner: a full-width wood button to its own page. */
   .grownup-btn{width:100%; margin-top:22px;}
   /* The one that can't be undone says so in its words' colour, not a red slab. */
   .reset-btn.danger{color:#A3261C;}
@@ -7416,8 +7442,24 @@ function openTutorial(name, steps) {
   show();
 }
 
+// Who's warbling? Each explorer on this Warble has their own birds,
+// feathers and trophies (the server keeps them apart by the warble_user
+// cookie). Every time Warble is opened afresh it starts on "Who's
+// warbling?"; once someone is picked, the page reloads as them and the
+// pick is remembered for this tab only (sessionStorage - closing the app
+// forgets it, so the next child to open it picks again). Where storage is
+// blocked, ?who= in the address does the same job.
+let WHO = null;
+try { WHO = sessionStorage.getItem('warbleWho'); } catch (e) { /* no storage */ }
+if (!WHO) WHO = new URLSearchParams(location.search).get('who');
+const COOKIE_WHO = (document.cookie.match(/(?:^|;\s*)warble_user=(\d+)/) || [])[1] || '1';
+// Another tab picked someone else since: the cookie says who the server
+// will answer for, so ask again rather than mix two children up.
+if (WHO && WHO !== COOKIE_WHO) WHO = null;
+const STARTING = !WHO;
+
 applyTimeOfDayBackground();
-renderIdle();
+if (STARTING) renderStart(); else renderIdle();
 refreshFeathers();
 
 async function loadProfileForNav() {
@@ -7476,6 +7518,7 @@ function profileIsUntouched() {
 
 welcomeDecided = (async () => {
   await Promise.all([whatsNewReady, profileReady]);
+  if (STARTING) return;   // "Who's warbling?" first; the welcome comes after the reload
   if (!tutorialsSeen || tutorialsSeen.has('welcome')) return;
   if (!profileIsUntouched()) {
     // Already set up before the welcome existed: nothing to ask.
@@ -7495,7 +7538,8 @@ function renderWelcome(step = 0) {
       species: AVATAR_SPECIES.some(s => s.id === sp) && !avatarLock(sp) ? sp
         : (AVATAR_SPECIES.find(s => !avatarLock(s.id)) || AVATAR_SPECIES[0]).id,
       body: NATURAL,
-      name: firstNameOrDefault(),
+      // The name the grown-up gave on "Who's warbling?", ready to keep.
+      name: firstNameOrDefault() || (currentProfile.explorer && currentProfile.explorer.name) || '',
     };
   }
   const d = welcomeDraft, st = WELCOME_STEPS[step];
@@ -7583,6 +7627,137 @@ async function finishWelcome(withName) {
   welcomeDraft = null;
   document.body.classList.remove('welcome-on');
   renderIdle();   // greets them by name, then the Home bubbles
+}
+
+// --- Who's warbling? --------------------------------------------------------
+// The page Warble opens on (STARTING): every explorer's bird and name, a way
+// to add a new one (who starts with nothing - no birds, feathers or
+// trophies), and the grown-ups' page. Settings > "Switch explorer" comes
+// back here.
+async function renderStart() {
+  document.body.classList.add('start-on');
+  document.body.classList.remove('welcome-on');
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div class="welcome">
+      <div class="welcome-top">
+        <div class="welcome-eyebrow">Warble</div>
+        <h1 class="welcome-title">Who's warbling?</h1>
+      </div>
+      <div class="start-who" id="startWho"></div>
+      <div class="start-new" id="startNew"></div>
+      <button class="again-btn grownup-btn" id="startGrownUps">For grown-ups</button>
+    </div>`;
+  document.getElementById('startGrownUps').onclick = () => renderGrownUpGate();
+  // Called at start-up before the rest of the page's script has run: wait
+  // for it (the fetch does), so the birds can be drawn.
+  let users = [];
+  try { users = (await (await fetch('/users')).json()).users || []; } catch (e) { /* shown below */ }
+  setSceneFocus(false);
+  const who = document.getElementById('startWho');
+  if (!who) return;   // moved on already
+  who.innerHTML = users.length ? users.map(u => `
+    <button class="start-explorer" data-id="${u.id}" aria-label="${escapeFlock(u.name)}">
+      <span class="start-explorer-disc">${avatarSvg(u.avatar_body, 84, null, false, u.avatar_species)}</span>
+      <span class="start-explorer-name">${escapeFlock(u.name)}</span>
+    </button>`).join('')
+    : `<div class="stat-empty">Couldn't reach Warble - check the internet and try again.</div>`;
+  who.querySelectorAll('.start-explorer').forEach(b => b.onclick = () => playAs(b.dataset.id));
+  renderStartNew(false);
+}
+
+// "New explorer": a wood button that opens into a name box.
+function renderStartNew(open) {
+  const box = document.getElementById('startNew');
+  if (!box) return;
+  if (!open) {
+    box.innerHTML = `<button class="again-btn" id="startNewBtn">New explorer</button>`;
+    document.getElementById('startNewBtn').onclick = () => renderStartNew(true);
+    return;
+  }
+  box.innerHTML = `
+    <input type="text" id="startNewName" class="location-input" placeholder="First name" maxlength="24" autocomplete="off">
+    <div class="welcome-hint">A new explorer starts with no birds and no feathers</div>
+    <div class="start-new-actions">
+      <button class="welcome-back" id="startNewCancel">Cancel</button>
+      <button class="tut-ok" id="startNewGo">Start</button>
+    </div>`;
+  const name = document.getElementById('startNewName');
+  name.focus();
+  document.getElementById('startNewCancel').onclick = () => renderStartNew(false);
+  const go = document.getElementById('startNewGo');
+  const make = async () => {
+    const n = name.value.trim();
+    if (!n) { name.focus(); return; }
+    go.disabled = true;
+    const form = new FormData();
+    form.append('name', n);
+    try {
+      const res = await fetch('/users', { method: 'POST', body: form });
+      if (!res.ok) throw new Error('not made');
+      playAs(String((await res.json()).id));
+    } catch (e) {
+      go.disabled = false;
+      go.textContent = 'Try again';
+    }
+  };
+  go.onclick = make;
+  name.onkeydown = e => { if (e.key === 'Enter') make(); };
+}
+
+// Play as this explorer: the server remembers who (a cookie), the tab
+// remembers it's been asked, and the page starts again as them - every
+// cache on it (birds, feathers, profile, Dress Up) belongs to whoever it
+// loaded for.
+async function playAs(id) {
+  try {
+    const res = await fetch(`/users/${id}/select`, { method: 'POST' });
+    if (!res.ok) throw new Error('no such explorer');
+  } catch (e) { renderStart(); return; }
+  let stored = false;
+  try { sessionStorage.setItem('warbleWho', id); stored = true; } catch (e) { /* blocked */ }
+  if (stored) location.replace(location.pathname);
+  else location.replace(`${location.pathname}?who=${encodeURIComponent(id)}`);
+}
+
+// Settings > "Switch explorer": back to "Who's warbling?".
+function switchExplorer() {
+  abortCelebrations();
+  cancelMoments();
+  try { sessionStorage.removeItem('warbleWho'); } catch (e) { /* nothing kept */ }
+  // Forget ?who= too, so a reload asks again.
+  if (location.search) history.replaceState(null, '', location.pathname);
+  renderStart();
+}
+
+// "For grown-ups" on the start page is behind a sum a five-to-eight-year-old
+// won't know yet: it holds the resets and the feather setter for every
+// explorer. Not a lock - a grown-up's door handle set high.
+function renderGrownUpGate() {
+  const a = 6 + Math.floor(Math.random() * 4), b = 6 + Math.floor(Math.random() * 4);
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:12px;">
+      <button class="back-btn" id="backBtn">${icon('back')} Back</button>
+    </div>
+    <div class="welcome start-gate" id="gate">
+      <div class="welcome-top">
+        <div class="welcome-eyebrow">For grown-ups</div>
+        <h1 class="welcome-title">What is ${a} × ${b}?</h1>
+      </div>
+      <input type="number" inputmode="numeric" id="gateAnswer" class="location-input" autocomplete="off" aria-label="Answer">
+      <button class="tut-ok" id="gateGo">Go</button>
+    </div>`;
+  document.getElementById('backBtn').onclick = renderStart;
+  const input = document.getElementById('gateAnswer');
+  input.focus();
+  const check = () => {
+    if (parseInt(input.value, 10) === a * b) { renderGrownUps(); return; }
+    const gate = document.getElementById('gate');
+    gate.classList.remove('nope'); void gate.offsetWidth; gate.classList.add('nope');
+    input.value = '';
+  };
+  document.getElementById('gateGo').onclick = check;
+  input.onkeydown = e => { if (e.key === 'Enter') check(); };
 }
 
 function setActiveTab(tabName) {
@@ -8110,9 +8285,6 @@ async function renderProfile() {
     <input type="text" id="lastNameInput" class="location-input" placeholder="Last name" maxlength="24">
     <button class="again-btn" id="saveNameBtn">Save name</button>
 
-    <div class="profile-section-title">My warbling</div>
-    <div id="detectionStats" style="width:100%;"></div>
-
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
   `;
@@ -8127,7 +8299,6 @@ async function renderProfile() {
   renderPhotoPreview();
   paintProfileRank();
   loadProfileLocations();
-  loadDetectionStats();
 
   document.getElementById('saveNameBtn').onclick = async () => {
     const first = document.getElementById('firstNameInput').value.trim();
@@ -8149,11 +8320,18 @@ async function renderProfile() {
 
 async function renderSettings() {
   stage.classList.add('top-aligned');
+  // Each explorer's own: their warbling so far, and the light settings that
+  // are theirs (the picture behind Warble, bird names, tutorials). The
+  // grown-up tools - backup, resets, feathers, sound check - are on the
+  // start page's "For grown-ups", where any explorer can be chosen.
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
       <button class="back-btn" id="backBtn">${icon('back')} Back</button>
     </div>
-    <div class="collection-title" style="margin-bottom:14px;">Settings</div>
+    <div class="collection-title" style="margin-bottom:14px;" id="settingsTitle">Settings</div>
+
+    <div class="profile-section-title">My warbling</div>
+    <div id="detectionStats" style="width:100%;"></div>
 
     <div class="profile-section-title">Background</div>
     <div class="reset-note">Pick a place. It changes through the day on its own — sunrise, daytime, sunset and night. It stays behind every screen, softly blurred away from Home.</div>
@@ -8165,34 +8343,20 @@ async function renderSettings() {
       <input type="checkbox" id="sciNamesToggle">
     </label>
 
-
     <div class="profile-section-title">Tutorials</div>
     <div class="reset-note">Start again from the welcome (bird, name), then every "how to" bubble, as if Warble were brand new.</div>
     <button class="again-btn" id="replayTutorialsBtn">Show tutorials again</button>
 
-    <div class="profile-section-title">Backup</div>
-    <div class="reset-note">Save a copy of everything before you reset.</div>
-    <button class="reset-btn" id="exportBtn">Download my data</button>
-
-    <div class="profile-section-title danger-title">Reset</div>
-    <div class="reset-note">These can't be undone — take a backup first.</div>
-    <button class="reset-btn" data-scope="dressup">Reset Dress Up</button>
-    <button class="reset-btn" data-scope="feathers">Reset feathers</button>
-    <button class="reset-btn" data-scope="sightings">Reset birds, habitats &amp; trophies</button>
-    <button class="reset-btn danger" data-scope="everything">Reset everything</button>
-
-    <!-- For grown-ups: the microphone diagnostics and the testing tools, on
-         their own page, so a child scrolling Settings never meets a box that
-         sets their feathers to any number. (It was a fold-open section; its
-         contents opened below the bottom of a phone screen, so tapping it
-         looked like it did nothing.) -->
-    <button class="again-btn grownup-btn" id="grownUpsBtn">For grown-ups</button>
+    <div class="profile-section-title">Who's warbling?</div>
+    <div class="reset-note" id="switchNote">Let someone else have a go.</div>
+    <button class="again-btn grownup-btn" id="switchExplorerBtn" style="margin-top:0;">Switch explorer</button>
   `;
   document.getElementById('backBtn').onclick = () => {
     stage.classList.remove('top-aligned');
     renderIdle();
   };
-  document.getElementById('grownUpsBtn').onclick = renderGrownUps;
+  document.getElementById('switchExplorerBtn').onclick = switchExplorer;
+  loadDetectionStats();
 
   // Settings can be opened before the profile has been fetched this session,
   // so make sure the toggle reflects what's actually saved.
@@ -8200,6 +8364,11 @@ async function renderSettings() {
     const res = await fetch('/profile');
     currentProfile = await res.json();
   } catch (e) { /* fall back to whatever's in memory */ }
+  const me = firstNameOrDefault() || (currentProfile.explorer && currentProfile.explorer.name);
+  if (me) {
+    document.getElementById('settingsTitle').textContent = `${me}'s settings`;
+    document.getElementById('switchNote').textContent = `Playing as ${me}. Let someone else have a go.`;
+  }
 
   renderScenePicker();
 
@@ -8211,6 +8380,106 @@ async function renderSettings() {
     formData.append('show_scientific_names', e.target.checked);
     try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
   };
+
+  document.getElementById('replayTutorialsBtn').onclick = async (e) => {
+    const btn = e.currentTarget;
+    try {
+      const res = await fetch('/reset/tutorials', { method: 'POST' });
+      if (!res.ok) throw new Error('reset failed');
+      tutorialsSeen = null;   // forget them here too, not just on the server
+      await refreshWhatsNew();
+      stage.classList.remove('top-aligned');
+      renderWelcome();        // from the very beginning: bird, colour, name
+    } catch (err) { btn.textContent = "Couldn't do that - tap to retry"; }
+  };
+}
+
+// For grown-ups, from the start page (behind its sum): which explorer the
+// tools act on, then the sound check, their feathers, a backup and the
+// resets, and the animation previews. Choosing an explorer here points the
+// server at them (the same cookie as playing as them), so every tool below
+// is theirs; it doesn't start Warble as them - only "Who's warbling?" does.
+async function renderGrownUps() {
+  document.body.classList.add('start-on');
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:12px;">
+      <button class="back-btn" id="backBtn">${icon('back')} Who's warbling?</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:14px;">For grown-ups</div>
+
+    <div class="profile-section-title">Explorer</div>
+    <div class="reset-note">Everything below is for this explorer.</div>
+    <div class="who-chips" id="whoChips"></div>
+
+    <div class="profile-section-title">Feathers</div>
+    <div class="feather-set-row">
+      <input type="number" id="featherInput" class="location-input feather-input"
+             min="0" max="99999" placeholder="Feathers">
+      <button class="again-btn feather-set-btn" id="setFeathersBtn">Set</button>
+    </div>
+    <div class="reset-note" id="featherSetNote">For testing — sets the feather balance to any number.</div>
+
+    <div class="profile-section-title">Backup</div>
+    <div class="reset-note">Save a copy of everything before you reset.</div>
+    <button class="reset-btn" id="exportBtn">Download <span class="who-name">their</span> data</button>
+
+    <div class="profile-section-title danger-title">Reset</div>
+    <div class="reset-note">These can't be undone — take a backup first. Only <span class="who-name">this explorer</span> is reset.</div>
+    <button class="reset-btn" data-scope="dressup">Reset Dress Up</button>
+    <button class="reset-btn" data-scope="feathers">Reset feathers</button>
+    <button class="reset-btn" data-scope="sightings">Reset birds, habitats &amp; trophies</button>
+    <button class="reset-btn danger" data-scope="everything">Reset everything</button>
+
+    <div class="profile-section-title">Sound check</div>
+    <div id="micCheck" style="width:100%;"></div>
+
+    <div class="profile-section-title">Debug</div>
+    <div class="reset-note">Animation previews: the Done screen in any scenario, every reward moment, the recording tree and the bird reveal. Nothing is saved.</div>
+    <button class="again-btn" id="openAnimPreviewBtn">Animation previews</button>
+  `;
+  document.getElementById('backBtn').onclick = renderStart;
+  document.getElementById('openAnimPreviewBtn').onclick = () => {
+    // The previews fly things to the top bar and the tabs: show them.
+    document.body.classList.remove('start-on');
+    renderAnimationPreview();
+  };
+
+  renderMicCheck();
+
+  // Who the tools are for: whoever the server is pointed at now.
+  let users = [];
+  try { users = (await (await fetch('/users')).json()).users || []; } catch (e) { /* none listed */ }
+  const current = () => (document.cookie.match(/(?:^|;\s*)warble_user=(\d+)/) || [])[1] || '1';
+  const chips = document.getElementById('whoChips');
+  if (!chips) return;
+  const paintChips = () => {
+    const id = current();
+    const u = users.find(x => String(x.id) === id) || users[0];
+    chips.innerHTML = users.map(x => `<button class="again-btn ${String(x.id) === id ? 'on' : ''}" data-id="${x.id}"
+      aria-pressed="${String(x.id) === id}">${escapeFlock(x.name)}</button>`).join('');
+    stage.querySelectorAll('.who-name').forEach(el => { el.textContent = u ? u.name + (el.closest('button') ? "'s" : '') : el.textContent; });
+    chips.querySelectorAll('[data-id]').forEach(b => b.onclick = async () => {
+      try { await fetch(`/users/${b.dataset.id}/select`, { method: 'POST' }); } catch (e) { return; }
+      // The page's own copies (feathers, profile, Dress Up) follow, so the
+      // previews and the feather box show this explorer.
+      await Promise.all([loadProfileForNav(), refreshFeathers(), loadAccessoryCache()]);
+      paintChips();
+      prefillFeathers();
+    });
+  };
+  paintChips();
+
+  // Prefill with the current balance so it's clear what's being changed
+  const prefillFeathers = async () => {
+    try {
+      const fRes = await fetch('/feathers');
+      const fData = await fRes.json();
+      currentFeatherTotal = fData.total_feathers;
+      document.getElementById('featherInput').value = Math.round(fData.total_feathers);
+    } catch (e) { /* leave it blank */ }
+  };
+  prefillFeathers();
 
   document.getElementById('exportBtn').onclick = async () => {
     try {
@@ -8226,22 +8495,10 @@ async function renderSettings() {
   };
 
   const RESET_COPY = {
-    dressup:    ['Reset Dress Up?', 'All bought items are forgotten and your bird is undressed. Feathers and colours are kept.'],
-    feathers:   ['Reset feathers?', 'Your feather balance goes back to zero. Items you already own are kept.'],
+    dressup:    ['Reset Dress Up?', 'All bought items are forgotten and their bird is undressed. Feathers and colours are kept.'],
+    feathers:   ['Reset feathers?', 'Their feather balance goes back to zero. Items they already own are kept.'],
     sightings:  ['Reset birds, habitats and trophies?', 'Every bird, warble, named place, trophy and weekly bonus is deleted. Feathers and Dress Up items are kept.'],
-    everything: ['Reset EVERYTHING?', 'The whole app goes back to how it was the first time you opened it. Birds, trophies, feathers, Dress Up, your name and photo - all of it.'],
-  };
-
-  document.getElementById('replayTutorialsBtn').onclick = async (e) => {
-    const btn = e.currentTarget;
-    try {
-      const res = await fetch('/reset/tutorials', { method: 'POST' });
-      if (!res.ok) throw new Error('reset failed');
-      tutorialsSeen = null;   // forget them here too, not just on the server
-      await refreshWhatsNew();
-      stage.classList.remove('top-aligned');
-      renderWelcome();        // from the very beginning: bird, colour, name
-    } catch (err) { btn.textContent = "Couldn't do that - tap to retry"; }
+    everything: ['Reset EVERYTHING?', 'This explorer goes back to how they were the first time they opened Warble. Birds, trophies, feathers, Dress Up, their name and photo - all of it. Other explorers are not touched.'],
   };
 
   // Only the buttons with a scope: "Download my data" shares the look but
@@ -8261,7 +8518,8 @@ async function renderSettings() {
         if (!res.ok) throw new Error('reset failed');
         // Reload rather than patching state by hand - far too many caches
         // (profile, accessories, collection, feathers) would otherwise be
-        // left holding data that no longer exists.
+        // left holding data that no longer exists. It opens on "Who's
+        // warbling?", since nobody has been picked in this tab.
         location.reload();
       } catch (e) {
         btn.disabled = false;
@@ -8269,45 +8527,6 @@ async function renderSettings() {
       }
     };
   });
-}
-
-// Settings > For grown-ups: the microphone diagnostics and the testing
-// tools. Its own page, reached by a wood button at the end of Settings.
-async function renderGrownUps() {
-  stage.classList.add('top-aligned');
-  stage.innerHTML = `
-    <div style="width:100%;margin-bottom:12px;">
-      <button class="back-btn" id="backBtn">${icon('back')} Settings</button>
-    </div>
-    <div class="collection-title" style="margin-bottom:14px;">For grown-ups</div>
-
-    <div class="profile-section-title">Sound check</div>
-    <div id="micCheck" style="width:100%;"></div>
-
-    <div class="profile-section-title">Feathers</div>
-    <div class="feather-set-row">
-      <input type="number" id="featherInput" class="location-input feather-input"
-             min="0" max="99999" placeholder="Feathers">
-      <button class="again-btn feather-set-btn" id="setFeathersBtn">Set</button>
-    </div>
-    <div class="reset-note" id="featherSetNote">For testing — sets the feather balance to any number.</div>
-
-    <div class="profile-section-title">Debug</div>
-    <div class="reset-note">Animation previews: the Done screen in any scenario, every reward moment, the recording tree and the bird reveal. Nothing is saved.</div>
-    <button class="again-btn" id="openAnimPreviewBtn">Animation previews</button>
-  `;
-  document.getElementById('backBtn').onclick = renderSettings;
-  document.getElementById('openAnimPreviewBtn').onclick = renderAnimationPreview;
-
-  renderMicCheck();
-
-  // Prefill with the current balance so it's clear what's being changed
-  try {
-    const fRes = await fetch('/feathers');
-    const fData = await fRes.json();
-    currentFeatherTotal = fData.total_feathers;
-    document.getElementById('featherInput').value = Math.round(fData.total_feathers);
-  } catch (e) { /* leave it blank */ }
 
   document.getElementById('setFeathersBtn').onclick = async () => {
     const input = document.getElementById('featherInput');
@@ -8330,7 +8549,7 @@ async function renderGrownUps() {
 
 }
 
-// Debug > Animation previews (Settings > For grown-ups). Every animation
+// Debug > Animation previews ("Who's warbling?" > For grown-ups). Every animation
 // can be checked here without recording or finding anything: the Done
 // screen in any scenario, each reward moment on its own, the recording
 // tree and the bird reveal. Nothing is saved - the Done screen preview
