@@ -4486,7 +4486,10 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
         card.remove();
         if (momentShowing && momentShowing.card === card) momentShowing = null;
         if (t) {
-          target.classList.add('nav-pop', 'landed');
+          target.classList.add('nav-pop');
+          // A twitching leaf where it landed - but Home never glows: the
+          // challenges still fly to it, and its challenges disc lights instead.
+          if (target.id !== 'navHome') target.classList.add('landed');
           setTimeout(() => target.classList.remove('nav-pop'), 600);
         }
         setTimeout(resolve, MOMENT.gap);

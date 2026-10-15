@@ -271,7 +271,8 @@ rank!" pulsing), the new avatar bird. Each that has progress shows it as a
 green bar with no numbers, growing as the card lands: the pack's birds
 found, the five challenges, the trophy's leaves (`progress: {from, to}`).
 Wherever a card lands (a tab, the rank badge) a twitching leaf stays
-(`.landed`) until that place is visited - Home's tab included. Moments elsewhere (the game, the
+(`.landed`) until that place is visited - except Home's tab: the
+challenges fly to Home, but Home never glows (its challenges disc does). Moments elsewhere (the game, the
 Hoot-tique) still go home by themselves. The server has always banked the feathers
 already; `/analyze-session` and `/song-game/result` itemise them
 (`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a
