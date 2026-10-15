@@ -4165,6 +4165,7 @@ function renderError(message) {
 }
 
 function renderSessionResults() {
+  revealInProgress = true;
   if (sessionResults.length === 0) {
     renderNoBirds();
     return;
@@ -4381,11 +4382,14 @@ let momentQueue = Promise.resolve();
 // debug previews use it, so leaving one doesn't leave its moments queued
 // in front of the next.
 let momentGen = 0, momentShowing = null;
+// Where each moment still to land is going (its home), for abortCelebrations.
+let momentHomes = [];
 // While true, every moment queued waits for a tap (the Done screen: each
 // thing won there is collected by the child, never flies off by itself).
 let momentsWaitForTap = false;
 function cancelMoments() {
   momentGen++;
+  momentHomes = [];
   document.getElementById('doneHint')?.remove();
   if (momentShowing) { momentShowing.card.remove(); momentShowing.resolve(); momentShowing = null; }
 }
@@ -4403,8 +4407,11 @@ function cancelMoments() {
 function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, home = null, big = false, more = '', tap = false, onShow = null, progress = null, pulse = false, below = '' }) {
   const gen = momentGen;
   tap = tap || momentsWaitForTap;
+  const bound = { home };
+  momentHomes.push(bound);
+  const done = () => { const i = momentHomes.indexOf(bound); if (i >= 0) momentHomes.splice(i, 1); };
   momentQueue = momentQueue.then(() => new Promise(resolve => {
-    if (gen !== momentGen) return resolve();
+    if (gen !== momentGen) { done(); return resolve(); }
     const card = document.createElement('div');
     momentShowing = { card, resolve };
     card.className = big ? 'moment moment-big woodframe' : 'moment woodframe';
@@ -4503,6 +4510,7 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       }
       setTimeout(() => {
         if (gen !== momentGen) return;   // cancelled mid-flight: already resolved
+        done();
         card.remove();
         if (momentShowing && momentShowing.card === card) momentShowing = null;
         if (t) {
@@ -4972,6 +4980,7 @@ function wikipediaUrl(scientificName) {
 }
 
 function renderNoBirds() {
+  revealInProgress = false;
   // A tip belongs here rather than on Home: this is the moment a child has
   // actually failed to hear anything and a reason why is worth reading.
   // It advances every time this screen appears, so hearing nothing twice in
@@ -6211,13 +6220,60 @@ function migrationLine(name, m) {
 // can win a trophy too. Takes the session's state and clears it, so a
 // screen re-rendered later can't celebrate the same things twice; the
 // returned function plays them, and its promise settles when they're done.
+// Where a recording's rewards land: the tab, or the rank badge.
+function sessionHomes({ packBirds = [], packs = [], trophies = [], rank = null, avatars = [] }) {
+  const h = [];
+  if (packBirds.length || packs.length) h.push('navHabitats');
+  if (trophies.length) h.push('navTrophies');
+  if (rank) h.push('topRank');
+  if (avatars.length) h.push('navDressUp');
+  return h;
+}
+let sessionHomesWaiting = [], revealInProgress = false;
+
+// Leaving in the middle of a celebration - the bird cards or the Done
+// screen - drops whatever is still to play, and puts everything where it
+// would have ended up: a twitching leaf on each place a card was going, the
+// feather counter and the rank badge at their real values (the server has
+// banked it all already). Run before the tab or screen being opened draws,
+// so the one being opened clears its own leaf as usual.
+function abortCelebrations() {
+  const homes = new Set([...momentHomes.map(m => typeof m.home === 'string' ? m.home : m.home && m.home.id),
+                         ...sessionHomesWaiting]);
+  if (revealInProgress) {
+    // Left during the bird cards: the new birds' and the rewards' places.
+    if (sessionResults.some(b => !b.is_duplicate)) homes.add('navCollection');
+    sessionHomes({ packBirds: sessionPackBirds, packs: sessionPacks, trophies: newlyEarnedTrophies,
+                   rank: sessionRankUp, avatars: sessionNewAvatars }).forEach(h => homes.add(h));
+    takeSessionMoments();   // and they won't play later
+    revealInProgress = false;
+  }
+  const active = homes.size || document.querySelector('.moment') || document.getElementById('doneHint');
+  if (!active) return;
+  sessionHomesWaiting = [];
+  cancelMoments();
+  homes.forEach(id => {
+    if (id && id !== 'navHome') document.getElementById(id)?.classList.add('landed');
+  });
+  refreshFeathers();
+  refreshRank();
+  refreshWhatsNew();
+}
+// Tabs, Settings and My Profile all leave the screen.
+document.addEventListener('click', e => {
+  if (e.target.closest('.nav-tab, #topSettingsBtn, #topProfileBtn')) abortCelebrations();
+}, true);
+
 function takeSessionMoments() {
   const packBirds = sessionPackBirds, packs = sessionPacks, challenges = sessionChallenges, week = sessionWeekBonus;
   const trophies = newlyEarnedTrophies, rank = sessionRankUp, avatars = sessionNewAvatars;
   sessionPackBirds = []; sessionPacks = []; sessionChallenges = []; sessionWeekBonus = 0; sessionNewAvatars = [];
   newlyEarnedTrophies = []; sessionRankUp = null; sessionBonuses = []; sessionFeatherTotal = 0;
+  // Where they'll land, until they're queued (abortCelebrations).
+  sessionHomesWaiting = sessionHomes({ packBirds, packs, trophies, rank, avatars });
   // Every one of them waits for the child's tap (momentsWaitForTap).
   const play = (from) => {
+    sessionHomesWaiting = [];
     momentsWaitForTap = true;
     try {
       packBirds.forEach(b => celebratePackBird(b, from));
@@ -6242,6 +6298,7 @@ function showTapHint() {
 }
 
 function renderDone() {
+  revealInProgress = false;
   // The birds' own feathers, collected here with a tap. Everything else the
   // recording won (packs, challenges, trophies) follows as its own moment.
   const total = sessionResults.reduce((sum, b) => sum + b.feathers, 0);

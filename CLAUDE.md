@@ -277,7 +277,12 @@ green (levels 2-4), then three gold (5-7) - the newest popping in
 (`trophyLeavesHtml`).
 Wherever a card lands (a tab, the rank badge) a twitching leaf stays
 (`.landed`) until that place is visited - except Home's tab: the
-challenges fly to Home, but Home never glows (its challenges disc does). Moments elsewhere (the game, the
+challenges fly to Home, but Home never glows (its challenges disc does).
+**Leaving mid-celebration aborts it** (`abortCelebrations`, on any tab,
+Settings or My Profile tap, during the bird cards or the Done screen):
+nothing more plays, ever; each place a card was still going gets its leaf
+at once, and the feather counter and rank badge jump to their real values
+(the server banked everything already). Moments elsewhere (the game, the
 Hoot-tique) still go home by themselves. The server has always banked the feathers
 already; `/analyze-session` and `/song-game/result` itemise them
 (`packs_completed`, `challenges_done`, `week_bonus`). Trophy pay outside a
