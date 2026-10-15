@@ -7416,7 +7416,8 @@ const AVATAR_SPECIES = PROTO_ONLY
      { id: 'parrot', name: 'Parrot' }, { id: 'kingfisher', name: 'Kingfisher' },
      { id: 'owl', name: 'Owl' }, { id: 'duckling', name: 'Duckling' },
      { id: 'penguin', name: 'Penguin' }, { id: 'woodpecker', name: 'Woodpecker' },
-     { id: 'bluetit', name: 'Blue Tit' }, { id: 'blackbird', name: 'Blackbird' }]
+     { id: 'bluetit', name: 'Blue Tit' }, { id: 'blackbird', name: 'Blackbird' },
+     { id: 'magpie', name: 'Magpie' }]
   : AVATAR_SPECIES_FULL;
 
 let accessorySvgCache = {};
@@ -7488,6 +7489,19 @@ const PROTO_BIRDS = {
     { f: 'wing-l.webp', grp: 'wingL', wash: 'wash-wing-l.webp', nat: 'natural-wing-l.webp' },
     { f: 'wing-r.webp', grp: 'wingR', wash: 'wash-wing-r.webp', nat: 'natural-wing-r.webp' },
     { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp',   nat: 'natural-head.webp' },
+    { f: 'face.webp',   grp: 'over' },
+  ]},
+  // Only its head and neck take a colour (the dark bib included); the white
+  // body, blue-green wings and tail stay as painted. Delivered with its own
+  // natural head. Its head is the Kingfisher's shape as well.
+  magpie: { dir: '/static/avatar/magpie/', shiftY: 5.2, scale: 1.2, wingY: 50.6, hats: 'kingfisher', stack: [
+    { f: 'tail.webp',   grp: 'under' },
+    { f: 'foot-l.webp', grp: 'under' },
+    { f: 'foot-r.webp', grp: 'under' },
+    { f: 'body.webp',   grp: 'torso' },
+    { f: 'wing-l.webp', grp: 'wingL' },
+    { f: 'wing-r.webp', grp: 'wingR' },
+    { f: 'head.webp',   grp: 'over',  wash: 'wash-head.webp', nat: 'natural-head.webp' },
     { f: 'face.webp',   grp: 'over' },
   ]},
   classic: { dir: '/static/avatar/classic/', shiftY: 5.0, scale: 1.2, stack: [
