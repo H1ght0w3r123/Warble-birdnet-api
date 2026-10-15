@@ -33,11 +33,16 @@ beside the main one.
 On the page: picking someone (`playAs`) sets the cookie, remembers the pick
 for this tab (`sessionStorage` `warbleWho`) and reloads as them, so every
 cache belongs to one child; closing the app forgets it, so it asks again
-next time. A child's Settings holds their stats ("My warbling"), their light
-settings and "Switch explorer", and My Profile ends with "Switch profile"
-(both `switchExplorer()`, back to the start page); resets act only on the
-chosen explorer. A
-new explorer gets the welcome (bird, then the name the grown-up typed).
+next time. A child's Settings holds their stats ("My warbling") and their
+light settings; My Profile ends with "Switch profile" (`switchExplorer()`,
+back to the start page); resets act only on the chosen explorer. "New
+explorer" asks the name first, on its own screen (`renderNewExplorer`, the
+welcome's first dot), makes them with it, and starts Warble as them on the
+welcome's second step, "Choose profile picture".
+A **profile picture** is a photo (gallery or camera) or the head of their
+bird (`birdHeadSvg`, the whole bird seen through one box round the head,
+`HEAD_BOX`; `profilePictureHtml` picks): shown on the start page, the
+top-bar profile button and My Profile.
 
 ## The data model, in order of importance
 
@@ -194,8 +199,11 @@ also be in `TUTORIAL_KEYS` in `main.py`. "Something new here" is an area in
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
-pick a bird, then an optional first name (no colour: every bird starts Natural). It's skipped for a
-profile that already has a name or a non-default bird, and the tutorials
+their first name (optional), then "Choose profile picture" - the heads of
+the birds they can already be, or a photo; the bird picked is also the one
+they dress up (no colour: every bird starts Natural). A new explorer, named
+already, starts on the picture. It's skipped for a
+profile that already has a photo or a non-default bird, and the tutorials
 wait for it (`welcomeDecided`). The first mic tap shows "Warble needs to
 listen" (`renderMicIntro`, tutorial key `mic_intro`) before the browser's
 own prompts, unless the microphone is already allowed; a refused microphone

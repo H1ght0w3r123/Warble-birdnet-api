@@ -272,6 +272,9 @@
   .top-settings-btn img{width:100%;height:100%;object-fit:contain;display:block;}
   .top-profile-btn{background:var(--disc-cream);border:none;border-radius:50%;width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
   .top-profile-btn svg{width:24px;height:24px;}
+  /* Their profile picture: their bird's head fills the disc. */
+  .top-profile-btn{overflow:hidden;}
+  .top-profile-btn svg.avatar-layered{width:100%;height:100%;}
   .feathers{display:flex;align-items:center;gap:6px;padding:6px 2px;font-family:'Poppins';font-weight:900;font-size:17px;color:var(--feather-lt);text-shadow:0 1px 3px rgba(0,0,0,0.35);}
   /* Shared feather icon - height:1em means it always matches whatever
      font-size its context has, so one image works inline at every size
@@ -629,7 +632,8 @@
   .welcome-me{width:150px; height:150px; border-radius:50%; display:grid; place-items:center;
     background:radial-gradient(circle at 50% 42%, var(--disc-cream), #F2D3A6 70%);
     box-shadow:0 0 0 6px var(--wood), 0 0 0 9px var(--wood-edge), 0 8px 18px rgba(0,0,0,0.35); overflow:hidden;}
-  .welcome-birds{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; width:100%;}
+  .welcome-birds{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; width:100%;}
+  .welcome-birds .welcome-bird-btn{width:calc(25% - 8px);}
   .welcome-bird-btn{aspect-ratio:1; border:none; padding:0; border-radius:50%; cursor:pointer; display:grid; place-items:center;
     background:var(--disc-cream); box-shadow:0 0 0 3px var(--wood), 0 3px 6px rgba(0,0,0,0.3);
     transition:transform .12s ease, box-shadow .12s ease; overflow:hidden;}
@@ -645,6 +649,10 @@
   .welcome-bird-btn.nudge{animation:birdNudge .35s ease;}
   @keyframes birdNudge{25%{transform:translateX(-4px);} 75%{transform:translateX(4px);}}
   .welcome-name{max-width:280px; text-align:center; font-size:20px;}
+  /* Profile pictures: a photo fills its circle; a bird is its head. */
+  .welcome-photo, .profile-pic-photo{width:100%; height:100%; object-fit:cover; display:block;}
+  .welcome-photo-btns{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+  .welcome-photo-btns .photo-btn{font-size:14px; padding:10px 16px;}
   .welcome-hint{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9); margin-top:-6px;}
   .welcome-actions{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; max-width:320px; margin-top:4px;}
   .welcome-back{border:none; background:none; color:#fff; font-family:'Poppins'; font-weight:700; font-size:15px;
@@ -656,6 +664,9 @@
      their name under it. Full screen like the welcome. The grown-ups'
      page opens from here too, and keeps the bars hidden. */
   body.start-on .top, body.start-on .bottom-nav{visibility:hidden;}
+  /* The top bar's wordmark sets its own visibility per tab (inline), which
+     would show through a hidden bar. */
+  body.start-on .top-wordmark, body.welcome-on .top-wordmark{visibility:hidden !important;}
   .start-who{display:flex; flex-wrap:wrap; justify-content:center; gap:18px 22px; width:100%; margin-top:10px;}
   .start-explorer{border:none; background:none; padding:0; cursor:pointer; display:flex; flex-direction:column;
     align-items:center; gap:8px; width:112px;}
@@ -667,8 +678,6 @@
   .start-explorer-name{font-family:'Poppins'; font-weight:900; font-size:17px; color:#fff; line-height:1.15;
     text-align:center; overflow-wrap:anywhere; text-shadow:0 2px 6px rgba(26,17,40,0.55);}
   .start-new{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; margin-top:8px;}
-  .start-new .location-input{margin-top:0; text-align:center; font-size:18px;}
-  .start-new-actions{display:flex; gap:12px; align-items:center; justify-content:center;}
   .start-gate{display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;}
   .start-gate .location-input{margin-top:0; max-width:160px; text-align:center; font-size:22px;}
   .start-gate.nope .location-input{animation:birdNudge .35s ease;}
@@ -4130,12 +4139,6 @@ async function loadRecordingLocation() {
   } catch (e) { /* no location line is fine - just leave it empty */ }
 }
 
-// The same two-hue bird bust used for the Profile icon, reused for the
-// live detection badges so they read as "a bird" in Warble's own style
-// rather than a generic emoji.
-// The fixed two-hue bird bust used by the top-bar profile button, kept here
-// so it can be restored after a photo is cleared.
-const PROFILE_BIRD_SVG = '<svg viewBox="0 0 24 24" color="#8E87B8"><path d="M4.6 21.6 L4.6 15.4 L9.4 11.2 L19.2 11.2 L19.2 21.6 Z" fill="#C4BFDF"/><circle cx="14.6" cy="7.6" r="5" fill="#8E87B8"/><path d="M19.2 5.9 L23.4 7.9 L19.2 9.9 Z" fill="#8E87B8"/><circle cx="13.4" cy="6.6" r="1.5" fill="#fff"/><path d="M9.4 11.2 L14.4 11.2 L9.4 16 Z" fill="#8E87B8"/></svg>';
 
 const BADGE_BIRD_IMG = '<img src="/static/live-bird-v2.webp" alt="">';
 
@@ -7502,17 +7505,23 @@ loadAccessoryCache();
 // DEFAULT_BODY is the old default colour, still stored by profiles made
 // before Natural existed - it counts as untouched too.
 const DEFAULT_BODY = '#9CAF88';
+// Name first, then the profile picture: the head of a bird they can be, or
+// a photo from the gallery or the camera. The bird picked is also the one
+// they dress up (a photo keeps the first free bird for that).
 const WELCOME_STEPS = [
-  { title: 'Which bird are you?', say: 'Welcome to Warble! Which bird are you? Tap one.' },
   { title: "What's your name?", say: "What's your name? Ask a grown-up to help you type it." },
+  { title: 'Choose profile picture', say: 'Choose your profile picture. Tap a bird, or use a photo.' },
 ];
+const WELCOME_NAME = 0, WELCOME_PICTURE = 1;
 const WELCOME_LAST = WELCOME_STEPS.length - 1;
 let welcomeDraft = null;
 
+// Untouched: no bird picked, no colour, no photo. The name doesn't count -
+// a new explorer is given theirs before the welcome (renderNewExplorer).
 function profileIsUntouched() {
   const sp = currentProfile.avatar_species || 'default';
   const body = currentProfile.avatar_body;
-  return !firstNameOrDefault() && (sp === 'default' || sp === 'classic') &&
+  return !currentProfile.avatar_photo && (sp === 'default' || sp === 'classic') &&
     (isNatural(body) || body.toUpperCase() === DEFAULT_BODY);
 }
 
@@ -7529,7 +7538,7 @@ welcomeDecided = (async () => {
   renderWelcome();
 })();
 
-function renderWelcome(step = 0) {
+function renderWelcome(step) {
   welcomeOpen = true;
   if (tutorialOpen) tutorialOpen.close(false);
   if (!welcomeDraft) {
@@ -7540,23 +7549,31 @@ function renderWelcome(step = 0) {
       body: NATURAL,
       // The name the grown-up gave on "Who's warbling?", ready to keep.
       name: firstNameOrDefault() || (currentProfile.explorer && currentProfile.explorer.name) || '',
+      photo: currentProfile.avatar_photo || null,
     };
   }
+  // A new explorer gave their name before they were made (renderNewExplorer),
+  // so their welcome opens on the picture.
+  if (step === undefined) step = firstNameOrDefault() ? 1 : 0;
   const d = welcomeDraft, st = WELCOME_STEPS[step];
   document.body.classList.add('welcome-on');
   setSceneFocus(false);
   stage.classList.add('top-aligned');
-  const picker = step === 0
-    ? `<div class="welcome-birds" role="radiogroup" aria-label="Birds">${AVATAR_SPECIES.filter(sp => !avatarLock(sp.id)).map(sp => {
-        const lock = avatarLock(sp.id);
-        return `
-        <button class="welcome-bird-btn ${sp.id === d.species ? 'on' : ''} ${lock ? 'locked' : ''}" data-species="${sp.id}"
-                role="radio" aria-checked="${sp.id === d.species}" aria-disabled="${!!lock}"
-                aria-label="${sp.name}${lock ? ' - ' + lock.hint : ''}">
-          ${avatarSvg(d.body, 58, null, false, sp.id)}
-          ${lock ? '<span class="bird-lock" aria-hidden="true">?</span>' : ''}
-        </button>`; }).join('')}</div>
-       <div class="welcome-hint" id="welcomeLockHint"></div>`
+  const picker = step === WELCOME_PICTURE
+    ? `<div class="welcome-birds" role="radiogroup" aria-label="Profile pictures">
+        ${d.photo ? `<button class="welcome-bird-btn on" data-photo="1" role="radio" aria-checked="true" aria-label="My photo">
+          <img class="welcome-photo" src="${d.photo}" alt=""></button>` : ''}
+        ${AVATAR_SPECIES.filter(sp => !avatarLock(sp.id)).map(sp => {
+          const on = !d.photo && sp.id === d.species;
+          return `<button class="welcome-bird-btn ${on ? 'on' : ''}" data-species="${sp.id}"
+                  role="radio" aria-checked="${on}" aria-label="${sp.name}">${birdHeadSvg(sp.id, NATURAL, 64)}</button>`; }).join('')}
+       </div>
+       <div class="welcome-photo-btns">
+         <label class="photo-btn" for="welcomeGallery">Choose a photo</label>
+         <input type="file" id="welcomeGallery" accept="image/*" hidden>
+         <label class="photo-btn" for="welcomeCamera">Take a photo</label>
+         <input type="file" id="welcomeCamera" accept="image/*" capture="user" hidden>
+       </div>`
     : `<input type="text" id="welcomeName" class="location-input welcome-name" placeholder="First name"
               maxlength="24" autocomplete="given-name" value="${escapeFlock(d.name)}">
        <div class="welcome-hint">Ask a grown-up to help you type it</div>`;
@@ -7564,39 +7581,31 @@ function renderWelcome(step = 0) {
     <div class="welcome">
       <div class="welcome-top">
         <span class="welcome-dots">${WELCOME_STEPS.map((_, k) => `<span class="tut-dot ${k === step ? 'on' : ''}"></span>`).join('')}</span>
-        <div class="welcome-eyebrow">${step === 0 ? 'Welcome to Warble!' : '&nbsp;'}</div>
+        <div class="welcome-eyebrow">Welcome to Warble!</div>
         <div class="welcome-title-row">
           <h1 class="welcome-title">${st.title}</h1>
           ${'speechSynthesis' in window ? `<button class="tut-speak" id="welcomeSpeak" aria-label="Read it to me">${SPEAKER_SVG}</button>` : ''}
         </div>
       </div>
-      <div class="welcome-me" id="welcomeMe">${avatarSvg(d.body, 150, null, true, d.species)}</div>
+      ${step === WELCOME_PICTURE ? `<div class="welcome-me" id="welcomeMe">${welcomePicture(d, 150)}</div>` : ''}
       ${picker}
       <div class="welcome-actions">
         ${step > 0 ? '<button class="welcome-back" id="welcomeBack">Back</button>' : '<span></span>'}
-        ${step === WELCOME_LAST ? '<button class="welcome-back" id="welcomeSkip">Skip</button>' : ''}
+        ${step === WELCOME_NAME ? '<button class="welcome-back" id="welcomeSkip">Skip</button>' : ''}
         <button class="tut-ok" id="welcomeNext">${step === WELCOME_LAST ? "That's me!" : 'Next'}</button>
       </div>
     </div>`;
 
-  const me = () => document.getElementById('welcomeMe');
-  const redraw = () => { me().innerHTML = avatarSvg(d.body, 150, null, true, d.species); };
   stage.querySelectorAll('.welcome-bird-btn').forEach(b => b.onclick = () => {
-    const lock = avatarLock(b.dataset.species);
-    if (lock) {
-      // Still to find: say how, and keep the bird they had.
-      const sp = AVATAR_SPECIES.find(x => x.id === b.dataset.species);
-      const hint = document.getElementById('welcomeLockHint');
-      if (hint) hint.textContent = `${lock.hint.replace(/ to (unlock|find it)$/, '')} to find the ${sp.name}!`;
-      b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge');
-      return;
-    }
-    d.species = b.dataset.species;
-    stage.querySelectorAll('.welcome-bird-btn').forEach(x => {
-      x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b);
-    });
-    redraw();
+    if (b.dataset.species) { d.species = b.dataset.species; d.photo = null; }
+    renderWelcome(step);
   });
+  const fromFile = input => { if (input) input.onchange = e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) shrinkPhoto(f, url => { d.photo = url; renderWelcome(step); });
+  }; };
+  fromFile(document.getElementById('welcomeGallery'));
+  fromFile(document.getElementById('welcomeCamera'));
   const speak = document.getElementById('welcomeSpeak');
   if (speak) speak.onclick = () => speakAloud(st.say, speak);
   const name = document.getElementById('welcomeName');
@@ -7604,20 +7613,27 @@ function renderWelcome(step = 0) {
   const back = document.getElementById('welcomeBack');
   if (back) back.onclick = () => renderWelcome(step - 1);
   const skip = document.getElementById('welcomeSkip');
-  if (skip) skip.onclick = () => finishWelcome(false);
+  if (skip) skip.onclick = () => { d.name = ''; renderWelcome(step + 1); };
   document.getElementById('welcomeNext').onclick = () =>
-    step < WELCOME_LAST ? renderWelcome(step + 1) : finishWelcome(true);
+    step < WELCOME_LAST ? renderWelcome(step + 1) : finishWelcome();
 }
 
-async function finishWelcome(withName) {
+// The welcome's big picture: their photo, or the head of the bird picked.
+function welcomePicture(d, size) {
+  return d.photo ? `<img class="welcome-photo" src="${d.photo}" alt="">` : birdHeadSvg(d.species, NATURAL, size);
+}
+
+async function finishWelcome() {
   const d = welcomeDraft;
-  const first = withName ? (d.name || '').trim() : '';
+  const first = (d.name || '').trim();
   const form = new FormData();
   form.append('avatar_species', d.species);
   form.append('avatar_body', d.body);
+  form.append('avatar_photo', d.photo || 'none');
   if (first) form.append('first_name', first);
   currentProfile.avatar_species = d.species;
   currentProfile.avatar_body = d.body;
+  currentProfile.avatar_photo = d.photo || null;
   if (first) currentProfile.first_name = first;
   updateNavAvatarIcon();
   try { await fetch('/profile', { method: 'POST', body: form }); } catch (e) { /* kept locally */ }
@@ -7658,33 +7674,48 @@ async function renderStart() {
   if (!who) return;   // moved on already
   who.innerHTML = users.length ? users.map(u => `
     <button class="start-explorer" data-id="${u.id}" aria-label="${escapeFlock(u.name)}">
-      <span class="start-explorer-disc">${avatarSvg(u.avatar_body, 84, null, false, u.avatar_species)}</span>
+      <span class="start-explorer-disc">${profilePictureHtml({ avatar_photo: u.photo, avatar_species: u.avatar_species, avatar_body: u.avatar_body }, 94)}</span>
       <span class="start-explorer-name">${escapeFlock(u.name)}</span>
     </button>`).join('')
     : `<div class="stat-empty">Couldn't reach Warble - check the internet and try again.</div>`;
   who.querySelectorAll('.start-explorer').forEach(b => b.onclick = () => playAs(b.dataset.id));
-  renderStartNew(false);
+  renderStartNew();
 }
 
-// "New explorer": a wood button that opens into a name box.
-function renderStartNew(open) {
+// "New explorer": a wood button to the first step of making one - their
+// name, on its own screen, in the welcome's own look (its first dot). The
+// explorer is made with that name and Warble starts as them, on the
+// welcome's second step: their profile picture.
+function renderStartNew() {
   const box = document.getElementById('startNew');
   if (!box) return;
-  if (!open) {
-    box.innerHTML = `<button class="again-btn" id="startNewBtn">New explorer</button>`;
-    document.getElementById('startNewBtn').onclick = () => renderStartNew(true);
-    return;
-  }
-  box.innerHTML = `
-    <input type="text" id="startNewName" class="location-input" placeholder="First name" maxlength="24" autocomplete="off">
-    <div class="welcome-hint">A new explorer starts with no birds and no feathers</div>
-    <div class="start-new-actions">
-      <button class="welcome-back" id="startNewCancel">Cancel</button>
-      <button class="tut-ok" id="startNewGo">Start</button>
+  box.innerHTML = `<button class="again-btn" id="startNewBtn">New explorer</button>`;
+  document.getElementById('startNewBtn').onclick = renderNewExplorer;
+}
+
+function renderNewExplorer() {
+  stage.innerHTML = `
+    <div class="welcome">
+      <div class="welcome-top">
+        <span class="welcome-dots">${WELCOME_STEPS.map((_, k) => `<span class="tut-dot ${k === WELCOME_NAME ? 'on' : ''}"></span>`).join('')}</span>
+        <div class="welcome-eyebrow">New explorer</div>
+        <div class="welcome-title-row">
+          <h1 class="welcome-title">${WELCOME_STEPS[WELCOME_NAME].title}</h1>
+          ${'speechSynthesis' in window ? `<button class="tut-speak" id="newSpeak" aria-label="Read it to me">${SPEAKER_SVG}</button>` : ''}
+        </div>
+      </div>
+      <input type="text" id="startNewName" class="location-input welcome-name" placeholder="First name" maxlength="24" autocomplete="off">
+      <div class="welcome-hint">Ask a grown-up to help you type it</div>
+      <div class="welcome-actions">
+        <button class="welcome-back" id="startNewCancel">Back</button>
+        <button class="tut-ok" id="startNewGo">Next</button>
+      </div>
     </div>`;
   const name = document.getElementById('startNewName');
   name.focus();
-  document.getElementById('startNewCancel').onclick = () => renderStartNew(false);
+  const speak = document.getElementById('newSpeak');
+  if (speak) speak.onclick = () => speakAloud(WELCOME_STEPS[WELCOME_NAME].say, speak);
+  document.getElementById('startNewCancel').onclick = renderStart;
   const go = document.getElementById('startNewGo');
   const make = async () => {
     const n = name.value.trim();
@@ -7720,7 +7751,7 @@ async function playAs(id) {
   else location.replace(`${location.pathname}?who=${encodeURIComponent(id)}`);
 }
 
-// Settings > "Switch explorer": back to "Who's warbling?".
+// My Profile > "Switch profile": back to "Who's warbling?".
 function switchExplorer() {
   abortCelebrations();
   cancelMoments();
@@ -8107,6 +8138,30 @@ function protoWashFilter(id, hex) {
 const NATURAL = 'NATURAL';
 const isNatural = body => !body || String(body).toUpperCase() === NATURAL;
 
+// Just the bird's head, for a profile picture: the whole bird drawn still,
+// seen through a square round its head. Every bird's head sits in the same
+// place on its own canvas (measured: x 20-81, crown y 0-11, chin y 51-66; a crest
+// needs room above),
+// so one box, in canvas units, fits them all; it's moved the way the bird
+// itself is (protoTransform) to find it in the picture.
+const HEAD_BOX = { x: 16, y: -6, size: 68 };
+function birdHeadSvg(species, body, size) {
+  const bird = protoBird(species), k = bird.scale;
+  const x = 50 + k * (HEAD_BOX.x - 50);
+  const y = 96.9 + k * (HEAD_BOX.y + bird.shiftY - 96.9);
+  const w = k * HEAD_BOX.size;
+  return protoAvatarSvg(body, size, {}, false, '', '', species, '', 0, null)
+    .replace('viewBox="0 0 100 100"', `viewBox="${x.toFixed(2)} ${y.toFixed(2)} ${w.toFixed(2)} ${w.toFixed(2)}"`)
+    .replace('overflow:visible;', 'overflow:hidden;');
+}
+
+// Someone's profile picture: their photo, or their bird's head.
+function profilePictureHtml(p, size) {
+  return p.avatar_photo
+    ? `<img class="profile-pic-photo" src="${p.avatar_photo}" alt="">`
+    : birdHeadSvg(p.avatar_species, p.avatar_body, size);
+}
+
 function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer, lift, crest) {
   const bird = protoBird(species);
   const d = bird.dir;
@@ -8273,6 +8328,8 @@ async function renderProfile() {
       <div class="profile-photo-actions">
         <label class="photo-btn" for="photoInput">Choose photo</label>
         <input type="file" id="photoInput" accept="image/*" style="display:none">
+        <label class="photo-btn" for="cameraInput">Take photo</label>
+        <input type="file" id="cameraInput" accept="image/*" capture="user" style="display:none">
         <button class="photo-btn photo-btn-clear" id="clearPhotoBtn">Use bird</button>
       </div>
     </div>
@@ -8288,8 +8345,7 @@ async function renderProfile() {
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
 
-    <!-- Back to "Who's warbling?" so someone else can have a go (also at
-         the end of Settings). -->
+    <!-- Back to "Who's warbling?" so someone else can have a go. -->
     <button class="again-btn grownup-btn" id="profileSwitchBtn">Switch profile</button>
   `;
   document.getElementById('profileSwitchBtn').onclick = switchExplorer;
@@ -8317,16 +8373,17 @@ async function renderProfile() {
     try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
   };
 
-  document.getElementById('photoInput').onchange = (e) => {
+  ['photoInput', 'cameraInput'].forEach(id => document.getElementById(id).onchange = (e) => {
     if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
-  };
+  });
   document.getElementById('clearPhotoBtn').onclick = () => savePhoto('none');
 }
 
 async function renderSettings() {
   stage.classList.add('top-aligned');
   // Each explorer's own: their warbling so far, and the light settings that
-  // are theirs (the picture behind Warble, bird names, tutorials). The
+  // are theirs (the picture behind Warble, bird names, tutorials). "Switch
+  // profile" is at the end of My Profile. The
   // grown-up tools - backup, resets, feathers, sound check - are on the
   // start page's "For grown-ups", where any explorer can be chosen.
   stage.innerHTML = `
@@ -8351,16 +8408,11 @@ async function renderSettings() {
     <div class="profile-section-title">Tutorials</div>
     <div class="reset-note">Start again from the welcome (bird, name), then every "how to" bubble, as if Warble were brand new.</div>
     <button class="again-btn" id="replayTutorialsBtn">Show tutorials again</button>
-
-    <div class="profile-section-title">Who's warbling?</div>
-    <div class="reset-note" id="switchNote">Let someone else have a go.</div>
-    <button class="again-btn grownup-btn" id="switchExplorerBtn" style="margin-top:0;">Switch explorer</button>
   `;
   document.getElementById('backBtn').onclick = () => {
     stage.classList.remove('top-aligned');
     renderIdle();
   };
-  document.getElementById('switchExplorerBtn').onclick = switchExplorer;
   loadDetectionStats();
 
   // Settings can be opened before the profile has been fetched this session,
@@ -8372,7 +8424,6 @@ async function renderSettings() {
   const me = firstNameOrDefault() || (currentProfile.explorer && currentProfile.explorer.name);
   if (me) {
     document.getElementById('settingsTitle').textContent = `${me}'s settings`;
-    document.getElementById('switchNote').textContent = `Playing as ${me}. Let someone else have a go.`;
   }
 
   renderScenePicker();
@@ -8394,7 +8445,7 @@ async function renderSettings() {
       tutorialsSeen = null;   // forget them here too, not just on the server
       await refreshWhatsNew();
       stage.classList.remove('top-aligned');
-      renderWelcome();        // from the very beginning: bird, colour, name
+      renderWelcome(0);       // from the very beginning: name, then picture
     } catch (err) { btn.textContent = "Couldn't do that - tap to retry"; }
   };
 }
@@ -8879,15 +8930,16 @@ async function loadDetectionStats() {
 function renderPhotoPreview() {
   const el = document.getElementById('photoPreview');
   if (!el) return;
-  el.innerHTML = currentProfile.avatar_photo
-    ? `<img src="${currentProfile.avatar_photo}" alt="Your photo">`
-    : avatarSvg(currentProfile.avatar_body, 96, currentProfile.equipped, false, currentProfile.avatar_species);
+  el.innerHTML = profilePictureHtml(currentProfile, 104);
 }
 
 // Photos are shrunk to 240px square and re-encoded as JPEG before upload.
 // They're stored as a data URL in the database, so sending a multi-megabyte
 // phone photo straight up would be far too heavy - this lands around 15-25KB.
-function handlePhotoChosen(file) {
+function handlePhotoChosen(file) { shrinkPhoto(file, savePhoto); }
+
+// The welcome uses this too, keeping the photo until "That's me!".
+function shrinkPhoto(file, done) {
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
@@ -8899,7 +8951,7 @@ function handlePhotoChosen(file) {
       // Centre-crop to a square so it fills the circular frame without squashing
       const side = Math.min(img.width, img.height);
       ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, SIZE, SIZE);
-      savePhoto(canvas.toDataURL('image/jpeg', 0.82));
+      done(canvas.toDataURL('image/jpeg', 0.82));
     };
     img.onerror = () => alert("Sorry, that image couldn't be read.");
     img.src = reader.result;
@@ -8937,14 +8989,14 @@ function updateNavAvatarIcon() {
   updateTopProfileIcon();
 }
 
-// The top-bar profile button: the user's photo if they've set one, otherwise
-// the fixed two-hue bird bust it has always shown.
+// The top-bar profile button: their profile picture - the photo if they've
+// set one, otherwise their bird's head.
 function updateTopProfileIcon() {
   const btn = document.getElementById('topProfileBtn');
   if (!btn) return;
   btn.innerHTML = currentProfile.avatar_photo
     ? `<img class="nav-avatar-photo" src="${currentProfile.avatar_photo}" alt="Your photo">`
-    : PROFILE_BIRD_SVG;
+    : birdHeadSvg(currentProfile.avatar_species, currentProfile.avatar_body, 40);
 }
 
 async function saveAvatarColors() {

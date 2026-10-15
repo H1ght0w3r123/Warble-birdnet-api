@@ -1229,6 +1229,7 @@ def users():
             out.append({"id": u["id"], "name": first if first and first != "Explorer" else u["name"],
                         "avatar_species": p.get("avatar_species") or "default",
                         "avatar_body": p.get("avatar_body") or "NATURAL",
+                        "photo": p.get("avatar_photo"),
                         "rank": rank_now(total_leaves())["index"]})
         finally:
             reset_schema(token)
@@ -1238,12 +1239,13 @@ def users():
 @app.post("/users")
 def add_user(name: str = Form(...)):
     """A new explorer, starting from nothing - no birds, no feathers, no
-    trophies. The welcome (pick a bird, a name) greets them on their first
-    go."""
+    trophies. Their name is the first thing asked (on its own screen, before
+    this); the welcome then asks for their profile picture."""
     name = name.strip()[:24] or "Explorer"
     uid = create_user(name)
     token = use_schema(user_schema(uid))
     try:
+        update_profile(first_name=name)
         _keep_avatars_already_had()   # nothing to keep: just marks it done
     finally:
         reset_schema(token)
