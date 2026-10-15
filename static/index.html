@@ -2838,7 +2838,7 @@
      so it wins. A new text button joins this list rather than picking a
      colour of its own. */
   .again-btn:not(.mic-again-btn), .tut-ok, .photo-btn, .photo-btn-clear,
-  .reset-btn, .play-call-btn, .sheet-done, .item-buy-btn, .bird-buy-btn, .grownup > summary{
+  .reset-btn, .play-call-btn, .sheet-done, .item-buy-btn, .bird-buy-btn{
     background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
     border:3px solid transparent;
     color:var(--wood-edge); font-weight:900; text-shadow:none;
@@ -2850,11 +2850,8 @@
   .reset-btn:active, .play-call-btn:active, .sheet-done:active, .item-buy-btn:active, .bird-buy-btn:active{
     transform:translateY(2px); box-shadow:0 1px 0 var(--wood-edge), 0 2px 4px rgba(26,17,40,0.28);
   }
-  /* Settings' grown-up corner: a full-width wood button that opens it. */
-  .grownup{width:100%; margin-top:22px;}
-  .grownup > summary{list-style:none; cursor:pointer; text-align:center; border-radius:12px;
-    padding:12px 14px; font-family:'Poppins'; font-size:13px;}
-  .grownup > summary::-webkit-details-marker{display:none;}
+  /* Settings' grown-up corner: a full-width wood button to its own page. */
+  .grownup-btn{width:100%; margin-top:22px;}
   /* The one that can't be undone says so in its words' colour, not a red slab. */
   .reset-btn.danger{color:#A3261C;}
   /* Not enough feathers yet: the same wood, greyed like anything locked. */
@@ -7884,7 +7881,7 @@ async function renderSettings() {
 
 
     <div class="profile-section-title">Tutorials</div>
-    <div class="reset-note">Start again from the welcome (bird, colour, name), then every "how to" bubble, as if Warble were brand new.</div>
+    <div class="reset-note">Start again from the welcome (bird, name), then every "how to" bubble, as if Warble were brand new.</div>
     <button class="again-btn" id="replayTutorialsBtn">Show tutorials again</button>
 
     <div class="profile-section-title">Backup</div>
@@ -7898,32 +7895,18 @@ async function renderSettings() {
     <button class="reset-btn" data-scope="sightings">Reset birds, habitats &amp; trophies</button>
     <button class="reset-btn danger" data-scope="everything">Reset everything</button>
 
-    <!-- For grown-ups: the microphone diagnostics and the testing tools. Shut
-         until opened, so a child scrolling Settings never meets a box that
-         sets their feathers to any number. -->
-    <details class="grownup">
-      <summary>For grown-ups</summary>
-      <div class="profile-section-title">Sound check</div>
-      <div id="micCheck" style="width:100%;"></div>
-
-      <div class="profile-section-title">Feathers</div>
-      <div class="feather-set-row">
-        <input type="number" id="featherInput" class="location-input feather-input"
-               min="0" max="99999" placeholder="Feathers">
-        <button class="again-btn feather-set-btn" id="setFeathersBtn">Set</button>
-      </div>
-      <div class="reset-note" id="featherSetNote">For testing — sets the feather balance to any number.</div>
-
-      <div class="profile-section-title">Debug</div>
-      <div class="reset-note">Animation previews: the Done screen in any scenario, every reward moment, the recording tree and the bird reveal. Nothing is saved.</div>
-      <button class="again-btn" id="openAnimPreviewBtn">Animation previews</button>
-    </details>
+    <!-- For grown-ups: the microphone diagnostics and the testing tools, on
+         their own page, so a child scrolling Settings never meets a box that
+         sets their feathers to any number. (It was a fold-open section; its
+         contents opened below the bottom of a phone screen, so tapping it
+         looked like it did nothing.) -->
+    <button class="again-btn grownup-btn" id="grownUpsBtn">For grown-ups</button>
   `;
   document.getElementById('backBtn').onclick = () => {
     stage.classList.remove('top-aligned');
     renderIdle();
   };
-  document.getElementById('openAnimPreviewBtn').onclick = renderAnimationPreview;
+  document.getElementById('grownUpsBtn').onclick = renderGrownUps;
 
   // Settings can be opened before the profile has been fetched this session,
   // so make sure the toggle reflects what's actually saved.
@@ -7941,35 +7924,6 @@ async function renderSettings() {
     const formData = new FormData();
     formData.append('show_scientific_names', e.target.checked);
     try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
-  };
-
-  renderMicCheck();
-
-  // Prefill with the current balance so it's clear what's being changed
-  try {
-    const fRes = await fetch('/feathers');
-    const fData = await fRes.json();
-    currentFeatherTotal = fData.total_feathers;
-    document.getElementById('featherInput').value = Math.round(fData.total_feathers);
-  } catch (e) { /* leave it blank */ }
-
-  document.getElementById('setFeathersBtn').onclick = async () => {
-    const input = document.getElementById('featherInput');
-    const note = document.getElementById('featherSetNote');
-    const amount = parseInt(input.value, 10);
-    if (isNaN(amount) || amount < 0) {
-      note.textContent = 'Enter a number of 0 or more.';
-      return;
-    }
-    try {
-      const res = await fetch(`/dev/set-feathers/${amount}`);
-      const data = await res.json();
-      currentFeatherTotal = data.total_feathers;
-      animateFeatherCount(currentFeatherTotal);
-      note.textContent = `Feathers set to ${Math.round(data.total_feathers)}.`;
-    } catch (e) {
-      note.textContent = "Couldn't set feathers right now.";
-    }
   };
 
   document.getElementById('exportBtn').onclick = async () => {
@@ -8029,6 +7983,65 @@ async function renderSettings() {
       }
     };
   });
+}
+
+// Settings > For grown-ups: the microphone diagnostics and the testing
+// tools. Its own page, reached by a wood button at the end of Settings.
+async function renderGrownUps() {
+  stage.classList.add('top-aligned');
+  stage.innerHTML = `
+    <div style="width:100%;margin-bottom:12px;">
+      <button class="back-btn" id="backBtn">${icon('back')} Settings</button>
+    </div>
+    <div class="collection-title" style="margin-bottom:14px;">For grown-ups</div>
+
+    <div class="profile-section-title">Sound check</div>
+    <div id="micCheck" style="width:100%;"></div>
+
+    <div class="profile-section-title">Feathers</div>
+    <div class="feather-set-row">
+      <input type="number" id="featherInput" class="location-input feather-input"
+             min="0" max="99999" placeholder="Feathers">
+      <button class="again-btn feather-set-btn" id="setFeathersBtn">Set</button>
+    </div>
+    <div class="reset-note" id="featherSetNote">For testing — sets the feather balance to any number.</div>
+
+    <div class="profile-section-title">Debug</div>
+    <div class="reset-note">Animation previews: the Done screen in any scenario, every reward moment, the recording tree and the bird reveal. Nothing is saved.</div>
+    <button class="again-btn" id="openAnimPreviewBtn">Animation previews</button>
+  `;
+  document.getElementById('backBtn').onclick = renderSettings;
+  document.getElementById('openAnimPreviewBtn').onclick = renderAnimationPreview;
+
+  renderMicCheck();
+
+  // Prefill with the current balance so it's clear what's being changed
+  try {
+    const fRes = await fetch('/feathers');
+    const fData = await fRes.json();
+    currentFeatherTotal = fData.total_feathers;
+    document.getElementById('featherInput').value = Math.round(fData.total_feathers);
+  } catch (e) { /* leave it blank */ }
+
+  document.getElementById('setFeathersBtn').onclick = async () => {
+    const input = document.getElementById('featherInput');
+    const note = document.getElementById('featherSetNote');
+    const amount = parseInt(input.value, 10);
+    if (isNaN(amount) || amount < 0) {
+      note.textContent = 'Enter a number of 0 or more.';
+      return;
+    }
+    try {
+      const res = await fetch(`/dev/set-feathers/${amount}`);
+      const data = await res.json();
+      currentFeatherTotal = data.total_feathers;
+      animateFeatherCount(currentFeatherTotal);
+      note.textContent = `Feathers set to ${Math.round(data.total_feathers)}.`;
+    } catch (e) {
+      note.textContent = "Couldn't set feathers right now.";
+    }
+  };
+
 }
 
 // Debug > Animation previews (Settings > For grown-ups). Every animation
@@ -8193,7 +8206,7 @@ function renderAnimationPreview() {
     stopDemoQuiver();
     cancelMoments();
     await debugRestore();
-    renderSettings();
+    renderGrownUps();
   };
 
   // Real trophy and pack names and pictures, for the moments.
