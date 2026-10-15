@@ -8287,7 +8287,12 @@ async function renderProfile() {
 
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
+
+    <!-- Back to "Who's warbling?" so someone else can have a go (also at
+         the end of Settings). -->
+    <button class="again-btn grownup-btn" id="profileSwitchBtn">Switch profile</button>
   `;
+  document.getElementById('profileSwitchBtn').onclick = switchExplorer;
 
   try {
     const res = await fetch('/profile');

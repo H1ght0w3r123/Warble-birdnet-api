@@ -34,7 +34,9 @@ On the page: picking someone (`playAs`) sets the cookie, remembers the pick
 for this tab (`sessionStorage` `warbleWho`) and reloads as them, so every
 cache belongs to one child; closing the app forgets it, so it asks again
 next time. A child's Settings holds their stats ("My warbling"), their light
-settings and "Switch explorer"; resets act only on the chosen explorer. A
+settings and "Switch explorer", and My Profile ends with "Switch profile"
+(both `switchExplorer()`, back to the start page); resets act only on the
+chosen explorer. A
 new explorer gets the welcome (bird, then the name the grown-up typed).
 
 ## The data model, in order of importance
