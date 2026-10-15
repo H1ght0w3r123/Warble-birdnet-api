@@ -39,10 +39,18 @@ back to the start page); resets act only on the chosen explorer. "New
 explorer" asks the name first, on its own screen (`renderNewExplorer`, the
 welcome's first dot), makes them with it, and starts Warble as them on the
 welcome's second step, "Choose profile picture".
-A **profile picture** is a photo (gallery or camera) or the head of their
-bird (`birdHeadSvg`, the whole bird seen through one box round the head,
+A **profile picture** is a photo (gallery or camera) or a bird's head
+(`birdHeadSvg`, the whole bird seen through one box round the head,
 `HEAD_BOX`; `profilePictureHtml` picks): shown on the start page, the
-top-bar profile button and My Profile.
+top-bar profile button and My Profile. Its bird is its own
+(`profile_bird`), not the one dressed up in the Hoot-tique, always in its
+natural colours, and chosen only on My Profile (a row of heads, then the
+photo buttons) or in the welcome. A head is there to pick as soon as its
+bird is found (`head_is_open`, `headOpen`) - the moment it's unlocked in
+the Hoot-tique, bought or not; the three starters always. The welcome's
+pick is also the first Dress Up bird, when it's one they can already be.
+A profile from before this keeps the bird it showed (`/profile` fills
+`profile_bird` from `avatar_species` once).
 
 ## The data model, in order of importance
 
@@ -130,8 +138,9 @@ top-bar profile button and My Profile.
   Before then the challenges aren't picked, don't count and pay nothing
   (`evaluate_week_challenges` returns none; a recording that climbs to Lark
   doesn't count, as they're worked out before its trophies), and the game
-  can't be played (`/song-game` `open`, the result refuses). The page hides
-  the discs by rank (`/profile` `unlocks`, `paintHubUnlocks`), the rank-up
+  can't be played (`/song-game` `open`, the result refuses). Home's three
+  slots: the joke in the middle under the mic (there from the start), the
+  challenges left, the game right. The page hides the discs by rank (`/profile` `unlocks`, `paintHubUnlocks`), the rank-up
   moment says "... is on Home!" (`challenges_new`, `game_new`), and the disc
   glows when it arrives.
 - `challenges.py` — 10 weekly challenges, 5 picked per week, seeded by ISO week.
@@ -211,8 +220,9 @@ joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
 their first name (optional), then "Choose profile picture" - the heads of
-the birds they can already be, or a photo; the bird picked is also the one
-they dress up (no colour: every bird starts Natural). A new explorer, named
+the birds found so far, or a photo; a bird picked that they can already be
+is also the one they start dressing up (no colour: every bird starts
+Natural). A new explorer, named
 already, starts on the picture. It's skipped for a
 profile that already has a photo or a non-default bird, and the tutorials
 wait for it (`welcomeDecided`). The first mic tap shows "Warble needs to

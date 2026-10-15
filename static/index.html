@@ -539,8 +539,8 @@
     font-family:'Poppins'; color:#fff; -webkit-tap-highlight-color:transparent;
   }
   .hub-left{--x:calc(-1 * var(--side-x)); --y:var(--side-y);}
-  /* The middle one is under the mic, with nothing either side of its name,
-     so "Weekly Challenges" gets room to stay on one line. */
+  /* The middle one (the joke) is under the mic, with nothing either side
+     of its name, so it gets room to stay on one line. */
   .hub-mid{--x:0px; --y:var(--R); width:150px; margin-left:-25px;}
   .hub-right{--x:var(--side-x); --y:var(--side-y);}
   /* Waiting for a birder rank (paintHubUnlocks): not there at all. */
@@ -653,6 +653,8 @@
   .welcome-name{max-width:280px; text-align:center; font-size:20px;}
   /* Profile pictures: a photo fills its circle; a bird is its head. */
   .welcome-photo, .profile-pic-photo{width:100%; height:100%; object-fit:cover; display:block;}
+  .profile-heads{max-width:340px; margin:4px auto 2px;}
+  .profile-heads .welcome-bird-btn{width:calc(20% - 8px);}
   .welcome-photo-btns{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
   .welcome-photo-btns .photo-btn{font-size:14px; padding:10px 16px;}
   .welcome-hint{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9); margin-top:-6px;}
@@ -3129,11 +3131,14 @@ function renderIdle() {
       <div class="mic-wrap mic-alive" id="micWrap">
         <button class="mic-btn" id="recordBtn"><img class="mic-icon" src="/static/mic-v2.webp" alt="Record"></button>
       </div>
-      <button class="hub-item hub-left" id="jokeMini">
+      <!-- The joke is the one that's there from the start, so it sits in the
+           middle, under the mic; the challenges (left) and the game (right)
+           join it with the birder ranks. -->
+      <button class="hub-item hub-mid" id="jokeMini">
         <span class="hub-icon"><img src="/static/joke-icon-v1.webp" alt=""></span>
         <span class="hub-label">Joke Of The Day</span>
       </button>
-      <button class="hub-item hub-mid not-yet" id="challengeCard">
+      <button class="hub-item hub-left not-yet" id="challengeCard">
         <span class="hub-icon"><img src="/static/challenge-icon-v1.webp" alt=""><span class="hub-badge" id="challengeTally"></span></span>
         <span class="hub-label">Weekly Challenges</span>
       </button>
@@ -7567,9 +7572,13 @@ function renderWelcome(step) {
   if (tutorialOpen) tutorialOpen.close(false);
   if (!welcomeDraft) {
     const sp = currentProfile.avatar_species;
+    const hd = currentProfile.profile_bird;
     welcomeDraft = {
       species: AVATAR_SPECIES.some(s => s.id === sp) && !avatarLock(sp) ? sp
         : (AVATAR_SPECIES.find(s => !avatarLock(s.id)) || AVATAR_SPECIES[0]).id,
+      // The profile picture's bird: any whose head is open (found, bought
+      // or not). The first time, it's also the bird they start dressing up.
+      head: hd && headOpen(hd) ? hd : null,
       body: NATURAL,
       // The name the grown-up gave on "Who's warbling?", ready to keep.
       name: firstNameOrDefault() || (currentProfile.explorer && currentProfile.explorer.name) || '',
@@ -7587,8 +7596,8 @@ function renderWelcome(step) {
     ? `<div class="welcome-birds" role="radiogroup" aria-label="Profile pictures">
         ${d.photo ? `<button class="welcome-bird-btn on" data-photo="1" role="radio" aria-checked="true" aria-label="My photo">
           <img class="welcome-photo" src="${d.photo}" alt=""></button>` : ''}
-        ${AVATAR_SPECIES.filter(sp => !avatarLock(sp.id)).map(sp => {
-          const on = !d.photo && sp.id === d.species;
+        ${AVATAR_SPECIES.filter(sp => headOpen(sp.id)).map(sp => {
+          const on = !d.photo && sp.id === (d.head || d.species);
           return `<button class="welcome-bird-btn ${on ? 'on' : ''}" data-species="${sp.id}"
                   role="radio" aria-checked="${on}" aria-label="${sp.name}">${birdHeadSvg(sp.id, NATURAL, 64)}</button>`; }).join('')}
        </div>
@@ -7621,7 +7630,11 @@ function renderWelcome(step) {
     </div>`;
 
   stage.querySelectorAll('.welcome-bird-btn').forEach(b => b.onclick = () => {
-    if (b.dataset.species) { d.species = b.dataset.species; d.photo = null; }
+    if (b.dataset.species) {
+      d.head = b.dataset.species; d.photo = null;
+      // A bird they can already be is their Dress Up bird too, to start with
+      if (!avatarLock(d.head)) d.species = d.head;
+    }
     renderWelcome(step);
   });
   const fromFile = input => { if (input) input.onchange = e => {
@@ -7644,7 +7657,7 @@ function renderWelcome(step) {
 
 // The welcome's big picture: their photo, or the head of the bird picked.
 function welcomePicture(d, size) {
-  return d.photo ? `<img class="welcome-photo" src="${d.photo}" alt="">` : birdHeadSvg(d.species, NATURAL, size);
+  return d.photo ? `<img class="welcome-photo" src="${d.photo}" alt="">` : birdHeadSvg(d.head || d.species, NATURAL, size);
 }
 
 async function finishWelcome() {
@@ -7654,10 +7667,12 @@ async function finishWelcome() {
   form.append('avatar_species', d.species);
   form.append('avatar_body', d.body);
   form.append('avatar_photo', d.photo || 'none');
+  form.append('profile_bird', d.head || d.species);
   if (first) form.append('first_name', first);
   currentProfile.avatar_species = d.species;
   currentProfile.avatar_body = d.body;
   currentProfile.avatar_photo = d.photo || null;
+  currentProfile.profile_bird = d.head || d.species;
   if (first) currentProfile.first_name = first;
   updateNavAvatarIcon();
   try { await fetch('/profile', { method: 'POST', body: form }); } catch (e) { /* kept locally */ }
@@ -7698,7 +7713,7 @@ async function renderStart() {
   if (!who) return;   // moved on already
   who.innerHTML = users.length ? users.map(u => `
     <button class="start-explorer" data-id="${u.id}" aria-label="${escapeFlock(u.name)}">
-      <span class="start-explorer-disc">${profilePictureHtml({ avatar_photo: u.photo, avatar_species: u.avatar_species, avatar_body: u.avatar_body }, 94)}</span>
+      <span class="start-explorer-disc">${profilePictureHtml({ avatar_photo: u.photo, avatar_species: u.avatar_species, profile_bird: u.profile_bird }, 94)}</span>
       <span class="start-explorer-name">${escapeFlock(u.name)}</span>
     </button>`).join('')
     : `<div class="stat-empty">Couldn't reach Warble - check the internet and try again.</div>`;
@@ -8179,11 +8194,19 @@ function birdHeadSvg(species, body, size) {
     .replace('overflow:visible;', 'overflow:hidden;');
 }
 
-// Someone's profile picture: their photo, or their bird's head.
+// Someone's profile picture: their photo, or the head of their profile
+// bird - its own choice (profile_bird), not the bird they dress up in the
+// Hoot-tique, and always in its natural colours.
 function profilePictureHtml(p, size) {
   return p.avatar_photo
     ? `<img class="profile-pic-photo" src="${p.avatar_photo}" alt="">`
-    : birdHeadSvg(p.avatar_species, p.avatar_body, size);
+    : birdHeadSvg(p.profile_bird || p.avatar_species, NATURAL, size);
+}
+// A head is there to pick as soon as its bird is found (unlocked in the
+// Hoot-tique), bought or not. The three starters always are.
+function headOpen(id) {
+  const st = currentProfile && currentProfile.avatars && currentProfile.avatars[id];
+  return !st || st.state !== 'locked';
 }
 
 function protoAvatarSvg(body, size, equipped, dancing, accessoryLayers, heldLayer, species, shoesLayer, lift, crest) {
@@ -8349,12 +8372,14 @@ async function renderProfile() {
 
     <div class="profile-photo-wrap">
       <div class="profile-photo-preview" id="photoPreview"></div>
+      <!-- The profile picture is chosen here and only here: a bird's head
+           (any bird found so far - not the one in the Hoot-tique) or a photo. -->
+      <div class="welcome-birds profile-heads" id="profileHeads" role="radiogroup" aria-label="Profile pictures"></div>
       <div class="profile-photo-actions">
         <label class="photo-btn" for="photoInput">Choose photo</label>
         <input type="file" id="photoInput" accept="image/*" style="display:none">
         <label class="photo-btn" for="cameraInput">Take photo</label>
         <input type="file" id="cameraInput" accept="image/*" capture="user" style="display:none">
-        <button class="photo-btn photo-btn-clear" id="clearPhotoBtn">Use bird</button>
       </div>
     </div>
 
@@ -8382,6 +8407,7 @@ async function renderProfile() {
   document.getElementById('firstNameInput').value = currentProfile.first_name || '';
   document.getElementById('lastNameInput').value = currentProfile.last_name || '';
   renderPhotoPreview();
+  renderProfileHeads();
   paintProfileRank();
   loadProfileLocations();
 
@@ -8400,7 +8426,6 @@ async function renderProfile() {
   ['photoInput', 'cameraInput'].forEach(id => document.getElementById(id).onchange = (e) => {
     if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
   });
-  document.getElementById('clearPhotoBtn').onclick = () => savePhoto('none');
 }
 
 async function renderSettings() {
@@ -8986,9 +9011,34 @@ function shrinkPhoto(file, done) {
   reader.readAsDataURL(file);
 }
 
+// My Profile's row of heads: every bird found so far, the one showing
+// (when there's no photo) ringed green. Picking one drops the photo.
+function renderProfileHeads() {
+  const row = document.getElementById('profileHeads');
+  if (!row) return;
+  const mine = currentProfile.avatar_photo ? null : (currentProfile.profile_bird || currentProfile.avatar_species);
+  row.innerHTML = AVATAR_SPECIES.filter(sp => headOpen(sp.id)).map(sp => `
+    <button class="welcome-bird-btn ${sp.id === mine ? 'on' : ''}" data-species="${sp.id}" role="radio"
+            aria-checked="${sp.id === mine}" aria-label="${sp.name}">${birdHeadSvg(sp.id, NATURAL, 64)}</button>`).join('');
+  row.querySelectorAll('[data-species]').forEach(b => b.onclick = () => saveProfileBird(b.dataset.species));
+}
+
+async function saveProfileBird(sp) {
+  currentProfile.profile_bird = sp;
+  currentProfile.avatar_photo = null;
+  renderPhotoPreview();
+  renderProfileHeads();
+  updateTopProfileIcon();
+  const form = new FormData();
+  form.append('profile_bird', sp);
+  form.append('avatar_photo', 'none');
+  try { await fetch('/profile', { method: 'POST', body: form }); } catch (e) { /* shown already */ }
+}
+
 async function savePhoto(dataUrl) {
   currentProfile.avatar_photo = dataUrl === 'none' ? null : dataUrl;
   renderPhotoPreview();
+  renderProfileHeads();
   updateNavAvatarIcon();
   const formData = new FormData();
   formData.append('avatar_photo', dataUrl);
@@ -9016,13 +9066,13 @@ function updateNavAvatarIcon() {
 }
 
 // The top-bar profile button: their profile picture - the photo if they've
-// set one, otherwise their bird's head.
+// set one, otherwise their profile bird's head (not the Dress Up bird).
 function updateTopProfileIcon() {
   const btn = document.getElementById('topProfileBtn');
   if (!btn) return;
   btn.innerHTML = currentProfile.avatar_photo
     ? `<img class="nav-avatar-photo" src="${currentProfile.avatar_photo}" alt="Your photo">`
-    : birdHeadSvg(currentProfile.avatar_species, currentProfile.avatar_body, 40);
+    : profilePictureHtml(currentProfile, 40);
 }
 
 async function saveAvatarColors() {

@@ -688,6 +688,18 @@ def colour_is_open(hx: str) -> bool:
     return hx not in SPECIAL_COLOURS or colour_states()[hx]["owned"]
 
 
+def head_is_open(species: str, states: dict = None) -> bool:
+    """A bird's head can be a profile picture as soon as the bird is found -
+    the moment it's unlocked in the Hoot-tique - whether or not it's been
+    bought there."""
+    sp = avatar_id(species)
+    if sp in AVATAR_STARTERS:
+        return True
+    if sp not in AVATAR_UNLOCKS:
+        return False
+    return (states or avatar_states())[sp]["state"] != "locked"
+
+
 def avatar_is_open(species: str, states: dict = None) -> bool:
     sp = avatar_id(species)
     if sp in AVATAR_STARTERS or sp not in AVATAR_UNLOCKS:
@@ -1236,7 +1248,17 @@ async def rename_location_endpoint(location_id: int, name: str = Form(...)):
 @app.get("/profile")
 def profile(request: Request):
     uid = request.cookies.get(EXPLORER_COOKIE) or "1"
-    return {**get_profile(), "avatars": avatar_states(), "colours": colour_states(),
+    p = get_profile()
+    if not p.get("profile_bird"):
+        # From before the profile picture had a bird of its own: it keeps
+        # the one it was showing, from now on separately.
+        # Only a bird they could pick: a brand-new explorer's untouched
+        # "default" is the Robin, which they haven't found.
+        sp = avatar_id(p.get("avatar_species") or "default")
+        if head_is_open(sp):
+            update_profile(profile_bird=sp)
+            p["profile_bird"] = sp
+    return {**p, "avatars": avatar_states(), "colours": colour_states(),
             "colour_change": colour_change_open(), "rank": rank_now(total_leaves()),
             # The ranks that bring the challenges and the game to Home
             "unlocks": {"challenges": CHALLENGES_UNLOCK_RANK, "game": SONG_GAME_UNLOCK_RANK},
@@ -1257,6 +1279,7 @@ def users():
             first = p.get("first_name")
             out.append({"id": u["id"], "name": first if first and first != "Explorer" else u["name"],
                         "avatar_species": p.get("avatar_species") or "default",
+                        "profile_bird": p.get("profile_bird"),
                         "avatar_body": p.get("avatar_body") or "NATURAL",
                         "photo": p.get("avatar_photo"),
                         "rank": rank_now(total_leaves())["index"]})
@@ -1302,10 +1325,13 @@ async def update_profile_endpoint(
     show_scientific_names: bool = Form(None),
     avatar_photo: str = Form(None),
     home_scene: str = Form(None),
+    profile_bird: str = Form(None),
 ):
     # A bird still to be found can't be chosen, whatever the page sends.
     if avatar_species and not avatar_is_open(avatar_species):
         avatar_species = None
+    if profile_bird and not head_is_open(profile_bird):
+        profile_bird = None
     if avatar_body and not colour_is_open(avatar_body):
         avatar_body = None
     update_profile(
@@ -1313,7 +1339,7 @@ async def update_profile_endpoint(
         avatar_body=avatar_body, avatar_face=avatar_face, avatar_beak=avatar_beak,
         avatar_species=avatar_species,
         show_scientific_names=show_scientific_names, avatar_photo=avatar_photo,
-        home_scene=home_scene,
+        home_scene=home_scene, profile_bird=avatar_id(profile_bird) if profile_bird else None,
     )
     return {"status": "ok"}
 
