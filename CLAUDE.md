@@ -323,7 +323,14 @@ child's own bird is) - it twirls in from small (two turns,
 and `.webp` - a looping see-through video at 24 frames a second, the WebP
 for iPhones and Safari, cut from a dance video by
 `tools/dance_from_video.py`; read its docstring: the videos come on black,
-not see-through); it waits for a tap (`tap: true`, no hold timer)
+not see-through). The same dance is the Done screen's own celebration:
+at its top dances the child's **profile bird** (`doneDancerHtml`,
+`pickDoneDancer` - picked as the warble starts, so the dance loads while
+they listen), in natural colours and without accessories, not the bird
+dressed up in the Hoot-tique; with a photo for a profile picture, a bird
+picked at random from the ones they've found. One dance per bird is all a
+new bird needs; until it has one, the layered bird wiggles. The unlock card
+waits for a tap (`tap: true`, no hold timer)
 and flies into the Hoot-tique tab. **On the Done screen, everything won is
 collected by a tap, and bursts leaves as it is:** the birds' own feathers
 first (just the words, pulsing slowly - no box), then each of the

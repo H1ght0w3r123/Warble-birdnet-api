@@ -2927,6 +2927,9 @@
   @keyframes wingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(45deg);}}
   @keyframes wingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-45deg);}}
   .done-avatar{margin-bottom:4px;}
+  /* A painted dance on the Done screen: a little wider than the layered
+     bird it stands in for, as its wings flap out. */
+  .done-dance{display:block; width:172px; height:auto; margin:0 auto; pointer-events:none;}
   .trophy-banner-tap{font-family:'Poppins';font-weight:700;font-size:10px;color:var(--sage-dk);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
   /* Just the words, breathing slowly - an invitation to tap. */
   .done-feathers.tappable{cursor:pointer;animation:feathersPulse 2.4s ease-in-out infinite;padding:6px 18px;}
@@ -4693,11 +4696,33 @@ const IS_APPLE_WEBKIT = /iPad|iPhone|iPod/.test(navigator.userAgent)
   || /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
 const DANCE_AS_VIDEO = !IS_APPLE_WEBKIT
   && !!document.createElement('video').canPlayType('video/webm; codecs="vp9"');
-function danceHtml(base) {
+function danceHtml(base, cls = 'moment-dance') {
   return DANCE_AS_VIDEO
-    ? `<video class="moment-dance" src="${base}.webm" autoplay loop muted playsinline disablepictureinpicture
-         aria-hidden="true" onerror="this.outerHTML='<img class=&quot;moment-dance&quot; src=&quot;${base}.webp&quot; alt=&quot;&quot;>'"></video>`
-    : `<img class="moment-dance" src="${base}.webp" alt="">`;
+    ? `<video class="${cls}" src="${base}.webm" autoplay loop muted playsinline disablepictureinpicture
+         aria-hidden="true" onerror="this.outerHTML='<img class=&quot;${cls}&quot; src=&quot;${base}.webp&quot; alt=&quot;&quot;>'"></video>`
+    : `<img class="${cls}" src="${base}.webp" alt="">`;
+}
+const danceFile = base => `${base}.${DANCE_AS_VIDEO ? 'webm' : 'webp'}`;
+
+// The Done screen celebrates with the child's profile bird dancing, in its
+// natural colours - not the bird dressed up in the Hoot-tique, so no
+// accessories. With a photo for a profile picture, it's a bird picked at
+// random from the ones they've found. Picked when the warble starts, so the
+// dance is fetched while they listen; a bird without a painted dance
+// (AVATAR_DANCES) wiggles the layered way.
+let doneDancer = null;
+function pickDoneDancer() {
+  const open = AVATAR_SPECIES.filter(sp => headOpen(sp.id)).map(sp => sp.id);
+  const mine = currentProfile.profile_bird || currentProfile.avatar_species;
+  doneDancer = !currentProfile.avatar_photo && mine ? mine
+    : (open[Math.floor(Math.random() * open.length)] || 'cardinal');
+  if (AVATAR_DANCES[doneDancer]) fetch(danceFile(AVATAR_DANCES[doneDancer])).catch(() => {});
+  return doneDancer;
+}
+function doneDancerHtml() {
+  const bird = doneDancer || pickDoneDancer();
+  return AVATAR_DANCES[bird] ? danceHtml(AVATAR_DANCES[bird], 'done-dance')
+    : avatarSvg(NATURAL, 140, null, true, bird);
 }
 // A bird the child can now be: revealed at full size, dancing, and it waits
 // for a tap - then flies into the Hoot-tique, where it now waits with its
@@ -4707,7 +4732,7 @@ function celebrateAvatar(a) {
   const dance = AVATAR_DANCES[a.id];
   // Start fetching it now: the card may wait behind the recording's other
   // moments, and the dance is 0.7-2 MB.
-  if (dance) fetch(`${dance}.${DANCE_AS_VIDEO ? 'webm' : 'webp'}`).catch(() => {});
+  if (dance) fetch(danceFile(dance)).catch(() => {});
   return celebrate({ kicker: "You've unlocked", name: sp ? sp.name : a.id, big: true, tap: true,
     // In its own plumage, whatever colour the child's bird is: this is the
     // bird as it really looks, the one they heard.
@@ -6483,7 +6508,7 @@ function renderDone() {
   const n = sessionResults.length;
 
   stage.innerHTML = `
-    <div class="done-avatar">${avatarSvg(currentProfile.avatar_body, 140, currentProfile.equipped, true, currentProfile.avatar_species)}</div>
+    <div class="done-avatar">${doneDancerHtml()}</div>
     <div class="done-title">${pickDoneMessage(n, newCount, tierCounts)}</div>
     <div class="done-sub">You heard ${n} bird${n === 1 ? '' : 's'}${newCount ? ` · ${newCount} new` : ''}</div>
     ${total ? '' : `<div class="done-sub">You've already won feathers for these birds today</div>`}
@@ -6681,6 +6706,7 @@ async function startRecording() {
 // prompts are in grown-up words, and two can arrive at once. Skipped once
 // it has been seen, or when the microphone is already allowed.
 async function beginWarble() {
+  pickDoneDancer();
   await whatsNewReady;
   let ask = !(tutorialsSeen && tutorialsSeen.has('mic_intro'));
   if (ask) {
