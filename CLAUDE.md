@@ -235,7 +235,9 @@ unlock all go through `celebrate()` in `static/index.html` (with
 in one shape and one timing (`MOMENT`): a wood-and-cream card pops in over
 where it was won with a burst of leaves, holds (kicker, name, +feathers),
 then, tapped or timed out, bumps (`MOMENT.bump`), shrinks while spinning
-once round where it is (`MOMENT.shrink`) and flies home - Awards, Collections, Home, the game's stars or Next level
+once round where it is - the shrink and the spin as one step, written with
+the same move/size/turn parts every step so Safari keeps them together
+(`MOMENT.shrink`) - and flies home - Awards, Collections, Home, the game's stars or Next level
 button - while its feathers fly to the counter. They queue one at a time; a
 tap sends one home early. The new bird's reveal card is the same moment at
 full size (same burst, folds small in place, flies to My Flock as an origami

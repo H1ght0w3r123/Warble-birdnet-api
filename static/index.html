@@ -4459,25 +4459,32 @@ function celebrate({ kicker, name = '', icon = '', feathers = 0, from = null, ho
       // Two steps: it shrinks where it is (MOMENT.shrink), then flies home.
       // The big one's dimmed screen is its own shadow, which would otherwise
       // shrink with it into a grey box: it lifts as the card shrinks.
-      // Three steps: a little bump, then it shrinks and spins once round where
-      // it is, then flies home.
+      // Three steps: a little bump, then it shrinks and spins once round
+      // together, where it is, then flies home. Every step is written with
+      // the same three parts (move, size, turn) so each browser animates
+      // them side by side - with a different list some (Safari) treat a full
+      // turn as no turn, or play it apart from the shrink.
       const small = big ? .42 : .6;
+      const tf = (x, y, sc, deg) => `translate(${x}px, ${y}px) scale(${sc}) rotate(${deg}deg)`;
       if (still) {
         card.style.transition = 'opacity .3s ease';
         requestAnimationFrame(() => { card.style.opacity = '0'; });
       } else {
+        card.style.transition = 'none';
+        card.style.transform = tf(0, 0, 1, 0);
+        void card.offsetWidth;
         card.style.transition = `transform ${MOMENT.bump}ms cubic-bezier(.3,1.6,.6,1)`;
-        requestAnimationFrame(() => { card.style.transform = 'scale(1.08)'; });
+        card.style.transform = tf(0, 0, 1.08, 0);
         setTimeout(() => {
           if (gen !== momentGen) return;
           card.style.transition = `transform ${MOMENT.shrink}ms cubic-bezier(.4,0,.2,1), box-shadow ${MOMENT.shrink}ms ease`;
-          card.style.transform = `scale(${small}) rotate(360deg)`;
+          card.style.transform = tf(0, 0, small, 360);
           if (big) card.style.boxShadow = '0 0 0 100vmax rgba(26,17,40,0), 0 14px 34px rgba(0,0,0,0.5)';
         }, MOMENT.bump);
         setTimeout(() => {
           if (gen !== momentGen) return;
           card.style.transition = `transform ${MOMENT.home}ms cubic-bezier(.55,0,.65,1), opacity ${MOMENT.home * .4}ms ease ${MOMENT.home * .6}ms`;
-          card.style.transform = `translate(${dx}px, ${dy}px) scale(${t ? .1 : small * .6}) rotate(360deg)`;
+          card.style.transform = tf(dx, dy, t ? .1 : small * .6, 360);
           card.style.opacity = '0';
         }, MOMENT.bump + MOMENT.shrink);
       }
