@@ -1227,6 +1227,24 @@ def detection_stats():
     return get_detection_stats()
 
 
+@app.get("/profile-stats")
+def profile_stats():
+    """The headline numbers on My Profile, in a child's words: warbles,
+    birds and how often they were heard, trophies, collection packs and
+    places. Each with how many there are to get, where there's a top."""
+    levels = get_trophy_levels()
+    return {
+        "warbles": count_all_sessions(),
+        "birds": count_distinct_species(),
+        "heard": len(get_all_sightings()),
+        "trophies": sum(1 for k, lv in levels.items() if k in TROPHY_DEFINITIONS and lv > 0),
+        "trophies_of": len(TROPHY_DEFINITIONS),
+        "packs": sum(1 for key in PACKS if count_species_found_in(pack_species(key)) >= len(pack_species(key))),
+        "packs_of": len(PACKS),
+        "places": count_distinct_locations(),
+    }
+
+
 @app.get("/locations")
 def list_locations():
     """Every named location, for viewing/editing on the Profile page."""

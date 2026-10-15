@@ -44,8 +44,17 @@ A **profile picture** is a photo (gallery or camera) or a bird's head
 `HEAD_BOX`; `profilePictureHtml` picks): shown on the start page, the
 top-bar profile button and My Profile. Its bird is its own
 (`profile_bird`), not the one dressed up in the Hoot-tique, always in its
-natural colours, and chosen only on My Profile (a row of heads, then the
-photo buttons) or in the welcome. A head is there to pick as soon as its
+natural colours, and chosen only on My Profile or in the welcome. My
+Profile, top to bottom: the picture; a carousel of round frames
+(`renderProfileHeads`) - the camera disc first (one file input with no
+`capture`, so the phone offers camera or gallery), their photo if they have
+one, then each bird's head; their name with a pencil (`icon('edit')`, still
+a stand-in, in the icon brief) that swaps in a box and the painted tick
+(`paintProfileName`) - the name is typed first when the profile is made,
+and there's no surname; a small rank card, just the seal and the name,
+that opens the ladder (`paintProfileRank`); "My stats", six tiles from
+`/profile-stats` (warbles, birds, times heard, trophies of 18, packs of 10,
+places); My locations; Switch profile. A head is there to pick as soon as its
 bird is found (`head_is_open`, `headOpen`) - the moment it's unlocked in
 the Hoot-tique, bought or not; the three starters always. The welcome's
 pick is also the first Dress Up bird, when it's one they can already be.
@@ -78,8 +87,8 @@ A profile from before this keeps the bird it showed (`/profile` fills
   replaced by a painting when `icon-rank-<key>` arrives
   (`design-brief-rank-badges-v1.md`). Tapping the top-bar badge opens the
   whole ladder over whatever screen is showing (`openRankLadder()`), as does
-  the "My rank" card on My Profile (leaves won of all of them, a bar to the
-  next rank, `paintProfileRank()`); `birder_rank()` sends
+  the small rank card on My Profile (seal and name, `paintProfileRank()`);
+  `birder_rank()` sends
   the ladder and the "how to climb" words (`message`) with the rank. Summer Squad was removed (its first level
   needed all 13 summer visitors in one summer); High Five (weeks with all
   five challenges done) was added. Forager is capped at 100 species, Empty

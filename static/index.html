@@ -653,8 +653,6 @@
   .welcome-name{max-width:280px; text-align:center; font-size:20px;}
   /* Profile pictures: a photo fills its circle; a bird is its head. */
   .welcome-photo, .profile-pic-photo{width:100%; height:100%; object-fit:cover; display:block;}
-  .profile-heads{max-width:340px; margin:4px auto 2px;}
-  .profile-heads .welcome-bird-btn{width:calc(20% - 8px);}
   .welcome-photo-btns{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
   .welcome-photo-btns .photo-btn{font-size:14px; padding:10px 16px;}
   .welcome-hint{font-family:'Poppins'; font-weight:700; font-size:13px; color:rgba(255,255,255,0.9); margin-top:-6px;}
@@ -2321,21 +2319,47 @@
     box-shadow:0 2px 6px rgba(0,0,0,0.28);
     transition:transform .16s cubic-bezier(.34,1.5,.64,1), box-shadow .16s ease;
   }
-  /* My rank on My Profile: a framed card (something to look at) that opens
-     the ladder. */
-  .profile-rank{--frame:4px; --inner:14px; display:block; width:100%; border:none; cursor:pointer; text-align:left;
-    font:inherit; margin-top:8px;}
-  .profile-rank-inner{display:flex; flex-direction:column; gap:8px; padding:12px 14px; background:var(--disc-cream);
+  /* My rank on My Profile: a small framed card - the seal and the rank's
+     name - that opens the ladder. */
+  #profileRank{display:flex; justify-content:center; width:100%; margin-top:10px;}
+  .profile-rank{--frame:4px; --inner:14px; display:inline-block; border:none; cursor:pointer; font:inherit; padding:0;}
+  .profile-rank-inner{display:flex; align-items:center; gap:10px; padding:6px 18px 6px 8px; background:var(--disc-cream);
     border-radius:var(--inner);}
-  .profile-rank-top{display:flex; align-items:center; gap:12px;}
-  .profile-rank-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
-  .profile-rank-name{font-family:'Poppins'; font-weight:900; font-size:20px; color:var(--wood-edge);}
-  .profile-rank-leaves{font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--ink-soft);}
-  .profile-rank-msg{font-family:'Poppins'; font-weight:400; font-size:13px; line-height:1.4; color:var(--ink-brown);}
-  .profile-rank-steps{margin-top:0;}
-  .profile-rank-link{align-self:center; font-family:'Poppins'; font-weight:700; font-size:12.5px; color:var(--wood-edge);
-    display:inline-flex; align-items:center; gap:4px;}
-  .profile-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px;}
+  .profile-rank-name{font-family:'Poppins'; font-weight:900; font-size:19px; color:var(--wood-edge);}
+  /* The profile picture carousel: round frames in a row that scrolls
+     sideways, the camera disc first. Selected is green. */
+  .head-carousel{display:flex; gap:10px; align-self:stretch; min-width:0; margin:0 -16px; padding:8px 16px 10px;
+    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;}
+  .head-carousel::-webkit-scrollbar{display:none;}
+  .head-pick{flex:0 0 auto; width:68px; height:68px; border-radius:50%; padding:0; cursor:pointer; overflow:hidden;
+    display:grid; place-items:center;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
+    border:4px solid transparent; box-shadow:0 3px 6px rgba(26,17,40,0.3); transition:transform .12s ease, box-shadow .12s ease;}
+  .head-pick img{width:100%; height:100%; object-fit:cover; display:block;}
+  .head-pick svg{width:100%; height:100%;}
+  .head-pick.on{box-shadow:0 0 0 3px var(--sage), 0 0 12px 3px rgba(var(--glow),0.6);}
+  .head-pick:active{transform:scale(.95);}
+  .head-camera .ico{width:36px; height:36px; object-fit:contain;}
+  .head-camera{font-size:28px;}
+  /* Their name, with a pencil; editing: the box and a tick. */
+  .profile-name-row{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:6px;}
+  .profile-name{font-family:'Poppins'; font-weight:900; font-size:24px; color:#fff; text-shadow:0 2px 6px rgba(26,17,40,0.45);
+    overflow-wrap:anywhere; text-align:center;}
+  .profile-name-input{margin-top:0; max-width:220px; text-align:center; font-size:18px;}
+  .profile-name-btn{flex:0 0 auto; width:40px; height:40px; border-radius:50%; padding:0; cursor:pointer;
+    display:grid; place-items:center; font-size:18px;
+    background:linear-gradient(var(--disc-cream), var(--disc-cream)) padding-box, var(--wood-rim);
+    border:3px solid transparent; box-shadow:0 2px 0 var(--wood-edge), 0 3px 6px rgba(26,17,40,0.28);}
+  .profile-name-btn .ico{width:22px; height:22px; object-fit:contain;}
+  .profile-name-btn.tick .ico{width:26px; height:26px;}
+  /* My stats: six cream tiles, a big number over what it counts. */
+  .profile-stats{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; width:100%; margin-top:6px;}
+  .profile-stat{display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 4px;
+    background:var(--disc-cream); border-radius:12px; box-shadow:0 2px 6px rgba(26,17,40,0.2);}
+  .profile-stat-n{font-family:'Poppins'; font-weight:900; font-size:22px; line-height:1.1; color:var(--wood-edge);}
+  .profile-stat-n small{font-size:13px; font-weight:700; color:var(--ink-soft);}
+  .profile-stat-label{font-family:'Poppins'; font-weight:700; font-size:11.5px; color:var(--ink-soft); text-align:center;}
+  .profile-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 4px;width:100%;min-width:0;}
   .profile-photo-preview{width:104px;height:104px;border-radius:50%;background:var(--disc-cream);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,0.22);}
   .profile-photo-preview img{width:100%;height:100%;object-fit:cover;}
   .profile-photo-actions{display:flex;gap:8px;}
@@ -3017,7 +3041,7 @@ const ICON_STANDINS = {
   'garden-parks': '🌳', woodland: '🌲', 'wetland-coast': '🌊', farmland: '🌾', towns: '🏘️',
   'tip-sunrise': '🌅', 'tip-quiet': '🤫', 'tip-places': '📍', 'tip-close': '🎧',
   'tip-rain': '🌦️', 'tip-calm': '🧘',
-  pin: '📍', lock: '🔒', camera: '📷',
+  pin: '📍', lock: '🔒', camera: '📷', edit: '✏️',
   back: '←', forward: '→', close: '✕', pause: '⏸', mystery: '???',
 };
 let paintedIcons = {};
@@ -8372,24 +8396,22 @@ async function renderProfile() {
 
     <div class="profile-photo-wrap">
       <div class="profile-photo-preview" id="photoPreview"></div>
-      <!-- The profile picture is chosen here and only here: a bird's head
-           (any bird found so far - not the one in the Hoot-tique) or a photo. -->
-      <div class="welcome-birds profile-heads" id="profileHeads" role="radiogroup" aria-label="Profile pictures"></div>
-      <div class="profile-photo-actions">
-        <label class="photo-btn" for="photoInput">Choose photo</label>
-        <input type="file" id="photoInput" accept="image/*" style="display:none">
-        <label class="photo-btn" for="cameraInput">Take photo</label>
-        <input type="file" id="cameraInput" accept="image/*" capture="user" style="display:none">
-      </div>
+      <!-- The profile picture is chosen here and only here: a carousel of
+           every bird found so far (their heads, natural colours - not the
+           bird in the Hoot-tique), with the camera disc first. The camera
+           opens the phone's own menu: take a photo or pick one. -->
+      <div class="head-carousel" id="profileHeads" role="radiogroup" aria-label="Profile pictures"></div>
+      <input type="file" id="photoInput" accept="image/*" hidden>
     </div>
 
-    <div class="profile-section-title">My rank</div>
-    <div id="profileRank" style="width:100%;"></div>
+    <!-- Their name, with a pencil to change it; the tick finishes. It's
+         typed for the first time when the profile is made. -->
+    <div class="profile-name-row" id="profileName"></div>
 
-    <div class="profile-section-title">My name</div>
-    <input type="text" id="firstNameInput" class="location-input" placeholder="First name" maxlength="24">
-    <input type="text" id="lastNameInput" class="location-input" placeholder="Last name" maxlength="24">
-    <button class="again-btn" id="saveNameBtn">Save name</button>
+    <div id="profileRank"></div>
+
+    <div class="profile-section-title">My stats</div>
+    <div class="profile-stats" id="profileStats"></div>
 
     <div class="profile-section-title">My locations</div>
     <div id="locationsList" style="width:100%;"></div>
@@ -8404,28 +8426,17 @@ async function renderProfile() {
     currentProfile = await res.json();
   } catch (e) { /* fall back to defaults already set */ }
 
-  document.getElementById('firstNameInput').value = currentProfile.first_name || '';
-  document.getElementById('lastNameInput').value = currentProfile.last_name || '';
   renderPhotoPreview();
   renderProfileHeads();
+  paintProfileName(false);
   paintProfileRank();
+  loadProfileStats();
   loadProfileLocations();
 
-  document.getElementById('saveNameBtn').onclick = async () => {
-    const first = document.getElementById('firstNameInput').value.trim();
-    const last = document.getElementById('lastNameInput').value.trim();
-    if (!first) return;
-    currentProfile.first_name = first;
-    currentProfile.last_name = last;
-    const formData = new FormData();
-    formData.append('first_name', first);
-    formData.append('last_name', last);
-    try { await fetch('/profile', { method: 'POST', body: formData }); } catch (e) { /* ok to fail quietly */ }
-  };
-
-  ['photoInput', 'cameraInput'].forEach(id => document.getElementById(id).onchange = (e) => {
+  document.getElementById('photoInput').onchange = (e) => {
     if (e.target.files && e.target.files[0]) handlePhotoChosen(e.target.files[0]);
-  });
+    e.target.value = '';   // the same photo again still counts as a choice
+  };
 }
 
 async function renderSettings() {
@@ -8926,27 +8937,16 @@ function renderMicCheck() {
 // My rank on My Profile: the badge, how many leaves of all of them, a green
 // bar to the next rank with the server's words on how to get there, and the
 // eight badges in a row showing the climb. The whole card opens the ladder.
+// My rank on My Profile: just the seal (its number and wreath) and the
+// rank's name, in a small framed card. Tapping it opens the whole ladder.
 function paintProfileRank() {
   const el = document.getElementById('profileRank');
   const r = currentProfile && currentProfile.rank;
   if (!el || !r) return;
-  const from = r.ladder ? r.ladder[r.index].at : 0;
-  const toNext = r.next_at != null ? Math.max(0, Math.min(1, (r.leaves - from) / (r.next_at - from))) : 1;
-  const steps = (r.ladder || []).map((step, i) =>
-    `<span class="moment-step${i === r.index ? ' now' : ''}">${rankSeal(i, step.key, 28, i > r.index)}</span>`).join('');
-  el.innerHTML = `<button class="profile-rank woodframe" id="profileRankCard" aria-label="See all the birder ranks">
+  el.innerHTML = `<button class="profile-rank woodframe" id="profileRankCard" aria-label="${escapeFlock(r.name)} - see all the birder ranks">
     <span class="profile-rank-inner">
-      <span class="profile-rank-top">
-        ${rankSeal(r.index, r.key, 72)}
-        <span class="profile-rank-text">
-          <span class="profile-rank-name">${escapeFlock(r.name)}</span>
-          <span class="profile-rank-leaves">${r.leaves} of ${r.leaves_total || '?'} leaves</span>
-          <span class="rank-row-bar"><span style="width:${(toNext * 100).toFixed(0)}%"></span></span>
-        </span>
-      </span>
-      <span class="profile-rank-msg">${escapeFlock(r.message || '')}</span>
-      ${steps ? `<span class="moment-ladder profile-rank-steps">${steps}</span>` : ''}
-      <span class="profile-rank-link">See all the ranks ${icon('forward')}</span>
+      ${rankSeal(r.index, r.key, 54)}
+      <span class="profile-rank-name">${escapeFlock(r.name)}</span>
     </span>
   </button>`;
   document.getElementById('profileRankCard').onclick = openRankLadder;
@@ -9011,16 +9011,77 @@ function shrinkPhoto(file, done) {
   reader.readAsDataURL(file);
 }
 
-// My Profile's row of heads: every bird found so far, the one showing
-// (when there's no photo) ringed green. Picking one drops the photo.
+// My Profile's carousel: the camera disc, then their photo if they have
+// one, then the head of every bird found so far; the one showing is ringed
+// green (and big above it). Opens at the start, so the camera is always in
+// sight; picking keeps the row where it was. Picking a head drops the photo.
 function renderProfileHeads() {
   const row = document.getElementById('profileHeads');
   if (!row) return;
-  const mine = currentProfile.avatar_photo ? null : (currentProfile.profile_bird || currentProfile.avatar_species);
-  row.innerHTML = AVATAR_SPECIES.filter(sp => headOpen(sp.id)).map(sp => `
-    <button class="welcome-bird-btn ${sp.id === mine ? 'on' : ''}" data-species="${sp.id}" role="radio"
-            aria-checked="${sp.id === mine}" aria-label="${sp.name}">${birdHeadSvg(sp.id, NATURAL, 64)}</button>`).join('');
+  const photo = currentProfile.avatar_photo;
+  const mine = photo ? null : (currentProfile.profile_bird || currentProfile.avatar_species);
+  const kept = row.scrollLeft;
+  row.innerHTML = `
+    <label class="head-pick head-camera" for="photoInput" aria-label="Take or choose a photo">${icon('camera')}</label>
+    ${photo ? `<button class="head-pick on" role="radio" aria-checked="true" aria-label="My photo">
+      <img src="${photo}" alt=""></button>` : ''}
+    ${AVATAR_SPECIES.filter(sp => headOpen(sp.id)).map(sp => `
+    <button class="head-pick ${sp.id === mine ? 'on' : ''}" data-species="${sp.id}" role="radio"
+            aria-checked="${sp.id === mine}" aria-label="${sp.name}">${birdHeadSvg(sp.id, NATURAL, 64)}</button>`).join('')}`;
   row.querySelectorAll('[data-species]').forEach(b => b.onclick = () => saveProfileBird(b.dataset.species));
+  row.scrollLeft = kept;
+}
+
+// Their name, and a pencil; editing swaps in a box and a tick.
+function paintProfileName(editing) {
+  const el = document.getElementById('profileName');
+  if (!el) return;
+  const name = firstNameOrDefault();
+  if (!editing) {
+    el.innerHTML = `<span class="profile-name">${escapeFlock(name || 'Add your name')}</span>
+      <button class="profile-name-btn" id="editNameBtn" aria-label="Change my name">${icon('edit')}</button>`;
+    document.getElementById('editNameBtn').onclick = () => paintProfileName(true);
+    return;
+  }
+  el.innerHTML = `<input type="text" id="firstNameInput" class="location-input profile-name-input" placeholder="First name"
+      maxlength="24" autocomplete="given-name" value="${escapeFlock(name)}">
+    <button class="profile-name-btn tick" id="saveNameBtn" aria-label="Done">${PAINTED_TICK}</button>`;
+  const input = document.getElementById('firstNameInput');
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  const done = async () => {
+    const first = input.value.trim();
+    if (first && first !== name) {
+      currentProfile.first_name = first;
+      const form = new FormData();
+      form.append('first_name', first);
+      try { await fetch('/profile', { method: 'POST', body: form }); } catch (e) { /* shown already */ }
+    }
+    paintProfileName(false);
+  };
+  document.getElementById('saveNameBtn').onclick = done;
+  input.onkeydown = e => { if (e.key === 'Enter') done(); };
+}
+
+// The headline numbers, as tiles: a big number and what it counts.
+async function loadProfileStats() {
+  const el = document.getElementById('profileStats');
+  if (!el) return;
+  try {
+    const s = await (await fetch('/profile-stats')).json();
+    const tiles = [
+      [s.warbles, s.warbles === 1 ? 'Warble' : 'Warbles'],
+      [s.birds, s.birds === 1 ? 'Bird' : 'Birds'],
+      [s.heard, 'Times heard'],
+      [`${s.trophies}<small>/${s.trophies_of}</small>`, 'Trophies'],
+      [`${s.packs}<small>/${s.packs_of}</small>`, 'Packs done'],
+      [s.places, s.places === 1 ? 'Place' : 'Places'],
+    ];
+    el.innerHTML = tiles.map(([n, label]) =>
+      `<div class="profile-stat"><span class="profile-stat-n">${n}</span><span class="profile-stat-label">${label}</span></div>`).join('');
+  } catch (e) {
+    el.innerHTML = `<div class="stat-empty">Couldn't load your stats right now.</div>`;
+  }
 }
 
 async function saveProfileBird(sp) {

@@ -49,6 +49,12 @@ deliver). Until then the emoji or symbol stays as a stand-in. A later redraw is
 | `pause` | ⏸ | "Stop" while a bird's call is playing | Two chunky wooden bars, to pair with the painted play button |
 | `mystery` | ??? | The name sign of a trophy not yet won | A question mark carved in wood, or a closed seed pod |
 
+### Still to paint (added since the sheet)
+
+| File name | Stands in for | Where it shows | Idea |
+|---|---|---|---|
+| `edit` | ✏️ | Next to the child's name on My Profile: tap to change it | A chunky wooden pencil |
+
 ## Style: match what's already painted
 
 Use the nav icons, the mic and the trophy emblems as the reference
