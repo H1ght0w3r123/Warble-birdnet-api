@@ -18,8 +18,10 @@ trade-offs, and don't assume familiarity with build tooling or frameworks.
 
 ## Explorers: more than one child
 
-Warble opens on "Who's warbling?" (`renderStart`): each explorer's bird and
-name, "New explorer", and "For grown-ups". Each explorer's data is entirely
+Warble opens on "Select profile" (`renderStart`): the big wordmark, each
+explorer's picture and name, "New profile" (an empty frame with a carved
+plus, last in the row) and "For grown-ups" - no top bar and no nav bar
+(`body.start-on`; the page scrolls to the bottom of the screen). Each explorer's data is entirely
 their own - birds, feathers, trophies, Dress Up, settings. The first (Jasper)
 lives in the database's ordinary tables; every one added since gets a
 Postgres schema of their own, `warble_u<id>`, with the same tables, made
@@ -36,7 +38,7 @@ cache belongs to one child; closing the app forgets it, so it asks again
 next time. A child's Settings holds their light settings (their stats are
 all on My Profile); My Profile ends with "Switch profile" (`switchExplorer()`,
 back to the start page); resets act only on the chosen explorer. "New
-explorer" asks the name first, on its own screen (`renderNewExplorer`, the
+profile" asks the name first, on its own screen (`renderNewExplorer`, the
 welcome's first dot), makes them with it, and starts Warble as them on the
 welcome's second step, "Choose profile picture".
 A **profile picture** is a photo (gallery or camera) or a bird's head

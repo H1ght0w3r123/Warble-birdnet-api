@@ -665,7 +665,18 @@
      Before anything else: each explorer's bird on a cream disc in wood,
      their name under it. Full screen like the welcome. The grown-ups'
      page opens from here too, and keeps the bars hidden. */
-  body.start-on .top, body.start-on .bottom-nav{visibility:hidden;}
+  /* No bars at all: the top bar and the nav are gone (not just hidden), and
+     the page scrolls all the way to the bottom of the screen - #scroller
+     otherwise stops short where the nav would be. */
+  body.start-on .top, body.start-on .bottom-nav{display:none;}
+  body.start-on #scroller{bottom:0;}
+  .start-wordmark{height:96px; margin:6px auto 4px;}
+  .start-wordmark img{height:100%; display:block; margin:0 auto;}
+  /* New profile: an empty frame with a carved plus in it. */
+  .start-new-disc{position:relative;}
+  .start-new-disc::before, .start-new-disc::after{content:''; position:absolute; left:50%; top:50%;
+    width:38px; height:9px; margin:-4.5px 0 0 -19px; border-radius:5px; background:var(--wood);}
+  .start-new-disc::after{transform:rotate(90deg);}
   /* The top bar's wordmark sets its own visibility per tab (inline), which
      would show through a hidden bar. */
   body.start-on .top-wordmark, body.welcome-on .top-wordmark{visibility:hidden !important;}
@@ -679,7 +690,6 @@
   .start-explorer:active .start-explorer-disc{transform:translateY(3px) scale(.97);}
   .start-explorer-name{font-family:'Poppins'; font-weight:900; font-size:17px; color:#fff; line-height:1.15;
     text-align:center; overflow-wrap:anywhere; text-shadow:0 2px 6px rgba(26,17,40,0.55);}
-  .start-new{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; margin-top:8px;}
   .start-gate{display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;}
   .start-gate .location-input{margin-top:0; max-width:160px; text-align:center; font-size:22px;}
   .start-gate.nope .location-input{animation:birdNudge .35s ease;}
@@ -7766,8 +7776,8 @@ async function finishWelcome() {
 }
 
 // --- Who's warbling? --------------------------------------------------------
-// The page Warble opens on (STARTING): every explorer's bird and name, a way
-// to add a new one (who starts with nothing - no birds, feathers or
+// The page Warble opens on (STARTING): the big wordmark, "Select profile",
+// every explorer's picture and name, "New profile" to add one (who starts with nothing - no birds, feathers or
 // trophies), and the grown-ups' page. Settings > "Switch explorer" comes
 // back here.
 async function renderStart() {
@@ -7776,12 +7786,11 @@ async function renderStart() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div class="welcome">
+      <div class="start-wordmark"><img src="/static/wordmark.webp" alt="Warble"></div>
       <div class="welcome-top">
-        <div class="welcome-eyebrow">Warble</div>
-        <h1 class="welcome-title">Who's warbling?</h1>
+        <h1 class="welcome-title">Select profile</h1>
       </div>
       <div class="start-who" id="startWho"></div>
-      <div class="start-new" id="startNew"></div>
       <button class="again-btn grownup-btn" id="startGrownUps">For grown-ups</button>
     </div>`;
   document.getElementById('startGrownUps').onclick = () => renderGrownUpGate();
@@ -7792,33 +7801,32 @@ async function renderStart() {
   setSceneFocus(false);
   const who = document.getElementById('startWho');
   if (!who) return;   // moved on already
-  who.innerHTML = users.length ? users.map(u => `
+  // Every profile, then "New profile": an empty frame with a plus, last
+  // in the same row.
+  who.innerHTML = (users.length ? users.map(u => `
     <button class="start-explorer" data-id="${u.id}" aria-label="${escapeFlock(u.name)}">
       <span class="start-explorer-disc">${profilePictureHtml({ avatar_photo: u.photo, avatar_species: u.avatar_species, profile_bird: u.profile_bird }, 94)}</span>
       <span class="start-explorer-name">${escapeFlock(u.name)}</span>
     </button>`).join('')
-    : `<div class="stat-empty">Couldn't reach Warble - check the internet and try again.</div>`;
-  who.querySelectorAll('.start-explorer').forEach(b => b.onclick = () => playAs(b.dataset.id));
-  renderStartNew();
-}
-
-// "New explorer": a wood button to the first step of making one - their
-// name, on its own screen, in the welcome's own look (its first dot). The
-// explorer is made with that name and Warble starts as them, on the
-// welcome's second step: their profile picture.
-function renderStartNew() {
-  const box = document.getElementById('startNew');
-  if (!box) return;
-  box.innerHTML = `<button class="again-btn" id="startNewBtn">New explorer</button>`;
+    : `<div class="stat-empty" style="width:100%;">Couldn't reach Warble - check the internet and try again.</div>`) + `
+    <button class="start-explorer" id="startNewBtn" aria-label="New profile">
+      <span class="start-explorer-disc start-new-disc"></span>
+      <span class="start-explorer-name">New profile</span>
+    </button>`;
+  who.querySelectorAll('.start-explorer[data-id]').forEach(b => b.onclick = () => playAs(b.dataset.id));
   document.getElementById('startNewBtn').onclick = renderNewExplorer;
 }
 
+// "New profile" (the empty frame on the start page) opens the first step of
+// making one - their name, on its own screen, in the welcome's own look (its
+// first dot). The explorer is made with that name and Warble starts as them,
+// on the welcome's second step: their profile picture.
 function renderNewExplorer() {
   stage.innerHTML = `
     <div class="welcome">
       <div class="welcome-top">
         <span class="welcome-dots">${WELCOME_STEPS.map((_, k) => `<span class="tut-dot ${k === WELCOME_NAME ? 'on' : ''}"></span>`).join('')}</span>
-        <div class="welcome-eyebrow">New explorer</div>
+        <div class="welcome-eyebrow">New profile</div>
         <div class="welcome-title-row">
           <h1 class="welcome-title">${WELCOME_STEPS[WELCOME_NAME].title}</h1>
           ${'speechSynthesis' in window ? `<button class="tut-speak" id="newSpeak" aria-label="Read it to me">${SPEAKER_SVG}</button>` : ''}
@@ -8575,7 +8583,7 @@ async function renderGrownUps() {
   stage.classList.add('top-aligned');
   stage.innerHTML = `
     <div style="width:100%;margin-bottom:12px;">
-      <button class="back-btn" id="backBtn">${icon('back')} Who's warbling?</button>
+      <button class="back-btn" id="backBtn">${icon('back')} Profiles</button>
     </div>
     <div class="collection-title" style="margin-bottom:14px;">For grown-ups</div>
 
