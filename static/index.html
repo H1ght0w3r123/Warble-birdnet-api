@@ -2630,9 +2630,12 @@
   .pack-book .card-carousel .fan-card{top:0;}
   .pack-book .card-dots{position:absolute; left:0; right:0; top:73.5%; margin:0;}
   .pack-book .card-dot{border-color:rgba(255,247,232,0.85); box-shadow:0 1px 2px rgba(26,17,40,0.5);}
-  .pack-table{position:absolute; left:8%; right:8%; top:77.5%; display:flex; flex-direction:column; align-items:center;}
-  .pack-table .fan-caption, .pack-table .pack-empty{background:var(--disc-cream); color:var(--ink-brown);
-    border-radius:14px; padding:8px 14px; margin:0 auto 6px; max-width:320px; box-shadow:0 3px 8px rgba(26,17,40,0.35);}
+  .pack-table{position:absolute; left:5%; right:5%; top:77%; display:flex; flex-direction:column; align-items:center;}
+  /* Big, dark and on cream: it sits on a busy painted table. */
+  .pack-table .fan-caption, .pack-table .pack-empty{background:var(--disc-cream); color:var(--wood-edge);
+    font-family:'Poppins'; font-weight:700; font-size:15px; line-height:1.35; text-shadow:none;
+    border-radius:16px; padding:10px 16px; margin:0 auto 6px; max-width:340px;
+    box-shadow:0 0 0 3px var(--wood), 0 4px 10px rgba(26,17,40,0.45);}
   .pack-table .pack-empty{color:var(--wood-edge);}
   .pack-table .fan-caption:empty{display:none;}
   .card-dot{
@@ -10757,12 +10760,17 @@ let deckAnimToken = 0;
 // growing into the front; the front one lies down on the left page; and the
 // next card turns up on the right page where the lifted one was (it was
 // under it all along). Every place is a share of the book's own size, so
-// it fits any phone. Measured on the painting (1122 x 1402): the pages'
-// middles at 28.5% and 71.7% across, 41% down.
+// it fits any phone. A lying card sits exactly in the middle of its page:
+// measured on the painting (1122 x 1402), the paper runs x 135-541 and
+// 594-996 - the book isn't quite centred, so each page has its own - and
+// both pages' middles are 39.6% down.
 const BOOK = {
-  frontY: 0.385, frontW: 0.36,          // the standing card: centre (of the book's height), width (of its width)
-  pageX: 0.215, pageY: 0.425, pageW: 0.245,   // a lying card: off the middle, down, width
-  tilt: 34, turn: 4,                    // lying back on the page, and a little askew (degrees)
+  frontY: 0.385, frontW: 0.396,         // the standing card: centre (of the book's height), width (of its width)
+  pageXL: 0.1918, pageXR: 0.2014,       // the pages' middles, off the picture's middle (of its width),
+  pageY: 0.3895, pageW: 0.245,          // ...and down it - both a touch in from the paper's own
+                                        // middle (x 0.301 / 0.709, y 0.396), as the tilt
+                                        // throws a lying card out and down; a lying card's width
+  tilt: 34,                             // lying back on the page (degrees)
   lift: 0.07,                           // how far it rises (of the width) as it comes off the page
 };
 const CARD_W = 66;   // a card's own width; it's drawn at a scale of that
@@ -10775,7 +10783,8 @@ function layoutCarousel(cards, drift = 0) {
   // The picture's own width: the box's, or more where a tall box has made
   // it scale up (and trim its sides). Its top is the box's top either way.
   const W = Math.max(boxW, H * 1122 / 1402);
-  CARD_X = [0, W * BOOK.pageX, W * BOOK.pageX, W * BOOK.pageX];   // a swipe's length per card (wireCardCarousel)
+  const pageX = (BOOK.pageXL + BOOK.pageXR) / 2;
+  CARD_X = [0, W * pageX, W * pageX, W * pageX];   // a swipe's length per card (wireCardCarousel)
   const kp = deckPos, ks = deckSize;
   const heroS = W * BOOK.frontW / CARD_W, pageS = W * BOOK.pageW / CARD_W;
   cards.forEach((card, i) => {
@@ -10785,10 +10794,10 @@ function layoutCarousel(cards, drift = 0) {
     // under the top card of that page, beyond one place away).
     const t = Math.min(1, a);
     const e = t * t * (3 - 2 * t);                    // smooth start and finish
-    let x = side * W * BOOK.pageX * e;
+    let x = side * W * (side < 0 ? BOOK.pageXL : BOOK.pageXR) * e;
     let y = H * lerp(BOOK.frontY, BOOK.pageY, e) - Math.sin(Math.PI * t) * W * BOOK.lift;
     let s = lerp(heroS, pageS, e);
-    let rx = BOOK.tilt * e, rz = side * BOOK.turn * e;
+    let rx = BOOK.tilt * e, rz = 0;
     // Opening and closing the deck: from a pile at the front.
     const pile = Math.min(a, 3);
     x *= kp; rx *= kp; rz *= kp;
