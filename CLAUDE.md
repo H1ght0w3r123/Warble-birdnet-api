@@ -73,9 +73,11 @@ A profile from before this keeps the bird it showed (`/profile` fills
 - `birds.py` — everything known about each of the 100: size, weight, speed,
   population, song, brains, habitat, diet. Drives the stat tiles and the Top
   Trumps ratings - five, each **out of 10** from the bird's rank among the
-  100 (rounded to the nearest, halves up), shown as ten leaf slots: a green
-  leaf per point, an empty socket for the rest (`buildStatBars`), the
-  leaves standing up like sprouts and growing in one after another. All 100 also have researched extras (wingspan,
+  100 (rounded to the nearest, halves up), shown as ten slots under the
+  stat's name in capitals: the trophies' own green leaf per point and their
+  carved empty socket for the rest (`buildStatBars`; `stat-leaf-v1.webp` and
+  `stat-socket-v1.webp`, cut from the trophy paintings by
+  `tools/cut_stat_leaves.py`), the leaves growing in one after another. All 100 also have researched extras (wingspan,
   conservation status, kid-friendly comparisons); Little Owl and Canada Goose
   have no status because they're introduced species the UK lists don't assess. All 100 have an `about`:
   one or two child-level sentences shown under the badges on the bird card.

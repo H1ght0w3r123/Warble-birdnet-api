@@ -1743,24 +1743,18 @@
   /* --- Facts dashboard --- */
   .tt-block{width:100%;background:var(--cream-lt);border-radius:16px;padding:12px 12px 4px;margin-top:14px;
     box-shadow:inset 0 0 0 2px rgba(116,50,6,0.12);}
-  .tt-row{display:flex;align-items:center;gap:6px;min-height:30px;margin-bottom:4px;}
-  .tt-label{font-family:'Poppins';font-weight:900;font-size:14px;color:var(--wood-edge);width:84px;flex-shrink:0;}
-  /* Out of 10: ten slots, a green leaf (the trophies' painted leaf) per
-     point and an empty socket for the rest. */
-  .tt-leaves{flex:1; display:grid; grid-template-columns:repeat(10, 1fr); align-items:center; justify-items:center; min-width:0;}
-  /* Stood up like a sprout (the painting runs corner to corner, stem top
-     left), so each leaf is narrow and all ten can be counted. They grow up
-     out of the row with a little bounce. */
-  .tt-leaf{width:32px; height:32px; margin:-6px -8px; object-fit:contain; transform:rotate(-135deg);
-    transform-origin:50% 50%; filter:drop-shadow(0 1px 1.5px rgba(26,17,40,0.35));
-    animation:ttLeafIn .55s cubic-bezier(.34,1.7,.64,1) var(--d, 0s) both;}
-  @keyframes ttLeafIn{
-    from{transform:rotate(-135deg) scale(0); opacity:0;}
-    50%{opacity:1;}
-    to{transform:rotate(-135deg) scale(1);}
-  }
-  .tt-socket{width:10px; height:10px; border-radius:50%; background:var(--parch-dk);
-    box-shadow:inset 0 1px 2px rgba(116,50,6,0.3);}
+  /* Each stat: its name in capitals, its ten slots under it across the
+     whole width - the trophies' leaves are too wide to fit ten beside a name. */
+  .tt-row{display:flex;flex-direction:column;align-items:stretch;gap:2px;margin-bottom:8px;}
+  .tt-label{font-family:'Poppins';font-weight:900;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--wood-edge);}
+  /* Out of 10: the trophies' carved socket in every slot, and their leaf
+     set into it for each point - growing in with a little bounce. */
+  .tt-leaves{display:grid; grid-template-columns:repeat(10, 1fr); align-items:center; justify-items:center; min-width:0;}
+  .tt-slot{position:relative; width:min(26px, 94%); aspect-ratio:57 / 59;}
+  .tt-slot img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain;}
+  .tt-leaf{filter:drop-shadow(0 1px 1px rgba(26,17,40,0.25)); transform-origin:30% 75%;
+    animation:ttLeafIn .5s cubic-bezier(.34,1.7,.64,1) var(--d, 0s) both;}
+  @keyframes ttLeafIn{from{transform:scale(0); opacity:0;} 50%{opacity:1;} to{transform:scale(1);}}
   @media (prefers-reduced-motion: reduce){ .tt-leaf{animation:none;} }
 
   /* The three measurements share a row; where it lives and what it eats
@@ -6347,17 +6341,18 @@ stageAudioObserver.observe(stage, { childList: true });
 const STAT_LABELS = { size: 'Size', speed: 'Speed', population: 'Population',
                      song: 'Song', brains: 'Brains' };
 
-// Each stat out of 10, as ten leaf slots: a green leaf for each point, an
-// empty socket for the rest (like the trophies' leaves). The leaves grow in
-// one after another as the card appears - down the stats, along each row -
-// so the scores fill up in front of the child.
+// Each stat out of 10, as ten slots: the trophies' own leaf for each point
+// and their carved empty socket for the rest (cut from the trophy paintings
+// by tools/cut_stat_leaves.py). The stat's name in capitals over its row. The
+// leaves grow in one after another as the card appears - down the stats,
+// along each row - so the scores fill up in front of the child.
 function buildStatBars(bird) {
   if (!bird || !bird.ratings) return '';
   const rows = Object.entries(STAT_LABELS).map(([key, label], row) => {
     const v = Math.max(0, Math.min(10, bird.ratings[key] ?? 0));
     const slots = Array.from({ length: 10 }, (_, i) => i < v
-      ? `<img class="tt-leaf" src="/static/tree-leaf2-v2.webp" alt="" style="--d:${(0.45 + row * 0.22 + i * 0.05).toFixed(2)}s">`
-      : '<span class="tt-socket"></span>').join('');
+      ? `<span class="tt-slot"><img class="tt-socket" src="/static/stat-socket-v1.webp" alt=""><img class="tt-leaf" src="/static/stat-leaf-v1.webp" alt="" style="--d:${(0.45 + row * 0.22 + i * 0.05).toFixed(2)}s"></span>`
+      : '<span class="tt-slot"><img class="tt-socket" src="/static/stat-socket-v1.webp" alt=""></span>').join('');
     return `
       <div class="tt-row" aria-label="${label}: ${v} out of 10">
         <span class="tt-label">${label}</span>
