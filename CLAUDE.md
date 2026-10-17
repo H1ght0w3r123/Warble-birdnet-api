@@ -245,16 +245,15 @@ book on a table (`collections-book-v2.webp`, `.pack-book`, which grows down
 to the nav bar, the picture scaling to cover it; the table carries on under
 the bar, which blurs it - the picture is the book's 1122 x 1402, which every
 place in `BOOK` is measured on, with more table below it; for now that's
-the bottom of the table mirrored, a stand-in for a painted one): five cards show - the
+the bottom of the table mirrored, a stand-in for a painted one): three cards show - the
 front one standing between the pages, one lying on each page (tilted back,
-square, its middle on the page's middle to the pixel - measured, so after
-moving anything in `BOOK`, measure again) and, either side, one hovering
-half-way up between the page and the front (`BOOK.hover`, raised so the
-page's card shows under it) - and a swipe raises the right page's card
-into the hover, the hovering one into the front, sinks the front one to the
-left hover and lays the left hover down on its page, the next card fading
-in on the right page (`layoutCarousel`, `BOOK`: every place a share of the
-picture's own size). The dots sit on the table under the book, the note about the card
+square, level with its page's middle and moved out from it by `BOOK.out`
+so more of it shows beside the front card - the middles are measured to the
+pixel, so after moving anything else in `BOOK`, measure again) - and a swipe lifts the right page's card off the page,
+rising and growing into the front, lays the front one down on the left
+page, and fades the next card in on the right page where the lifted one
+was (`layoutCarousel`, `BOOK`: every place a share of the picture's own
+size). The dots sit on the table under the book, the note about the card
 in brown on a cream plaque ringed in wood, in front. Home itself never glows - the
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
