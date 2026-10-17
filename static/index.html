@@ -2632,6 +2632,12 @@
   body:has(.pack-book) .bottom-nav{backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);}
   .pack-book .card-carousel{position:absolute; inset:0; height:auto; margin:0; clip-path:none; perspective:900px;}
   .pack-book .card-carousel .fan-card{top:0;}
+  /* ...and when a swipe is let go, a card fading in on a page is in long
+     before the rest have settled (BOOK.fade does the same mid-swipe). */
+  .pack-book .card-carousel.settling .fan-card{
+    transition:transform .34s cubic-bezier(.22,.9,.3,1.05), opacity .12s ease, box-shadow .34s ease,
+               --sheen .34s cubic-bezier(.22,.9,.3,1.05);
+  }
   .pack-book .card-dots{position:absolute; left:0; right:0; top:95.5%; margin:0;}
   .pack-book .card-dot{border-color:rgba(255,247,232,0.85); box-shadow:0 1px 2px rgba(26,17,40,0.5);}
   .pack-table{padding:10px 5% 0; display:flex; flex-direction:column; align-items:center;}
@@ -10784,6 +10790,7 @@ const BOOK = {
                                         // like its page's outer edge - 0.094 out for every 1 down
                                         // in the painting; measured on the cards' corners
   lift: 0.085,                          // how far it rises as it comes off the page
+  fade: 0.3,                            // a new card on a page is in by this much of a swipe
 };
 const CARD_W = 66;   // a card's own width; it's drawn at a scale of that
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -10819,8 +10826,9 @@ function layoutCarousel(cards, drift = 0) {
     // A lying card casts a small shadow, a standing one a big one.
     card.style.boxShadow = `0 ${(2 + 10 * (1 - e)).toFixed(1)}px ${(4 + 14 * (1 - e)).toFixed(1)}px rgba(26,17,40,${(0.3 + 0.12 * (1 - e)).toFixed(2)})`;
     // Three showing: the one under a page's top card fades in as that card
-    // lifts away; anything further on is out of sight.
-    card.style.opacity = String(a <= 1 ? 1 : Math.max(0, 2 - a).toFixed(3));
+    // lifts away - quickly, done in the first BOOK.fade of the swipe;
+    // anything further on is out of sight.
+    card.style.opacity = String(a <= 1 ? 1 : Math.max(0, Math.min(1, (2 - a) / BOOK.fade)).toFixed(3));
     card.style.pointerEvents = a < 1.5 ? '' : 'none';
     // The front on top, then the pages' top cards, then what's under them.
     // Mid-swipe, the card coming to the front wins over the one leaving it.
