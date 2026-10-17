@@ -240,7 +240,16 @@ glows - the pack picker's dots while another pack has one
 (`paintPackPath`), each such pack in the list (the twitching leaf on its
 badge), the new cards in the deck (a cream glow) - and a card is seen once
 it's been in the middle of its pack (`seeCard`, `POST /seen/habitats/<bird>`;
-`new` on each bird from `/collector-packs`). Home itself never glows - the
+`new` on each bird from `/collector-packs`). A pack's deck lies in an open
+book on a table (`collections-book-v1.webp`, `.pack-book`, which grows down
+to the nav bar, the picture scaling to cover it): three cards show - the
+front one standing between the pages, one lying on each page (tilted back,
+a little askew) - and a swipe lifts the right page's card off the page,
+rising and growing into the front, lays the front one down on the left
+page, and fades the next card in on the right page where the lifted one
+was (`layoutCarousel`, `BOOK`: every place a share of the picture's own
+size). The dots sit on the table under the book, the note about the card
+on a cream panel in front. Home itself never glows - the
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
