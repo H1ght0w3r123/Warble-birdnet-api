@@ -241,20 +241,22 @@ glows - the pack picker's dots while another pack has one
 badge), the new cards in the deck (a cream glow) - and a card is seen once
 it's been in the middle of its pack (`seeCard`, `POST /seen/habitats/<bird>`;
 `new` on each bird from `/collector-packs`). A pack's deck lies in an open
-book on a table (`collections-book-v2.webp`, `.pack-book`, which grows down
-to the nav bar, the picture scaling to cover it; the table carries on under
-the bar, which blurs it - the picture is the book's 1122 x 1402, which every
-place in `BOOK` is measured on, with more table below it; for now that's
-the bottom of the table mirrored, a stand-in for a painted one): three cards show - the
-front one standing between the pages, one lying on each page (tilted back,
-square, level with its page's middle and moved out from it by `BOOK.out`
-so more of it shows beside the front card - the middles are measured to the
-pixel, so after moving anything else in `BOOK`, measure again) - and a swipe lifts the right page's card off the page,
-rising and growing into the front, lays the front one down on the left
-page, and fades the next card in on the right page where the lifted one
-was (`layoutCarousel`, `BOOK`: every place a share of the picture's own
-size). The dots sit on the table under the book, the note about the card
-in brown on a cream plaque ringed in wood, in front. Home itself never glows - the
+book on a table (`collections-book-v3.webp`, made from the delivered
+painting by `tools/build_book.py` - read its docstring: plain blank pages,
+no fern frames, a child-friendly scrapbook). `.pack-book` runs from under the pack's line to
+the bottom of the screen, the table carrying on under the nav bar, which
+blurs it; the painting is drawn the full width, and `.book-frame`, its top
+part, holds the cards and the dots under the ribbon, the note following on
+the table in brown on a cream plaque ringed in wood - nothing scrolls, even
+on a 360 x 640 phone. Three cards show - the front one standing between the
+pages, one lying on each page (tilted back, square, level with its page's
+middle and moved out from it by `BOOK.out` so more of it shows beside the
+front card - the middles are measured to the pixel, so after a new
+painting or moving anything else in `BOOK`, measure again) - and a swipe
+lifts the right page's card off the page, rising and growing into the
+front, lays the front one down on the left page, and fades the next card
+in on the right page where the lifted one was (`layoutCarousel`, `BOOK`:
+every place a share of the picture's width). Home itself never glows - the
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):

@@ -2614,33 +2614,27 @@
                --sheen .34s cubic-bezier(.22,.9,.3,1.05);
   }
   .card-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:2px;min-height:14px;}
-  /* The open book on its table (collections-book-v2.webp), the full width
-     of the screen: the deck lies in it (layoutCarousel, BOOK), the dots sit
-     on the table just under it, and the note about the card on the table in
-     front. */
-  /* It reaches down to the nav bar: on a tall phone it grows past its own
-     shape and the picture scales up to fill it (cover), trimming a little
-     off the outer leaves - layoutCarousel works from the picture's real
-     size, not the box's. */
+  /* The open book on its table (collections-book-v3.webp, from
+     tools/build_book.py): the deck lies in it (layoutCarousel, BOOK). */
+  /* The book runs from under the pack's line to the bottom of the screen,
+     the table carrying on under the nav bar, which blurs it: the pane
+     reaches the screen's bottom on this page and the book's own padding
+     keeps everything that matters above the bar. The painting is drawn the
+     full width; .book-frame is its top part, the book itself, which the
+     cards lie in (BOOK: every place a share of its width) with the dots
+     under the ribbon; the note sits on the table below it, in the flow. */
   #packList{flex:1 0 auto; display:flex; flex-direction:column; align-items:center;}
-  .pack-book{position:relative; width:calc(100% + 32px); max-width:100vw; margin:4px -16px -20px;
-    flex:1 0 auto; aspect-ratio:1122 / 1402;}
-  /* The table runs on under the nav bar, which blurs it. The picture is the
-     book (its top 1122 x 1402, which the box and every BOOK place are
-     measured on) with more table painted below; it's drawn as wide as
-     layoutCarousel works out (--book-w), so the book fills the box as
-     before and the rest hangs below it, under the bar - the pane reaches
-     the bottom of the screen on this page, its padding keeping the box's
-     own bottom at the bar's top. */
-  .pack-book::before{content:''; position:absolute; top:0; left:0; right:0; bottom:calc(-1 * var(--nav-h, 64px));
-    background:url('/static/collections-book-v2.webp') center top / var(--book-w, 100%) auto no-repeat;}
-  body:has(.pack-book) #scroller{bottom:0; padding-bottom:calc(var(--nav-h, 64px) + 20px);}
+  .pack-book{position:relative; width:calc(100% + 32px); max-width:100vw; margin:12px -16px 0;
+    flex:1 0 auto; display:flex; flex-direction:column; padding-bottom:var(--nav-h, 64px);
+    background:url('/static/collections-book-v3.webp') center top / 100% auto no-repeat;}
+  .book-frame{position:relative; width:100%; aspect-ratio:940 / 740;}
+  body:has(.pack-book) #scroller{bottom:0; padding-bottom:0;}
   body:has(.pack-book) .bottom-nav{backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);}
   .pack-book .card-carousel{position:absolute; inset:0; height:auto; margin:0; clip-path:none; perspective:900px;}
   .pack-book .card-carousel .fan-card{top:0;}
-  .pack-book .card-dots{position:absolute; left:0; right:0; top:73.5%; margin:0;}
+  .pack-book .card-dots{position:absolute; left:0; right:0; top:95.5%; margin:0;}
   .pack-book .card-dot{border-color:rgba(255,247,232,0.85); box-shadow:0 1px 2px rgba(26,17,40,0.5);}
-  .pack-table{position:absolute; left:5%; right:5%; top:77%; display:flex; flex-direction:column; align-items:center;}
+  .pack-table{padding:10px 5% 0; display:flex; flex-direction:column; align-items:center;}
   /* Big, dark and on cream: it sits on a busy painted table. */
   .pack-table .fan-caption, .pack-table .pack-empty{background:var(--disc-cream); color:var(--wood-edge);
     font-family:'Poppins'; font-weight:700; font-size:15px; line-height:1.35; text-shadow:none;
@@ -10684,8 +10678,10 @@ function renderSelectedPack() {
   el.innerHTML = `
     <div class="pack-blurb">${p.blurb}</div>
     <div class="pack-book">
-      <div class="card-carousel" id="cardCarousel">${cards}</div>
-      <div class="card-dots" id="cardDots"></div>
+      <div class="book-frame">
+        <div class="card-carousel" id="cardCarousel">${cards}</div>
+        <div class="card-dots" id="cardDots"></div>
+      </div>
       <div class="pack-table">
         ${p.message ? `<div class="pack-empty">${p.message}</div>` : ''}
         <div class="fan-caption" id="fanCaption"></div>
@@ -10764,26 +10760,26 @@ function deckAt(table, away) {
 let deckPos = 1, deckSize = 1;
 let deckAnimToken = 0;
 
-// The deck lies in the open book (collections-book-v2.webp): three cards
+// The deck lies in the open book (collections-book-v3.webp): three cards
 // show - the front one standing up between the pages, and one lying on each
 // page. Swiping on, the card on the right page lifts off it, rising and
 // growing into the front; the front one lies down on the left page; and the
 // next card turns up on the right page where the lifted one was (it was
-// under it all along). Every place is a share of the book's own size, so
-// it fits any phone. A lying card sits level with the middle of its page,
-// moved out from it a little (BOOK.out): measured on the painting (1122 x 1402), the paper runs x 135-541 and
-// 594-996 - the book isn't quite centred, so each page has its own - and
-// both pages' middles are 39.6% down.
+// under it all along). Every place is a share of the picture's width (it's
+// drawn the full width of the screen), so it fits any phone. Measured on
+// the painting (940 wide, tools/build_book.py): the spine is its middle,
+// the pages' middles 204 and 207px either side of it and 312px down. A
+// lying card sits level with its page's middle, moved out from it a
+// little (BOOK.out) so more of it shows beside the front card.
 const BOOK = {
-  frontY: 0.385, frontW: 0.396,         // the standing card: centre (of the book's height), width (of its width)
-  pageXL: 0.1918, pageXR: 0.2014,       // the pages' middles, off the picture's middle (of its width),
-  pageY: 0.3895, pageW: 0.245,          // ...and down it - both a touch in from the paper's own
-                                        // middle (x 0.301 / 0.709, y 0.396), as the tilt
-                                        // throws a lying card out and down; a lying card's width
-  out: 0.04,                            // ...then moved out from there (of the width), so more of
-                                        // each shows beside the front card
+  frontY: 0.36, frontW: 0.48,           // the standing card: centre (down), width
+  pageXL: 0.2083, pageXR: 0.2113,       // the pages' middles, off the picture's middle,
+  pageY: 0.3223, pageW: 0.295,          // ...and down it - both a touch in from the paper's own
+                                        // (0.217 / 0.220, 0.332), as the tilt throws a lying
+                                        // card out and down; a lying card's width
+  out: 0.048,                           // ...then moved out from there, so more of each shows
   tilt: 34,                             // lying back on the page (degrees)
-  lift: 0.07,                           // how far it rises (of the width) as it comes off the page
+  lift: 0.085,                          // how far it rises as it comes off the page
 };
 const CARD_W = 66;   // a card's own width; it's drawn at a scale of that
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -10791,11 +10787,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 function layoutCarousel(cards, drift = 0) {
   const box = cards[0] && cards[0].parentElement;
   if (!box) return;
-  const boxW = box.clientWidth || 360, H = box.clientHeight || boxW * 1402 / 1122;
-  // The picture's own width: the box's, or more where a tall box has made
-  // it scale up (and trim its sides). Its top is the box's top either way.
-  const W = Math.max(boxW, H * 1122 / 1402);
-  box.parentElement.style.setProperty('--book-w', W + 'px');
+  const W = box.clientWidth || 360;   // every place is a share of the width
   const pageX = (BOOK.pageXL + BOOK.pageXR) / 2 + BOOK.out;
   CARD_X = [0, W * pageX, W * pageX, W * pageX];   // a swipe's length per card (wireCardCarousel)
   const kp = deckPos, ks = deckSize;
@@ -10808,13 +10800,13 @@ function layoutCarousel(cards, drift = 0) {
     const t = Math.min(1, a);
     const e = t * t * (3 - 2 * t);                    // smooth start and finish
     let x = side * W * ((side < 0 ? BOOK.pageXL : BOOK.pageXR) + BOOK.out) * e;
-    let y = H * lerp(BOOK.frontY, BOOK.pageY, e) - Math.sin(Math.PI * t) * W * BOOK.lift;
+    let y = W * lerp(BOOK.frontY, BOOK.pageY, e) - Math.sin(Math.PI * t) * W * BOOK.lift;
     let s = lerp(heroS, pageS, e);
     let rx = BOOK.tilt * e, rz = 0;
     // Opening and closing the deck: from a pile at the front.
     const pile = Math.min(a, 3);
     x *= kp; rx *= kp; rz *= kp;
-    y = lerp(H * BOOK.frontY - pile * 2, y, kp);
+    y = lerp(W * BOOK.frontY - pile * 2, y, kp);
     s = lerp(heroS - pile * 0.04, s, ks);
     card.style.transform = `translate(-50%,-50%) translate(${x.toFixed(2)}px,${y.toFixed(2)}px) ` +
       `rotate(${rz.toFixed(2)}deg) rotateX(${rx.toFixed(2)}deg) scale(${s.toFixed(3)})`;
