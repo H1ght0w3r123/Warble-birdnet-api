@@ -1219,8 +1219,17 @@ def migration_info(common_name: str):
 
 @app.get("/collector-packs")
 def list_collector_packs():
-    """The three collector packs with progress, for the Collections screen."""
-    return {"packs": pack_progress(), "tiers": TIERS}
+    """The packs with progress, for the Collections screen. A found card the
+    child hasn't looked at in its pack yet is "new" (it glows, and the way
+    to it glows); looking at it there marks just that card seen
+    (POST /seen/habitats/<bird>)."""
+    packs = pack_progress()
+    seen = seen_items("habitats")
+    for p in packs:
+        for b in p["birds"]:
+            b["new"] = b["found"] and b["common_name"] not in seen
+        p["new"] = sum(1 for b in p["birds"] if b["new"])
+    return {"packs": packs, "tiers": TIERS}
 
 
 @app.get("/detection-stats")
@@ -1660,6 +1669,22 @@ def whats_new():
         "new": new,
         "tutorials": sorted(k[4:] for k in marks if k.startswith("tut:")),
     }
+
+
+def seen_items(area: str) -> set:
+    return set(filter(None, get_seen_marks().get(f"seen:{area}", "").split(WHATS_NEW_SEP)))
+
+
+@app.post("/seen/{area}/{item}")
+def mark_item_seen(area: str, item: str):
+    """One thing in an area looked at, not the whole area: a card in a
+    collection pack, the first time it's shown in its pack."""
+    items = whats_new_items()
+    if area not in items or item not in items[area]:
+        return JSONResponse({"error": "unknown item"}, status_code=404)
+    set_seen_mark(f"seen:{area}", WHATS_NEW_SEP.join(sorted(seen_items(area) | {item})))
+    left = items[area] - seen_items(area)
+    return {"status": "ok", "new_left": len(left)}
 
 
 @app.post("/seen/{area}")

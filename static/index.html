@@ -2523,6 +2523,25 @@
     min-height:40px;
   }
   .all-pack.on{background:#EAF5EE;outline:2px solid var(--sage);}
+  /* The way to new cards glows: the pack picker while another pack has one,
+     each pack with one in the list, and the new cards themselves. */
+  /* In the white list a cream glow wouldn't show, so a pack with new cards
+     gets the app's own "something new here" cue - the twitching leaf the
+     nav tabs wear, sprouting from its badge - and a gentle pulse. */
+  .all-pack.has-new{position:relative; animation:packNewPulse 1.8s ease-in-out infinite;}
+  @keyframes packNewPulse{0%,100%{transform:scale(1);} 50%{transform:scale(1.045);}}
+  .all-pack.has-new::after{
+    content:''; position:absolute; width:28px; height:28px; left:26px; top:-9px; z-index:1;
+    background:url('/static/tree-leaf1-v2.webp') center / contain no-repeat;
+    filter:drop-shadow(0 1px 2px rgba(26,17,40,0.45));
+    transform-origin:31% 26%; --stand:-118deg; transform:rotate(var(--stand));
+    animation:leafTwitch 2.6s ease-in-out infinite;
+  }
+  .pack-current.has-new .pack-more{animation:packMoreNew 1.8s ease-in-out infinite;}
+  @keyframes packMoreNew{
+    0%,100%{box-shadow:0 2px 0 var(--wood-edge), 0 0 6px 2px rgba(var(--glow),0.45); transform:scale(1);}
+    50%{box-shadow:0 2px 0 var(--wood-edge), 0 0 16px 6px rgba(var(--glow),0.85); transform:scale(1.12);}
+  }
   /* The round badge here rather than the loose icon: ten circles of one
      width line the grid up, where ten different silhouettes would not. */
   .all-pack-badge{height:36px;width:36px;object-fit:contain;flex:0 0 auto;display:block;}
@@ -2615,6 +2634,17 @@
     background:url('/static/card-frame-v7.webp') center/100% 100% no-repeat;
   }
   .fan-card.unfound{filter:grayscale(1) brightness(.9);}
+  /* A new card, until it's been looked at: a cream glow breathing round it. */
+  .fan-card.is-new{animation:cardNewGlow 1.6s ease-in-out infinite;}
+  @keyframes cardNewGlow{
+    0%,100%{box-shadow:0 6px 14px rgba(0,0,0,0.34), 0 0 5px 3px rgba(var(--glow),0.7);}
+    50%{box-shadow:0 6px 14px rgba(0,0,0,0.34), 0 0 12px 7px rgba(var(--glow),1);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .fan-card.is-new{animation:none; box-shadow:0 6px 14px rgba(0,0,0,0.34), 0 0 8px 4px rgba(var(--glow),0.8);}
+    .all-pack.has-new, .all-pack.has-new::after{animation:none;}
+    .pack-current.has-new .pack-more{animation:none; box-shadow:0 0 10px 4px rgba(var(--glow),0.6);}
+  }
   /* The frame art has an empty cream disc in each of those two corners; the
      pack's own mark drops into them. One flat silhouette per pack, recoloured
      live via mask + background-color, so all ten share the frame rather than
@@ -10400,7 +10430,13 @@ async function loadCollectorPacks(open = true, keepCard = false) {
     const res = await fetch('/collector-packs');
     const d = await res.json();
     allPacksRaw = d.packs || [];
-    if (!keepCard) selectedCard = middleCard(allPacksRaw[selectedPack]);
+    if (!keepCard) {
+      // A new card (found, not looked at yet): open straight on the newest
+      // one, in its pack. Otherwise the middle of the pack.
+      const fresh = newestNewCard();
+      if (fresh) { selectedPack = fresh.pack; selectedCard = fresh.card; }
+      else selectedCard = middleCard(allPacksRaw[selectedPack]);
+    }
     renderPackSelector();
     // Arriving on the tab, the pack's deck opens out from a pile.
     const animate = open && !reducedMotion();
@@ -10411,6 +10447,35 @@ async function loadCollectorPacks(open = true, keepCard = false) {
   } catch (e) {
     el.innerHTML = `<div class="collection-empty">Couldn't load packs right now.</div>`;
   }
+}
+
+// New cards: found, but not yet looked at in their pack. The newest is the
+// one most recently heard for the first time.
+function newestNewCard() {
+  let best = null;
+  allPacksRaw.forEach((p, pi) => p.birds.forEach((b, bi) => {
+    if (b.new && (!best || (b.first_found || '') > (best.at || ''))) best = { pack: pi, card: bi, at: b.first_found };
+  }));
+  return best;
+}
+
+// A card has been in the middle of its pack: it's seen. It keeps glowing
+// while it's still there; the way to it (the pack picker, the pack's button)
+// stops glowing once no other new card is down that path, and the
+// Collections tab once none is left anywhere.
+function seeCard(pack, bird) {
+  if (!bird || !bird.new) return;
+  bird.new = false;
+  pack.new = Math.max(0, (pack.new || 1) - 1);
+  fetch(`/seen/habitats/${encodeURIComponent(bird.common_name)}`, { method: 'POST' }).catch(() => {});
+  paintPackPath();
+  whatsNew.habitats = allPacksRaw.some(p => p.new > 0);
+  paintNewCues();
+}
+// The pack picker glows while another pack has a new card in it.
+function paintPackPath() {
+  const btn = document.getElementById('packCurrent');
+  if (btn) btn.classList.toggle('has-new', allPacksRaw.some((p, i) => i !== selectedPack && p.new > 0));
 }
 
 function renderPackSelector() {
@@ -10426,6 +10491,7 @@ function renderPackSelector() {
       <span class="pack-more" aria-hidden="true"><i></i><i></i><i></i></span>
     </button>`;
   document.getElementById('packCurrent').onclick = openAllPacks;
+  paintPackPath();
 }
 
 // Changing pack: the deck on screen gathers itself into a pile, the new
@@ -10438,7 +10504,10 @@ async function goToPack(i) {
     if (!closed) return;            // another pack was picked mid-way
   }
   selectedPack = i;
-  selectedCard = middleCard(allPacksRaw[i]);
+  // Into a pack with new cards: straight to its newest one.
+  const fresh = allPacksRaw[i].birds.reduce((best, b, bi) =>
+    b.new && (best < 0 || (b.first_found || '') > (allPacksRaw[i].birds[best].first_found || '')) ? bi : best, -1);
+  selectedCard = fresh >= 0 ? fresh : middleCard(allPacksRaw[i]);
   renderPackSelector();
   if (reducedMotion()) { stopDeckAnimation(1); renderSelectedPack(); return; }
   stopDeckAnimation(0);
@@ -10507,7 +10576,7 @@ function openAllPacks() {
     <div class="all-packs-sheet">
       <div class="all-packs-grid">
         ${allPacksRaw.map((p, i) => `
-          <button class="all-pack ${i === selectedPack ? 'on' : ''} ${p.complete ? 'done' : ''}" data-i="${i}">
+          <button class="all-pack ${i === selectedPack ? 'on' : ''} ${p.complete ? 'done' : ''} ${p.new > 0 ? 'has-new' : ''}" data-i="${i}">
             <img class="all-pack-badge" src="/static/pack-${p.art}-badge-v2.webp" alt="">
             <span class="all-pack-text">
               <img class="all-pack-name" src="/static/pack-${p.art}-name-v2.webp" alt="${p.name}">
@@ -10541,7 +10610,7 @@ function renderSelectedPack() {
     // month" rather than something the child has failed to find.
     const away = !b.found && b.season_state === 'away';
     return `
-      <div class="fan-card ${b.found ? 'tappable' : 'unfound'} ${away ? 'away' : ''} ${rare ? 'rare' : ''}"
+      <div class="fan-card ${b.found ? 'tappable' : 'unfound'} ${away ? 'away' : ''} ${rare ? 'rare' : ''} ${b.new ? 'is-new' : ''}"
            data-i="${i}" data-name="${b.found ? b.common_name : ''}">
         <div class="fan-badge tl" style="--pack-color:${p.color};
              -webkit-mask-image:url('/static/pack-${p.art}-emblem-v2.webp');
@@ -10662,15 +10731,24 @@ function wireCardCarousel(carousel, birds) {
     const el = document.getElementById('fanCaption');
     if (el) el.textContent = fanCaptionFor(birds[selectedCard]);
   };
+  // The card in the middle is looked at: a new one is seen now (it glows
+  // on while it's there); one already seen and moved away from stops.
+  const pack = allPacksRaw[selectedPack];
+  const look = () => {
+    cards.forEach((c, i) => { if (i !== selectedCard && !birds[i].new) c.classList.remove('is-new'); });
+    seeCard(pack, birds[selectedCard]);
+  };
   const settle = () => {
     carousel.classList.add('settling');
     layoutCarousel(cards);
     renderCardDots(birds);
     caption();
+    look();
   };
   layoutCarousel(cards);
   renderCardDots(birds);
   caption();
+  look();
 
   let pid = null, startX = 0, startY = 0, drift = 0, dragging = false, moved = false;
   // Momentum: recent finger positions (in places) to measure the flick's
@@ -10982,7 +11060,8 @@ async function renderHabitats(opts) {
   // opens on that bird. (renderHabitats is also the nav button's click
   // handler, so opts may be a click event.)
   await loadCollectorPacks(!(opts && opts.alreadyOpen), !!(opts && opts.keepCard));
-  markSeen('habitats');
+  // Not markSeen('habitats'): a new card stops being new only once it's
+  // been looked at in its pack (seeCard), one at a time.
 }
 
 async function renderTrophies(focusKey) {

@@ -233,7 +233,14 @@ the nav bar.** Tutorials are steps in `TUTORIALS` in `static/index.html`,
 shown with `showTutorial(name)` once the screen has rendered; the name must
 also be in `TUTORIAL_KEYS` in `main.py`. "Something new here" is an area in
 `whats_new_items()` in `main.py` (the set of things in it now), cleared by
-`markSeen(area)` when the screen is visited. Home itself never glows - the
+`markSeen(area)` when the screen is visited - except Collections, where
+each **new card** (found, not yet looked at in its pack) is its own item:
+the tab opens on the newest one (`newestNewCard`), the way to any other
+glows - the pack picker's dots while another pack has one
+(`paintPackPath`), each such pack in the list (the twitching leaf on its
+badge), the new cards in the deck (a cream glow) - and a card is seen once
+it's been in the middle of its pack (`seeCard`, `POST /seen/habitats/<bird>`;
+`new` on each bird from `/collector-packs`). Home itself never glows - the
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
