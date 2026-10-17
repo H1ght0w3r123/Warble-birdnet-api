@@ -1979,8 +1979,17 @@
   .species-silhouette-btn img{height:100%; width:auto; display:block;}
   .avatar-frame.locked-bird{position:relative;}
   .avatar-frame.locked-bird svg{filter:brightness(0) opacity(.42);}
-  /* Found but not bought: in its colours, just a little quiet. */
-  .avatar-frame.locked-bird.found-bird svg{filter:saturate(.85);}
+  /* Found but not bought: faded, like an item in the shop the child can't
+     have yet, and without their accessories - it isn't theirs to dress. */
+  .avatar-frame.locked-bird.found-bird svg{filter:grayscale(.5) opacity(.5);}
+  /* Its price, standing on the rug just under its feet (which land at
+     85.5% of the room's height). */
+  .bird-tag{position:absolute; left:50%; top:86.5%; transform:translateX(-50%); z-index:3;}
+  .bird-tag:empty{display:none;}
+  .bird-tag .bird-buy-btn{margin:0;}
+  .bird-tag .bird-price{padding:0; display:inline-flex; align-items:center; gap:5px;
+    background:var(--disc-cream); border-radius:20px; padding:5px 14px; box-shadow:0 2px 6px rgba(26,17,40,0.35);}
+  .bird-tag .bird-price .hint-feathers{color:var(--feather);}
   .bird-buy-btn{display:inline-flex; align-items:center; gap:5px; margin:8px auto 0; padding:7px 16px;
     border-radius:20px; font-family:'Poppins'; font-size:14px; cursor:pointer;}
   .bird-price{display:inline-flex; padding:7px 4px 0; font-size:15px;}
@@ -9567,10 +9576,9 @@ function commitSpeciesSelection(id) {
   // The bird in the frame now, which may be a found one being looked at.
   const shown = (el && el.dataset.shown) || currentProfile.avatar_species;
   if (lock && lock.state === 'found') {
-    // Found but not bought: the bird in its colours, and what it costs.
-    // Nothing is saved until it's bought. It slides in and bumps like any
-    // other bird, wearing the child's outfit - trying it on is how they
-    // decide - and anything they put on or take off shows on it too.
+    // Found but not bought: the bird faded, undressed, and what it costs on
+    // the rug under it. Nothing is saved until it's bought. It slides in and
+    // bumps like any other bird.
     const sp = AVATAR_SPECIES.find(x => x.id === id);
     if (el) {
       el.classList.add('locked-bird', 'found-bird');
@@ -9589,12 +9597,14 @@ function commitSpeciesSelection(id) {
       el.classList.remove('found-bird');
       el.classList.add('locked-bird');
     }
+    setBirdTag('');
     setDressUpHint(`${lock.hint.replace(/ to (unlock|find it)$/, '')} to find the ${sp.name}!`);
     return;
   }
   if (el && el.classList.contains('locked-bird')) {
     el.classList.remove('locked-bird', 'found-bird');
     setDressUpHint('');
+    setBirdTag('');
     // Back from a found bird to their own: the same swipe, not a jump.
     if (currentProfile.avatar_species === id) { swapAvatar(shown, id); return; }
   }
@@ -9644,7 +9654,8 @@ function swapAvatar(from, to) {
   const el = document.getElementById('dressUpPreview');
   if (!el) return;
   el.dataset.shown = to;
-  const html = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, to);
+  // A bird they haven't bought isn't theirs to dress: no accessories on it.
+  const html = avatarSvg(currentProfile.avatar_body, 252, avatarLock(to) ? null : currentProfile.equipped, false, to);
   const oldSvg = el.querySelector('.swap-in svg') || el.querySelector(':scope > svg');
   const gen = ++avatarSwapGen;
   if (!oldSvg || reducedMotion()) { el.innerHTML = html; return; }
@@ -9813,6 +9824,8 @@ async function renderDressUp() {
       <div class="avatar-frame-wrap">
         <div class="avatar-frame" id="dressUpPreview"></div>
       </div>
+      <!-- A found bird's price, on the rug right under its feet -->
+      <div class="bird-tag" id="birdTag"></div>
       <img class="hoot-sign" id="hootSign" src="/static/title-hoottique-v3.webp" alt="The Hoot-tique">
     </div>
     <div class="color-wheel" id="colorWheel"></div>
@@ -10178,13 +10191,14 @@ function renderDressUpPreview() {
   const framed = framedSpecies();
   if (el) el.dataset.shown = framed;
   if (framed !== currentProfile.avatar_species) {
-    // A found bird on show: in their colour and outfit, with its price under it.
-    if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, framed);
+    // A found bird on show: faded, undressed, its price under it.
+    if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, null, false, framed);
     const sp = AVATAR_SPECIES.find(x => x.id === framed);
     showBirdBuy(framed, sp ? sp.name : framed, avatarLock(framed));   // its price stays under it
     return;
   }
   if (el) el.innerHTML = avatarSvg(currentProfile.avatar_body, 252, currentProfile.equipped, false, currentProfile.avatar_species);
+  setBirdTag('');
 }
 
 function renderCategoryRow() {
@@ -10209,12 +10223,18 @@ function selectCategory(categoryId) {
   renderCarousel();
 }
 
+// The tag on the rug under a found bird: its price.
+function setBirdTag(html) {
+  const tag = document.getElementById('birdTag');
+  if (tag) tag.innerHTML = html;
+}
+
 // A bird the child has found: what it costs, and a wood button to buy it
 // (or how many feathers are still to save). Buying makes it their bird.
 function showBirdBuy(id, name, st) {
-  // Just the price: a wood button to buy it, or the price on its own while
-  // the child is still saving.
-  const hintEl = document.getElementById('dressUpHint');
+  // Just the price, on the rug right under the bird: a wood button to buy
+  // it, or the price on its own while the child is still saving.
+  const hintEl = document.getElementById('birdTag');
   if (!hintEl) return;
   const price = `<span class="hint-feathers"><img class="feather-icon" src="/static/feather.webp" alt=""> ${st.price}</span>`;
   if (currentFeatherTotal < st.price) {
@@ -10233,7 +10253,7 @@ function showBirdBuy(id, name, st) {
       const el = document.getElementById('dressUpPreview');
       if (el) el.classList.remove('locked-bird', 'found-bird');
       currentProfile.avatar_species = id;
-      setDressUpHint('');
+      setBirdTag('');
       renderDressUpPreview();
       flashAvatar('tint');
       updateNavAvatarIcon();

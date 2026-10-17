@@ -266,8 +266,10 @@ first time the child hears the real bird or one of its family
 duck/goose/swan; any woodpecker; any owl; a Kingfisher; any tit; a blackbird or thrush; a magpie or crow) and then bought for
 `AVATAR_PRICE` (30) in the Hoot-tique. A bird still to find isn't shown
 anywhere (`shownSpecies()`: finding it is the surprise); a found one joins
-the carousel showing just its price - a wood button with the feather and
-30, no other words. The welcome offers only birds the child can already be. Bought birds are `avatar:<id>` rows with the Dress Up items (not
+the carousel faded (like a shop item the child can't have yet) and without
+their accessories - it isn't theirs to dress - with just its price on the
+rug right under its feet (`#birdTag`, `showBirdBuy`): a wood button with
+the feather and 30 if they can afford it, the plain price if not. The welcome offers only birds the child can already be. Bought birds are `avatar:<id>` rows with the Dress Up items (not
 counted by Preener). Not trophies - an avatar is who the child is, so it
 comes from the birds. When the price arrived, a family already playing kept
 free whatever it had (`_keep_avatars_already_had`, run once at start-up,
