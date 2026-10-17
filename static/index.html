@@ -10779,6 +10779,10 @@ const BOOK = {
                                         // card out and down; a lying card's width
   out: 0.048,                           // ...then moved out from there, so more of each shows
   tilt: 34,                             // lying back on the page (degrees)
+  depth: 2.96,                          // the perspective's depth (of the width): set so a lying
+                                        // card's outer side, where it lies (out included), leans
+                                        // like its page's outer edge - 0.094 out for every 1 down
+                                        // in the painting; measured on the cards' corners
   lift: 0.085,                          // how far it rises as it comes off the page
 };
 const CARD_W = 66;   // a card's own width; it's drawn at a scale of that
@@ -10788,6 +10792,7 @@ function layoutCarousel(cards, drift = 0) {
   const box = cards[0] && cards[0].parentElement;
   if (!box) return;
   const W = box.clientWidth || 360;   // every place is a share of the width
+  box.style.perspective = (W * BOOK.depth).toFixed(0) + 'px';
   const pageX = (BOOK.pageXL + BOOK.pageXR) / 2 + BOOK.out;
   CARD_X = [0, W * pageX, W * pageX, W * pageX];   // a swipe's length per card (wireCardCarousel)
   const kp = deckPos, ks = deckSize;

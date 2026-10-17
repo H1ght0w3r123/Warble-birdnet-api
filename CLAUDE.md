@@ -254,7 +254,9 @@ the table in brown on a cream plaque ringed in wood - nothing scrolls, even
 on a 360 x 640 phone. Three cards show - the front one standing between the
 pages, one lying on each page (tilted back, square, level with its page's
 middle and moved out from it by `BOOK.out` so more of it shows beside the
-front card - the middles are measured to the pixel, so after a new
+front card, its outer side leaning parallel with the page's outer edge -
+the perspective is a share of the width, `BOOK.depth`, tuned on the cards'
+measured corners - the middles are measured to the pixel, so after a new
 painting or moving anything else in `BOOK`, measure again) - and a swipe
 lifts the right page's card off the page, rising and growing into the
 front, lays the front one down on the left page, and fades the next card
