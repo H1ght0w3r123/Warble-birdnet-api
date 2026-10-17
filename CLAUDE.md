@@ -72,7 +72,9 @@ A profile from before this keeps the bird it showed (`/profile` fills
   knows about, which pack they're in, and how rare they are.
 - `birds.py` — everything known about each of the 100: size, weight, speed,
   population, song, brains, habitat, diet. Drives the stat tiles and the Top
-  Trumps ratings. All 100 also have researched extras (wingspan,
+  Trumps ratings - five, each **out of 10** from the bird's rank among the
+  100 (rounded to the nearest, halves up), shown as ten leaf slots: a green
+  leaf per point, an empty socket for the rest (`buildStatBars`). All 100 also have researched extras (wingspan,
   conservation status, kid-friendly comparisons); Little Owl and Canada Goose
   have no status because they're introduced species the UK lists don't assess. All 100 have an `about`:
   one or two child-level sentences shown under the badges on the bird card.
@@ -311,7 +313,9 @@ it's tapped. It wears the bird card's design (`renderCard`) but not its
 facts: the photo with play, share and add-a-photo, the name, and two
 badges - the collection it's in, migration if it migrates, and the feathers
 it won - each nudging down
-one line (`toggleBadgeNote`). A tap anywhere else collects it, and so is a new birder rank (`celebrate({big: true})`: the screen
+one line (`toggleBadgeNote`) - and, for a new bird only (not one heard
+before), its Top Trumps leaves under them (`ratings` on each
+`/analyze-session` detection). A tap anywhere else collects it, and so is a new birder rank (`celebrate({big: true})`: the screen
 dims, the new seal is large, the ladder underneath lights the step just
 climbed, a double burst and three times the hold; it flies into the top-bar
 badge, which changes as it lands) - big is kept for the rarest rewards:

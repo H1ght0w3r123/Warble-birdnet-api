@@ -1743,11 +1743,15 @@
   /* --- Facts dashboard --- */
   .tt-block{width:100%;background:var(--cream-lt);border-radius:14px;padding:12px 14px;margin-top:12px;}
   .tt-title{font-family:'Poppins';font-weight:900;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
-  .tt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .tt-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
   .tt-label{font-family:'Poppins';font-weight:700;font-size:11px;color:var(--wood-edge);width:64px;flex-shrink:0;}
-  .tt-bar{flex:1;height:9px;background:var(--parch-dk);border-radius:5px;overflow:hidden;}
-  .tt-fill{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--sage-dk));border-radius:5px;}
-  .tt-num{font-family:'Poppins';font-weight:900;font-size:11px;color:var(--wood-edge);width:24px;text-align:right;flex-shrink:0;}
+  /* Out of 10: ten slots, a green leaf (the trophies' painted leaf) per
+     point and an empty socket for the rest. */
+  .tt-leaves{flex:1; display:grid; grid-template-columns:repeat(10, 1fr); align-items:center; justify-items:center; min-width:0;}
+  .tt-leaf{width:27px; height:27px; margin:-7px -6px; object-fit:contain; transform:rotate(-40deg);
+    filter:drop-shadow(0 1px 1px rgba(26,17,40,0.3));}
+  .tt-socket{width:8px; height:8px; border-radius:50%; background:var(--parch-dk);
+    box-shadow:inset 0 1px 2px rgba(116,50,6,0.3);}
 
   /* The three measurements share a row; where it lives and what it eats
      keep the wider pair below, since they're words rather than numbers. */
@@ -4342,6 +4346,7 @@ function renderCard() {
           ${bird.migration ? `<div class="badge-note migrate-note" id="migrateNote"><div><p>${migrationLine(name, bird.migration)}
             Finding a bird that migrates wins an extra feather, once a day.</p></div></div>` : ''}
           <div class="badge-note feather-note" id="featherNote"><div><p>${revealFeatherLine(bird)}</p></div></div>
+          ${bird.is_duplicate ? '' : buildStatBars(bird)}
         </div>
       </div>
       </div>
@@ -6332,15 +6337,19 @@ stageAudioObserver.observe(stage, { childList: true });
 const STAT_LABELS = { size: 'Size', speed: 'Speed', population: 'Population',
                      song: 'Song', brains: 'Brains' };
 
+// Each stat out of 10, as ten leaf slots: a green leaf for each point, an
+// empty socket for the rest (like the trophies' leaves).
 function buildStatBars(bird) {
   if (!bird || !bird.ratings) return '';
   const rows = Object.entries(STAT_LABELS).map(([key, label]) => {
-    const v = bird.ratings[key] ?? 0;
+    const v = Math.max(0, Math.min(10, bird.ratings[key] ?? 0));
+    const slots = Array.from({ length: 10 }, (_, i) => i < v
+      ? '<img class="tt-leaf" src="/static/tree-leaf2-v2.webp" alt="">'
+      : '<span class="tt-socket"></span>').join('');
     return `
-      <div class="tt-row">
+      <div class="tt-row" aria-label="${label}: ${v} out of 10">
         <span class="tt-label">${label}</span>
-        <span class="tt-bar"><span class="tt-fill" style="width:${v}%"></span></span>
-        <span class="tt-num">${v}</span>
+        <span class="tt-leaves" aria-hidden="true">${slots}</span>
       </div>`;
   }).join('');
   return `

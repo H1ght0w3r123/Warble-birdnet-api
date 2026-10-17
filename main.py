@@ -838,6 +838,8 @@ async def analyze_session(
             "call_url": call_url,
             "photo_url": photo_url,
             "description": description,
+            # Top Trumps, out of 10: the found-bird card shows them for a new bird
+            "ratings": (bird_data(common_name) or {}).get("ratings"),
             # Extra context, unused today — kept ready for trophy logic later:
             "detected_at": now.isoformat(),
             "hour_of_day": now.hour,

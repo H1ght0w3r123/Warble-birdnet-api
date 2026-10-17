@@ -19,9 +19,12 @@ one, the researched value was kept - it came from a real source. The last 41
 birds were filled in from standard reference figures without live access to
 RSPB/BTO, so their statuses are worth checking against those pages.
 
-Ratings out of 100 are computed by RANKING each bird against the other 99, not
-by scaling raw values. Population spans five orders of magnitude; scaled
-linearly, every small bird would score 1 and only the swan would move.
+Ratings out of 10 (shown as ten leaves) are computed by RANKING each bird
+against the other 99, not by scaling raw values. Population spans five orders
+of magnitude; scaled linearly, every small bird would score 1 and only the
+swan would move. A bird's place in the ranking (1-100) is rounded to the
+nearest 10 - halves up - so ten birds share each score, and the lowest is 1,
+never 0. They were out of 100 until a child had to read "63".
 
 Honest sourcing note: lengths, weights and populations are standard reference
 figures. Flight speeds are published values where known and reasoned estimates
@@ -962,10 +965,11 @@ BIRDS = {
 
 
 def _ranked(values: dict) -> dict:
-    """Rank birds against each other and scale to 1-100."""
+    """Rank birds against each other and scale to 1-10 (halves round up -
+    Python's own round() would take 2.5 down to 2)."""
     ordered = sorted(values.items(), key=lambda kv: kv[1])
     n = len(ordered)
-    return {name: max(1, round((i + 1) / n * 100)) for i, (name, _) in enumerate(ordered)}
+    return {name: max(1, math.floor((i + 1) / n * 10 + 0.5)) for i, (name, _) in enumerate(ordered)}
 
 
 def _build_ratings():
