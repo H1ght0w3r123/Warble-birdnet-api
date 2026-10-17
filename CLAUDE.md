@@ -285,6 +285,9 @@ rank is a delivery); `/accessories` sends only open items (and anything
 owned) - no words about what the next rank brings - purchase refuses an
 item not open yet, the rank-up moment says "New accessories drop in the
 Hoot-tique!", and each batch lights the nav bar. A restock adds its items to a batch.
+An item not bought yet wears its price tag; only one the child can't
+afford yet is faded too (`.carousel-item.unowned.cant-afford`) - one they
+can buy is in full colour.
 
 **Numbers are deliberately small** so an eight-year-old can hold them in their
 head. The whole ladder is at the top of the reward section of `main.py`:
