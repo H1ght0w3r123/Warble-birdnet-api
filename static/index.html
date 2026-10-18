@@ -10795,11 +10795,29 @@ const BOOK = {
 const CARD_W = 66;   // a card's own width; it's drawn at a scale of that
 const lerp = (a, b, t) => a + (b - a) * t;
 
+// To try: the whole pack laid out in the book instead - every card lying in
+// a grid, four on the left page (two by two, sitting at the bottom, a gap
+// above) and six on the right (two by three), in order, left page first.
+// The card being looked at lifts out of its square to stand at the front
+// (where the pages' layout puts it); a swipe sends it back down and lifts
+// the next. 'grid' or 'pages'.
+const BOOK_GRID = {
+  layout: 'grid',
+  w: 0.14,                              // a lying card's width (of the picture's)
+  colGap: 0.03, rowGap: 0.025,          // between them, as they look on the page
+  left: [0.283, 0.332], right: [0.720, 0.332],   // the pages' middles (across, down)
+  rows: 3,                              // the right page's; the left's sit in its lower two
+  lift: 0.02,                           // its arc on the way up: low, as a card from the top
+                                        // row would otherwise rise over the pack's line
+};
+const CARD_H = 101.5;
+
 function layoutCarousel(cards, drift = 0) {
   const box = cards[0] && cards[0].parentElement;
   if (!box) return;
   const W = box.clientWidth || 360;   // every place is a share of the width
   box.style.perspective = (W * BOOK.depth).toFixed(0) + 'px';
+  if (BOOK_GRID.layout === 'grid') return layoutGrid(cards, drift, W, box.clientHeight || W * 740 / 940);
   const pageX = (BOOK.pageXL + BOOK.pageXR) / 2 + BOOK.out;
   CARD_X = [0, W * pageX, W * pageX, W * pageX];   // a swipe's length per card (wireCardCarousel)
   const kp = deckPos, ks = deckSize;
@@ -10834,6 +10852,79 @@ function layoutCarousel(cards, drift = 0) {
     // Mid-swipe, the card coming to the front wins over the one leaving it.
     const coming = drift && side === Math.sign(drift) ? 1 : 0;
     card.style.zIndex = String(a <= 1 ? 100 - Math.round(t * 20) + coming : 70 - Math.round(a * 5));
+  });
+}
+
+// Where a card's picture lands on screen, lying at (x, y) - its middle,
+// x off the box's middle - at scale s, tilted back th degrees, under the
+// box's perspective: the middle of the box round its four corners. A card
+// tilted back looks smaller at the top than the bottom, so this isn't (x, y).
+function lyingMiddle(x, y, s, th, W, H) {
+  const d = W * BOOK.depth, ox = W / 2, oy = H / 2;
+  const c = Math.cos(th * Math.PI / 180), sn = Math.sin(th * Math.PI / 180);
+  const xs = [], ys = [];
+  for (const dx of [-CARD_W / 2, CARD_W / 2]) for (const dy of [-CARD_H / 2, CARD_H / 2]) {
+    const px = ox + x + s * dx, py = y + s * dy * c, z = s * dy * sn;
+    const k = d / (d - z);
+    xs.push(ox + (px - ox) * k); ys.push(oy + (py - oy) * k);
+  }
+  return [(Math.min(...xs) + Math.max(...xs)) / 2 - ox, (Math.min(...ys) + Math.max(...ys)) / 2];
+}
+
+// Each card's square in the grid, worked out once per size: where to put
+// it so that it *looks* centred where it should be.
+let gridSlots = { W: 0, H: 0, n: 0, slots: [] };
+function bookGridSlots(n, W, H) {
+  if (gridSlots.W === W && gridSlots.H === H && gridSlots.n === n) return gridSlots.slots;
+  const g = BOOK_GRID, s = W * g.w / CARD_W;
+  const tall = g.w * CARD_H / CARD_W * Math.cos(BOOK.tilt * Math.PI / 180);   // as it looks, roughly
+  const rowStep = tall + g.rowGap, colStep = g.w + g.colGap;
+  const slots = [];
+  for (let i = 0; i < n; i++) {
+    if (i >= 10) { slots.push(null); continue; }
+    const left = i < 4, j = left ? i : i - 4;
+    const row = left ? 1 + Math.floor(j / 2) : Math.floor(j / 2), col = j % 2;
+    const mid = left ? g.left : g.right;
+    const tx = W * (mid[0] - 0.5 + (col - 0.5) * colStep), ty = W * (mid[1] + (row - (g.rows - 1) / 2) * rowStep);
+    let x = tx, y = ty;
+    for (let k = 0; k < 4; k++) {
+      const [mx, my] = lyingMiddle(x, y, s, BOOK.tilt, W, H);
+      x += tx - mx; y += ty - my;
+    }
+    slots.push({ x, y, s });
+  }
+  gridSlots = { W, H, n, slots };
+  return slots;
+}
+
+function layoutGrid(cards, drift, W, H) {
+  CARD_X = [0, W * 0.22, W * 0.22, W * 0.22];   // a swipe's length per card (wireCardCarousel)
+  const slots = bookGridSlots(cards.length, W, H);
+  const kp = deckPos, ks = deckSize, heroS = W * BOOK.frontW / CARD_W;
+  cards.forEach((card, i) => {
+    const off = i - selectedCard - drift, a = Math.abs(off), side = Math.sign(off);
+    const sl = slots[i];
+    if (!sl) { card.style.opacity = '0'; card.style.pointerEvents = 'none'; return; }
+    // f: 1 standing at the front, 0 lying in its square
+    const f = Math.max(0, 1 - a), e = f * f * (3 - 2 * f);
+    let x = lerp(sl.x, 0, e);
+    let y = lerp(sl.y, W * BOOK.frontY, e) - Math.sin(Math.PI * e) * W * BOOK_GRID.lift;
+    let s = lerp(sl.s, heroS, e), rx = BOOK.tilt * (1 - e);
+    // Opening and closing the deck: from a pile at the front.
+    const pile = Math.min(a, 3);
+    x *= kp; rx *= kp;
+    y = lerp(W * BOOK.frontY - pile * 2, y, kp);
+    s = lerp(heroS - pile * 0.04, s, ks);
+    card.style.transform = `translate(-50%,-50%) translate(${x.toFixed(2)}px,${y.toFixed(2)}px) ` +
+      `rotateX(${rx.toFixed(2)}deg) scale(${s.toFixed(3)})`;
+    card.style.setProperty('--sheen', off.toFixed(3));
+    card.style.boxShadow = `0 ${(2 + 10 * e).toFixed(1)}px ${(4 + 14 * e).toFixed(1)}px rgba(26,17,40,${(0.3 + 0.12 * e).toFixed(2)})`;
+    card.style.opacity = '1';
+    card.style.pointerEvents = '';
+    // The front on top, then whichever is on its way up or down (the one
+    // coming forward over the one going back), then the ones lying flat.
+    const coming = drift && side === Math.sign(drift) ? 1 : 0;
+    card.style.zIndex = String(a < 1 ? 100 - Math.round(a * 20) + coming : 50);
   });
 }
 

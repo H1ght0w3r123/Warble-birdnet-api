@@ -261,7 +261,14 @@ painting or moving anything else in `BOOK`, measure again) - and a swipe
 lifts the right page's card off the page, rising and growing into the
 front, lays the front one down on the left page, and fades the next card
 in on the right page where the lifted one was (`layoutCarousel`, `BOOK`:
-every place a share of the picture's width). Home itself never glows - the
+every place a share of the picture's width). Being tried instead
+(`BOOK_GRID.layout`: 'grid', or 'pages' for the three-card book above): the
+whole pack lying in a grid - four on the left page (two by two, at the
+bottom, a gap above), six on the right (two by three), in order, left page
+first - the card being looked at lifting out of its square to the front and
+a swipe sending it back down as the next rises (`layoutGrid`); each square is
+placed so the tilted card *looks* centred in it (`lyingMiddle`,
+`bookGridSlots` work out where its corners land). Home itself never glows - the
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
