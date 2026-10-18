@@ -241,12 +241,14 @@ glows - the pack picker's dots while another pack has one
 badge), the new cards in the deck (a cream glow) - and a card is seen once
 it's been in the middle of its pack (`seeCard`, `POST /seen/habitats/<bird>`;
 `new` on each bird from `/collector-packs`). A pack's deck lies in an open
-book on a table (`collections-book-v4.webp`, made from the delivered
+book on a table (`collections-book-v5.webp`, made from the delivered
 painting by `tools/build_book.py` - read its docstring: no fern frames, a
-child-friendly scrapbook, its pages blank but for faint pencil field notes
-in the outer corners and edges - a robin, a bird in flight, a nest, a blue
-tit, footprints - where the cards don't cover them; v4 is v3 with the
-doodles added by editing, so nothing moved). `.pack-book` runs from under the pack's line to
+child-friendly scrapbook, its pages blank but for crayon doodles drawn
+as by an 8-year-old - a red bird on a branch, a nest, a smiley sun, a blue
+bird, hearts, a star, footprints, a feather, a tick - in the outer corners
+and edges, and the top third of the left page kept empty for the
+collection's name; v5 is v3 with the doodles added by editing - it came
+back 1px off, which was put right before building - so nothing moved). `.pack-book` runs from under the pack's line to
 the bottom of the screen, the table carrying on under the nav bar, which
 blurs it; the painting is drawn the full width, and `.book-frame`, its top
 part, holds the cards and the dots under the ribbon, the note following on
