@@ -265,7 +265,8 @@ every place a share of the picture's width). Being tried instead
 (`BOOK_GRID.layout`: 'grid', or 'pages' for the three-card book above): the
 whole pack lying in a grid - four on the left page (two by two, at the
 bottom, a gap above), six on the right (two by three), in order, left page
-first, the columns leaning out with the pages' outer edges (`lean`). It
+first, the outer column leaning out with its page's outer edge (`lean`)
+and the inner one standing straight beside the spine. It
 opens with every card lying down and nothing at the front (`selectedCard`
 -1, `deckFirst()`); a swipe lifts the first card out of its square to the
 front, the next swipe sends it back down and lifts the next - one card

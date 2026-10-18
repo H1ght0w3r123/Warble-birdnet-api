@@ -10811,8 +10811,9 @@ const BOOK_GRID = {
   colGap: 0.03, rowGap: 0.025,          // between them, as they look on the page
   left: [0.283, 0.332], right: [0.720, 0.332],   // the pages' middles (across, down)
   rows: 3,                              // the right page's; the left's sit in its lower two
-  lean: 0.094,                          // the columns lean out with the pages' outer edges:
-                                        // this much out for every 1 down, as painted
+  lean: 0.094,                          // the outer column leans out with its page's outer edge,
+                                        // this much out for every 1 down, as painted; the inner
+                                        // one stands straight, like the spine
   lift: 0.02,                           // its arc on the way up: low, as a card from the top
                                         // row would otherwise rise over the pack's line
 };
@@ -10895,7 +10896,8 @@ function bookGridSlots(n, W, H) {
     const row = left ? 1 + Math.floor(j / 2) : Math.floor(j / 2), col = j % 2;
     const mid = left ? g.left : g.right;
     const down = (row - (g.rows - 1) / 2) * rowStep;
-    const tx = W * (mid[0] - 0.5 + (col - 0.5) * colStep + (left ? -1 : 1) * g.lean * down), ty = W * (mid[1] + down);
+    const outer = left ? col === 0 : col === 1;
+    const tx = W * (mid[0] - 0.5 + (col - 0.5) * colStep + (outer ? (left ? -1 : 1) * g.lean * down : 0)), ty = W * (mid[1] + down);
     let x = tx, y = ty;
     for (let k = 0; k < 4; k++) {
       const [mx, my] = lyingMiddle(x, y, s, BOOK.tilt, W, H);
