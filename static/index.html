@@ -2627,7 +2627,24 @@
   .pack-book{position:relative; width:calc(100% + 32px); max-width:100vw; margin:12px -16px 0;
     flex:1 0 auto; display:flex; flex-direction:column; padding-bottom:var(--nav-h, 64px);
     background:url('/static/collections-book-v5.webp') center top / 100% auto no-repeat;}
-  .book-frame{position:relative; width:100%; aspect-ratio:940 / 740;}
+  .book-frame{position:relative; width:100%; aspect-ratio:940 / 740; container-type:inline-size;}
+  /* The pack's name, written at the top of the left page as a child would:
+     Schoolbell (a hand-printed font, static/fonts, Apache licence) in
+     crayon - the pack's own colour, pressed hard (darkened so it reads on
+     the cream), each letter a little off the line and tilted
+     (bookTitleHtml), the edges roughened (#crayonEdge). The one place
+     words aren't Poppins: they're the child's own writing in their book.
+     Sized in cqw, shares of the book's width, like everything on it; it
+     sits in the space the grid leaves above the left page's cards. */
+  @font-face{font-family:'Schoolbell'; src:url('/static/fonts/schoolbell-v1.woff2') format('woff2'); font-display:swap;}
+  .book-title{position:absolute; left:11.3%; width:34%; top:3.2cqw; height:19.5cqw;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:'Schoolbell', 'Comic Sans MS', cursive; line-height:1.02; text-align:center;
+    color:var(--wood-edge); color:color-mix(in srgb, var(--ink) 72%, #3a1f0e);
+    -webkit-text-stroke:0.35cqw currentColor; filter:url(#crayonEdge);
+    transform:rotate(-4deg); pointer-events:none; white-space:nowrap;}
+  .book-title .w{display:block;}
+  .book-title .w span{display:inline-block;}
   body:has(.pack-book) #scroller{bottom:0; padding-bottom:0;}
   body:has(.pack-book) .bottom-nav{backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);}
   .pack-book .card-carousel{position:absolute; inset:0; height:auto; margin:0; clip-path:none; perspective:900px;}
@@ -10654,6 +10671,31 @@ function openAllPacks() {
   if (!reducedMotion()) wrap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140 });
 }
 
+// The pack's name in a child's writing on the left page: each word on its
+// own line when it's a long name, each letter nudged up or down and tilted
+// a little - the same way every time for the same name, so it doesn't
+// jump about on every redraw.
+function bookTitleHtml(p) {
+  const words = p.name.split(' ');
+  const oneLine = p.name.length <= 9;
+  const longest = Math.max(...(oneLine ? [p.name.length] : words.map(w => w.length)));
+  // cqw: fills the page's width at most, and two lines a little smaller so
+  // they clear the cards under them
+  const size = Math.min(10.5, 34 / (longest * 0.5)) * (oneLine ? 1 : 0.86);
+  let seed = 0;
+  for (const ch of p.name) seed = (seed * 31 + ch.charCodeAt(0)) % 9973;
+  const wobble = () => { seed = (seed * 7919 + 17) % 9973; return seed / 9973 - 0.5; };
+  const letters = w => [...w].map(ch => ch === ' ' ? ' ' :
+    `<span style="transform:translateY(${(wobble() * 0.12).toFixed(3)}em) rotate(${(wobble() * 10).toFixed(1)}deg)">${ch}</span>`).join('');
+  const lines = oneLine ? [p.name] : words;
+  return `<div class="book-title" style="--ink:${p.color}; font-size:${size.toFixed(2)}cqw" aria-label="${p.name}">
+      ${lines.map(l => `<span class="w" aria-hidden="true">${letters(l)}</span>`).join('')}
+    </div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="crayonEdge">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter></svg>`;
+}
+
 function renderSelectedPack() {
   const el = document.getElementById('packList');
   const p = allPacksRaw[selectedPack];
@@ -10689,6 +10731,7 @@ function renderSelectedPack() {
     <div class="pack-blurb">${p.blurb}</div>
     <div class="pack-book">
       <div class="book-frame">
+        ${bookTitleHtml(p)}
         <div class="card-carousel" id="cardCarousel">${cards}</div>
         <div class="card-dots" id="cardDots"></div>
       </div>

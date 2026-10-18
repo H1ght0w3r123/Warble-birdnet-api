@@ -247,7 +247,11 @@ child-friendly scrapbook, its pages blank but for crayon doodles drawn
 as by an 8-year-old - a red bird on a branch, a nest, a smiley sun, a blue
 bird, hearts, a star, footprints, a feather, a tick - in the outer corners
 and edges, and the top third of the left page kept empty for the
-collection's name; v5 is v3 with the doodles added by editing - it came
+collection's name, which is written there in a child's hand
+(`bookTitleHtml`: the Schoolbell font, self-hosted in `static/fonts` with
+its Apache licence, in crayon - the pack's colour darkened to read on
+cream, each letter a little off the line, edges roughened by an SVG
+filter - a long name on two lines); v5 is v3 with the doodles added by editing - it came
 back 1px off, which was put right before building - so nothing moved). `.pack-book` runs from under the pack's line to
 the bottom of the screen, the table carrying on under the nav bar, which
 blurs it; the painting is drawn the full width, and `.book-frame`, its top
@@ -463,7 +467,9 @@ A storybook garden carved in warm wood. Follow it in every change to the page:
   (green to orange to red), each pack's own colour on its card corners, and
   the orange "leaving soon" season dot.
 - *Type:* Poppins 900 for titles, names and numbers, 700 for labels and
-  buttons, 400 only for a quiet line or typed text. Italic only for
+  buttons, 400 only for a quiet line or typed text. The one exception is
+  the collection's name written in the Collections book, which is the
+  child's own writing in their book (Schoolbell, `bookTitleHtml`). Italic only for
   scientific names. Painted wordmarks only for the five nav tabs; screens
   inside them use plain white Poppins.
 - *Pictures:* painted, never emoji - except bird photos, which are shown as
