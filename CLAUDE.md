@@ -256,8 +256,10 @@ back 1px off, which was put right before building - so nothing moved). `.pack-bo
 the bottom of the screen, the table carrying on under the nav bar, which
 blurs it; the painting is drawn the full width, and `.book-frame`, its top
 part, holds the cards and the dots under the ribbon, the note following on
-the table in brown on a cream plaque ringed in wood - nothing scrolls, even
-on a 360 x 640 phone. The note fits the clear stretch of table between the
+the table in brown on a scrap of torn paper (`note-paper-v1.webp`, from
+`tools/build_note_paper.py` - read its docstring; drawn with border-image,
+so its corners stay and its edges and middle stretch to the words; a soft
+shadow and a slight tilt) - nothing scrolls, even on a 360 x 640 phone. The note fits the clear stretch of table between the
 props (`.pack-table`: x 170-705 of the painting's 940, a little left of
 the middle; down to the plants, or the nav bar first on a short phone -
 213 x 96px at the smallest on 375 x 667), so it's at most 60 characters,
