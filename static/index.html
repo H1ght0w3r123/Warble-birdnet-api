@@ -11003,7 +11003,8 @@ function wireCardCarousel(carousel, birds) {
     if (!dragging && Math.abs(dx) < 6 && Math.abs(dx) <= Math.abs(dy)) return;
     dragging = true;
     if (Math.abs(dx) > 4) moved = true;
-    drift = baseDrift - dx / placePx();
+    // One swipe, one card: the finger can move the deck at most one place.
+    drift = baseDrift + Math.max(-1, Math.min(1, -dx / placePx()));
     trail.push({ t: e.timeStamp, d: drift });
     while (trail.length > 2 && e.timeStamp - trail[0].t > 100) trail.shift();
     // Resist dragging past either end so the row feels bounded.
@@ -11026,19 +11027,18 @@ function wireCardCarousel(carousel, birds) {
       if (trail.length > 1 && e.timeStamp - last.t < 60 && last.t > first.t) {
         v = (last.d - first.d) / (last.t - first.t);
       }
-      // Where that speed would carry the deck if it slowed steadily to a
-      // stop (GLIDE_MS sets how far), rounded to the nearest card.
+      // One swipe moves exactly one card, however hard the flick: past a
+      // fixed 16px of finger travel (or a quick flick that way), the next
+      // card that way; otherwise back where it started. 16px whatever the
+      // deck's spread: drift is measured in places, and a place is wider on
+      // a bigger phone, so a threshold in places would make the same swipe
+      // count on a small phone and not on a large one.
       const pos = selectedCard + drift;
-      let target = Math.round(pos + v * GLIDE_MS);
-      // A short, slow push still turns one card, as before. The threshold
-      // is a fixed 16px of finger travel, whatever the deck's spread: drift
-      // is measured in places, and a place is wider on a bigger phone, so a
-      // threshold in places would make the same flick count on a small phone
-      // and not on a large one.
+      const start = Math.round(selectedCard + baseDrift);
       const swipeAt = 16 / placePx();
       const nudge = drift - baseDrift;
-      if (target === selectedCard && Math.abs(nudge) > swipeAt) target += Math.sign(nudge);
-      target = Math.min(cards.length - 1, Math.max(deckFirst(), target));
+      const way = Math.abs(nudge) > swipeAt ? Math.sign(nudge) : (Math.abs(v * GLIDE_MS) > 0.5 ? Math.sign(v) : 0);
+      const target = Math.min(cards.length - 1, Math.max(deckFirst(), start + way));
       glideTo(pos, target, v);
       return;
     }

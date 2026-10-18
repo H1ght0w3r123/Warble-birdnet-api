@@ -271,7 +271,9 @@ opens with every card lying down and nothing at the front (`selectedCard`
 -1, `deckFirst()`); a swipe lifts the first card out of its square to the
 front, the next swipe sends it back down and lifts the next - one card
 moving at a time, the front one down before the next comes up, so they
-never cross (a tap on a lying card the same way) (`layoutGrid`). The front
+never cross (a tap on a lying card the same way) (`layoutGrid`). In
+either layout one swipe moves exactly one card, however hard the flick
+(the Awards trophies still glide on). The front
 card is the same size as in the pages' layout. Each square is placed so
 the tilted card *looks* centred in it (`lyingMiddle`, `bookGridSlots` work
 out where its corners land). Home itself never glows - the
