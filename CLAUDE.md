@@ -265,10 +265,15 @@ every place a share of the picture's width). Being tried instead
 (`BOOK_GRID.layout`: 'grid', or 'pages' for the three-card book above): the
 whole pack lying in a grid - four on the left page (two by two, at the
 bottom, a gap above), six on the right (two by three), in order, left page
-first - the card being looked at lifting out of its square to the front and
-a swipe sending it back down as the next rises (`layoutGrid`); each square is
-placed so the tilted card *looks* centred in it (`lyingMiddle`,
-`bookGridSlots` work out where its corners land). Home itself never glows - the
+first, the columns leaning out with the pages' outer edges (`lean`). It
+opens with every card lying down and nothing at the front (`selectedCard`
+-1, `deckFirst()`); a swipe lifts the first card out of its square to the
+front, the next swipe sends it back down and lifts the next - one card
+moving at a time, the front one down before the next comes up, so they
+never cross (a tap on a lying card the same way) (`layoutGrid`). The front
+card is the same size as in the pages' layout. Each square is placed so
+the tilted card *looks* centred in it (`lyingMiddle`, `bookGridSlots` work
+out where its corners land). Home itself never glows - the
 joke, challenges and game discs on it do. Both are remembered server-side in
 `seen_marks`; Settings > Tutorials replays the bubbles.
 Before any of it, a brand-new player gets the welcome (`renderWelcome`):
