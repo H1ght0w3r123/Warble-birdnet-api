@@ -257,7 +257,14 @@ the bottom of the screen, the table carrying on under the nav bar, which
 blurs it; the painting is drawn the full width, and `.book-frame`, its top
 part, holds the cards and the dots under the ribbon, the note following on
 the table in brown on a cream plaque ringed in wood - nothing scrolls, even
-on a 360 x 640 phone. Three cards show - the front one standing between the
+on a 360 x 640 phone. The note fits the clear stretch of table between the
+props (`.pack-table`: x 170-705 of the painting's 940, a little left of
+the middle; down to the plants, or the nav bar first on a short phone -
+213 x 96px at the smallest on 375 x 667), so it's at most 60 characters,
+three short lines: the unfound hints (`unfound_hints.py`, `HINT_MAX`,
+checked at start-up) and the found line ("Heard 12 times! First on 28 Sept
+2026 in Wickham.", the place dropped if it won't fit - `NOTE_MAX`); a
+pack's own message steps aside while a card's note shows. Three cards show - the front one standing between the
 pages, one lying on each page (tilted back, square, level with its page's
 middle and moved out from it by `BOOK.out` so more of it shows beside the
 front card, its outer side leaning parallel with the page's outer edge -
