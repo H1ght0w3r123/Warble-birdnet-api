@@ -392,15 +392,22 @@ child's own bird is) - it twirls in from small (two turns,
 `AVATAR_SPIN`) and leaves burst over everything as it lands (`onShow`,
 `burstLeaves(..., above)`); a bird with a painted dance plays that instead
 (`AVATAR_DANCES`: the Blackbird's, `static/avatar/blackbird/dance-v3.webm`
-and `.webp`, and the Robin's, `static/avatar/classic/dance-v1` - each a
+and `.webp`, the Robin's, `static/avatar/classic/dance-v1`, and the
+Penguin's, `static/avatar/penguin/dance-v1` - each a
 looping see-through video at 24 frames a second, the WebP for iPhones and
 Safari, cut from a dance video by `tools/dance_from_video.py`; read its
 docstring: the videos come on black, green or magenta, not see-through; a
 bird small in its frame is cropped before it's shrunk, and `nogreen`
 takes the green smear compression leaves on fast moves against magenta
-out of a bird with no green in it, the Robin. Ask for one with the bird's
-export from the app - natural plumage on magenta, 9:16 with room all
-round - as its first and last frame). The same dance is the Done screen's own celebration:
+out of a bird with no green in it (the Robin, the Penguin). Ask for one
+with the bird's export from the app - natural plumage on magenta, 9:16
+with room all round - as its first and last frame, and check what comes
+back: generators like to zoom in or walk the bird towards the camera (the
+first Penguin grew a quarter, then popped back at the loop), turn it
+sideways, or redraw its colours mid-dance (the first Cardinal lost its
+dark chest patch). The prompt that held the Penguin still says it's a
+flat 2D character on a fixed stage, the same size in every frame, feet
+on one spot, moving only side to side and up and down). The same dance is the Done screen's own celebration:
 at its top dances the child's **profile bird** (`doneDancerHtml`,
 `pickDoneDancer` - picked as the warble starts, so the dance loads while
 they listen), in natural colours and without accessories, not the bird
