@@ -12,7 +12,7 @@ Every frame is kept: halving to 12 a second to save size was tried first,
 and the dance looked jerky.
 
     pip install imageio-ffmpeg numpy pillow opencv-python   (ffmpeg comes with the first)
-    python3 tools/dance_from_video.py <video.mp4> <bird> [version]
+    python3 tools/dance_from_video.py <video.mp4> <bird> [version] [nogreen]
 
 A dance arrives as an MP4 (Firefly makes them), and MP4 can't hold
 transparency, so the bird comes on a flat background that's cut away here.
@@ -44,10 +44,20 @@ loop is checked: the jump from the last frame back to the first is
 compared with a typical frame-to-frame step, and reported. Ask for the
 same picture as the first and last frame, and it comes back close to one.
 
-The video frames the bird so tightly that wide wing flaps run off its left
-and right edges; their cut-off tips are faded out over EDGE_FADE of the width so
-they don't end in a straight line. The picture is cropped to the band of
-rows the bird ever uses (worked out over every frame).
+NOGREEN, for a bird with no green in it (the Robin): video compression
+smears colour on fast movement, and against magenta the smear comes out
+green - on the Robin's quickest wing flaps the tips came out olive. With
+'nogreen' an olive pixel (green near its red, blue well under) gets its
+green taken down to 0.8 of its red - the Robin's own brown - while
+whites, greys and the orange beak and feet keep theirs. Never use it on a bird that is
+green (the Parrot, the Woodpecker's back...).
+
+The picture is cropped to everywhere the bird ever goes, worked out over
+every frame, before anything is shrunk - a bird small in a big frame (the
+Robin's) keeps its detail. If wide wing flaps run off the video's own left
+or right edge (the Blackbird's did), their cut-off tips are faded out over
+EDGE_FADE of the width so they don't end in a straight line. The files are
+sized by height, as the page shows a dance at a set height.
 """
 import glob
 import os
@@ -66,9 +76,10 @@ EDGE_FADE = 0.05    # of the width: how far in from each side the cut-off wingti
 WORK_WIDTH = 540    # frames are shrunk to this as soon as they're cut (a
                     # 1080x1920 video at full size is 1.6 GB held in memory)
 FPS = 24            # the delivered videos' own rate; every frame is kept
-WEBM_WIDTH = 432    # px wide, a bit over twice the size it's shown at
+MARGIN = 10         # px kept round everywhere the bird goes
+WEBM_HEIGHT = 400   # px tall, a bit over twice the height it's shown at
 WEBM_CRF = 36       # VP9 quality (lower is better and bigger)
-WEBP_WIDTH = 372    # an animated WebP compresses frames far worse than video:
+WEBP_HEIGHT = 344   # an animated WebP compresses frames far worse than video:
 WEBP_QUALITY = 60   # this keeps it near 2 MB
 AVATAR = os.path.join(os.path.dirname(__file__), '..', 'static', 'avatar')
 
@@ -113,7 +124,7 @@ def biggest(mask):
     return lab == 1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])
 
 
-def cut(path, bg_kind):
+def cut(path, bg_kind, nogreen=False):
     im = np.asarray(Image.open(path).convert('RGB'))
     if bg_kind == 'black':
         return cut_black(im)
@@ -135,6 +146,13 @@ def cut(path, bg_kind):
         excess = np.maximum(np.minimum(r, b) - g, 0)
         f[..., 0] = r - excess
         f[..., 2] = b - excess
+        if nogreen:
+            # olive (green near red, blue well under: what the smear leaves)
+            # back to brown, green 0.8 of red; white, greys and the orange
+            # beak and feet aren't touched (blue near red, or green well under)
+            R, G, B = f[..., 0], f[..., 1], f[..., 2]
+            olive = (G > 0.85 * R) & (B < 0.75 * R)
+            f[..., 1] = np.where(olive, np.minimum(G, 0.8 * R), G)
     a = cv2.GaussianBlur((alpha * 255).astype(np.uint8), (3, 3), 0)
     return np.dstack([f.round().astype(np.uint8), a])
 
@@ -154,30 +172,52 @@ def cut_black(im):
     return np.dstack([im, a])
 
 
-def main(video, bird, version='1'):
+def main(video, bird, version='1', nogreen=''):
+    nogreen = nogreen == 'nogreen'
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run([ffmpeg(), '-v', 'error', '-i', video, os.path.join(tmp, 'f%04d.png')], check=True)
         paths = sorted(glob.glob(os.path.join(tmp, 'f*.png')))
         kind = background(paths[0])
-        frames = [shrink(cut(p, kind)) for p in paths]
+        # First, everywhere the bird ever goes (one frame's mask at a time,
+        # so a big video doesn't fill the memory), then each frame cut again
+        # and cropped to that, at full detail - shrunk only if the crop is
+        # still wider than WORK_WIDTH.
+        used = None
+        for path in paths:
+            m = cut(path, kind)[..., 3] > 8
+            used = m if used is None else used | m
+        h, w = used.shape
+        rows, cols = np.nonzero(used.any(1))[0], np.nonzero(used.any(0))[0]
+        y0, y1 = max(0, rows[0] - MARGIN), min(h, rows[-1] + 1 + MARGIN)
+        x0, x1 = max(0, cols[0] - MARGIN), min(w, cols[-1] + 1 + MARGIN)
+        frames = [shrink(cut(p, kind, nogreen)[y0:y1, x0:x1]) for p in paths]
     steps = [np.abs(frames[i + 1][..., :3].astype(np.int16) - frames[i][..., :3]).mean() for i in range(len(frames) - 1)]
     seam = np.abs(frames[0][..., :3].astype(np.int16) - frames[-1][..., :3]).mean()
     print(f'{kind} background; loop: last-to-first jump {seam / np.median(steps):.1f}x a typical step'
           + (' - it will show; ask for the same first and last frame' if seam > 2.5 * np.median(steps) else ''))
-    h, w = frames[0].shape[:2]
-    rows = np.nonzero(np.any(np.stack([f[..., 3] > 8 for f in frames]).any(0), axis=1))[0]
-    y0, y1 = max(0, rows[0] - 10), min(h, rows[-1] + 11)
-    x = np.arange(w)
-    fade = np.clip(np.minimum(x, w - 1 - x) / (EDGE_FADE * w), 0, 1)
+    ch, cw = frames[0].shape[:2]
+    # Wingtips that run off the video's own left or right edge fade out
+    # rather than end in a straight line; a bird that stays inside the
+    # frame keeps its edges.
+    x = np.arange(cw)
+    fade = np.ones(cw)
+    if x0 == 0:
+        fade = np.minimum(fade, np.clip(x / (EDGE_FADE * cw), 0, 1))
+    if x1 == w:
+        fade = np.minimum(fade, np.clip((cw - 1 - x) / (EDGE_FADE * cw), 0, 1))
     big = []
     for f in frames:
-        f = f[y0:y1].astype(np.float32)
+        f = f.astype(np.float32)
         f[..., 3] *= fade[None, :]
         big.append(Image.fromarray(f.round().astype(np.uint8), 'RGBA'))
     base = os.path.join(AVATAR, bird, f'dance-v{version}')
+    os.makedirs(os.path.dirname(base), exist_ok=True)
+    # Sized by height (the page shows a dance at a set height), never above
+    # the crop's own
+    sized = lambda tall: (round(cw * min(tall, ch) / ch / 2) * 2, round(min(tall, ch) / 2) * 2)
 
     # The WebM, through ffmpeg from a folder of see-through PNGs
-    size = (WEBM_WIDTH, round(WEBM_WIDTH * (y1 - y0) / w))
+    size = sized(WEBM_HEIGHT)
     with tempfile.TemporaryDirectory() as tmp:
         for i, im in enumerate(big):
             im.resize(size, Image.LANCZOS).save(os.path.join(tmp, f'f{i:04d}.png'))
@@ -187,7 +227,7 @@ def main(video, bird, version='1'):
     print(f'{base}.webm: {len(big)} frames, {size[0]}x{size[1]}, {os.path.getsize(base + ".webm") // 1024} KB')
 
     # The WebP, for Safari
-    size = (WEBP_WIDTH, round(WEBP_WIDTH * (y1 - y0) / w))
+    size = sized(WEBP_HEIGHT)
     ims = [im.resize(size, Image.LANCZOS) for im in big]
     ms = [round((i + 1) * 1000 / FPS) - round(i * 1000 / FPS) for i in range(len(ims))]   # 41/42/42...
     ims[0].save(base + '.webp', save_all=True, append_images=ims[1:], duration=ms, loop=0,

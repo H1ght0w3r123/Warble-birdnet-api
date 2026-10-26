@@ -4816,7 +4816,10 @@ const AVATAR_SPIN = { delay: 200, spin: 1100 };   // ms: matches .moment-bird-sp
 // a second (12 looked jerky): a see-through WebM video, small and smooth,
 // and an animated WebP for iPhones and Safari, which can't show a
 // see-through WebM. A bird without one dances the usual way.
-const AVATAR_DANCES = { blackbird: '/static/avatar/blackbird/dance-v3' };
+const AVATAR_DANCES = {
+  blackbird: '/static/avatar/blackbird/dance-v3',
+  classic: '/static/avatar/classic/dance-v1',     // the Robin
+};
 // Safari, and every browser on an iPhone or iPad (they're all Safari inside).
 const IS_APPLE_WEBKIT = /iPad|iPhone|iPod/.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
