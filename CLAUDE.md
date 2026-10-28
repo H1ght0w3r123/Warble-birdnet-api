@@ -392,8 +392,9 @@ child's own bird is) - it twirls in from small (two turns,
 `AVATAR_SPIN`) and leaves burst over everything as it lands (`onShow`,
 `burstLeaves(..., above)`); a bird with a painted dance plays that instead
 (`AVATAR_DANCES`: the Blackbird's, `static/avatar/blackbird/dance-v3.webm`
-and `.webp`, the Robin's, `static/avatar/classic/dance-v1`, and the
-Penguin's, `static/avatar/penguin/dance-v1` - each a
+and `.webp`, the Robin's, `static/avatar/classic/dance-v1`, the
+Penguin's, `static/avatar/penguin/dance-v1`, and the Parrot's,
+`static/avatar/parrot/dance-v1` - each a
 looping see-through video at 24 frames a second, the WebP for iPhones and
 Safari, cut from a dance video by `tools/dance_from_video.py`; read its
 docstring: the videos come on black, green or magenta, not see-through; a
