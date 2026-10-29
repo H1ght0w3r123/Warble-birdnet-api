@@ -393,8 +393,9 @@ child's own bird is) - it twirls in from small (two turns,
 `burstLeaves(..., above)`); a bird with a painted dance plays that instead
 (`AVATAR_DANCES`: the Blackbird's, `static/avatar/blackbird/dance-v3.webm`
 and `.webp`, the Robin's, `static/avatar/classic/dance-v1`, the
-Penguin's, `static/avatar/penguin/dance-v1`, and the Parrot's,
-`static/avatar/parrot/dance-v1` - each a
+Penguin's, `static/avatar/penguin/dance-v1`, the Parrot's,
+`static/avatar/parrot/dance-v1`, and the Kingfisher's,
+`static/avatar/kingfisher/dance-v1` - each a
 looping see-through video at 24 frames a second, the WebP for iPhones and
 Safari, cut from a dance video by `tools/dance_from_video.py`; read its
 docstring: the videos come on black, green or magenta, not see-through; a
@@ -408,7 +409,10 @@ first Penguin grew a quarter, then popped back at the loop), turn it
 sideways, or redraw its colours mid-dance (the first Cardinal lost its
 dark chest patch). The prompt that held the Penguin still says it's a
 flat 2D character on a fixed stage, the same size in every frame, feet
-on one spot, moving only side to side and up and down). The same dance is the Done screen's own celebration:
+on one spot, moving only side to side and up and down; from the
+Kingfisher on, prompts also say it's a bird, not a person - no hands,
+fingers or arm-like wings, no human gestures - which held its wings, though
+it still turned, kicked a leg and winked; Phil kept that one). The same dance is the Done screen's own celebration:
 at its top dances the child's **profile bird** (`doneDancerHtml`,
 `pickDoneDancer` - picked as the warble starts, so the dance loads while
 they listen), in natural colours and without accessories, not the bird
